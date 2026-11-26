@@ -1,0 +1,655 @@
+updating-shop-settings: "Aggiornamento delle impostazioni del Negozio..."
+creating-new-section-config: "Creazione di una nuova configurazione per la sezione '%section%' perché non è stata trovata alcuna configurazione delle sezioni, nonostante esista una configurazione dei negozi. Forse non è stata rimossa correttamente?"
+adding-new-shop-shops,yml: "Aggiunta di un nuovo negozio chiamato %shopsection% in shops.yml."
+adding-new-shop-sections,yml: "Aggiunta di una nuova sezione chiamata %shopsection% in sections.yml."
+disabled-due-no-vault: "Disabilitato per mancanza di dipendenza Vault, per favore installa Vault."
+disabled-due-no-economy: "Disabilitato per mancanza di un plugin economy, per favore installa un plugin come EssentialsX."
+database-connected: "Connessione al database %database-type% avvenuta con successo..."
+update-available: "C'è un aggiornamento disponibile per OnyxShop, stai usando la versione %plugin_version% ma esiste la %latest_version%."
+done: "Inizializzato - Completato in %millis%ms"
+completed-delayed: "Caricamento ritardato completato"
+updating-sections-config: "-> aggiornando-sections-config..."
+debug-mode-enabled: "-> abilitata-debug-mode."
+economy-provider-null: "-> provider-dell'economia-nullo."
+successfully-hooked-into-vault: "-> agganciato-economicamente-a-vault."
+language-file-using: "-> usando-%languagefile%."
+cannot-find-language-file: "-> impossibile-trovare-il-file-di-lingua!"
+minecraft-version-using: "-> versione-di-minecraft-%version%..."
+checking-each-item: "-> controllando-ogni-item..."
+loading-items: "-> caricando-gli-items..."
+could-not-find-valid-version: "-> impossibile-trovare-una-versione-valida."
+updating-configs: "-> aggiornando-i-configs..."
+creating-backup: "-> creando-un-backup-da-%fileName%."
+discounts-feature-unavailable: "-> funzione-degli-sconti-non-disponibile."
+cannot-hook-permissions: ""
+enabled-papi-hook: "Hook a PlaceholderAPI abilitato..."
+failed-papi-integration: "Collegamento a PlaceholderAPI non riuscito, disabilitando il plugin..."
+providers-not-enabled-yet: "I provider non sono ancora abilitati, in attesa..."
+
+#Main Shop Inventory
+inventory-main-shop-title: "&8&lServer Shop"
+profile: "&aProfilo"
+name: "&6Nome"
+money: "&6Bilancio"
+level: "&6Livello"
+
+# SellGUI inventory
+inventory-sellgui-title: "&8&|VendiGUI"
+
+#Buystacks Inventory title
+inventory-buystacks-title: "-> inventory-buystacks-title
+
+  Buystacks Inventory title"
+
+# Shop search bar
+shopsearch-title: "&8&lCerca un articolo"
+shopsearch-pre-entered-value: "Inserisci il nome dell'articolo"
+shopsearch-result-title: "&8&|Risultati ricerca"
+shopsearch-change-search-method: "&6&lClicca per cercare usando: &c%search-method%"
+
+# Transaction screen
+inventory-howmuchsell-title: "-> inventory-howmuchsell-title
+
+  HowMuchSell/HowMuchBuy Inventory"
+inventory-howmuchbuy-title: "-> inventory-howmuchsell-title
+
+  HowMuchSell/HowMuchBuy Inventory"
+plus-one: "&b+1"
+min-one: "&5-1"
+plus-sixteen: "&b+16"
+min-sixteen: "&5-16"
+plus-thirty-two: "&b+32"
+min-thirty-two: "&5-32"
+sell: "&aVendi?"
+sell-all: "&cVuoi vendere tutto?"
+buy: "&aAcquista?"
+buy-stacks: "&aClicca per comprare più elementi"
+right-click-change-currency: "&6Click destro: Cambia valuta in &f%currency%"
+transaction-screen-total-price: "&3%price%"
+transaction-screen-total-amount: "&5x%amount%"
+current-sell-limit: "&8Limite di vendita: %limit%"
+reached-sell-limit: "&8Non puoi più vendere questo articolo"
+restocking-sell-limit: "&8Non potrai vendere questo articolo per %time%"
+item-stock: "&8Scorta articolo: %stock%"
+restocking-item-stock: "&8L'articolo sarà rifornito tra %time%"
+out-of-stock: "&8Scorta articolo: 0"
+
+#Main item editor screen
+item-editor-title: "&8&|Editor articoli"
+create-new-item-in-shop: "&a&|Crea un nuovo articolo in questa sezione."
+edit-item: "&9&|Modifica articolo"
+delete-item-in-shop: "&4&|Elimina articolo"
+
+#Item editor selected item
+buy-price: "&aPrezzo di acquisto: &c%amounttopay%"
+sell-price: "&6Prezzo di vendita: &c%amounttopay%"
+
+#All changeable options on items
+option-material: "materiale"
+option-displayname: "nome visualizzato"
+option-name: "nome"
+option-buy-price: "prezzo di acquisto"
+option-sell-price: "prezzo di vendita"
+option-lore: "descrizione"
+option-displaylore: "descrizione visualizzata"
+option-pricing-lore: "descrizione prezzi"
+option-enchantment: "incantesimi"
+option-enchantment-glint: "incantesimo-luccichio"
+option-strength: "forza"
+option-spawner-type: "tipo di spawner"
+option-potiontypes: "tipo di pozioni"
+option-skullowner: "proprietario della testa"
+option-recipe: "ricette"
+option-armorcolor: "colore dell'armatura"
+option-buy-commands: "comandi di acquisto"
+option-sell-commands: "comandi di vendita"
+option-nbtdata: "Dati NBT"
+option-components: "componenti"
+option-global-stock: "scorta globale"
+option-global-stock-limit: "limite scorta globale"
+option-global-stock-restock-time: "tempo di rifornimento globale"
+option-global-stock-restock-frequency: "frequenza di rifornimento globale"
+option-player-stock: "scorta del giocatore"
+option-player-stock-limit: "limite scorta del giocatore"
+option-player-stock-restock-time: "timer di rifornimento del giocatore"
+option-player-stock-restock-frequency: "frequenza rifornimento del giocatore"
+option-level-requirement: "requisiti livello"
+option-skull-texture: "texture della testa"
+option-firework-duration: "durata"
+option-firework-colors: "colori"
+option-firework-fade-colors: "colori sfumatura"
+option-firework-flicker: "scintillio"
+option-firework-trail: "scia"
+option-firework-shape: "forma"
+option-dynamic-pricing: "prezzi dinamici"
+option-subsection: "sottosezione"
+
+#ItemEditor choose index screen
+item-editor-choose-index-title: "&8&|Scegli un valore da modificare:"
+
+#Item editor available options screen
+item-editor-available-options-title: "&8&|Scegli un'opzione:"
+edit-option-of-item: "&6Modifica %option%"
+toggle-option-of-item: "&6Attiva/Disattiva %option%"
+disabled-potiontypes-option: "&6Opzione potiontypes disabilitata:\
+
+  &cIl materiale non è una pozione, pozione da lancio,\
+
+  &cpozione persistente o freccia avvelenata."
+disabled-spawner-type-option: "&6Opzione spawnertype disabilitata:\
+
+  &cIl materiale non è uno spawner."
+disabled-recipe-option: "&6Opzione recipe disabilitata:\
+
+  &cIl materiale non è un libro della conoscenza."
+disabled-skullowner-option: "&6Opzione skullowner disabilitata:\
+
+  &cIl materiale non è una testa di giocatore."
+disabled-armorcolor-option: "&6Opzione armorcolor disabilitata:\
+
+  &cIl materiale non è un'armatura in pelle."
+disabled-dynamic-pricing-option: "L'impostazione dei prezzi dinamici in config.yml deve essere attivata per poter modificare le impostazioni dei prezzi dinamici per gli articoli."
+disabled-option-conflict: "&6L'opzione %option% non può essere modificata:\
+
+  &cNon è possibile modificare %option% perché\
+
+  &c%option2% è già abilitata."
+current-value: "&9Valore attuale %option%: "
+firework-options: "opzioni fuochi d'artificio"
+dynamic-pricing-options: "opzioni di prezzi dinamici"
+global-stock-options: "opzioni scorta globale"
+player-stock-options: "opzioni scorta giocatore"
+
+# Item editor edit firework option screen
+item-editor-firework-title: "&8&lModifica opzioni fuochi d'artificio"
+
+# Limited stock options screen
+item-editor-global-stock-title: "&8&lModifica opzioni scorta globale"
+item-editor-player-stock-title: "&8&lModifica opzioni scorta giocatore"
+
+# Item editor edit dynamic pricing option screen
+item-editor-dynamic-pricing-title: "&8&lModifica opzioni prezzi dinamici"
+
+#Item editor available values screen
+item-editor-choose-value-title: "&8&|Scegli un valore:"
+
+#AnvilGUI enter value screen
+anvilgui-enter-value: "&8&lInserisci %option%"
+
+#Item editor conclusion screen
+item-editor-conclusion-title: "&8&lModifica completata"
+status: "Stato:"
+item-created: "&a&|L'articolo è stato\
+
+  &a&|aggiunto al negozio."
+item-edited: "&a&|L'articolo è stato modificato."
+item-deleted-from-shop: "&a&|L'articolo è stato\
+
+  &a&|rimosso dal negozio."
+
+#ItemEditor delete item confirmation screen
+item-editor-delete-item-confirmation-title: "&8&lSei sicuro?"
+confirm-delete-item: "&4&lSì, elimina questo articolo."
+cancel-delete-item: "&a&lNo, non eliminare questo articolo."
+
+#ItemEditor available edit actions
+item-editor-available-actions-title: "&8&|Scegli un'azione:"
+remove-action: "&a&lRimuovi %key%."
+edit-action: "&a&lModifica %key% esistente."
+add-action: "&a&lAggiungi %key%."
+disabled-action: "&c&|Questa azione non può essere eseguita."
+
+#Chat conversations
+name-prompt-text: "&aInserisci un nome per l'articolo, puoi usare i codici colore con '&'.\
+
+  Digita 'exit' per uscire."
+lore-prompt-text: "&aInserisci la descrizione, puoi usare i codici colore con '&'.\
+
+  Digita 'exit' per uscire."
+command-prompt-text: "&aInserisci il comando, puoi usare %player% per ottenere il nome del giocatore che ha acquistato il comando.\
+
+  Digita 'exit' per uscire."
+nbtdata-prompt-text: "&aInserisci i dati NBT.\
+
+  Digita 'exit' per uscire."
+exited-conversation: "&aConversazione terminata."
+confirm-update-prompt-text: "&aStai per scaricare la versione &c%version% &acontenente i seguenti aggiornamenti:
+
+  &6Titolo: &e %title%
+
+  &6Data di rilascio: &e%timestamp%
+
+  &6Changelog:
+
+  &e%changelog%"
+restock-frequency-prompt-text: "&aInserisci una cron expression per quando rifornire questo articolo.
+
+  Digita 'exit' per uscire."
+
+# Update command
+update-details: "&aStai per scaricare la versione &c%version% &acontenente i seguenti aggiornamenti:
+
+  &6Titolo: &e %title%
+
+  &6Data di rilascio: &e%timestamp%
+
+  &6Changelog:
+
+  &e%changelog%"
+discord-validation-required: "&cÈ necessario verificarsi per continuare, clicca qui per verificarti tramite Discord e iniziare il download."
+no-new-version-found: "&aNon sono state trovate nuove versioni, è tutto aggiornato!"
+unable-to-check-for-updates: "&cImpossibile verificare nuovi aggiornamenti al momento"
+validation-successful: "&aVerifica effettuata con successo, scaricamento dell'aggiornamento..."
+validation-expired: "&cIl processo di verifica per il download dell'aggiornamento è scaduto"
+failed-to-delete-old-version: "&cImpossibile eliminare la versione %version%, dovrai rimuovere il file manualmente dalla cartella plugin."
+update-download-success-restart: "&aAggiornamento scaricato con successo, riavvia il tuo server per rendere effettive le modifiche."
+update-download-success-reloading: "&aAggiornamento effettuato con successo, caricamento del plugin..."
+update-download-failed: "&cDownload aggiornamento fallito, controlla i log nella console per ulteriori dettagli."
+
+# RotatingShop
+enabled-rotating-shop: "Negozio a rotazione %shop% attivato con intervallo di rotazione di %interval%"
+enabled-rotating-shop-frequency: "Abilitato il negozio a rotazione %shop% con frequenza di rotazione %frequency% con prossima rotazione prevista alle %nextRotation%"
+loading-next-rotation: "Caricando la prossima rotazione degli articoli per il negozio %shop%"
+new-items-global-message: "&aNuovi articoli appena aggiunti a %shopName%&r&a, dai un'occhiata con &c/shop %shop%&a. Prossima rotazione tra &f%interval%"
+failed-loading-next-rotation: "Errore durante il caricamento della prossima rotazione per il negozio %shop%"
+invalid-rotation-interval: "Intervallo non valido per il negozio a rotazione %shop% con formato: %interval%"
+invalid-display-chances: "Probabilità non valide per gli articoli nel negozio %shop%, la somma massima deve essere 100 ma è stata trovata %sum%"
+
+# DynamicPricing
+loading-dynamic-pricing: "Caricamento provider DynamicPricing..."
+saving-dynamic-pricing: "Salvataggio DynamicPricing nel database..."
+saved-dynamic-pricing: "DynamicPricing salvato in %millis%ms nel database"
+reloading-dynamic-pricing: "Caricamento DynamicPricing dal database..."
+dynamic-pricing-price-change: "Rilevata variazione di prezzo per l'articolo '%path%' nel negozio %shop%, reset di DynamicPricing per questo articolo..."
+dynamic-pricing-max-stock-change: "Rilevato cambiamento della scorta massima di DynamicPricing, resettando DynamicPricing per l'articolo '%path%' nel negozio %shop%..."
+
+# Item stock
+loading-item-stock: "Caricamento del provider delle scorte degli articoli..."
+reloading-item-stock: "Ricaricamento del provider delle scorte degli articoli..."
+restocked-global-item-stock: "L'articolo '%path%' è stato rifornito con successo nello stock globale degli articoli."
+restocking-global-item-stock: "Avvio timer di rifornimento globale per l'articolo '%path%'"
+restocked-player-item-stock: "L'articolo '%path%' è stato rifornito con successo per il giocatore '%playerUUID%'"
+restocking-player-item-stock: "Avvio timer di rifornimento giocatore per l'articolo '%path%' per il giocatore '%playerUUID%'"
+player-item-stock-change: "Rilevata una modifica nella scorta del giocatore per l'articolo '%path%'; aggiornamento della scorta per tutti i giocatori in corso..."
+global-item-stock-change: "Rilevata una modifica nella scorta globale per l'articolo '%path%', aggiornamento della scorta in corso..."
+
+# Sell limits
+loading-limited-sell: "Caricamento del provider di vendite limitate..."
+reloading-limited-sell: "Ricaricamento del provider di vendite limitate..."
+restocked-global-sell-limit: "L'articolo '%path%' è stato rifornito correttamente in base ai limiti di vendita globali."
+restocking-global-sell-limit: "Avvio del timer di rifornimento globale per l'articolo '%path%'"
+restocked-player-sell-limit: "Rifornimento dell'articolo '%path%' completato con successo per il limite di vendita del giocatore '%playerUUID%'."
+restocking-player-sell-limit: "Avvio del timer per il rifornimento dell'articolo '%path%' per il giocatore '%playerUUID%'"
+player-sell-limit-change: "Rilevata modifica del limite di vendita del giocatore per l'articolo '%path%', aggiornamento del limite per tutti i giocatori in corso..."
+global-sell-limit-change: "Rilevata modifica del limite di vendita globale per l'articolo '%path%', aggiornamento del limite in corso..."
+
+#All Inventory's
+back: "&4Dietro"
+cancel: "&4Cancella"
+
+#Previous/Next/Current page
+previous-page: "&dPagina Precedente"
+next-page: "&bPagina Successiva"
+
+# ShopItem lore
+left-click-buy: "\\n &a&lPrezzo d'acquisto\\n &a■ &f%buyPrice%"
+dynamic-buy-price: "
+
+  \ &a&lPrezzo d'acquisto
+
+  \ &a■ &f&m%buyPrice%&r %dpp%&f%dynamicBuyPrice%"
+seasonal-buy-price: "
+
+  \ &a&lPrezzo d'acquisto
+
+  \ &a■ &f&m%buyPrice%&r %dpp%&f%seasonalBuyPrice%"
+discounted-buy-price: "
+
+  \ &a&lPrezzo d'acquisto
+
+  \ &a■ &f&m%buyPrice%&r %dpp%&f%discountedPrice%"
+right-click-sell: "&6Tasto destro: Vendi: &c%sellPrice%"
+dynamic-sell-price: "
+
+  \ &c&lPrezzo di vendita
+
+  \ &c■ &f&m%sellPrice%&r %dpp%&f%dynamicSellPrice%"
+seasonal-sell-price: "
+
+  \ &c&lPrezzo di vendita
+
+  \ &c■ &f&m%sellPrice%&r %dpp%&f%seasonalSellPrice%"
+multiplied-sell-price: "
+
+  \ &c&lPrezzo di vendita
+
+  \ &c■ &f&m%sellPrice%&r %dpp%&f%multipliedPrice%"
+middle-click-sell-all: "&bClick centrale: Vendi tutto"
+missing-required-item-permissions-rank: "&c&lQuesto articolo richiede il rango &8&l%rank_name% &c&l"
+missing-required-item-permissions: "&c&lNon hai i permessi richiesti per questo articolo"
+rising-dynamic-price-prefix: "&a⏶%percent%% "
+dropping-dynamic-price-prefix: "&c⏷%percent%% "
+current-item-stock: "&fDisponibilità dell'oggetto: &a%itemStock%"
+restocking-item: "&fL'articolo sarà rifornito tra: &a%time%"
+item-out-of-stock: "&cOggetto esaurito"
+sell-limit: "&cLimite di vendita: &6%limit%"
+sell-limit-reached: "&cNon puoi più vendere questo articolo"
+sell-limit-restocking: "&cNon puoi vendere questo articolo per &6%time%"
+shift-click-item-editor: "&eShift Click: Modifica articolo"
+item-location-in-shop: "&8Sezione: %shopsection%, Indice: %itemLoc%"
+item-cannot-be-bought: "&cL'oggetto non può essere comprato"
+item-cannot-be-sold: "&cL'oggetto non può essere venduto"
+level-requirement-lore: "&c&lRichiede almeno il livello di esperienza %requirement%."
+playtime-requirement-lore: "&c&lRichiede almeno %requirement% di tempo di gioco."
+placeholder-equals-requirement-lore: "&c&lRichiede %requirement%"
+placeholder-differs-requirement-lore: "&c&lRichiede un diverso %requirement%"
+placeholder-larger-requirement-lore: "&c&lRichiede almeno %requirement%"
+placeholder-smaller-requirement-lore: "&c&lRichiede meno di %requirement%"
+permission-requirement-lore: "&c&lRichiede il permesso &f%requirement%"
+
+#Buy/Sell Messages
+discord-srv-player-transaction: "%player_name% ha comprato/venduto %amount% x %items% a %price%"
+pay-confirmation: "&aHai acquistato &1%amount% x &b%material% &aper &c%amounttopay% con successo"
+pay-confirmation-command: "&aHai acquistato con successo un &6comando &aper &c%amounttopay% &ae ora è stato eseguito."
+sell-confirmation-command: "&aHai venduto con successo un &6comando &aper &c%amounttopay% &ae ora è stato eseguito."
+sell-confirmation: "&aHai venduto &1%amount% x &b%material% &aper &c%amounttopay% con successo"
+sell-confirmation-multiple-items: "&aHai venduto &1%amount% &aoggetti per &c%amounttopay% con successo"
+no-item-to-be-sold: "&cNon hai nessuno di questi oggetti nel tuo inventario."
+already-purchased-item: "&cHai già acquistato questo articolo, non è possibile acquistarlo di nuovo."
+limited-item-sell-amount: "&cNon puoi vendere questo articolo al momento"
+level-requirement-not-met: "&cQuesto articolo richiede un livello di %requirement%, &csei attualmente al livello %progress%."
+playtime-requirement-not-met: "&cQuesto articolo richiede un tempo di gioco di %requirement%, &chai attualmente un tempo di gioco di %progress%."
+placeholder-equals-requirement-not-met: "&cQuesto articolo richiede %requirement%, &chai attualmente %progress%."
+placeholder-differs-requirement-not-met: "&cQuesto articolo richiede un diverso %requirement%, &chai attualmente %progress%."
+placeholder-larger-requirement-not-met: "&cQuesto articolo richiede almeno %requirement%, &chai attualmente %progress%."
+placeholder-smaller-requirement-not-met: "&cQuesto articolo richiede meno di %requirement%, &chai attualmente %progress%."
+permission-requirement-not-met: "&cQuesto articolo richiede il permesso %requirement%"
+cannot-purchase-item: "&cQuesto elemento non può essere comprato."
+cannot-sell-item: "&cL'oggetto non può essere venduto."
+player-made-transaction: "%playername% %bought/sold% %amount% x %material% per %amountofmoney% con il metodo %buy/sell-method%."
+player-made-transaction-multiple-items: "%playername% ha comprato/venduto %items% a %amountofmoney% con il metodo compra/vendi."
+buy-screen: "schermata di acquisto"
+sell-screen: "schermata di vendita"
+buystacks-screen: "schermata compra stack"
+sellall-screen: "schermata vendi tutto"
+sellall-command: "comando vendi tutto"
+sellgui-screen: "interfaccia di vendita"
+quick-buy: "schermata di acquisto rapido"
+quick-sell: "schermata di vendita rapida"
+auto-sell-chest: "VendiCassa"
+bought: "acquistato"
+sold: "venduto"
+
+#CurrencySymbol
+currencysymbol: "%price%€"
+symbol-pricing-format: "%symbol%%price%"
+named-pricing-format: "%price% &l%currency-format%"
+and-price-separator-long: " e "
+and-price-separator-short: ", "
+or-price-separator-long: " o "
+or-price-separator-short: ", "
+levels-currency-name-singular: "livello"
+levels-currency-name-plural: "livelli"
+time-format-days: "d"
+time-format-hours: "h"
+time-format-minutes: "m"
+time-format-seconds: "s"
+
+#All commands
+command-disabled-in-world: "&cQuesto comando è disabilitato in questo mondo."
+
+#Edit-shop subcommand descriptions
+editshop-add-item-subcommand-desc: "&aAggiungi un oggetto al negozio."
+editshop-edit-item-subcommand-desc: "&aModifica un oggetto esistente nel negozio."
+editshop-remove-item-subcommand-desc: "&aElimina un oggetto dal negozio."
+editshop-import-subcommand-desc: "&aImporta file/impostazioni da un'altra posizione o plugin."
+editshop-add-hand-item-subcommand-desc: "&aAggiungi un oggetto dalla tua mano al negozio."
+editshop-add-section-subcommand-desc: "&aAggiungi una sezione al tuo negozio."
+editshop-edit-section-subcommand-desc: "&aModifica una sezione già esistente."
+editshop-remove-section-subcommand-desc: "&aRimuovi una sezione esistente dal negozio."
+editshop-set-globalstock-command-desc: "&aImposta il limite di scorte globali per un articolo del negozio."
+editshop-reset-globalstock-command-desc: "&aReimposta il limite di scorte per articoli o sezioni specifiche del negozio"
+editshop-add-globalstock-command-desc: "&aAggiunge scorte globali per l'articolo del negozio"
+editshop-set-playerstock-command-desc: "&aImposta il modificatore globale della scorta per un giocatore specifico per un articolo del negozio"
+editshop-reset-playerstock-command-desc: "&aReimposta il limite di scorta per specifici giocatori su articoli o sezioni del negozio"
+editshop-add-playerstock-command-desc: "&aAggiunge le scorte per il giocatore specificato per un articolo del negozio"
+editshop-set-globalsell-command-desc: "&aImposta il limite di vendita per un articolo specifico del negozio"
+editshop-reset-globalsell-command-desc: "&aReimposta il limite di vendita per specifici articoli/sezioni"
+editshop-set-playersell-command-desc: "&aImposta il limite di vendita per un giocatore specifico su un articolo."
+editshop-reset-playersell-command-desc: "&aReimposta il limite di vendita per specifici giocatori su articoli/sezioni del negozio"
+editshop-update-subcommand-desc: "&aCerca nuovi aggiornamenti del plugin."
+editshop-reset-dynamicpricing-subcommand-desc: "&aReimposta il DynamicPricing per uno o tutti gli articoli nello stesso momento"
+
+#Edit-shop subcommand syntaxes
+editshop-add-item-subcommand-syntax: "&a/editshop additem <section> <material> <buy price> <sell price> [displayname]"
+editshop-edit-item-subcommand-syntax: "&a/editshop edititem <section> <item> <action> <key> <value>"
+editshop-remove-item-subcommand-syntax: "&a/editshop deleteitem <section> <item>"
+editshop-import-subcommand-syntax: "&a/editshop import <plugin> <file>"
+editshop-add-hand-item-subcommand-syntax: "&a/editshop addhanditem <section> <buy price> <sell price>"
+editshop-set-globalstock-command-syntax: "&a/editshop globalstock set <sezione> <indice> <quantità>"
+editshop-reset-globalstock-command-syntax: "&a/editshop globalstock reset <sezione> <indice>"
+editshop-add-globalstock-command-syntax: "&a/editshop globalstock add <sezione> <indice> <quantità>"
+editshop-set-playerstock-command-syntax: "&a/editshop playerstock set <giocatore> <sezione> <indice> <quantità>"
+editshop-reset-playerstock-command-syntax: "&a/editshop playerstock reset <giocatore> <sezione> <indice>"
+editshop-set-globalsell-command-syntax: "&a/editshop globalsell set <sezione> <indice> <quantità>"
+editshop-reset-globalsell-command-syntax: "&a/editshop globalsell reset <sezione> <indice>"
+editshop-set-playersell-command-syntax: "&a/editshop playersell set <giocatore> <sezione> <indice> <quantità>"
+editshop-reset-playersell-command-syntax: "&a/editshop playersell reset <giocatore> <sezione> <indice>"
+editshop-add-playerstock-command-syntax: "&a/editshop playerstock add <giocatore> <sezione> <indice> <quantità>"
+editshop-update-subcommand-syntax: "&a/editshop update"
+editshop-reset-dynamicpricing-subcommand-syntax: "&a/editshop dynamicpricing reset <all/sezione> [indice]"
+
+#Edit-shop command messages
+editshop-adding-item: "&aAggiunta del nuovo oggetto a shops.yml..."
+editshop-add-item-successful: "&aOggetto aggiunto con successo al negozio nel persorso '%itemPath%'."
+editshop-adding-section: "&aAggiunta di una nuova sezione su sections.yml..."
+editshop-add-section-successful: "&aLa sezione è stata aggiunta con successo al negozio nel percorso '%itemPath%'."
+editshop-editing-item: "&aAggiornamento dell'oggetto..."
+editshop-edit-item-successful: "&aAggiornato con successo '%itemPath%'."
+editshop-editing-section: "&aAggiornamento sezione..."
+editshop-removing-item: "&aRimozione dell'oggetto dal negozio..."
+editshop-remove-item-successful: "&a'%itemPath%' rimosso con successo dal negozio."
+editshop-removing-section: "&aRimozione della sezione dal negozio..."
+editshop-removed-section: "&a&a'%itemPath%' rimosso con successo dal negozio."
+editshop-reload-shop-to-see-changes: "&aUsa il comando /sreload per caricare le modifiche all'interno del negozio."
+file-replaced: "&aIl vecchio %fileName% è stato rimpiazzato con il nuovo file, il vecchio file può essere trovato nella cartella dei backup se hai sbagliato qualcosa."
+globalstock-set-successful: "&aModificatore di scorta globale aggiornato con successo per l'articolo '%itemPath%'"
+stock-limit-reset-successful: "&aLimiti delle scorte reimpostate con successo, operazione completata in %time%ms"
+playerstock-set-successful: "&aModificatore di scorta del giocatore '%player%' aggiornato con successo per l'articolo '%itemPath%'"
+playerstock-set-all-players: "&aAggiornato con successo il limite delle scorte dei giocatori per tutti i giocatori per l'articolo '%itemPath%'."
+globalsell-set-successful: "&aAggiornato con successo il limite di vendita globale per l'articolo '%itemPath%'"
+playersell-set-successful: "&aAggiornato con successo il limite di vendita del giocatore '%player%' per l'articolo '%itemPath%'."
+playersell-set-all-players: "&aAggiornato con successo il limite delle scorte per l'articolo '%itemPath%' per tutti i giocatori."
+resetting-dynamicpricing: "&aReimpostazione DynamicPricing per tutti gli articoli..."
+dynamicpricing-reset-specific-item: "&aResettato con successo il DynamicPricing per l'articolo '%itemPath%'."
+dynamicpricing-reset: "&aReimpostazione del DynamicPricing per tutti gli articoli effettuata con successo"
+
+#Edit-shop command errors
+section-does-not-contain-item: "&cLa sezione '%shopsection%' non contiene l'oggetto '%itemLoc%'."
+no-valid-action: "&cAzione non valida: '%action%'.
+
+  Azioni disponibili: %actions%."
+no-valid-key: "&cChiave non valida '%key%'.
+
+  Chiavi disponibili: %keys%."
+action-not-valid-on-key: "&cImpossibile %action% la chiave '%key%'."
+edit-item-material-invalid: "&cIl materiale dell'oggetto che stai cercando di modificare è invalido. '%material%'"
+key-already-defined: "&cLa chiave '%key%' è già impostata sull'oggetto, non puoi impostarla di nuovo."
+key-is-not-found: "&cLa chiave '%key%' non può essere rimossa dall'oggetto perché non è stata trovata."
+plugin-not-found: "&cImpossibile trovare un plugin con quel nome specifico, controlla se supportiamo quel plugin."
+file-not-found: "&cImpossible trovare il file %fileName% nella cartella del plugin %pluginName%."
+no-valid-slot-for-item: "&cL'oggetto non può essere inserito nello slot '%slot%'. Lo slot deve essere 1 - %maxShopSize%."
+slot-already-in-use: "&cLo slot per questa sezione è già in uso.
+
+  Tutti gli slot disponibili: %available-slots%"
+slot-needs-to-be-number: "&cLo slot dell'oggetto nel menù principale deve essere un numero."
+
+#Reload Command
+configs-reloaded: "&aTutte le configurazioni ricaricate."
+
+# Sellall command usages
+sellall-command-usages: "&aUtilizzo comando(i):"
+sellall-inventory-command-usage: "&7/sellall inventory &f- &7Vendi tutti gli oggetti dell'inventario"
+sellall-hand-command-usage: "&7/sellall hand &8[amount] &f- &7Vendi tutti gli oggetti che hai in mano"
+sellall-item-command-usage: "&7/sellall <item> &8[amount] &f- &7Vende tutti gli oggetti nel tuo inventario con il nome corrispondente alla ricerca"
+
+#Balance Command
+check-balance: "&bAttualmente hai &c%amountofmoney%&b."
+check-balance-other-player: "&b%playername% &aha attualmente &c%amountofmoney%&a."
+
+#Givemoney Command
+givemoneycommand-example: "&9/givemoney <player> <amount>"
+givemoney-complete: "&aInvio denaro completato."
+
+#Pay Command
+minimum-amount: "&cL'importo minimo per pagare un giocatore è %minimumamount%."
+payment-complete: "&aPagamento effettuato."
+player-received-money: "&aHai ricevuto &c%amounttogive% &ada &2%playername%&a!"
+need-player-and-amount: "&9Devi inserire un giocatore e la quantità di denaro."
+need-amount: "&9Devi inserire la quantità di denaro."
+paycommand-example: "&9/pay <player> <amount>"
+
+#Player breaks spawner
+default-spawner-name: "&9&l%spawner-type% &rSpawner"
+spawner-broke-and-applied-to-inventory: "&aHai minato un &9%spawner-type%&a con successo, l'oggetto sarà inserito nel tuo inventario."
+need-silk-touch: "&cDevi utilizzare un piccone con Tocco di Velluto per minare questo oggetto!"
+
+#JoinMessage
+join-message: "&2Benvenuto, il tuo saldo è &c%balance%!"
+
+#Level event
+level-event-message: "&2[Levels] &5Ecco fatto, &c%amount% &5è stato aggiunto al tuo saldo!"
+
+#Item error's
+displayname-null: "Impossibile ottenere il nome da visualizzare."
+item-name-null: "Impossibile ottenere il nome dell'oggetto."
+need-item-material: "Impossibile creare l'oggetto con un materiale di valore vuoto."
+item-material-null: "Caricamento del materiale come '%material%' non riuscito, è possibile che non esista o sia stato scritto male."
+item-enchantment-null: "Impossibile ottenere l'incantesimo dell'oggetto."
+need-item-enchantment: "Impossibile creare un incantesimo con valore vuoto."
+item-enchantment-not-supported: "Questo incantesimo non è supportato in questa versione di Minecraft."
+enchantment-cannot-apply-to-item: "Per applicare un incantesimo all'oggetto, il materiale deve essere un libro incantato o uno strumento che è possibile incantare."
+item-spawnertype-null: "Impossibile ottenere il tipo di spawner per l'oggetto."
+need-item-spawnertype: "Impossibile creare lo spawner con un tipo di spawner vuoto."
+material-needs-to-be-spawner: "Per applicare un Tipo-Spawner(Tipo-Entità) a un oggetto, il materiale dell'oggetto deve essere uno spawner."
+item-potiontype-null: "Impossibile ottenere il tipo di pozione dell'oggetto."
+need-item-potiontype: "Impossibile creare un tipo di pozione con un valore vuoto."
+potiontype-not-supported: "Questo tipo di pozione non è supportato in questa versione di Minecraft."
+material-needs-to-be-potion: "Per applicare un effetto pozione, il materiale deve essere un tipo di pozione o una freccia imbevuta."
+cant-bind-multiple-applyments: "Impossibile creare un oggetto con multiple applicazioni come tipi di spawner/incantesimi o tipi di effetti pozione."
+item-error: "&cErrore oggetto, controlla la console."
+material-not-supported: "Il materiale di questo oggetto non è supportato in questa versione di Minecraft."
+item-needs-buy-and-sell-value: "Tutti gli oggetti nel negozio devono avere un valore acquisto/vendita."
+sell-value-wrong: "Il valore di vendita deve essere un decimale o un numero."
+buy-value-wrong: "Il valore di acquisto deve essere un decimale o un numero."
+invalid-buy-price: "Formato decimale non valido per '%price%' nel prezzo d'acquisto dell'articolo."
+invalid-sell-price: "Formato decimale non valido per '%price%' nel prezzo di vendita dell'articolo."
+option-type-changed: "Per favore, cambia l'opzione 'type' in 'spawnertype' per creare uno spawner nel negozio. Il nome dell'opzione è cambiata nella versione 2.2 per chiarire."
+option-meta-changed: "Per favore, cambia l'opzione 'meta' in 'displayname' per creare un oggetto con un nome visibile nel negozio. Il nome dell'opzione è cambiata nella versione 2.2 per chiarire."
+cannot-display-shopsection: "Impossibile creare la sezione '%shopsection%' perché la posizione dell'elemento deve essere in un intervallo 0 - %maxInvSize%."
+need-recipe-material: "Impossibile creare il materiale della ricetta con un valore vuoto."
+cannot-get-recipe-material: "Impossibile create il materiale della ricetta, controlla il nome del materiale per eventuali errori ortografici e se esiste."
+recipe-material-not-supported: "Il materiale per la ricetta ottenuto non è supportato in questa versione di Minecraft."
+material-needs-to-be-book: "Per applicare una ricetta all'oggetto, il materiale dell'oggetto deve essere un libro della conoscenza."
+need-skullowner: "Impossibile creare la Testa Giocatore senza specificare il giocatore (Proprietario Teschio)."
+material-needs-to-be-skull: "Per applicare una texture al teschio (Proprietario Teschio) all'oggetto, il materiale dell'oggetto deve essere una Testa Giocatore."
+material-needs-to-be-leather-armor: "Per applicare un colore a un pezzo di armatura, il materiale deve essere un'armatura di pelle."
+command-null: "Impossibile ottenere il comando specificato."
+nbtdata-needs-curly-brackets: "I dati NBT devono iniziare e finire con parentesi graffe."
+nbtdata-null: "Impossibile ottenere i dati NBT."
+cannot-get-nbtdata: "Impossibile aggiungere i dati NBT all'articolo, dati malformati o non esistenti."
+invalid-itemsadder-item: "Impossibile trovare l'articolo con ID '%id%' in ItemsAdder."
+invalid-headdatabase-skull: "Testa con ID '%id%' non valida in HeadDatabase."
+unknown-third-party-item: "Impossibile trovare l'articolo con ID '%id%' nel plugin %plugin%."
+unknown-third-party-enchantment: "Impossibile trovare l'incantesimo con ID '%id%' nel plugin %plugin%."
+error-creating-third-party-item: "Impossibile creare un articolo con ID '%id%' da %plugin%."
+
+#Item path
+items-path-in-shops-config: "Percorso oggetto in shops.yml: %location%"
+items-path-in-sections-config: "Percorso oggetto in sections.yml: %location%"
+items-path-in-config: "Percorso oggetto in config.yml: %location%"
+
+#Compatibility
+mineablespawners-compatibility-enabled: "Fornitore spawner impostato a MinableSpawners in config"
+mineablespawners-found: "MineableSpawners trovato, integrazione..."
+mineablespawners-not-found: "MineableSpawners non trovato"
+could-not-intergrate-with-mineablespawners: "Impossibile integrare con MineableSpawners"
+using-mineablespawners-spawners: "Utilizzo MineableSpawners come fornitore spawner..."
+rosestacker-compatibility-enabled: "Fornitore spawner impostato a RoseStacker in config"
+rosestacker-not-found: "RoseStacker non trovato"
+could-not-integrate-with-rosestacker: "Non integrabile con RoseStacker"
+rosestacker-found: "RoseStacker trovato, integrazione..."
+using-rosestacker-spawners: "Utilizzo RoseStacker come fornitore spawner..."
+epicspawners-compatibility-enabled: "Provider degli spawner impostato su EpicSpawners nella configurazione."
+epicspawners-not-found: "EpicSpawners non è stato trovato."
+could-not-integrate-with-epicspawners: "Impossibile integrare EpicSpawners."
+epicspawners-found: "EpicSpawners trovato, integrazione in corso..."
+using-epicspawners-spawners: "Usando EpicSpawners come provider degli spawner..."
+ultimatestacker-compatibility-enabled: "Fornitore spawner impostato a UltimateStacker in config"
+ultimatestacker-not-found: "UltimateStacker non trovato"
+could-not-integrate-with-ultimatestacker: "Non integrabile con UltimateStacker"
+ultimatestacker-found: "UltimateStacker trovato, integrazione..."
+using-ultimatestacker-spawners: "Utilizzo UltimateStocker come fornitore spawner..."
+spawner-compatibility-enabled: "Fornitore spawner impostato a %provider% in config"
+spawner-provider-not-found: "%provider% non è stato trovato"
+spawner-provider-found: "%provider% trovato, integrazione..."
+failed-spawner-provider-integration: "Impossibile integrare con %provider%"
+using-external-spawners: "Utilizzo %provider% come fornitore spawner."
+
+silkspawners-compatibility-enabled: "Compatibilità SilkSpawner attivata nella configurazione."
+silkspawners-not-found: "SilkSpawners non trovato"
+silkspawners-found: "SilkSpawners trovato, integrazione..."
+could-not-integrate-with-silkspawners: "Non integrabile con SilkSpawners."
+using-silkspawners-spawners: "Utilizzo spawners SilkSpawners..."
+using-default-spawners: "Utilizzo spawner originali..."
+
+#Error's
+cannot-find-discounted-section: "Impossibile aggiungere sconti per la sezione '%section%', sezione disabilitata o non trovata."
+cannot-find-discounted-group: "Impossibile aggiungere sconti per il gruppo permessi '%permsGroup%', controlla l'ortografia e se esiste nel tuo plugin dei permessi."
+disabling-plugin: "Disattivazione plugin..."
+not-spawn-able: "Questo tipo di entità non è spawnabile. '%spawnertype%'"
+real-player: "Devi essere un giocatore reale per usare quel comando."
+player-not-online: "&cIl giocatore non è online o non esiste."
+cannot-sell-air: "&cNon puoi vendere aria..."
+no-permissions: "&cNon hai il permesso per fare questo."
+no-permissions-to-open-shop: "&cNon hai il permesso necessario ad aprire questa sezione."
+cannot-do-that: "&4Non puoi farlo!!"
+more-space-needed: "&cFai più spazio nel tuo inventario e riprova."
+could-not-store-all-items: "&c%amount% oggetto(i) non possono essere aggiunti al tuo inventario perché è pieno."
+not-enough-space-inside-inventory: "&4Non hai abbastanza spazio nel tuo inventario, lascia gli oggetti rimanenti a terra."
+insufficient-money: "&cNon hai abbastanza %currency%."
+canceling-transaction-no-space: "&4Non hai abbastanza spazio nel tuo inventario, transazione cancellata.
+
+  Libera un po' di spazio nel tuo inventario e riprova."
+no-items-in-section: "Impossibile aprire la sezione %shopsection% perché non sono stati trovati oggetti!"
+no-item-found: "&cNessun oggetto(i) trovato(i)."
+item-null: "&cL'oggetto non esiste."
+item-cannot-be-sold-to-server: "&cL'oggetto (%material%) non può essere venduto al server perché l'oggetto ha un error all'intern dello shop. Per favore segnala questo problema agli admin del server o al proprietario."
+could-not-save-config: "Impossibile salvare la configurazione %fileName%"
+rgb-color-formatted-wrong: "I colori RGB devono essere formattati: '0x000000', '#000000' o '000000' in %path%."
+no-shop-found: "&cImpossibile trovare una sezione del negozio con quel nome"
+no-valid-amount: "&cQuantità non valida"
+restart-plugin: "Impossibile aprire la sezione, prova a riavviare il plugin o entra nel server Discord per ricevere supporto."
+could-not-check-for-updates: "&cImpossibile verificare gli aggiornamenti."
+cannot-update-config: "&cImpossibile aggiornare il file di configurazione config.yml."
+cannot-read-config: "Impossibile leggere la configurazione %fileName% perché non è correttamente configurato, utilizza un analizzatore Yaml online con l'errore sottostante per individuare la causa del problema e risolverla. Se non riesci a trovarla, entra nel nostro server Discord che puoi trovare nella pagina del plugin OnyxShop."
+error-occured-while-reloading: "&4Si è verificato un errore durante il caricamento del plugin, controlla la console per eventuali messaggi d'errore."
+could-not-get-the-limitedstock-mode: "Impossibile ottenere la modalità limitedstock: %limitedStockMode%"
+error-occurred-while-connecting-to-database: "Si è verificato un errore durante la connessione al database"
+invalid-item-type: "&cTipo elemento non valido per %type%"
+cannot-enter-shop-banned-gamemode: "&cNon puoi comprare/vendere oggetti in %gamemode%."
+cannot-use-command-banned-gamemode: "&cNon puoi usare questo comando in %gamemode%."
+could-not-enable-limitedstock: "Impossibile abilitare il provider di scorte limitate degli articoli"
+could-not-enable-limitedsellstock: "Impossibile abilitare il provider di azioni a vendita limitata"
+could-not-enable-dynamicpricing: "Impossibile abilitare il provider di prezzi dinamici"
+not-enough-stock-available: "&cImpossibile acquistare l'articolo/i perché le scorte non sono sufficienti."
+invalid-storage-type: "Tipo di archiviazione non valido per '%type%'. Uso SQLite come predefinito..."
+cannot-store-payment: "&cImpossibile completare la transazione, spazio non disponibile nel tuo inventario. Fai spazio e riprova."
+invalid-buy-price-scaling: "La scala del prezzo di acquisto per DynamicPricing deve essere tra 0 e 100%, trovato %scale%. Uso il predefinito %default%%..."
+invalid-sell-price-scaling: "La scala del prezzo di vendita per DynamicPricing deve essere tra 0 e 100%, trovato %scale%. Uso il predefinito %default%%..."
+headdatabase-api-not-ready-yet: "Impossibile ottenere l'articolo HeadDatabase, l'API non è pronta."
+cannot-create-item-from-plugin: "Impossibile creare l'articolo da %plugin%, plugin non trovato."
+exception-loading-fill-item: "Eccezione durante il caricamento del Fill-Item per la sezione '%section%':"
+transaction-placeholder-default: "Nessun dato disponibile per questo intervallo temporale."
+update-disabled: "&cUpdate checking is disabled on this server."
+cloud-disabled: "&cCloud features are disabled on this server."

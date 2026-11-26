@@ -1,0 +1,248 @@
+name: OnyxShop
+version: 1.0.0
+main: com.onyxshop.OnyxShop
+description: A modern shop plugin with rotating shops, stock limits and dynamic pricing
+api-version: '1.19'
+authors: [OnyxShop]
+has-open-classloader: false
+folia-supported: true
+loader: com.onyxshop.util.PaperLibrariesLoader
+dependencies:
+  server:
+    Vault:
+      required: false
+    GemsEconomy:
+      required: false
+    PlayerPoints:
+      required: false
+    CoinsEngine:
+      required: false
+    ExcellentEconomy:
+      required: false
+    VotingPlugin:
+      required: false
+    UltraEconomy:
+      required: false
+    EcoBits:
+      required: false
+    TheNewEconomy:
+      required: false
+    CMI:
+      required: false
+    zEssentials:
+      load: BEFORE
+      required: false
+    VaultUnlocked:
+      required: false
+
+    Essentials:
+      load: BEFORE
+      required: false
+    EssentialsChat:
+      required: false
+    openeco:
+      load: BEFORE
+      required: false
+    LiteEco:
+      required: false
+    SimpleEconomy:
+      required: false
+    DynastyEconomy:
+      required: false
+
+    SilkSpawners:
+      required: false
+    SilkSpawners_v2:
+      load: BEFORE
+      required: false
+    WildStacker:
+      required: false
+    UltimateStacker:
+      required: false
+    EpicSpawners:
+      required: false
+    RoseStacker:
+      required: false
+    UpgradeableSpawners:
+      required: false
+    MineableSpawners:
+      required: false
+    SpawnerMeta:
+      required: false
+    SpawnerLegacy:
+      required: false
+    SmartSpawner:
+      required: false
+
+    EcoEnchants:
+      required: false
+    AdvancedEnchantments:
+      load: BEFORE
+      required: false
+    ExcellentEnchants:
+      required: false
+    CrazyEnchantments:
+      load: BEFORE
+      required: false
+
+    ViaVersion:
+      required: false
+    ProtocolSupport:
+      required: false
+    Geyser-Spigot:
+      load: BEFORE
+      required: false
+    floodgate:
+      load: BEFORE
+      required: false
+
+    LuckPerms:
+      required: false
+    UltraPermissions:
+      required: false
+
+    HeadDatabase:
+      required: false
+    ItemsAdder:
+      required: false
+    MMOItems:
+      required: false
+    SCore:
+      required: false
+    ExecutableItems:
+      required: false
+    Oraxen:
+      required: false
+    Brewery:
+      required: false
+    BreweryX:
+      required: false
+    Nexo:
+      required: false
+    MythicMobs:
+      required: false
+    Slimefun:
+      required: false
+    EcoItems:
+      required: false
+    CraftEngine:
+      required: false
+
+    RealisticSeasons:
+      required: false
+    DiscordSRV:
+      required: false
+    PlaceholderAPI:
+      required: false
+    AutoSellChests:
+      load: AFTER
+      required: false
+    Quests:
+      required: false
+    BeautyQuests:
+      required: false
+    BetonQuest:
+      load: BEFORE
+      required: false
+    WorldGuard:
+      required: false
+    GriefPrevention:
+      required: false
+
+permissions:
+  OnyxShop.shop:
+    default: true
+    description: This permission allows players to use the /shop command
+  OnyxShop.sellall:
+    default: true
+    description: This permission allows players to use the /sellall command
+  OnyxShop.sellallitem:
+    default: true
+    description: This permission allows players to use the /sellall <item> command
+  OnyxShop.sellallhand:
+    default: true
+    description: This permission allows players to use the /sellall hand command
+  OnyxShop.sellgui:
+    default: true
+    description: This permission allows players to open the /sellGUI
+  OnyxShop.reload:
+    description: This permission allows players to use the /sreload command
+  OnyxShop.bypassgamemode:
+    description: Allows you to use the shop while being inside a banned gamemode
+  OnyxShop.itemindexes:
+    description: Allows you to see the locations of the shop items inside the shops.yml
+  OnyxShop.notifyUpdate:
+    description: Player's with this permission will be notified for plugin updates when they join the server
+  OnyxShop.shop.search:
+    default: true
+    description: Allows you to use the /shop search command
+  OnyxShop.editshop.*:
+    default: op
+    children:
+      OnyxShop.editshop: true
+      OnyxShop.editshop.additem: true
+      OnyxShop.editshop.edititem: true
+      OnyxShop.editshop.deleteitem: true
+      OnyxShop.editshop.addhanditem: true
+      OnyxShop.editshop.import: true
+      OnyxShop.editshop.migrate: true
+      OnyxShop.editshop.editor: true
+      OnyxShop.editshop.update: true
+      OnyxShop.editshop.addsection: true
+      OnyxShop.editshop.editsection: true
+      OnyxShop.editshop.deletesection: true
+      OnyxShop.editshop.installLayout: true
+      OnyxShop.editshop.uploadLayout: true
+      OnyxShop.editshop.updateLayout: true
+      OnyxShop.editshop.dynamicpricing.*: true
+      OnyxShop.editshop.globalstock.*: true
+      OnyxShop.editshop.playerstock.*: true
+      OnyxShop.editshop.globalsell.*: true
+      OnyxShop.editshop.playersell.*: true
+      OnyxShop.editshop.rotatingshop.*: true
+      OnyxShop.editshop.logs.*: true
+  OnyxShop.editshop.dynamicpricing.*:
+    default: op
+    children:
+      OnyxShop.editshop.dynamicpricing.reset: true
+  OnyxShop.editshop.globalstock.*:
+    default: op
+    children:
+      OnyxShop.editshop.globalstock.set: true
+      OnyxShop.editshop.globalstock.reset: true
+      OnyxShop.editshop.globalstock.add: true
+  OnyxShop.editshop.playerstock.*:
+    default: op
+    children:
+      OnyxShop.editshop.playerstock.set: true
+      OnyxShop.editshop.playerstock.reset: true
+      OnyxShop.editshop.playerstock.add: true
+  OnyxShop.editshop.globalsell.*:
+    default: op
+    children:
+      OnyxShop.editshop.globalsell.set: true
+      OnyxShop.editshop.globalsell.reset: true
+  OnyxShop.editshop.playersell.*:
+    default: op
+    children:
+      OnyxShop.editshop.playersell.set: true
+      OnyxShop.editshop.playersell.reset: true
+  OnyxShop.editshop.rotatingshop.*:
+    default: op
+    children:
+      OnyxShop.editshop.rotatingshop.rotate: true
+  OnyxShop.editshop.shopstands.*:
+    default: op
+    children:
+      OnyxShop.editshop.shopstands.give: true
+      OnyxShop.editshop.shopstands.destroy: true
+      OnyxShop.editshop.shopstands.browse: true
+      OnyxShop.editshop.shopstands.edit: true
+      OnyxShop.editshop.shopstands.create: true
+  OnyxShop.editshop.logs.*:
+    default: op
+    children:
+      OnyxShop.editshop.logs.export: true
+  OnyxShop.shopgive:
+    default: op
+    description: Gives access to the /shopgive command

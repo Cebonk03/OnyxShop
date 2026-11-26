@@ -1,0 +1,28 @@
+# Gradle / build output
+/build/
+/**/build/
+.gradle/
+bin/
+out/
+
+# IDE metadata
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Tooling caches (regenerable)
+.codegraph/
+
+# Logs and scratch files
+*.log
+*.tmp
+*.bak
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Agent/tooling state
+.omp/

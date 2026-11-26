@@ -1,0 +1,609 @@
+updating-shop-settings: "Shop instellingen aan het bijwerken..."
+adding-new-shop-shops,yml: "Nieuwe shop aan het toevoegen genaamd %shopsection% aan shops.yml."
+adding-new-shop-sections,yml: "Nieuwe shop aan het toevoegen genaamd %shopsection% aan sections.yml."
+disabled-due-no-vault: "Plugin uitgeschakeld doordat Vault niet is gevonden. Installeer Vault A.U.B."
+disabled-due-no-economy: "Uitgeschakeld omdat er geen economy plugin is gevonden, installeer een plugin zoals EssentialsX."
+database-connected: "Met success verbonden met %database-type% database..."
+update-available: "Er is een update beschikbaar voor OnyxShop. Je gebruikt v%plugin_version%, maar vond v%latest_version%."
+done: "Geïnitialiseerd - Duurde %millis%ms om te voltooien."
+completed-delayed: "Laden voltooid"
+updating-sections-config: "Sections configuratie aan het bijwerken..."
+debug-mode-enabled: "De debug modus is ingeschakeld."
+economy-provider-null: "EconomyProvider is niet gevonden."
+successfully-hooked-into-vault: "Successvol ingehaakt bij Vault."
+language-file-using: "%languagefile% gebruiken als taalbestand..."
+cannot-find-language-file: "Kan het taalbestand niet vinden!"
+minecraft-version-using: "Minecraft versie %version% aan het gebruiken..."
+checking-each-item: "Elk item aan het controleren op verkeerde/ontbrekende waarden..."
+loading-items: "Alle items aan het laden..."
+could-not-find-valid-version: "Kan geen geldige implementatie vinden voor deze serverversie. Dit zorgt ervoor dat de plugin geen versie heeft om te gebruiken en dat betekent dat veel items/methoden niet zullen werken. Gebruik AUB een ondersteunde minecraft versie."
+updating-configs: "De configuraties bijwerken omdat er een nieuwere versie is gevonden..."
+creating-backup: "Een back-up maken van het oude %fileName%, het bestand kan worden gevonden in de map met back-ups in de OnyxShop plugin map."
+discounts-feature-unavailable: "De kortingen functie kan niet worden gebruikt omdat er geen permissies plugin gevonden is."
+cannot-hook-permissions: "Mislukt om een ondersteunde permissie plugin te vinden"
+enabled-papi-hook: "PlaceHolderAPI Hook geactiveerd..."
+failed-papi-integration: "Fout om te verbinden met PlaceHolderAPI, plugin is uitgeschakeld..."
+providers-not-enabled-yet: "Integraties zijn nog niet allemaal ingeschakeld, wachten..."
+
+#Main Shop Inventory
+inventory-main-shop-title: "&8&lServer Shop"
+profile: "&aProfiel"
+name: "&6Naam"
+money: "&6Balans"
+level: "&6Level"
+
+# SellGUI inventory
+inventory-sellgui-title: "&8&lVerkoopGUI Inventaris"
+
+#Buystacks Inventory title
+inventory-buystacks-title: "&8Kies de hoeveelheid &lstacks"
+
+# Shop search bar
+shopsearch-title: "&8&lZoek een item"
+shopsearch-pre-entered-value: "Voer item naam in"
+shopsearch-result-title: "&8&lZoek resultaat"
+shopsearch-change-search-method: "&6&lKlik om te zoeken door middel van: &c%search-method%"
+
+# Transaction screen
+inventory-howmuchsell-title: "&8Kies hoeveel je wil &lverkopen"
+inventory-howmuchbuy-title: "&8Kies hoeveel je wil &lkopen"
+plus-one: "&b+1"
+min-one: "&5-1"
+plus-sixteen: "&b+16"
+min-sixteen: "&5-16"
+plus-thirty-two: "&b+32"
+min-thirty-two: "&5-32"
+sell: "&aVerkopen?"
+sell-all: "&cWil je alles verkopen?"
+buy: "&aKopen?"
+buy-stacks: "&aKlik om meer te kopen"
+right-click-change-currency: "&6Rechts Klik: Verander prijs naar &f%currency%"
+transaction-screen-total-price: "Totaal prijs: &3%price%"
+transaction-screen-total-amount: "Totale hoeveelheid: &5x %amount%"
+current-sell-limit: "&8Verkoop limiet: %limit%"
+reached-sell-limit: "&8Je kan dit item niet meer verkopen"
+restocking-sell-limit: "&8Je mag dit item niet meer verkopen voor %time%"
+item-stock: "&8Item voorraad: %stock%"
+restocking-item-stock: "&8Item wordt bijgevuld over %time%"
+out-of-stock: "&8Item voorraad: 0"
+max-amount-reached: "&cMaximale hoeveelheid bereikt"
+min-amount-reached: "&cMin. houveelheid bereikt"
+
+#Main item editor screen
+item-editor-title: "&8&lItem bewerker"
+create-new-item-in-shop: "&a&lMaak een nieuw item in deze shop sectie."
+edit-item: "&9&lBewerk item"
+delete-item-in-shop: "&4&lDelete item"
+
+#Item editor selected item
+buy-price: "&aKoop prijs: &c%amounttopay%"
+sell-price: "&6Verkoop prijs: &c%amounttopay%"
+
+#All changeable options on items
+option-material: "materiaal"
+option-displayname: "weergavenaam"
+option-name: "naam"
+option-buy-price: "koop prijs"
+option-sell-price: "verkoop prijs"
+option-lore: "lore"
+option-displaylore: "displaylore"
+option-pricing-lore: "prijs aanduiding"
+option-enchantment: "betoveringen"
+option-enchantment-glint: "enchantment-glint"
+option-strength: "sterkte"
+option-spawner-type: "spawner type"
+option-potiontypes: "toverdranken"
+option-skullowner: "schedel eigenaar"
+option-recipe: "recipes"
+option-armorcolor: "armorkleur"
+option-buy-commands: "koop commando's"
+option-sell-commands: "verkoop commando's"
+option-nbtdata: "NBTData"
+option-global-stock: "globale voorraad"
+option-global-stock-restock-time: "globale bevoorradingstijd"
+option-player-stock: "speler voorraad"
+option-player-stock-restock-time: "speler bevoorradingstijd"
+option-level-requirement: "vereiste level"
+option-skull-texture: "hoofd textuur"
+option-firework-duration: "duratie"
+option-firework-colors: "kleuren"
+option-firework-fade-colors: "vervagende kleuren"
+option-firework-flicker: "flikkering"
+option-firework-trail: "spoor"
+option-firework-shape: "vorm"
+option-dynamic-pricing: "dynamic pricing"
+option-subsection: "sub sectie"
+
+#ItemEditor choose index screen
+item-editor-choose-index-title: "&8&lKies een waarde om te bewerken:"
+
+#Item editor available options screen
+item-editor-available-options-title: "&8&lKies een optie:"
+edit-option-of-item: "&6Bewerk %option%"
+toggle-option-of-item: "&6Schakel %option% in of uit"
+disabled-potiontypes-option: "&6Optie toverdranken is uitgeschakeld:\
+
+  &cHet materaal van het item is geen potion,\
+
+  &csplash potion, lingering potion of tipped arrow."
+disabled-spawner-type-option: "&6Optie spawner type is uitgeschakeld:\
+
+  &cHet materiaal van het item is geen spawner."
+disabled-recipe-option: "&6Optie recipe is uitgeschakeld:\
+
+  &cHet materiaal van het item is geen knowledge-book."
+disabled-skullowner-option: "&6Optie schedel eigenaar is uitgeschakeld:\
+
+  &cHet materiaal van het item is geen player-head."
+disabled-armorcolor-option: "&6Optie armorcolor is uitgeschakeld:\
+
+  &cHet materiaal van het item is geen leather armor."
+
+# Item editor edit firework option screen
+item-editor-firework-title: "&8&lBewerk vuurwerk opties"
+
+#Item editor available values screen
+item-editor-choose-value-title: "&8&lKies een waarde:"
+
+#AnvilGUI enter value screen
+anvilgui-enter-value: "&8&lVoer de %option% in"
+
+#Item editor conclusion screen
+item-editor-conclusion-title: "&8&lBewerken succesvol"
+status: "Status:"
+item-created: "&a&lHet item is\
+
+  &a&ltoegevoegd aan de shop."
+item-edited: "&a&lHet item is bewerkt."
+item-deleted-from-shop: "&a&lHet item is\
+
+  &a&lverwijderd uit de shop."
+
+#ItemEditor delete item confirmation screen
+item-editor-delete-item-confirmation-title: "&8&lBen je zeker?"
+confirm-delete-item: "&4&lJa, verwijder het item."
+cancel-delete-item: "&a&lNee, verwijder het item niet."
+
+#ItemEditor available edit actions
+item-editor-available-actions-title: "&8&lKies een actie:"
+remove-action: "&a&lVerwijder de %key%."
+edit-action: "&a&lBewerk de bestaande %key%."
+add-action: "&a&lVoeg de %key% toe."
+disabled-action: "&c&lDeze actie kan niet worden uitgevoerd."
+
+#Chat conversations
+name-prompt-text: "&aType een naam, je kan kleuren codes gebruiken met '&'.\
+
+  Type 'exit' om te stoppen."
+lore-prompt-text: "&aVul de lore in, je kan kleuren codes gebruiken met '&'.\
+
+  Type 'exit' om te stoppen."
+command-prompt-text: "&aType het commando, je kan %player% gebruiken om de speler die het commando gekocht heeft zijn naam te gebruiken.\
+
+  Type 'exit' om te stoppen."
+nbtdata-prompt-text: "&aType de NBTData.\
+
+  Type 'exit' om te stoppen."
+exited-conversation: "&aConversatie beindigd."
+confirm-update-prompt-text: "&aJe staat op het punt om versie &c%version% &ate downloaden met update gegevens:\
+
+  &6Titel: &e %title%\
+
+  &6Uitgave datum: &e%timestamp%\
+
+  &6Wijzigingslog:\
+
+  &e%changelog%"
+
+# Update command
+update-details: "&aJe staat op het punt om versie &c%version% &ate downloaden met update gegevens:\
+
+  &6Titel: &e %title%\
+
+  &6Uitgave datum: &e%timestamp%\
+
+  &6Wijzigingslog:\
+
+  &e%changelog%"
+discord-validation-required: "&cValidatie vereist om verder te gaan, klik hier om te valideren via discord en te starten met de download."
+no-new-version-found: "&aEr is geen nieuwere versie gevonden, je bent al up-to-date!"
+unable-to-check-for-updates: "&cKan op dit moment niet controleren voor updates"
+validation-successful: "&aValidatie succesvol, update is aan het downloaden..."
+validation-expired: "&cValidatie proces voor update is verlopen"
+failed-to-delete-old-version: "&cKon de versie %version% niet verwijderen, je zult het handmatig moeten verwijderen uit de plugins map."
+update-download-success-restart: "&aUpdate succesvol gedownload, herstart de server om deze toe te passen."
+update-download-success-reloading: "&aUpdate succevol gedownload, plugin aan het herladen..."
+update-download-failed: "&cUpdate downloaden mislukt, bekijk de server logs voor meer details."
+
+# ShopStands transactions
+shopstand-buy-screen-title: "&8Kopen &a&l> &r&8%item%"
+shopstand-sell-screen-title: "&8Verkopen &c&l> &r&8%item%"
+shopstand-click-to-buy: "&aKlik om %amount% te kopen"
+shopstand-click-to-sell: "&aKlik om %amount% te verkopen"
+shopstand-total-price: "&cTotaal prijs: &7%price%"
+
+# Shop stands module
+default-shop-stand-item-name: "&eShopStand"
+default-shop-stand-item-lore: "&fPlaats dit item op de grond om een
+
+  &fnieuwe &6ShopStand &fte maken op de locatie
+
+  &fvoor het shop item &c%item%"
+shop-stands-management-inventory-title: "&8&lStand management"
+shop-stand-info-item-name: "&6&lShopStand info:"
+shop-stand-info-item-lore: "&aStand ID: &f%id%
+
+  &aLocatie: &f%location%
+
+  &aShop item: &f%item%
+
+  &aStand tiepe: &f%type%
+
+  &aIs geladen: &f%loaded%"
+force-reload-stand-item-name: "&e&lHerlaad de stand"
+force-reload-stand-item-lore: "&fAls je hier klikt wordt de stand herladen
+
+  &fen zal het display item en de stand her-maken"
+destroy-stand-item-name: "&4&lVerwijder shop stand"
+destroy-stand-item-lore: "&eKlik om deze shop stand te verwijderen"
+reload-shop-stand: "&aForceer het herladen van shop stand met ID %id%"
+shop-stand-browse-inventory-title: "&8&lStand lijst"
+shop-stand-location-format: "Wereld '%world%', x%pos_x%, y%pos_y%, z%pos_z%"
+created-new-shop-stand: "&aMet success een nieuwe ShopStand gemaakt voor &f%item%"
+error-creating-new-shop-stand: "&cEr is een fout opgetreden bij het maken van een ShopStand: %reason%"
+new-items-global-message: "&aNieuwe items zijn zojuist toegevoegd aan %shopName%&r&a, bekijk ze nu via &c/shop %shop%&a. Volgende items in &f%interval%"
+
+# DynamicPricing
+loading-dynamic-pricing: "Laden van DynamicPricing integratie..."
+saving-dynamic-pricing: "Opslaan van DynamicPricing in de database..."
+saved-dynamic-pricing: "Het opslaan van DynamicPricing gebeurde in %millis%ms"
+
+#All Inventory's
+back: "&4Terug"
+cancel: "&4Annuleer"
+
+#Previous/Next/Current page
+previous-page: "&dVorige pagina"
+next-page: "&bVolgende pagina"
+current-page: "&7Pagina: %page%/%pages%"
+
+# ShopItem lore
+left-click-buy: "\\n &a&lKoop prijs\\n &a■ &6&l&f%buyPrice%"
+dynamic-buy-price: "\\n &a&lKoop prijs\\n &a■ &f&m%buyPrice%&r %dpp%&f%dynamicBuyPrice%"
+seasonal-buy-price: "\\n &a&lKoop prijs\\n &a■ &f&m%buyPrice%&r %dpp%&f%seasonalBuyPrice%"
+discounted-buy-price: "\\n &a&lKoop prijs\\n &a■ &f&m%buyPrice%&r %dpp%&f%discountedPrice%"
+right-click-sell: "\\n &c&lVerkoop prijs\\n &c■ &6&f%sellPrice%"
+dynamic-sell-price: "\\n &c&lVerkoop prijs\\n &c■ &6&f%sellPrice%&r %dpp%&f%dynamicSellPrice%"
+seasonal-sell-price: "\\n &c&lVerkoop prijs\\n &c■ &6&f%sellPrice%&r %dpp%&f%seasonalSellPrice%"
+multiplied-sell-price: "\\n &c&lVerkoop prijs\\n &c■ &6&f%sellPrice%&r %dpp%&f%multipliedPrice%"
+shift-right-click-sell-all: "&bShift + Rechter Click: Verkoop Alles"
+selected-amount: "&aHoeveelheid"
+missing-required-item-permissions-rank: "&c&lDit item vereist de &8&l%rank_name% &c&lrank"
+missing-required-item-permissions: "&c&lJe hebt de vereiste permissies niet voor dit item"
+rising-dynamic-price-prefix: "&a⏶%percent%% "
+dropping-dynamic-price-prefix: "&c⏷%percent%% "
+current-item-stock: "&fHuidige item voorraad: &a%itemStock%"
+item-out-of-stock: "&citem is niet op voorraad"
+sell-limit: "&cVerkoop limiet: &6%limit%"
+sell-limit-reached: "&cJe kan dit item niet meer verkopen"
+sell-limit-restocking: "&cJe mag dit item niet meer verkopen voor &6%time%"
+shift-click-item-editor: "&eShift klik: Item bewerken"
+item-location-in-shop: "&8Section: %shopsection%, Index: %itemLoc%"
+item-cannot-be-bought: "&cItem kan niet gekocht worden"
+item-cannot-be-sold: "&cItem kan niet verkocht worden"
+item-seasonal-price: "&e&lSeizoensprijs %season-icon%"
+decoration-lore: "\n &e&lGebruik:"
+decoration-lore-buy: "&e ╚&e&l» &fKlik met links om te kopen"
+decoration-lore-sell-all: "&e ╚&e&l» &fShift + Klik met rechts om alles te verkopen"
+decoration-lore-sell: "&e ╚&e&l» &fKlik met rechts om te verkopen"
+decoration-lore-view: "&e ╚&e&l» &fKlik om te bekijken\n "
+placeholder-equals-requirement-lore: "&c&lVereist %requirement%"
+placeholder-differs-requirement-lore: "&c&lAndere %requirement% nodig"
+placeholder-larger-requirement-lore: "&c&lVereist teminste %requirement%"
+placeholder-smaller-requirement-lore: "&c&lVereist minder %requirement%"
+time-requirement-lore: "&c&lKan alleen gekocht worden tussen
+
+  &c%minTime% &len &c%maxTime% &lingame tijd"
+quest-requirement-lore: "&c&lVereist het voltooien van de &b&l%questName% quest"
+region-requirement-lore: "&c&lVereist om in de &b&l%regionName% regio te zijn"
+permission-requirement-lore: "&c&lVereist de permissie &f%requirement%"
+item-requirement-lore: "&c&lVereist %amount%x %itemName% te hebben in inventory"
+
+#Buy/Sell Messages
+discord-srv-player-transaction: "%player_name% %bought/sold% %amount% x %items% voor %price%"
+pay-confirmation: "&aJe hebt met succes &1%amount% x &b%material% &agekocht voor &c%amounttopay%"
+pay-confirmation-command: "&aJe hebt met success een &6command &agekocht voor &c%amounttopay% &aen wordt nu uitgevoerd."
+sell-confirmation-command: "&aJe hebt met success een &6command &averkocht voor &c%amounttopay% &aen wordt nu uitgevoerd."
+sell-confirmation: "&aJe hebt met succes &1%amount% x &b%material% &averkocht voor &c%amounttopay%"
+sell-confirmation-multiple-items: "&aJe hebt met succes &1%amount% &aitems verkocht voor &c%amounttopay%"
+no-item-to-be-sold: "&cJe hebt niets van dit item in je inventaris."
+already-purchased-item: "&cJe hebt dit item al gekocht en is niet mogelijk om het opnieuw te kopen"
+limited-item-sell-amount: "&cJe kan dit item op dit moment niet verkopen"
+level-requirement-not-met: "&cDit item heeft een level vereiste van %requirement%, &cje huidige level %progress%."
+playtime-requirement-not-met: "&cDit item vereist een minimale speeltijd van %requirement%, &cje hebt momenteel een speeltijd van %progress%."
+placeholder-equals-requirement-not-met: "&cDit item vereist om een %requirement% te hebben, &cje hebt momenteel %progress%."
+placeholder-differs-requirement-not-met: "&cDit item heeft een andere %requirement% nodig, &cje hebt momenteel %progress%."
+placeholder-larger-requirement-not-met: "&cDit item vereist teminste %requirement% &cmaar je hebt momenteel %progress%."
+placeholder-smaller-requirement-not-met: "&cDit item vereist minder %requirement% te hebben, &cmomenteel heb je %progress%."
+time-requirement-not-met: "&cDit item kan alleen gekocht/verkocht worden tussen &f%minTime% &cen &f%maxTime%&c ingame tijd, huidige tijd is &f%progress%&c. Kom binnekort terug!"
+quest-requirement-not-met: "&cDit item kan alleen gekocht/verkocht worden wanneer je de quest &b&l%questName%&c hebt voltooid, kom terug als je het voltooid hebt!"
+region-requirement-not-met: "&cJe kan dit item alleen kopen/verkopen in de %regionName% regio"
+permission-requirement-not-met: "&cDit item vereist de %requirement% pernissie"
+item-requirement-not-met: "&cJe hebt %amount%x %itemName% nodig in je inventory"
+cannot-purchase-item: "&cDit item kan niet gekocht worden."
+cannot-sell-item: "&cDit item kan niet worden verkocht."
+player-made-transaction: "%playername% %bought/sold% %amount% x %material% voor %amountofmoney% met het %buy/sell-method%."
+player-made-transaction-multiple-items: "%playername% %bought/sold% %items% voor %amountofmoney% met de %buy/sell-method%."
+on-screen-title-sold: "&a+%price%"
+on-screen-title-bought: "&c-%price%"
+buy-screen: "Aankoopscherm"
+sell-screen: "Verkoopscherm"
+buystacks-screen: "koop stacks scherm"
+sellall-screen: "Verkoop alles scherm"
+sellall-command: "verkoop alle commando"
+sellgui-screen: "Verkoop GUI"
+quick-buy: "Snelle aankoopscherm"
+quick-sell: "Snelle verkoopscherm"
+shopstand-buy-screen: "&8&lKopen"
+shopstand-sell-screen: "winkel verkoop scherm"
+auto-sell-chest: "Verkoopkist"
+bought: "kocht"
+sold: "verkocht"
+
+#CurrencySymbol
+currencysymbol: "€%price%"
+symbol-pricing-format: "%symbol%%price%"
+named-pricing-format: "%price% &l%currency-format%"
+and-price-separator-long: " en "
+or-price-separator-long: " of "
+
+# XP Currency name format
+xp-currency-name-singular: "XP punt"
+xp-currency-name-plural: "XP punten"
+levels-currency-name-singular: "level"
+levels-currency-name-plural: "levels"
+
+#All commands
+command-disabled-in-world: "&cDeze command is uitgeschakeld in deze wereld."
+
+#Edit-shop subcommand descriptions
+editshop-add-item-subcommand-desc: "&aVoeg een item toe aan de shop."
+editshop-edit-item-subcommand-desc: "&aBewerk een bestaand item in de shop."
+editshop-remove-item-subcommand-desc: "&aVerwijder een item uit de shop."
+editshop-import-subcommand-desc: "&aImporteert bestanden/instellingen van een andere locatie of plugin."
+editshop-add-hand-item-subcommand-desc: "&aVoeg een item van je hand toe aan de shop."
+editshop-add-section-subcommand-desc: "&aVoeg een winkelsectie toe aan de winkel."
+editshop-edit-section-subcommand-desc: "&aBewerk een bestaande winkelsectie."
+editshop-remove-section-subcommand-desc: "&aVerwijder een bestaande winkelsectie van de winkel."
+editshop-add-globalstock-command-desc: "&aVoegt globale voorraad toe aan het item in de winkel"
+editshop-set-playerstock-command-desc: "&aZet de voorraad modificator voor een specifieke speler en bepaald winkel item"
+editshop-add-playerstock-command-desc: "&aVoegt voorraad toe aan de gespecificeerde speler op een winkel item"
+editshop-set-globalsell-command-desc: "&aZet de verkoop limiet voor een specifiek winkel item"
+editshop-set-playersell-command-desc: "&aZet de verkoop limiet voor een specifieke speler voor een winkel item"
+editshop-update-subcommand-desc: "&aAan het zoeken op nieuwe updates van de plugin"
+editshop-reset-dynamicpricing-subcommand-desc: "&aReset DynamicPricing voor een specifiek of alle items te gelijkertijd"
+
+#Edit-shop subcommand syntaxes
+editshop-add-item-subcommand-syntax: "&a/editshop additem <sectie> <item> <koopprijs> <verkoopprijs> [displayname]"
+editshop-edit-item-subcommand-syntax: "&a/editshop edititem <sectie> <item> <actie> <kernwaarde> <waarde>"
+editshop-remove-item-subcommand-syntax: "&a/editshop deleteitem <sectie> <item>"
+editshop-import-subcommand-syntax: "&a/editshop import <plugin> <bestand>"
+editshop-add-hand-item-subcommand-syntax: "&a/editshop addhanditem <sectie> <koopprijs> <verkoopprijs>"
+editshop-add-section-subcommand-syntax: "&a/editshop addsection <sectie> <item> <weergavenaam> <plek>"
+editshop-edit-section-subcommand-syntax: "&a/editshop editsection <sectie> <actie> <kernwaarde> <waarde>"
+editshop-remove-section-subcommand-syntax: "&a/editshop deletesection <sectie>"
+editshop-set-globalstock-command-syntax: "&a/editshop globalstock set <sectie> <index> <hoeveelheid>"
+editshop-add-globalstock-command-syntax: "&a/editshop globalstock add <sectie> <index> <hoeveelheid>"
+editshop-set-playerstock-command-syntax: "&a/editshop playerstock set <speler> <sectie> <index> <hoeveelheid>"
+editshop-set-globalsell-command-syntax: "&a/editshop globalsell set <sectie> <index> <hoeveelheid>"
+editshop-set-playersell-command-syntax: "&a/editshop playersell set <speler> <sectie> <index> <hoeveelheid>"
+editshop-add-playerstock-command-syntax: "&a/editshop playerstock add <speler> <sectie> <index> <hoeveelheid>"
+editshop-update-subcommand-syntax: "&a/editshop update"
+editshop-reset-dynamicpricing-subcommand-syntax: "&a/editshop dynamicpricing reset <all/secties> [index]"
+
+#Edit-shop command messages
+editshop-adding-item: "&aHet nieuwe item toevoegen aan shops.yml..."
+editshop-add-item-successful: "&aHet item is met succes toegevoegd aan de winkel onder '%itemPath%'."
+editshop-adding-section: "&aDe nieuwe winkelsectie toevoegen aan sections.yml..."
+editshop-add-section-successful: "&aDe winkelsectie is met succes toegevoegd aan de winkel onder '%itemPath%'."
+editshop-editing-item: "&aHet item updaten..."
+editshop-edit-item-successful: "&aSuccesvol bijgewerkt '%itemPath%'."
+editshop-editing-section: "&aDe sectie aan het bijwerken..."
+editshop-removing-item: "&aHet artikel uit de winkel verwijderen..."
+editshop-remove-item-successful: "&a'%itemPath%' is uit de winkel verwijderd."
+editshop-removing-section: "&aDe winkelsectie uit de winkel verwijderen..."
+editshop-removed-section: "&a'%itemPath%' is succesvol uit de winkel verwijderd."
+editshop-reload-shop-to-see-changes: "&aGebruik command /sreload om de wijzigingen in de shop te laden."
+file-replaced: "&aHet oude %fileName% is vervangen met de nieuwe, het oude bestand kan teruggevonden worden in de backups map als je het nodig hebt."
+globalstock-set-successful: "&aSuccesvol de globale voorraad modifictor geüpdatet voor het item '%itemPath%'"
+playerstock-set-successful: "&aSuccesvol de speler voorraad modifictor geüpdatet voor '%player%' voor item '%itemPath%'"
+playerstock-set-all-players: "&aSuccesvol de speler voorraad limit voor alle spelers geüpdatet voor item '%itemPath%'"
+globalsell-set-successful: "&aSuccesvol de globale verkoop limiet geüpdatet voor het item '%itemPath%'"
+playersell-set-successful: "&aSuccesvol de speler verkoop limit voor speler '%player%' geüpdatet voor item '%itemPath%'"
+playersell-set-all-players: "&aSuccesvol de speler voorraad limit voor alle spelers geüpdatet voor item '%itemPath%'"
+resetting-dynamicpricing: "&aDynamicPricing aan het resetten voor alle items..."
+dynamicpricing-reset-specific-item: "&aSuccesvol DynamicPricing gereset op het item '%itemPath%'"
+dynamicpricing-reset: "&aSuccesvol DynamicPricing gereset op alle items"
+check_player_price_modifiers: "&aSpeler &6%player_name% &aheeft &b%amount% &aprijs modificatoren:"
+player_price_modifier_removed: "&f%location% &amodificator voor &6%player_name%&a(&6%player_uuid%&a) voor &f%type% &aprijs verwijderd"
+player_price_modifier_set: "&aMet success de modificator &f%location% &atoegevoegd voor &6%player_name%&a(&6%player_uuid%&a) voor &f%type% &aprijs van &b%amount%%"
+
+#Edit-shop command errors
+section-does-not-contain-item: "&cSectie '%shopsection%' bevat niet het item '%itemLoc%'."
+no-valid-action: "&cGeen geldige actie '%action%'.\
+
+  Beschikbare acties: %actions%."
+no-valid-key: "&cGeen geldige key '%key%'.\
+
+  Beschikbare keys: %keys%."
+action-not-valid-on-key: "&cKan de '%key%' key niet %action%."
+edit-item-material-invalid: "&cHet materiaal van het item dat u probeert te bewerken, is ongeldig. '%material%'"
+key-already-defined: "&cDe '%key%' key is al gebruikt voor het item, u kunt deze niet twee keer toevoegen."
+key-is-not-found: "&cDe '%key%' key kan niet uit het item worden verwijderd omdat deze niet is gevonden."
+plugin-not-found: "&cKan geen plugin met die naam vinden, controleer of wij deze plugin ondersteunen."
+file-not-found: "&cKan het bestand: %fileName% niet vinden in de plugin map van %pluginName%."
+no-valid-slot-for-item: "&cHet item kon niet op slot '%slot%' geplaatst worden omdat de maximum positie '%maxShopSize%' is."
+slot-already-in-use: "&cDeze plek voor de winkelsectie is al bezet.
+
+  Alle beschikbare plekken: %available-slots%"
+slot-needs-to-be-number: "&cDe plek van het item in het hoofdmenu, moet een nummer zijn."
+no-player-price-modifiers: "&cGeen modifiers gevonden voor deze speler"
+no-player-price-modifiers-for-filters: "&cGeen modifiers gevonden voor deze speler, probeer andere filter te gebruiken"
+
+#Reload Command
+configs-reloaded: "&aAlle configruatie bestanden zijn herladen."
+
+# Sellall command usages
+sellall-command-usages: "&aGebruik(en) van de commando's:"
+sellall-inventory-command-usage: "&7/sellall inventory &f- &7Verkoopt alle items in uw inventaris"
+sellall-hand-command-usage: "&7/sellall hand &8[amount] &f- &7Verkoopt alle items in uw hand."
+sellall-item-command-usage: "&7/sellall <item> &8[amount] &f- &7Verkoopt alle items in uw inventaris met een overeenkomende naam."
+
+#Balance Command
+check-balance: "&bJe hebt nu &c%amountofmoney%&b."
+check-balance-other-player: "&b%playername% &aheeft nu &c%amountofmoney%&a."
+
+#Givemoney Command
+givemoneycommand-example: "&9/givemoney <speler> <aantal>"
+givemoney-complete: "&aGivemoney compleet."
+
+#Pay Command
+minimum-amount: "&cHet minimum aantal om een speler te betalen is %minimumamount%."
+payment-complete: "&aGeld overdracht compleet."
+player-received-money: "&aJe hebt &c%amounttogive% &agekregen van &2%playername%&a!"
+need-player-and-amount: "&9Je moet een speler en een aantal van geld opgeven."
+need-amount: "&9Je moet een aantal van geld opgeven."
+paycommand-example: "&9/pay <speler> <aantal>"
+
+#Player breaks spawner
+default-spawner-name: "&9&l%spawner-type% &rSpawner"
+spawner-broke-and-applied-to-inventory: "&aJe hebt een &9%spawner-type% &agemined, het item is toegevoegd aan je inventory."
+need-silk-touch: "&cJe hebt een silk touch pickaxe nodig om dit te hakken!"
+
+#JoinMessage
+join-message: "&2Welkom, je geldsaldo is &c%balance%!"
+
+#Level event
+level-event-message: "&2[Levels] &c%amount% &5is toegevoegd aan je saldo!"
+
+#Item error's
+displayname-null: "Kan de naam van het item niet vinden."
+item-name-null: "Kan de naam van het item niet ophalen."
+need-item-material: "Kan geen item maken met een lege materiaalwaarde."
+item-material-null: "Kon het item materiaal '%material%' niet laden, mogelijk bestaat het niet of is het verkeerd gespeld."
+item-enchantment-null: "Kan de enchantment van het item niet vinden."
+need-item-enchantment: "Kan geen enchantment creëren met een lege waarde."
+item-enchantment-not-supported: "Deze enchantment wordt niet ondersteund in deze minecraft versie."
+enchantment-cannot-apply-to-item: "Om een enchantment op het item toe te passen, moet het materiaal een enchanted boek zijn of een tool dat bij de enchantment past."
+item-spawnertype-null: "Kan het spawner type van het item niet vinden."
+need-item-spawnertype: "Kan geen spawner maken met een leeg spawner-type."
+material-needs-to-be-spawner: "Om een spawner-type(entity-type) op het item toe te passen, moet het materiaal van het item een spawner zijn."
+item-potiontype-null: "Kan het drankjes type van het item niet vinden."
+need-item-potiontype: "Kan geen drankje maken met een lege waarde."
+potiontype-not-supported: "Dit drankjes effect wordt niet ondersteund in deze minecraft versie."
+material-needs-to-be-potion: "Om een drankjes effect toe te passen, moet het materiaal een soort potion of een tipped arrow zijn."
+cant-bind-multiple-applyments: "Kan geen item maken met meerdere speciale toepassingen, zoals enchantments/spawner types of potion effect types."
+item-error: "&cItem error, kijk in de console."
+material-not-supported: "Dit item material is niet gevonden in deze minecraft versie."
+item-needs-buy-and-sell-value: "Elk item in de shop moet een koop/verkoop optie hebben."
+sell-value-wrong: "Elke verkoopswaarde moet een decimaal of een nummer zijn."
+buy-value-wrong: "Elke koopwaarde moet een decimaal of een nummer zijn."
+option-type-changed: "Wijzig optie 'type' naar optie 'spawnertype' om een spawner in de shop te creëren. De naam van de optie is voor de duidelijkheid gewijzigd in versie 2.2."
+option-meta-changed: "Wijzig optie 'meta' naar optie 'displayname' om een item met een weergavenaam in de shop te maken. De naam van de optie is voor de duidelijkheid gewijzigd in versie 2.2."
+cannot-display-shopsection: "Kan de shop sectie '%shopsection%' niet creëren, omdat de plaats van het item in het bereik van 0 - %maxInvSize% moet liggen."
+need-recipe-material: "Kan het receptmateriaal niet maken met een blanco waarde."
+cannot-get-recipe-material: "Kan het receptmateriaal niet maken, controleer de materiaalnaam op eventuele spelfouten en of deze bestaat."
+recipe-material-not-supported: "Het gegeven receptmateriaal wordt niet ondersteund in deze minecraft versie."
+material-needs-to-be-book: "Om een recept op het item toe te passen, moet het materiaal van het item een KnowLedge book zijn."
+need-skullowner: "Kan geen PlayerHead maken zonder een gespecificeerde speler (Skull Owner)."
+material-needs-to-be-skull: "Om een schedeltextuur (Skull Owner) op het item aan te brengen, moet het material van het item een Player Head zijn."
+material-needs-to-be-leather-armor: "Om een kleur op een item aan te brengen, moet het materiaal ook leather armor zijn."
+command-null: "Kon de command niet vinden."
+nbtdata-null: "Kon de NBT data niet vinden."
+cannot-get-nbtdata: "Kon de NBT data niet aan het item toevoegen, ofwel is de NBT data verkeerd getypt of bestaat deze niet."
+
+#Item path
+items-path-in-shops-config: "Item locatie in shops.yml: %location%"
+items-path-in-sections-config: "Item locatie in sections.yml: %location%"
+items-path-in-config: "Item locatie in config.yml: %location%"
+
+#Compatibility
+mineablespawners-compatibility-enabled: "Compatibiliteit van MineableSpawners is ingeschakeld in de configuratie"
+mineablespawners-found: "MineableSpawners gevonden, integreren..."
+mineablespawners-not-found: "MineableSpawners is niet gevonden"
+could-not-intergrate-with-mineablespawners: "Kon niet integreren met MineableSpawners"
+using-mineablespawners-spawners: "De spawners van MineableSpawners gebruiken..."
+rosestacker-compatibility-enabled: "Compatibiliteit van RoseStacker is ingeschakeld in de configuratie."
+rosestacker-not-found: "RoseStacker kan niet gevonden worden."
+could-not-integrate-with-rosestacker: "Kon niet integreren met RoseStacker."
+rosestacker-found: "RoseStacker gevonden, integreren..."
+using-rosestacker-spawners: "De spawners van RoseStacker gebruiken..."
+ultimatestacker-compatibility-enabled: "Compatibiliteit van UltimateStacker is ingeschakeld in de configuratie"
+ultimatestacker-not-found: "UltimateStacker is niet gevonden"
+could-not-integrate-with-ultimatestacker: "Kon niet integreren met UltimateStacker"
+ultimatestacker-found: "UltimateStacker gevonden, integreren..."
+using-ultimatestacker-spawners: "De spawners van UltimateStacker gebruiken..."
+wildstacker-compatibility-enabled: "Compatibiliteit van WildStacker is ingeschakeld in de configuratie"
+wildstacker-not-found: "WildStacker is niet gevonden"
+wildstacker-found: "WildStacker gevonden, integreren..."
+could-not-integrate-with-wildstacker: "Kon niet integreren met WildStacker"
+using-wildstacker-spawners: "De spawners van WildStacker gebruiken."
+spawner-compatibility-enabled: "Compatibiliteit van %provider% is ingeschakeld in de configuratie"
+spawner-provider-not-found: "kon %provider% niet vinden"
+spawner-provider-found: "%provider% gevonden, integreren..."
+failed-spawner-provider-integration: "Kon niet integreren met %provider%"
+using-external-spawners: "De spawners van %provider% gebruiken."
+
+silkspawners-compatibility-enabled: "Compatibiliteit van SilkSpawners is ingeschakeld in de configuratie."
+silkspawners-not-found: "SilkSpawners is niet gevonden"
+silkspawners-found: "SilkSpawners gevonden, integreren..."
+could-not-integrate-with-silkspawners: "Kon niet integreren met SilkSpawners."
+using-silkspawners-spawners: "SilkSpawners spawners gebruiken..."
+using-default-spawners: "Standaard spawners van plugin gebruiken..."
+
+#Error's
+cannot-find-discounted-section: "Kan geen kortingen voorzien voor %section%, ofwel is de shop sectie uitgeschakelt of niet gevonden."
+cannot-find-discounted-group: "Kan geen kortingen voorzien voor permissies groep %permsGroup%, kijk de spelling na en als de group wel bestaat in u permissies plugin."
+disabling-plugin: "Plugin uitschakelen..."
+not-spawn-able: "Dit type entity kan niet worden gespawnd. '%spawnertype%'"
+real-player: "Je moet een echte speler zijn om dat commando uit te voeren."
+player-not-online: "&cDeze speler bestaat niet of is niet online."
+cannot-sell-air: "&cJe kan geen lucht verkopen..."
+no-permissions: "&cJe hebt hier geen permissie voor."
+no-permissions-to-open-shop: "&cU heeft niet de vereiste permissies om deze shop sectie te openen."
+cannot-do-that: "&4Je kan dat niet doen!!"
+more-space-needed: "&cMaak meer ruimte in je inventory en probeer daarna opnieuw."
+could-not-store-all-items: "&c%amount% item(s) kunnen niet gekocht worden want je inventory zit te vol."
+not-enough-space-inside-inventory: "&4Je hebt niet genoeg plaats in je inventory, de overige items worden op de grond gedropt."
+insufficient-money: "&cJe hebt niet genoeg %currency%."
+canceling-transaction-no-space: "&4De transactie is geanuleerd, je hebt niet genoeg ruimte in je inventory. Maak meer ruimte en probeer het later nog eens."
+no-items-in-section: "Kan niet %shopsection% openen omdat er geen items gevonden zijn!"
+no-item-found: "&cGeen item(s) gevonden."
+item-null: "&cDit item bestaat niet."
+item-cannot-be-sold-to-server: "&cHet item (%material%) kan niet worden verkocht aan de server omdat het artikel een fout heeft in de shop. Rapporteer dit probleem aan serverbeheerders of de eigenaar."
+could-not-save-config: "Kon het %fileName% config niet opslaan."
+rgb-color-formatted-wrong: "RGB kleuren moeten in het formaat staan van: '0x000000', '#000000' of '000000' in %path%."
+no-shop-found: "&cEr is geen winkel sectie gevonden met deze naam"
+no-valid-amount: "&cGeen geldig bedrag"
+restart-plugin: "Kan de shop section niet openen, probeer de plugin te herstarten of neem support op met onze discord server."
+could-not-check-for-updates: "&cKan niet om updates controleren."
+cannot-update-config: "&cKan het config.yml cinfiguration bestand niet updaten."
+cannot-read-config: "Kan de configuratie %fileName% niet lezen omdat deze verkeerd is geconfigureerd, gebruik een online Yaml-parser met de fout hieronder om de oorzaak van het probleem te achterhalen en op te lossen. Als je de oorzaak zelf niet kunt vinden, word dan lid van onze Discord Support Server die je kunt vinden op een plugin-pagina van OnyxShop."
+error-occured-while-reloading: "&4Er is een fout opgetreden tijdens het herladen van de plug-in, kijk in de console voor eventuele foutmeldingen."
+could-not-get-the-limitedstock-mode: "Kon de beperkte voorraadmodus niet verkrijgen van: %limitedStockMode%"
+error-occurred-while-connecting-to-database: "Er is een probleem opgetreden bij het verbinden naar de database."
+invalid-item-type: "&cOngeldig item type voor %type%"
+cannot-enter-shop-banned-gamemode: "&cJe kan geen items kopen/verkopen terwijl je je in %gamemode% bevindt."
+cannot-use-command-banned-gamemode: "&cJe kan dit commando niet uitvoeren terwijl je je in %gamemode% bevindt."
+could-not-enable-limitedstock: "Kon de gelimiteerde item voorraad provider niet aanzetten"
+could-not-enable-limitedsellstock: "Kon de gelimiteerde verkoop voorraad provider niet aanzetten"
+could-not-enable-dynamicpricing: "Kon de dynamic pricing provider niet aanzetten"
+not-enough-stock-available: "&cEr is onvoldoende voorraad beschikbaar om de item(s) te kopen."
+invalid-storage-type: "Foutieve opslag type voor '%type%'. SQLite wordt gebruikt als standaard..."
+cannot-store-payment: "&cNiet mogelijk om de transactie te voltooien, kon gekochte items niet kwijt in je inventaris. Maak plaats en probeer het opnieuw."
+invalid-buy-price-scaling: "De aankoopprijs schaling voor DynamicPricing moet tussen de 0-100% zijn, maar heeft %scale%. De standaard van %default%% wordt nu gebruikt..."
+invalid-sell-price-scaling: "De verkoopprijs schaling voor DynamicPricing moet tussen de 0-100% zijn, maar heeft %scale%. De standaard van %default%% wordt nu gebruikt..."
+headdatabase-api-not-ready-yet: "Mislukt om HeadDatabase item te verkrijgen, de HeadDatabase API is nog niet gereed"
+cannot-create-item-from-plugin: "Kon het item van %plugin% niet creëren, kon de plugin niet vinden"
+update-disabled: "&cUpdate checking is disabled on this server."
+cloud-disabled: "&cCloud features are disabled on this server."

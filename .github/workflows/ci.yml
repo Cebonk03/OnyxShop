@@ -1,0 +1,128 @@
+name: ci
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Assert vendored artifacts are present
+        run: |
+          for d in libs/cp libs/api libs/nms libs/vendored; do
+            n=$(find "$d" \( -name '*.jar' -o -name '*.class' \) | wc -l)
+            echo "$d: $n artifacts"
+            if [ "$n" -eq 0 ]; then echo "::error::$d is empty - the hermetic build needs the committed artifacts"; exit 1; fi
+          done
+          if [ -e libs/prebuilt ]; then echo "::error::libs/prebuilt must not exist"; exit 1; fi
+
+      - name: Verify dependency manifest
+        run: |
+          python3 scripts/gen_dependency_manifest.py
+          git diff --exit-code -- libs/VERSIONS.tsv
+
+      - name: Build (offline, vendored jars only)
+        run: ./gradlew --no-daemon --offline build
+
+      - name: Compile NMS version modules and verify descriptors
+        run: ./gradlew --no-daemon --offline compileVersions verifyDescriptors
+
+      - name: Assert Paper manifest attribute
+        run: |
+          unzip -p build/libs/*.jar META-INF/MANIFEST.MF | tee /tmp/manifest.txt
+          grep -q 'paperweight-mappings-namespace: spigot' /tmp/manifest.txt \
+            || { echo '::error::missing paperweight-mappings-namespace: spigot (Paper cannot resolve NMS reflection)'; exit 1; }
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: OnyxShop-rebuilt
+          path: build/libs/*.jar
+
+  smoke-test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        paper: [ '1.20.4', '1.21.4', '1.21.10', '1.21.11', '26.1.2', '26.3' ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Download built jar
+        uses: actions/download-artifact@v4
+        with:
+          name: OnyxShop-rebuilt
+          path: build/libs
+
+      - name: Assert Paper manifest attribute
+        run: |
+          unzip -p build/libs/*.jar META-INF/MANIFEST.MF | tee /tmp/manifest.txt
+          grep -q 'paperweight-mappings-namespace: spigot' /tmp/manifest.txt \
+            || { echo '::error::missing paperweight-mappings-namespace: spigot'; exit 1; }
+
+      - name: Download Paper ${{ matrix.paper }}
+        run: |
+          mkdir -p server/plugins
+          # Paper's v2 API is sunset; fill v3 returns the newest build first.
+          URL=$(curl -sS "https://fill.papermc.io/v3/projects/paper/versions/${{ matrix.paper }}/builds" \
+                  | jq -r '.[0].downloads["server:default"].url')
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "no Paper build for ${{ matrix.paper }}"; exit 1
+          fi
+          echo "Paper ${{ matrix.paper }}: $URL"
+          curl -sSfL -o server/paper.jar "$URL"
+          cp build/libs/*.jar server/plugins/
+          echo "eula=true" > server/eula.txt
+          printf 'online-mode=false\nlevel-type=flat\n' > server/server.properties
+
+      - name: Boot server, wait for plugin, stop
+        run: |
+          cd server
+          mkfifo in
+          exec 3<>in
+          ( java -Xms1G -Xmx1G -jar paper.jar --nogui < in > server.log 2>&1 & echo $! > pid )
+          for i in $(seq 1 240); do
+            if grep -q 'Done (' server.log; then break; fi
+            if ! kill -0 "$(cat pid)" 2>/dev/null; then echo 'server died'; break; fi
+            sleep 5
+          done
+          cat server.log
+          echo stop >&3
+          exec 3>&-
+          for i in $(seq 1 60); do
+            if grep -q 'Disabling OnyxShop' server.log; then break; fi
+            if ! kill -0 "$(cat pid)" 2>/dev/null; then break; fi
+            sleep 2
+          done
+          kill "$(cat pid)" 2>/dev/null || true
+          sleep 5
+          if ! grep -q 'Done (' server.log; then echo '::error::server never finished start-up'; exit 1; fi
+          if ! grep -q 'Enabling OnyxShop' server.log; then echo '::error::OnyxShop was never enabled'; exit 1; fi
+          if grep -E 'Could not load .*OnyxShop|Error occurred while enabling OnyxShop|Exception in thread "Server thread"' server.log; then
+            echo '::error::plugin failed to load/enable'; exit 1
+          fi
+          if ! grep -q 'Disabling OnyxShop' server.log; then echo '::error::OnyxShop did not shut down cleanly (onDisable not exercised)'; exit 1; fi

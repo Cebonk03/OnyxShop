@@ -1,0 +1,45 @@
+#!/bin/sh
+# Fast guard: only recompiles when Java sources are staged.
+# Bypass with: SKIP_COMPILE=1 git commit ...
+set -e
+
+if [ "${SKIP_COMPILE:-0}" = "1" ]; then
+  echo "pre-commit: SKIP_COMPILE=1, skipping javac check"
+  exit 0
+fi
+
+if ! command -v javac >/dev/null 2>&1; then
+  echo "pre-commit: javac not found, skipping compile check"
+  exit 0
+fi
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(src/.*\.java|build\.gradle)$' || true)
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+if echo "$staged" | grep -qE '^src/versions/'; then
+  echo "pre-commit: version module sources staged, running compileVersions..."
+  if ! ./gradlew --offline --console=plain compileVersions; then
+    echo "pre-commit: compileVersions failed — commit blocked (SKIP_COMPILE=1 to bypass)" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+echo "pre-commit: compiling src/main + apistubs (this takes ~2 min)..."
+log=$(mktemp)
+if ! bash scripts/compile.sh "$(mktemp -d)" "$log" >/dev/null 2>&1; then
+  echo "pre-commit: compile.sh crashed"
+  cat "$log" >&2 || true
+  exit 1
+fi
+
+errors=$(grep -c 'error:' "$log" || true)
+if [ "$errors" != "0" ]; then
+  echo "pre-commit: $errors javac error(s) — commit blocked (SKIP_COMPILE=1 to bypass)" >&2
+  grep -A2 'error:' "$log" | head -40 >&2
+  exit 1
+fi
+
+echo "pre-commit: 0 errors"

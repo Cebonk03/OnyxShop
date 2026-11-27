@@ -272,7 +272,14 @@ public class SkullUtil {
       if (text2 == null) {
          plugin.runTaskLaterAsync(() -> cache(element -> {
             SKULL_CACHE.cacheSkull(itemId, element);
-            plugin.runTask(() -> task.accept(getProfile(itemId, element)));
+            plugin.runTask(() -> {
+               try {
+                  task.accept(getProfile(itemId, element));
+               } catch (Exception exception) {
+                  SendMessage.warnMessage("Failed to retrieve skull texture for player '" + itemId + "'");
+                  exception.printStackTrace();
+               }
+            });
          }, itemStack, itemId), 1L);
       } else if (skullMeta == null) {
          SkullMeta skullMeta2 = (SkullMeta)itemStack.getItemMeta();

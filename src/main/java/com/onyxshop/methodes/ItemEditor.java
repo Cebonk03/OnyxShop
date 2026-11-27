@@ -901,7 +901,7 @@ public class ItemEditor {
                         return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                      }
                   })
-                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player, 1L))
                   .text(
                      action != ItemEditor.Action.ADD
                         ? (
@@ -1057,7 +1057,7 @@ public class ItemEditor {
                      this.plugin.runTaskLaterFor(() -> new ConclusionScreen(player, shopItem, option, action, null), player, 1L);
                      return AnvilGUI.Response.close();
                   })
-                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player, 1L))
                   .text(option.getName())
                   .itemLeft(new ItemStack(Material.PAPER))
                   .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
@@ -1087,7 +1087,7 @@ public class ItemEditor {
                         return AnvilGUI.Response.text("0x00FF00");
                      }
                   })
-                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player, 1L))
                   .text("0x00FF00")
                   .itemLeft(new ItemStack(Material.PAPER))
                   .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
@@ -1113,7 +1113,7 @@ public class ItemEditor {
                         return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                      }
                   })
-                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player, 1L))
                   .text(option.getName())
                   .itemLeft(new ItemStack(Material.PAPER))
                   .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
@@ -1140,7 +1140,7 @@ public class ItemEditor {
                         return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                      }
                   })
-                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player, 1L))
                   .text("5d 12h 30m 10s")
                   .itemLeft(new ItemStack(Material.PAPER))
                   .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())

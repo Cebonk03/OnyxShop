@@ -327,8 +327,7 @@ public class DynamicPricingProvider {
 
    private void loadCashedStock() {
       try {
-         this.CASHED_STOCK.clear();
-         this.CASHED_STOCK.putAll(this.database.loadDynamicPricingStock());
+         this.CASHED_STOCK = new ConcurrentHashMap<>(this.database.loadDynamicPricingStock());
          if (this.cache) {
             this.EXPIRED_STOCK = new ConcurrentHashMap<>(this.CASHED_STOCK);
          }
@@ -340,8 +339,7 @@ public class DynamicPricingProvider {
 
    public void reloadDisplayCache() {
       try {
-         this.CASHED_STOCK.clear();
-         this.CASHED_STOCK.putAll(this.database.loadDynamicPricingStock());
+         this.CASHED_STOCK = new ConcurrentHashMap<>(this.database.loadDynamicPricingStock());
       } catch (SQLException exception) {
          SendMessage.errorMessage("Exception while reloading the DynamicPricing display cache from database");
          exception.printStackTrace();

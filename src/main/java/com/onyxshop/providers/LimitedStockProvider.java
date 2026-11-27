@@ -298,7 +298,7 @@ public class LimitedStockProvider {
                      this.database.setOriginalStock(key, playerStock);
                      this.database.setPlayerStockAmount(key, playerStock);
                      if (this.cache || this.plugin.displayCache) {
-                        HashMap map = new HashMap();
+                        Map<UUID, Integer> map = new ConcurrentHashMap<>();
                         this.CASHED_PLAYER_STOCK.get(key).keySet().forEach(entry -> map.put(entry, playerStock));
                         this.CASHED_PLAYER_STOCK.put(key, map);
                      }
@@ -324,7 +324,7 @@ public class LimitedStockProvider {
 
    private void loadRestockTimes() {
       try {
-         this.PLAYER_RESTOCK_TIMER = new ConcurrentHashMap<>(this.database.getPlayerRestockTimes());
+         this.PLAYER_RESTOCK_TIMER = copyRestockTimes(this.database.getPlayerRestockTimes());
       } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for player stock");
          exception.printStackTrace();
@@ -336,6 +336,12 @@ public class LimitedStockProvider {
          SendMessage.errorMessage("Error occurred while loading the restock times for global stock");
          exception.printStackTrace();
       }
+   }
+
+   private static ConcurrentHashMap<String, Map<UUID, Long>> copyRestockTimes(Map<String, Map<UUID, Long>> restockTimes) {
+      ConcurrentHashMap<String, Map<UUID, Long>> copy = new ConcurrentHashMap<>();
+      restockTimes.forEach((itemId, timers) -> copy.put(itemId, timers == null ? new ConcurrentHashMap<>() : new ConcurrentHashMap<>(timers)));
+      return copy;
    }
 
    public void stop() {
@@ -483,14 +489,8 @@ public class LimitedStockProvider {
    }
 
    private void setItemStock(String itemId, int stock) {
-      this.updateCashedGlobalStock(itemId, stock);
+      this.updateCachedGlobalStock(itemId, stock);
       this.persistItemStock(itemId, stock);
-   }
-
-   private void updateCashedGlobalStock(String itemId, int value) {
-      if (this.cache || this.plugin.displayCache) {
-         this.CASHED_GLOBAL_STOCK.put(itemId, value);
-      }
    }
 
    private void updateCachedGlobalStock(String itemId, int value) {
@@ -501,7 +501,7 @@ public class LimitedStockProvider {
 
    private void updateCachedPlayerStock(UUID playerId, String itemId, int value) {
       if (this.cache || this.plugin.displayCache) {
-         this.updateCashedPlayerStock(itemId, playerId, value);
+         this.updateCachedPlayerStock(itemId, playerId, value);
       }
    }
 
@@ -556,17 +556,15 @@ public class LimitedStockProvider {
          synchronized (this.STOCK_LOCK) {
             value2 = Math.max(this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false), 0) + value;
             this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2);
+            this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
          }
-
-         this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
       } else if (shopItem.getLimitedStockMode() == 1) {
          int value2;
          synchronized (this.STOCK_LOCK) {
             value2 = Math.max(this.getCashedGlobalStock(shopItem.getItemPath(), false), 0) + value;
             this.updateCachedGlobalStock(shopItem.getItemPath(), value2);
+            this.persistItemStock(shopItem.getItemPath(), value2);
          }
-
-         this.persistItemStock(shopItem.getItemPath(), value2);
       }
    }
 
@@ -576,17 +574,15 @@ public class LimitedStockProvider {
          synchronized (this.STOCK_LOCK) {
             value2 = this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false) - value;
             this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2);
+            this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
          }
-
-         this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
       } else if (shopItem.getLimitedStockMode() == 1) {
          int value2;
          synchronized (this.STOCK_LOCK) {
             value2 = this.getCashedGlobalStock(shopItem.getItemPath(), false) - value;
             this.updateCachedGlobalStock(shopItem.getItemPath(), value2);
+            this.persistItemStock(shopItem.getItemPath(), value2);
          }
-
-         this.persistItemStock(shopItem.getItemPath(), value2);
       }
    }
 
@@ -600,9 +596,8 @@ public class LimitedStockProvider {
             }
 
             this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2 - value);
+            this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2 - value);
          }
-
-         this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2 - value);
       } else if (shopItem.getLimitedStockMode() == 1) {
          synchronized (this.STOCK_LOCK) {
             value2 = this.getCashedGlobalStock(shopItem.getItemPath(), false);
@@ -611,34 +606,33 @@ public class LimitedStockProvider {
             }
 
             this.updateCachedGlobalStock(shopItem.getItemPath(), value2 - value);
+            this.persistItemStock(shopItem.getItemPath(), value2 - value);
          }
-
-         this.persistItemStock(shopItem.getItemPath(), value2 - value);
       }
 
       return value2;
    }
 
-   public void resetItemStock(String itemId, String itemId2, UUID uniqueId, int value) {
-      if (itemId != null && itemId2 != null) {
-         if (value == 2) {
-            this.setPlayerStock(uniqueId, itemId + "." + itemId2, this.getPlayerStock(itemId + "." + itemId2));
-            if (this.PLAYER_RESTOCK_TIMER.containsKey(itemId + "." + itemId2)) {
-               if (uniqueId == null) {
-                  this.PLAYER_RESTOCK_TIMER.remove(itemId + "." + itemId2);
+   public void resetItemStock(String section, String itemLoc, UUID playerId, int mode) {
+      if (section != null && itemLoc != null) {
+         if (mode == 2) {
+            this.setPlayerStock(playerId, section + "." + itemLoc, this.getPlayerStock(section + "." + itemLoc));
+            if (this.PLAYER_RESTOCK_TIMER.containsKey(section + "." + itemLoc)) {
+               if (playerId == null) {
+                  this.PLAYER_RESTOCK_TIMER.remove(section + "." + itemLoc);
                } else {
-                  this.PLAYER_RESTOCK_TIMER.get(itemId + "." + itemId2).remove(uniqueId);
+                  this.PLAYER_RESTOCK_TIMER.get(section + "." + itemLoc).remove(playerId);
                }
             }
-         } else if (value == 1) {
-            this.setItemStock(itemId + "." + itemId2, this.getGlobalStock(itemId + "." + itemId2));
-            this.GLOBAL_RESTOCK_TIMER.remove(itemId + "." + itemId2);
+         } else if (mode == 1) {
+            this.setItemStock(section + "." + itemLoc, this.getGlobalStock(section + "." + itemLoc));
+            this.GLOBAL_RESTOCK_TIMER.remove(section + "." + itemLoc);
          }
       } else {
-         if (itemId == null) {
-            if (value == 2) {
-               if (uniqueId != null) {
-                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(uniqueId.toString(), null);
+         if (section == null) {
+            if (mode == 2) {
+               if (playerId != null) {
+                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(playerId.toString(), null);
                   if (this.cache) {
                      this.sqlBatch.addQuery(removePlayerStockQuery);
                   } else {
@@ -647,12 +641,12 @@ public class LimitedStockProvider {
 
                   if (this.cache || this.plugin.displayCache) {
                      for (String key : this.CASHED_PLAYER_STOCK.keySet()) {
-                        this.CASHED_PLAYER_STOCK.get(key).remove(uniqueId);
+                        this.CASHED_PLAYER_STOCK.get(key).remove(playerId);
                      }
                   }
 
                   for (String text : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     this.PLAYER_RESTOCK_TIMER.get(text).remove(uniqueId);
+                     this.PLAYER_RESTOCK_TIMER.get(text).remove(playerId);
                   }
                } else {
                   ClearPlayerStockQuery clearPlayerStockQuery = new ClearPlayerStockQuery();
@@ -668,7 +662,7 @@ public class LimitedStockProvider {
 
                   this.PLAYER_RESTOCK_TIMER.clear();
                }
-            } else if (value == 1) {
+            } else if (mode == 1) {
                ClearStockQuery clearStockQuery = new ClearStockQuery();
                if (this.cache) {
                   this.sqlBatch.addQuery(clearStockQuery);
@@ -682,10 +676,10 @@ public class LimitedStockProvider {
 
                this.GLOBAL_RESTOCK_TIMER.clear();
             }
-         } else if (itemId2 == null) {
-            if (value == 2) {
-               if (uniqueId != null) {
-                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(uniqueId.toString(), itemId);
+         } else if (itemLoc == null) {
+            if (mode == 2) {
+               if (playerId != null) {
+                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(playerId.toString(), section);
                   if (this.cache) {
                      this.sqlBatch.addQuery(removePlayerStockQuery);
                   } else {
@@ -694,19 +688,19 @@ public class LimitedStockProvider {
 
                   if (this.cache || this.plugin.displayCache) {
                      for (String text : this.CASHED_PLAYER_STOCK.keySet()) {
-                        if (text.split("\\.")[0].equals(itemId)) {
-                           this.CASHED_PLAYER_STOCK.get(text).remove(uniqueId);
+                        if (text.split("\\.")[0].equals(section)) {
+                           this.CASHED_PLAYER_STOCK.get(text).remove(playerId);
                         }
                      }
                   }
 
                   for (String text : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     if (text.split("\\.")[0].equals(itemId)) {
-                        this.PLAYER_RESTOCK_TIMER.get(text).remove(uniqueId);
+                     if (text.split("\\.")[0].equals(section)) {
+                        this.PLAYER_RESTOCK_TIMER.get(text).remove(playerId);
                      }
                   }
                } else {
-                  RemovePlayerStocksQuery removePlayerStocksQuery = new RemovePlayerStocksQuery(itemId);
+                  RemovePlayerStocksQuery removePlayerStocksQuery = new RemovePlayerStocksQuery(section);
                   if (this.cache) {
                      this.sqlBatch.addQuery(removePlayerStocksQuery);
                   } else {
@@ -715,20 +709,20 @@ public class LimitedStockProvider {
 
                   if (this.cache || this.plugin.displayCache) {
                      for (String text : this.CASHED_PLAYER_STOCK.keySet()) {
-                        if (text.split("\\.")[0].equals(itemId)) {
+                        if (text.split("\\.")[0].equals(section)) {
                            this.CASHED_PLAYER_STOCK.get(text).clear();
                         }
                      }
                   }
 
                   for (String text : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     if (text.split("\\.")[0].equals(itemId)) {
+                     if (text.split("\\.")[0].equals(section)) {
                         this.PLAYER_RESTOCK_TIMER.get(text).clear();
                      }
                   }
                }
-            } else if (value == 1) {
-               RemoveStockQuery removeStockQuery = new RemoveStockQuery(itemId);
+            } else if (mode == 1) {
+               RemoveStockQuery removeStockQuery = new RemoveStockQuery(section);
                if (this.cache) {
                   this.sqlBatch.addQuery(removeStockQuery);
                } else {
@@ -737,14 +731,14 @@ public class LimitedStockProvider {
 
                if (this.cache || this.plugin.displayCache) {
                   for (String text : new ArrayList<>(this.CASHED_GLOBAL_STOCK.keySet())) {
-                     if (text.split("\\.")[0].equals(itemId)) {
+                     if (text.split("\\.")[0].equals(section)) {
                         this.CASHED_GLOBAL_STOCK.remove(text);
                      }
                   }
                }
 
                for (String text : new ArrayList<>(this.GLOBAL_RESTOCK_TIMER.keySet())) {
-                  if (text.split("\\.")[0].equals(itemId)) {
+                  if (text.split("\\.")[0].equals(section)) {
                      this.GLOBAL_RESTOCK_TIMER.remove(text);
                   }
                }
@@ -804,27 +798,27 @@ public class LimitedStockProvider {
       }
    }
 
-   private void updateCashedPlayerStock(String playerName, UUID uniqueId, int stock) {
-      if (uniqueId == null) {
+   private void updateCachedPlayerStock(String itemId, UUID playerId, int value) {
+      if (playerId == null) {
          try {
             if (this.cache) {
-               this.sqlBatch.addQuery(new UpdatePlayerStockQuery(playerName, stock));
+               this.sqlBatch.addQuery(new UpdatePlayerStockQuery(itemId, value));
             }
 
-            this.CASHED_PLAYER_STOCK.get(playerName).replaceAll((key, value) -> stock);
+            this.CASHED_PLAYER_STOCK.get(itemId).replaceAll((key, stock) -> value);
          } catch (NullPointerException exception) {
          }
       } else {
          if (this.cache) {
-            this.sqlBatch.addQuery(new PlayerStockQuery(playerName, uniqueId.toString(), stock));
+            this.sqlBatch.addQuery(new PlayerStockQuery(itemId, playerId.toString(), value));
          }
 
          try {
-            this.CASHED_PLAYER_STOCK.get(playerName).put(uniqueId, stock);
+            this.CASHED_PLAYER_STOCK.get(itemId).put(playerId, value);
          } catch (NullPointerException exception) {
             Map<UUID, Integer> map = new ConcurrentHashMap<>();
-            map.put(uniqueId, stock);
-            this.CASHED_PLAYER_STOCK.put(playerName, map);
+            map.put(playerId, value);
+            this.CASHED_PLAYER_STOCK.put(itemId, map);
          }
       }
    }
@@ -920,7 +914,7 @@ public class LimitedStockProvider {
 
    private void setPlayerStock(UUID playerId, String itemId, int value) {
       if (this.cache || this.plugin.displayCache) {
-         this.updateCashedPlayerStock(itemId, playerId, value);
+         this.updateCachedPlayerStock(itemId, playerId, value);
       }
 
       this.persistPlayerStock(playerId, itemId, value);

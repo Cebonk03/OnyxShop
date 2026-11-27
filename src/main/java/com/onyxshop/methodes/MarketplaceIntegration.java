@@ -125,7 +125,7 @@ public class MarketplaceIntegration {
             } else {
                new AuthRequest(player, element3 -> {
                   element.setAuthMethod(element3);
-                  this.requestCard(player, element, element4 -> this.plugin.runTaskFor(() -> {
+                  this.requestCard(player, element, element4 -> this.plugin.runTaskLaterFor(() -> {
                      Runnable task = () -> {
                         if (element.getAuthMethod() == AuthRequest.AuthMethod.DISCORD) {
                            SendMessage.chatToPlayer(player, ChatColor.GREEN + "Validation success, started upload process");
@@ -150,7 +150,7 @@ public class MarketplaceIntegration {
                         default:
                            SendMessage.chatToPlayer(player, ChatColor.RED + "Cancelled upload process");
                      }
-                  }, player));
+                  }, player, 1L));
                });
             }
          });

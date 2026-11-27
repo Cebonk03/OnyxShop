@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.onyxshop.OnyxShop;
 import com.onyxshop.database.Database;
@@ -48,12 +49,13 @@ import org.quartz.TriggerBuilder;
 
 public class LimitedSellProvider {
    private final Map<String, Integer> itemModes = new HashMap<>();
-   private Map<String, Integer> CASHED_GLOBAL_LIMITS = new HashMap<>();
-   private Map<String, Map<UUID, Integer>> CASHED_PLAYER_LIMITS = new HashMap<>();
-   private Map<String, Long> GLOBAL_RESTOCK_TIMER = new HashMap<>();
-   private Map<String, Map<UUID, Long>> PLAYER_RESTOCK_TIMER = new HashMap<>();
+   private volatile ConcurrentHashMap<String, Integer> CASHED_GLOBAL_LIMITS = new ConcurrentHashMap<>();
+   private volatile ConcurrentHashMap<String, Map<UUID, Integer>> CASHED_PLAYER_LIMITS = new ConcurrentHashMap<>();
+   private volatile ConcurrentHashMap<String, Long> GLOBAL_RESTOCK_TIMER = new ConcurrentHashMap<>();
+   private volatile ConcurrentHashMap<String, Map<UUID, Long>> PLAYER_RESTOCK_TIMER = new ConcurrentHashMap<>();
    private final ThreadLocal<LimitedSellProvider.Snapshot> PAGE_LIMIT_SNAPSHOT = new ThreadLocal<>();
-   private Map<ScheduleManager.Item, Long> restockSchedulers = new HashMap<>();
+   private volatile ConcurrentHashMap<ScheduleManager.Item, Long> restockSchedulers = new ConcurrentHashMap<>();
+   private final Object LIMIT_LOCK = new Object();
    private final Database database;
    private final OnyxShop plugin;
    private SQLBatch sqlBatch;
@@ -161,7 +163,7 @@ public class LimitedSellProvider {
                }
             }
          );
-      this.restockSchedulers = restockTimes;
+      this.restockSchedulers = new ConcurrentHashMap<>(restockTimes);
       return counter.get();
    }
 
@@ -264,7 +266,7 @@ public class LimitedSellProvider {
 
       this.itemModes.forEach((key, value) -> {
          if (value == 2) {
-            HashMap map2 = new HashMap();
+            Map<UUID, Integer> map2 = new ConcurrentHashMap<>();
 
             for (Entry entry : map.getOrDefault(key, Collections.emptyMap()).entrySet()) {
                map2.put((UUID)entry.getKey(), this.getPlayerLimit((UUID)entry.getKey(), key, (Integer)entry.getValue()));
@@ -296,7 +298,7 @@ public class LimitedSellProvider {
                      this.database.setOriginalLimit(key, playerSellLimit);
                      this.database.setPlayerSellLimit(key, playerSellLimit);
                      if (this.cache || this.plugin.displayCache) {
-                        HashMap map = new HashMap();
+                        Map<UUID, Integer> map = new ConcurrentHashMap<>();
                         this.CASHED_PLAYER_LIMITS.get(key).keySet().forEach(entry -> map.put(entry, playerSellLimit));
                         this.CASHED_PLAYER_LIMITS.put(key, map);
                      }
@@ -320,16 +322,22 @@ public class LimitedSellProvider {
       }
    }
 
+   private static ConcurrentHashMap<String, Map<UUID, Long>> copyRestockTimes(Map<String, Map<UUID, Long>> restockTimes) {
+      ConcurrentHashMap<String, Map<UUID, Long>> copy = new ConcurrentHashMap<>();
+      restockTimes.forEach((itemId, timers) -> copy.put(itemId, timers == null ? new ConcurrentHashMap<>() : new ConcurrentHashMap<>(timers)));
+      return copy;
+   }
+
    private void loadRestockTimes() {
       try {
-         this.PLAYER_RESTOCK_TIMER = this.database.getPlayerSellLimitRestockTimes();
+         this.PLAYER_RESTOCK_TIMER = copyRestockTimes(this.database.getPlayerSellLimitRestockTimes());
       } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for player sell limits");
          exception.printStackTrace();
       }
 
       try {
-         this.GLOBAL_RESTOCK_TIMER = this.database.getSellLimitRestockTimes();
+         this.GLOBAL_RESTOCK_TIMER = new ConcurrentHashMap<>(this.database.getSellLimitRestockTimes());
       } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for global sell limits");
          exception.printStackTrace();
@@ -575,41 +583,49 @@ public class LimitedSellProvider {
       }
    }
 
+   public Object getSellLock() {
+      return this.LIMIT_LOCK;
+   }
+
    public void sellItems(ShopItem shopItem, UUID uniqueId, int value, boolean flag) {
-      if (shopItem.getLimitedSellMode() == 2) {
-         this.setPlayerLimit(uniqueId, shopItem.getItemPath(), Math.max(0, this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, false) - value));
-         if (flag) {
-            this.getPlayerLimit(uniqueId, shopItem.getItemPath());
-         }
-      } else if (shopItem.getLimitedSellMode() == 1) {
-         this.setItemLimit(shopItem.getItemPath(), Math.max(0, this.getCashedGlobalLimit(shopItem.getItemPath(), false) - value));
-         if (flag) {
-            this.getSellLimit(shopItem.getItemPath());
+      synchronized (this.LIMIT_LOCK) {
+         if (shopItem.getLimitedSellMode() == 2) {
+            this.setPlayerLimit(uniqueId, shopItem.getItemPath(), Math.max(0, this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, false) - value));
+            if (flag) {
+               this.getPlayerLimit(uniqueId, shopItem.getItemPath());
+            }
+         } else if (shopItem.getLimitedSellMode() == 1) {
+            this.setItemLimit(shopItem.getItemPath(), Math.max(0, this.getCashedGlobalLimit(shopItem.getItemPath(), false) - value));
+            if (flag) {
+               this.getSellLimit(shopItem.getItemPath());
+            }
          }
       }
    }
 
    public int sellItemsSafe(ShopItem shopItem, UUID uniqueId, int value, boolean flag) {
       int value2 = -5;
-      if (shopItem.getLimitedSellMode() == 2) {
-         value2 = this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, false);
-         if (value2 < value) {
-            value = value2;
-         }
+      synchronized (this.LIMIT_LOCK) {
+         if (shopItem.getLimitedSellMode() == 2) {
+            value2 = this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, false);
+            if (value2 < value) {
+               value = value2;
+            }
 
-         this.setPlayerLimit(uniqueId, shopItem.getItemPath(), value2 - value);
-         if (flag) {
-            this.getPlayerLimit(uniqueId, shopItem.getItemPath());
-         }
-      } else if (shopItem.getLimitedSellMode() == 1) {
-         value2 = this.getCashedGlobalLimit(shopItem.getItemPath(), false);
-         if (value2 < value) {
-            value = value2;
-         }
+            this.setPlayerLimit(uniqueId, shopItem.getItemPath(), value2 - value);
+            if (flag) {
+               this.getPlayerLimit(uniqueId, shopItem.getItemPath());
+            }
+         } else if (shopItem.getLimitedSellMode() == 1) {
+            value2 = this.getCashedGlobalLimit(shopItem.getItemPath(), false);
+            if (value2 < value) {
+               value = value2;
+            }
 
-         this.setItemLimit(shopItem.getItemPath(), value2 - value);
-         if (flag) {
-            this.getSellLimit(shopItem.getItemPath());
+            this.setItemLimit(shopItem.getItemPath(), value2 - value);
+            if (flag) {
+               this.getSellLimit(shopItem.getItemPath());
+            }
          }
       }
 

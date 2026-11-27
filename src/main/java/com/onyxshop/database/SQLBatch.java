@@ -18,23 +18,34 @@ public class SQLBatch {
    }
 
    public void addQuery(Query query) {
-      this.batch.remove(query);
-      this.batch.add(query);
-      if (this.batch.size() == 20) {
-         LinkedHashSet values = new LinkedHashSet<>(this.batch);
-         this.queue.addToQueue(this.type, values);
-         this.batch.clear();
+      synchronized (this.batch) {
+         this.batch.remove(query);
+         this.batch.add(query);
+         if (this.batch.size() >= 20) {
+            LinkedHashSet values = new LinkedHashSet<>(this.batch);
+            this.queue.addToQueue(this.type, values);
+            this.batch.clear();
+         }
       }
    }
 
    public void saveLast() {
-      this.database.executeBatch(this.type, this.batch);
-      this.batch.clear();
+      LinkedHashSet<Query> snapshot;
+      synchronized (this.batch) {
+         if (this.batch.isEmpty()) {
+            return;
+         }
+
+         snapshot = new LinkedHashSet<>(this.batch);
+         this.batch.clear();
+      }
+
+      this.database.executeBatch(this.type, snapshot);
    }
 
    public void drain() {
-      this.saveLast();
       this.queue.drain();
+      this.saveLast();
    }
 
    public static enum Type {

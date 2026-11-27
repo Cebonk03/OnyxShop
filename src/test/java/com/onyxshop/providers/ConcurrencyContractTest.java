@@ -36,6 +36,14 @@ class ConcurrencyContractTest {
    }
 
    @Test
+   void sellLimitCachesAreConcurrent() throws Exception {
+      assertConcurrentMap(LimitedSellProvider.class, "CASHED_GLOBAL_LIMITS");
+      assertConcurrentMap(LimitedSellProvider.class, "CASHED_PLAYER_LIMITS");
+      assertConcurrentMap(LimitedSellProvider.class, "GLOBAL_RESTOCK_TIMER");
+      assertConcurrentMap(LimitedSellProvider.class, "PLAYER_RESTOCK_TIMER");
+   }
+
+   @Test
    void schedulerExposesEntityScopedDelayedHop() throws Exception {
       Method hop = Class.forName("com.onyxshop.OnyxShop").getMethod("runTaskLaterFor", Runnable.class, Player.class, long.class);
       assertNotNull(hop);

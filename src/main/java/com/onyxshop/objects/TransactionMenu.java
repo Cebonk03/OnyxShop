@@ -206,11 +206,17 @@ public class TransactionMenu extends ShopInventory {
    }
 
    public void emptyCache() {
-      for (ItemStack itemStack : this.CACHE) {
+      this.CACHE.clear();
+   }
+
+   public List<ItemStack> takeCachedItems() {
+      List<ItemStack> removedStacks = new ArrayList<>(this.CACHE);
+      for (ItemStack itemStack : removedStacks) {
          this.player.getInventory().removeItem(new ItemStack[]{itemStack});
       }
 
       this.CACHE.clear();
+      return removedStacks;
    }
 
    public List<ItemStack> getCachedItems() {
@@ -749,7 +755,7 @@ public class TransactionMenu extends ShopInventory {
 
    @Override
    public Inventory getInventory() {
-      return null;
+      return this.inv;
    }
 
    private class SelectedItem {

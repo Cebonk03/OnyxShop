@@ -554,14 +554,24 @@ public class LimitedStockProvider {
       if (shopItem.getLimitedStockMode() == 2) {
          int value2;
          synchronized (this.STOCK_LOCK) {
-            value2 = Math.max(this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false), 0) + value;
+            value2 = Math.max(this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false), 0) + Math.max(0, value);
+            int playerCap = this.getPlayerStock(shopItem.getItemPath());
+            if (playerCap > 0 && value2 > playerCap) {
+               value2 = playerCap;
+            }
+
             this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2);
             this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
          }
       } else if (shopItem.getLimitedStockMode() == 1) {
          int value2;
          synchronized (this.STOCK_LOCK) {
-            value2 = Math.max(this.getCashedGlobalStock(shopItem.getItemPath(), false), 0) + value;
+            value2 = Math.max(this.getCashedGlobalStock(shopItem.getItemPath(), false), 0) + Math.max(0, value);
+            int globalCap = this.getGlobalStock(shopItem.getItemPath());
+            if (globalCap > 0 && value2 > globalCap) {
+               value2 = globalCap;
+            }
+
             this.updateCachedGlobalStock(shopItem.getItemPath(), value2);
             this.persistItemStock(shopItem.getItemPath(), value2);
          }

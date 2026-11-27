@@ -749,12 +749,7 @@ public class MenuHandler implements Listener {
                         } else {
                            if (transactionMenu.getShopItem().getLimitedStockMode() != 0) {
                               transactionMenu.updateItemStock(value);
-                              if (transactionMenu.getItemStock() > 0) {
-                                 final int stockDeltaA = value;
-                                 this.plugin.runTaskAsync(() -> this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), stockDeltaA));
-                              } else {
-                                 this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), value);
-                              }
+                              this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), value);
                            }
 
                            if (transactionMenu.getShopItem().isBuyCommand() && this.plugin.commandItems) {
@@ -815,6 +810,7 @@ public class MenuHandler implements Listener {
             result = Transaction.Result.NEGATIVE_ITEM_PRICE;
          }
       } else {
+         synchronized (this.getSellLock()) {
          Double availableItems = transactionMenu.getAvailableItems(transactionMenu.getAmount());
          if (availableItems != null) {
             if (availableItems >= 0.0) {
@@ -829,8 +825,7 @@ public class MenuHandler implements Listener {
                   if (!preTransactionEvent.isCancelled()) {
                      if (amount >= 0.0) {
                         final int sold = transactionMenu.getAmount();
-                        final List<ItemStack> removedStacks = transactionMenu.getCachedItems();
-                        transactionMenu.emptyCache();
+                        final List<ItemStack> removedStacks = transactionMenu.takeCachedItems();
                         boolean flag = false;
                         try {
                            this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).depositBalance(player, amount);
@@ -844,24 +839,12 @@ public class MenuHandler implements Listener {
                            this.plugin.runTaskAsync(() -> this.sellItems(transactionMenu.getShopItem(), sold, player.getUniqueId()));
                            if (transactionMenu.getShopItem().getLimitedSellMode() != 0) {
                               transactionMenu.updateSellLimit(sold);
-                              if (transactionMenu.getSellLimit() > 0) {
-                                 this.plugin
-                                    .runTaskAsync(
-                                       () -> this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false)
-                                    );
-                              } else {
-                                 this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
-                              }
+                              this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
                            }
 
                            if (transactionMenu.getShopItem().isRefillStock()) {
                               transactionMenu.addItemStock(sold);
-                              if (transactionMenu.getItemStock() > 0) {
-                                 this.plugin
-                                    .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold));
-                              } else {
-                                 this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
-                              }
+                              this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
                            }
 
                            if (transactionMenu.getShopItem().isCloseMenu()) {
@@ -901,6 +884,8 @@ public class MenuHandler implements Listener {
             transactionMenu.emptyCache();
             result = Transaction.Result.NO_ITEMS_FOUND;
          }
+      }
+
       }
 
       Bukkit.getPluginManager().callEvent(new PostTransactionEvent(transactionMenu.getShopItem(), player, value, amount, transactionMenu.getTransactionType(), result));
@@ -953,12 +938,7 @@ public class MenuHandler implements Listener {
                         } else {
                            if (transactionMenu.getShopItem().getLimitedStockMode() != 0) {
                               transactionMenu.updateItemStock(value);
-                              if (transactionMenu.getItemStock() > 0) {
-                                 final int stockDeltaB = value;
-                                 this.plugin.runTaskAsync(() -> this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), stockDeltaB));
-                              } else {
-                                 this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), value);
-                              }
+                              this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), value);
                            }
 
                            if (transactionMenu.getShopItem().isBuyCommand() && this.plugin.commandItems) {
@@ -1012,6 +992,8 @@ public class MenuHandler implements Listener {
             result = Transaction.Result.NEGATIVE_ITEM_PRICE;
          }
       } else {
+         synchronized (this.getSellLock()) {
+         value = transactionMenu.getAmount();
          map = transactionMenu.getAvailableItemsA(transactionMenu.getAmount());
          if (map != null) {
             if (!map.isEmpty()) {
@@ -1027,8 +1009,7 @@ public class MenuHandler implements Listener {
                   map = preTransactionEvent.getPrices();
                   if (!preTransactionEvent.isCancelled()) {
                      final int sold = transactionMenu.getAmount();
-                     final List<ItemStack> removedStacks = transactionMenu.getCachedItems();
-                     transactionMenu.emptyCache();
+                     final List<ItemStack> removedStacks = transactionMenu.takeCachedItems();
                      boolean flag = false;
                      try {
                         this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)map, player);
@@ -1042,24 +1023,12 @@ public class MenuHandler implements Listener {
                         this.plugin.runTaskAsync(() -> this.sellItems(transactionMenu.getShopItem(), sold, player.getUniqueId()));
                         if (transactionMenu.getShopItem().getLimitedSellMode() != 0) {
                            transactionMenu.updateSellLimit(sold);
-                           if (transactionMenu.getSellLimit() > 0) {
-                              this.plugin
-                                 .runTaskAsync(
-                                    () -> this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false)
-                                 );
-                           } else {
-                              this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
-                           }
+                           this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
                         }
 
                         if (transactionMenu.getShopItem().isRefillStock()) {
                            transactionMenu.addItemStock(sold);
-                           if (transactionMenu.getItemStock() > 0) {
-                              this.plugin
-                                 .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold));
-                           } else {
-                              this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
-                           }
+                           this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
                         }
 
                         if (transactionMenu.getShopItem().isCloseMenu()) {
@@ -1097,6 +1066,8 @@ public class MenuHandler implements Listener {
          }
       }
 
+      }
+
       Bukkit.getPluginManager()
          .callEvent(
             new PostTransactionEvent(
@@ -1107,7 +1078,9 @@ public class MenuHandler implements Listener {
 
    public void completeSellAll(TransactionMenu transactionMenu, Player player) {
       Transaction.Result result = Transaction.Result.SUCCESS;
-      Double availableItems = transactionMenu.getAvailableItems(Integer.MAX_VALUE);
+      Double availableItems;
+      synchronized (this.getSellLock()) {
+      availableItems = transactionMenu.getAvailableItems(Integer.MAX_VALUE);
       if (availableItems != null) {
          if (availableItems >= 0.0) {
             if (transactionMenu.getShopItem().getEcoType().getType() == EconomyType.ITEM && !this.canPay(player, transactionMenu.getShopItem().getEcoType(), availableItems)) {
@@ -1120,8 +1093,7 @@ public class MenuHandler implements Listener {
                if (!preTransactionEvent.isCancelled()) {
                   if (availableItems >= 0.0) {
                      final int sold = transactionMenu.getAmount();
-                     final List<ItemStack> removedStacks = transactionMenu.getCachedItems();
-                     transactionMenu.emptyCache();
+                     final List<ItemStack> removedStacks = transactionMenu.takeCachedItems();
                      boolean flag = false;
                      try {
                         this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).depositBalance(player, availableItems);
@@ -1135,24 +1107,12 @@ public class MenuHandler implements Listener {
                         this.plugin.runTaskAsync(() -> this.sellItems(transactionMenu.getShopItem(), sold, player.getUniqueId()));
                         if (transactionMenu.getShopItem().getLimitedSellMode() != 0) {
                            transactionMenu.updateSellLimit(sold);
-                           if (transactionMenu.getSellLimit() > 0) {
-                              this.plugin
-                                 .runTaskAsync(
-                                    () -> this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false)
-                                 );
-                           } else {
-                              this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
-                           }
+                           this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
                         }
 
                         if (transactionMenu.getShopItem().isRefillStock()) {
                            transactionMenu.addItemStock(sold);
-                           if (transactionMenu.getItemStock() > 0) {
-                              this.plugin
-                                 .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold));
-                           } else {
-                              this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
-                           }
+                           this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
                         }
 
                         if (transactionMenu.getShopItem().isCloseMenu()) {
@@ -1192,6 +1152,8 @@ public class MenuHandler implements Listener {
          transactionMenu.emptyCache();
          result = Transaction.Result.NO_ITEMS_FOUND;
          availableItems = 0.0;
+      }
+
       }
 
       Bukkit.getPluginManager().callEvent(new PostTransactionEvent(transactionMenu.getShopItem(), player, transactionMenu.getAmount(), availableItems, transactionMenu.getTransactionType(), result));
@@ -1306,6 +1268,10 @@ public class MenuHandler implements Listener {
       player.updateInventory();
    }
 
+   private Object getSellLock() {
+      return this.plugin.sellLimits && this.plugin.getLimitedSellProvider() != null ? this.plugin.getLimitedSellProvider().getSellLock() : this;
+   }
+
    private void close(Player player) {
       UserManager.getUser(player).setOpenNewGUI(true);
       player.closeInventory();
@@ -1368,11 +1334,16 @@ public class MenuHandler implements Listener {
    public void onDrag(InventoryDragEvent event) {
       InventoryHolder holder = InventoryUtil.getHolder(event.getInventory());
       if (holder instanceof ShopInventory || holder instanceof ItemEditor) {
-         int size = holder.getInventory().getSize();
+         int size = event.getInventory().getSize();
 
-         for (int value : event.getRawSlots()) {
-            if (value < size
-               && (!(holder instanceof SellGUI) || SellGUI.isFillItem(value) || this.plugin.navBar.isEnableSellGUINav() && value >= size - 9 && value <= size - 1)) {
+         for (int rawSlot : event.getRawSlots()) {
+            if (rawSlot < size) {
+               if (holder instanceof SellGUI
+                  && !SellGUI.isFillItem(rawSlot)
+                  && !(this.plugin.navBar.isEnableSellGUINav() && rawSlot >= size - 9 && rawSlot <= size - 1)) {
+                  continue;
+               }
+
                event.setCancelled(true);
                event.setResult(Result.DENY);
                return;
@@ -1741,7 +1712,7 @@ public class MenuHandler implements Listener {
                this.callPost(shopItem, player, value, map, Transaction.Type.QUICK_SELL, Transaction.Result.CANT_STORE_PAYMENT);
                return false;
             } else {
-               PreTransactionEvent preTransactionEvent = new PreTransactionEvent(Collections.singletonMap(shopItem, value), map, player, value, Transaction.Type.QUICK_BUY);
+               PreTransactionEvent preTransactionEvent = new PreTransactionEvent(Collections.singletonMap(shopItem, value), map, player, value, Transaction.Type.QUICK_SELL);
                Bukkit.getPluginManager().callEvent(preTransactionEvent);
                Map prices = preTransactionEvent.getPrices();
                if (preTransactionEvent.isCancelled()) {

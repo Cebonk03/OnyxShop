@@ -226,7 +226,7 @@ public class Sellall extends PluginCommands {
                });
                this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)map3, player);
                SendMessage.sendTransactionMessage(player, value, (Map<EcoType, Double>)map3, map4, Transaction.Type.SELL_ALL_COMMAND);
-               this.plugin.runTaskAsync(() -> this.sellItems(map4, player.getUniqueId()));
+               this.sellItems(map4, player.getUniqueId());
             }
          } else {
             result = Transaction.Result.TRANSACTION_CANCELLED;
@@ -453,7 +453,7 @@ public class Sellall extends PluginCommands {
                }
 
                this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)map3, player);
-               this.plugin.runTaskAsync(() -> this.sellItems(map4, player.getUniqueId()));
+               this.sellItems(map4, player.getUniqueId());
             }
          } else {
             result = Transaction.Result.TRANSACTION_CANCELLED;
@@ -581,19 +581,17 @@ public class Sellall extends PluginCommands {
    }
 
    private void sellItems(ShopItem shopItem, int value, UUID uniqueId) {
-      this.plugin.runTaskAsync(() -> {
-         if (this.plugin.sellLimits && shopItem.getLimitedSellMode() != 0) {
-            this.plugin.getLimitedSellProvider().sellItems(shopItem, uniqueId, value, true);
-         }
+      if (this.plugin.sellLimits && shopItem.getLimitedSellMode() != 0) {
+         this.plugin.getLimitedSellProvider().sellItems(shopItem, uniqueId, value, true);
+      }
 
-         if (this.plugin.itemStock && shopItem.isRefillStock()) {
-            this.plugin.getLimitedStockProvider().sellItems(shopItem, uniqueId, value);
-         }
+      if (this.plugin.itemStock && shopItem.isRefillStock()) {
+         this.plugin.getLimitedStockProvider().sellItems(shopItem, uniqueId, value);
+      }
 
-         if (this.plugin.dynamicPricing && shopItem.isDynamicPricing()) {
-            this.plugin.getDynamicPricingProvider().sellItem(shopItem.getItemPath(), value);
-         }
-      });
+      if (this.plugin.dynamicPricing && shopItem.isDynamicPricing()) {
+         this.plugin.runTaskAsync(() -> this.plugin.getDynamicPricingProvider().sellItem(shopItem.getItemPath(), value));
+      }
    }
 
    private void sellItems(Map<ShopItem, Integer> map, UUID uniqueId) {

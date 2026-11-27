@@ -21,11 +21,15 @@ public class SQLBatchQueue {
    public void addToQueue(SQLBatch.Type type, Set<Query> values) {
       this.queue.add(new SQLBatchQueue.Batch(type, values));
       if (this.running.compareAndSet(false, true)) {
-         this.plugin.runTaskAsync(this::execute);
+         if (this.plugin != null) {
+            this.plugin.runTaskAsync(this::execute);
+         } else {
+            this.running.set(false);
+         }
       }
    }
 
-   public void drain() {
+   public synchronized void drain() {
       SQLBatchQueue.Batch batch;
       while ((batch = this.queue.poll()) != null) {
          try {
@@ -39,7 +43,7 @@ public class SQLBatchQueue {
       this.running.set(false);
    }
 
-   private void execute() {
+   private synchronized void execute() {
       while (true) {
          SQLBatchQueue.Batch batch;
          if ((batch = this.queue.poll()) != null) {

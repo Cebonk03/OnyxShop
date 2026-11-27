@@ -50,6 +50,7 @@ public class SellGUI extends ShopInventory {
    }
 
    public void sellItems(Player player) {
+      synchronized (this.getSellLock()) {
       Transaction.Result result = Transaction.Result.SUCCESS;
       HashMap<Integer, SmartStack> map = new HashMap<>();
       HashMap<ShopItem, Sold> map2 = new HashMap<>();
@@ -122,7 +123,7 @@ public class SellGUI extends ShopInventory {
                });
                this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)map3, player);
                SendMessage.sendTransactionMessage(player, value, (Map<EcoType, Double>)map3, map4, Transaction.Type.SELL_GUI_SCREEN);
-               this.plugin.runTaskAsync(() -> this.sellItems(map4, player.getUniqueId()));
+               this.sellItems(map4, player.getUniqueId());
             }
          } else {
             result = Transaction.Result.TRANSACTION_CANCELLED;
@@ -134,6 +135,11 @@ public class SellGUI extends ShopInventory {
 
       this.addUnsoldItems(player);
       Bukkit.getPluginManager().callEvent(new PostTransactionEvent(map4, (Map<EcoType, Double>)map3, player, value, Transaction.Type.SELL_ALL_COMMAND, result));
+      }
+   }
+
+   private Object getSellLock() {
+      return this.plugin.sellLimits && this.plugin.getLimitedSellProvider() != null ? this.plugin.getLimitedSellProvider().getSellLock() : this;
    }
 
    private void addUnsoldItems(Player player) {

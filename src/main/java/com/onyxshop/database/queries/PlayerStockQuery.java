@@ -8,29 +8,29 @@ public class PlayerStockQuery implements Query {
    private final String playerUUID;
    private final int amount;
 
-   public PlayerStockQuery(String var1, String var2, int var3) {
-      this.itemPath = var1;
-      this.playerUUID = var2;
-      this.amount = var3;
+   public PlayerStockQuery(String playerName, String itemId, int value) {
+      this.itemPath = playerName;
+      this.playerUUID = itemId;
+      this.amount = value;
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.SAVE_PLAYER_STOCK.init(var1, this.itemPath, this.playerUUID, this.amount);
+   public String format(String text) {
+      return SQLQueries.SAVE_PLAYER_STOCK.init(text, this.itemPath, this.playerUUID, this.amount);
    }
 
    @Override
-   public String formatPostgres(String var1) {
-      return SQLQueries.SAVE_PLAYER_STOCK_PG.init(var1, this.itemPath, this.playerUUID, this.amount);
+   public String formatPostgres(String text) {
+      return SQLQueries.SAVE_PLAYER_STOCK_PG.init(text, this.itemPath, this.playerUUID, this.amount);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         PlayerStockQuery var2 = (PlayerStockQuery)var1;
-         return this.itemPath.equals(var2.itemPath) && this.playerUUID.equals(var2.playerUUID);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         PlayerStockQuery playerStockQuery = (PlayerStockQuery)value;
+         return this.itemPath.equals(playerStockQuery.itemPath) && this.playerUUID.equals(playerStockQuery.playerUUID);
       } else {
          return false;
       }

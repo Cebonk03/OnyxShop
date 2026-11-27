@@ -40,41 +40,41 @@ import org.bukkit.inventory.ItemStack;
 public class StartupReload {
    private OnyxShop plugin;
 
-   public StartupReload(OnyxShop var1) {
-      this.plugin = var1;
+   public StartupReload(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public void loadInventoryTitles() {
       this.plugin.getSectionTitles().clear();
       this.plugin.getBedrockSectionTitles().clear();
-      HashMap var1 = new HashMap();
-      HashMap var2 = new HashMap();
+      HashMap map = new HashMap();
+      HashMap map2 = new HashMap();
 
-      for (String var4 : this.plugin.getShopSections()) {
-         String var5 = ConfigManager.getSection(var4).getString("title");
-         if (var5 == null || var5.isEmpty()) {
-            var5 = ConfigManager.getSection(var4).getString("item.name");
+      for (String shopId : this.plugin.getShopSections()) {
+         String text = ConfigManager.getSection(shopId).getString("title");
+         if (text == null || text.isEmpty()) {
+            text = ConfigManager.getSection(shopId).getString("item.name");
          }
 
-         if (var5 != null && !var5.isEmpty()) {
-            var1.put(var4, SendMessage.fromConfig(this.plugin.getInvTitle(var5)));
+         if (text != null && !text.isEmpty()) {
+            map.put(shopId, SendMessage.fromConfig(this.plugin.getInvTitle(text)));
          } else {
-            var1.put(var4, Lang.DISPLAYNAME_NULL.get());
+            map.put(shopId, Lang.DISPLAYNAME_NULL.get());
          }
 
-         String var6 = ConfigManager.getSection(var4).getString("bedrock-title");
-         if (var6 != null && !var6.isEmpty()) {
-            var2.put(var4, SendMessage.fromConfig(this.plugin.getInvTitle(var6)));
+         String text2 = ConfigManager.getSection(shopId).getString("bedrock-title");
+         if (text2 != null && !text2.isEmpty()) {
+            map2.put(shopId, SendMessage.fromConfig(this.plugin.getInvTitle(text2)));
          }
       }
 
-      this.plugin.setSectionTitles(var1);
-      this.plugin.setBedrockSectionTitles(var2);
+      this.plugin.setSectionTitles(map);
+      this.plugin.setBedrockSectionTitles(map2);
       this.plugin.getTitleManager().load();
    }
 
    public void checkIfLanguageFilesExist() {
-      String[] var1 = new String[]{
+      String[] values = new String[]{
          "lang-cs.yml",
          "lang-de.yml",
          "lang-en.yml",
@@ -98,14 +98,14 @@ public class StartupReload {
          "lang-zh_tw.yml"
       };
 
-      for (String var5 : var1) {
-         if (!new File(this.plugin.getDataFolder() + File.separator + "LanguageFiles", var5).exists()) {
-            this.plugin.saveResource("LanguageFiles" + File.separator + var5, false);
+      for (String text : values) {
+         if (!new File(this.plugin.getDataFolder() + File.separator + "LanguageFiles", text).exists()) {
+            this.plugin.saveResource("LanguageFiles" + File.separator + text, false);
          }
       }
    }
 
-   public void loadItems(boolean var1) {
+   public void loadItems(boolean flag) {
       this.plugin.allowEnchanted = ConfigManager.getConfig().getBoolean("enchanted-variants", true);
       if (this.usesEnchantmentVariations()) {
          this.plugin.getEnchantCostManager().reload();
@@ -134,7 +134,7 @@ public class StartupReload {
       this.plugin.ignoredNBTData = ConfigManager.getConfig()
          .getStringList("sold-items-ignored-NBTtags")
          .stream()
-         .map(var0 -> NBTMaps.getTag(var0, null, "sold-items-ignored-NBTtags"))
+         .map(element -> NBTMaps.getTag(element, null, "sold-items-ignored-NBTtags"))
          .collect(Collectors.toList());
       if (ConfigManager.getConfig().getBoolean("allow-renamed-items")) {
          this.plugin.ignoredNBTData.add(NBTMaps.DISPLAYNAME.getTag());
@@ -163,16 +163,16 @@ public class StartupReload {
       this.plugin.resizeGUI = ConfigManager.getConfig().getBoolean("resize-gui-for-bedrock", true);
       this.plugin.bedrockMenus = ConfigManager.getConfig().getBoolean("bedrock-forms.enable", false);
       this.plugin.perPlayerLanguages = ConfigManager.getConfig().getBoolean("per-player-languages", true);
-      this.plugin.bannedGamemodes = ConfigManager.getConfig().getStringList("banned-gamemodes").stream().filter(var0 -> {
+      this.plugin.bannedGamemodes = ConfigManager.getConfig().getStringList("banned-gamemodes").stream().filter(element -> {
          try {
-            GameMode.valueOf(var0);
+            GameMode.valueOf(element);
             return true;
-         } catch (IllegalArgumentException var2x) {
-            SendMessage.warnMessage("Failed to load banned gamemode like '" + var0 + "'");
+         } catch (IllegalArgumentException exception) {
+            SendMessage.warnMessage("Failed to load banned gamemode like '" + element + "'");
             return false;
          }
       }).<GameMode>map(GameMode::valueOf).collect(Collectors.toList());
-      this.plugin.createItem.isLatestVersion(var1);
+      this.plugin.createItem.isLatestVersion(flag);
       if (this.plugin.getServer().getPluginManager().isPluginEnabled("Vault")) {
          this.plugin.loadChat();
       }
@@ -193,56 +193,56 @@ public class StartupReload {
       BackButton.init();
       this.plugin.sellShulkers = ConfigManager.getConfig().getBoolean("sell-shulker-boxes", true);
       this.plugin.setLoreFormatter(new LoreFormatter(this.plugin));
-      String var2 = ConfigManager.getConfig().getString("shop-search.default-mode", "BY_NAME");
+      String text = ConfigManager.getConfig().getString("shop-search.default-mode", "BY_NAME");
 
       try {
-         this.plugin.defaultSearchMode = ShopSearch.QueryMethod.valueOf(var2);
-      } catch (IllegalArgumentException var12) {
-         SendMessage.warnMessage("Invalid default search mode for '" + var2 + "'");
+         this.plugin.defaultSearchMode = ShopSearch.QueryMethod.valueOf(text);
+      } catch (IllegalArgumentException exception) {
+         SendMessage.warnMessage("Invalid default search mode for '" + text + "'");
          this.plugin.defaultSearchMode = ShopSearch.QueryMethod.BY_NAME;
       }
 
-      HashMap<String, SectionItem> var3 = new HashMap<>();
-      Map<Integer, String> var4 = this.plugin.getMainMenuItemSlots();
+      HashMap<String, SectionItem> map = new HashMap<>();
+      Map<Integer, String> mainMenuItemSlots = this.plugin.getMainMenuItemSlots();
 
-      for (Entry<Integer, String> var6 : var4.entrySet()) {
-         SectionItem var7;
-         if (!var3.containsKey(var6.getValue())) {
-            var3.put((String)var6.getValue(), var7 = new SectionItem(this.plugin, (String)var6.getValue()));
+      for (Entry<Integer, String> entry : mainMenuItemSlots.entrySet()) {
+         SectionItem sectionItem;
+         if (!map.containsKey(entry.getValue())) {
+            map.put((String)entry.getValue(), sectionItem = new SectionItem(this.plugin, (String)entry.getValue()));
          } else {
-            var7 = (SectionItem)var3.get(var6.getValue());
+            sectionItem = (SectionItem)map.get(entry.getValue());
          }
 
-         var7.addSlot((Integer)var6.getKey());
+         sectionItem.addSlot((Integer)entry.getKey());
       }
 
-      this.plugin.setSectionItems(var3);
+      this.plugin.setSectionItems(map);
       this.plugin.stopRotatingShops();
-      HashSet var13 = new HashSet();
+      HashSet values = new HashSet();
 
-      for (String var16 : this.plugin.getShopSections()) {
-         ShopType var8 = ShopType.valueOf(ConfigManager.getSection(var16).getString("shop-type", "CATEGORY"));
+      for (String shopId : this.plugin.getShopSections()) {
+         ShopType shopType = ShopType.valueOf(ConfigManager.getSection(shopId).getString("shop-type", "CATEGORY"));
 
          try {
             this.plugin
                .addSection(
-                  var16, (ShopSection)(var8 == ShopType.ROTATING ? new RotatingShopProvider(this.plugin, var16) : new ShopCategory(this.plugin, var16))
+                  shopId, (ShopSection)(shopType == ShopType.ROTATING ? new RotatingShopProvider(this.plugin, shopId) : new ShopCategory(this.plugin, shopId))
                );
-         } catch (NullPointerException var10) {
-            var13.add(var16);
-            SendMessage.errorMessage("Failed to create section " + var16 + ": ");
-            var10.printStackTrace();
-         } catch (ShopLoadException var11) {
-            var13.add(var16);
-            SendMessage.errorMessage("Failed to create section " + var16 + ": " + var11.getMessage());
+         } catch (NullPointerException exception) {
+            values.add(shopId);
+            SendMessage.errorMessage("Failed to create section " + shopId + ": ");
+            exception.printStackTrace();
+         } catch (ShopLoadException exception) {
+            values.add(shopId);
+            SendMessage.errorMessage("Failed to create section " + shopId + ": " + exception.getMessage());
          }
       }
 
-      this.plugin.getShopSections().removeAll(var13);
+      this.plugin.getShopSections().removeAll(values);
       if (ConfigManager.getConfig().getBoolean("main-menu.fill-item.enable", true)) {
-         LocalizedItemStack var15 = this.plugin.createItem.createFillItem(ConfigManager.getConfig().getConfigurationSection("main-menu.fill-item"), null);
-         if (var15 != null) {
-            this.plugin.createItem.fillItem = var15.getItem();
+         LocalizedItemStack localizedItemStack = this.plugin.createItem.createFillItem(ConfigManager.getConfig().getConfigurationSection("main-menu.fill-item"), null);
+         if (localizedItemStack != null) {
+            this.plugin.createItem.fillItem = localizedItemStack.getItem();
          } else {
             SendMessage.logDebugMessage(Lang.ITEMS_PATH_IN_CONFIG.get().replace("%location%", "main-menu.fill-item"));
          }
@@ -268,14 +268,14 @@ public class StartupReload {
       Bukkit.getPluginManager().callEvent(new ShopItemsLoadEvent());
    }
 
-   private double validatedPercentage(double var1, String var2, double var3, double var4, String var5) {
-      if (var1 > var3 && var1 <= var4) {
-         return var1;
+   private double validatedPercentage(double amount, String text, double amount2, double amount3, String text2) {
+      if (amount > amount2 && amount <= amount3) {
+         return amount;
       }
 
-      if (var1 != 0.0) {
+      if (amount != 0.0) {
          SendMessage.warnMessage(
-            "Ignoring out-of-range " + var5 + " value " + var1 + " for '" + var2 + "' (expected " + var3 + " to " + var4 + ")"
+            "Ignoring out-of-range " + text2 + " value " + amount + " for '" + text + "' (expected " + amount2 + " to " + amount3 + ")"
          );
       }
 
@@ -283,88 +283,88 @@ public class StartupReload {
    }
 
    private void setupDiscounts() {
-      HashMap<String, HashMap<String, Double>> var1 = new HashMap<>();
+      HashMap<String, HashMap<String, Double>> map = new HashMap<>();
 
-      for (String var3 : ConfigManager.getConfig().getConfigurationSection("discounts").getKeys(false)) {
-         if (var3.equals("*") || var3.equals("all")) {
-            for (String var5 : this.plugin.getShopSections()) {
-               HashMap<String, Double> var6 = var1.getOrDefault(var5, new HashMap<>());
+      for (String sectionId : ConfigManager.getConfig().getConfigurationSection("discounts").getKeys(false)) {
+         if (sectionId.equals("*") || sectionId.equals("all")) {
+            for (String shopId : this.plugin.getShopSections()) {
+               HashMap<String, Double> orDefault = map.getOrDefault(shopId, new HashMap<>());
 
-               for (String var8 : ConfigManager.getConfig().getConfigurationSection("discounts." + var3).getKeys(false)) {
-                  double var9 = this.validatedPercentage(ConfigManager.getConfig().getDouble("discounts." + var3 + "." + var8), var8, 0.0, 100.0, "discount");
-                  if (var9 != 0.0) {
-                     var6.put(var8, var9);
+               for (String text : ConfigManager.getConfig().getConfigurationSection("discounts." + sectionId).getKeys(false)) {
+                  double amount = this.validatedPercentage(ConfigManager.getConfig().getDouble("discounts." + sectionId + "." + text), text, 0.0, 100.0, "discount");
+                  if (amount != 0.0) {
+                     orDefault.put(text, amount);
                   }
                }
 
-               if (!var6.isEmpty()) {
-                  var1.put(var5, var6);
+               if (!orDefault.isEmpty()) {
+                  map.put(shopId, orDefault);
                }
             }
-         } else if (this.plugin.getShopSections().contains(var3)) {
-            HashMap<String, Double> var11 = var1.getOrDefault(var3, new HashMap<>());
+         } else if (this.plugin.getShopSections().contains(sectionId)) {
+            HashMap<String, Double> orDefault = map.getOrDefault(sectionId, new HashMap<>());
 
-            for (String var13 : ConfigManager.getConfig().getConfigurationSection("discounts." + var3).getKeys(false)) {
-               double var14 = this.validatedPercentage(ConfigManager.getConfig().getDouble("discounts." + var3 + "." + var13), var13, 0.0, 100.0, "discount");
-               if (var14 != 0.0) {
-                  var11.put(var13, var14);
+            for (String text : ConfigManager.getConfig().getConfigurationSection("discounts." + sectionId).getKeys(false)) {
+               double amount = this.validatedPercentage(ConfigManager.getConfig().getDouble("discounts." + sectionId + "." + text), text, 0.0, 100.0, "discount");
+               if (amount != 0.0) {
+                  orDefault.put(text, amount);
                }
             }
 
-            if (!var11.isEmpty()) {
-               var1.put(var3, var11);
+            if (!orDefault.isEmpty()) {
+               map.put(sectionId, orDefault);
             }
          } else {
-            SendMessage.warnMessage(Lang.CANNOT_FIND_DISCOUNTED_SECTION.get().replace("%section%", var3));
+            SendMessage.warnMessage(Lang.CANNOT_FIND_DISCOUNTED_SECTION.get().replace("%section%", sectionId));
          }
       }
 
-      if (!var1.isEmpty()) {
-         this.plugin.setDiscounts(var1);
+      if (!map.isEmpty()) {
+         this.plugin.setDiscounts(map);
       }
    }
 
    private void loadSellMultipliers() {
-      HashMap<String, HashMap<String, Double>> var1 = new HashMap<>();
+      HashMap<String, HashMap<String, Double>> map = new HashMap<>();
 
-      for (String var3 : ConfigManager.getConfig().getConfigurationSection("sell-multipliers").getKeys(false)) {
-         if (var3.equals("*") || var3.equals("all")) {
-            for (String var5 : this.plugin.getShopSections()) {
-               HashMap<String, Double> var6 = var1.getOrDefault(var5, new HashMap<>());
+      for (String sectionId : ConfigManager.getConfig().getConfigurationSection("sell-multipliers").getKeys(false)) {
+         if (sectionId.equals("*") || sectionId.equals("all")) {
+            for (String shopId : this.plugin.getShopSections()) {
+               HashMap<String, Double> orDefault = map.getOrDefault(shopId, new HashMap<>());
 
-               for (String var8 : ConfigManager.getConfig().getConfigurationSection("sell-multipliers." + var3).getKeys(false)) {
-                  double var9 = this.validatedPercentage(ConfigManager.getConfig().getDouble("sell-multipliers." + var3 + "." + var8), var8, -100.0, 1000.0, "sell multiplier");
-                  if (var9 != 0.0) {
-                     var6.put(var8, var9);
+               for (String text : ConfigManager.getConfig().getConfigurationSection("sell-multipliers." + sectionId).getKeys(false)) {
+                  double amount = this.validatedPercentage(ConfigManager.getConfig().getDouble("sell-multipliers." + sectionId + "." + text), text, -100.0, 1000.0, "sell multiplier");
+                  if (amount != 0.0) {
+                     orDefault.put(text, amount);
                   }
                }
 
-               if (!var6.isEmpty()) {
-                  var1.put(var5, var6);
+               if (!orDefault.isEmpty()) {
+                  map.put(shopId, orDefault);
                }
             }
-         } else if (this.plugin.getShopSections().contains(var3)) {
-            HashMap<String, Double> var11 = var1.getOrDefault(var3, new HashMap<>());
+         } else if (this.plugin.getShopSections().contains(sectionId)) {
+            HashMap<String, Double> orDefault = map.getOrDefault(sectionId, new HashMap<>());
 
-            for (String var13 : ConfigManager.getConfig().getConfigurationSection("sell-multipliers." + var3).getKeys(false)) {
-               double var14 = this.validatedPercentage(ConfigManager.getConfig().getDouble("sell-multipliers." + var3 + "." + var13), var13, -100.0, 1000.0, "sell multiplier");
-               if (var14 != 0.0) {
-                  var11.put(var13, var14);
+            for (String text : ConfigManager.getConfig().getConfigurationSection("sell-multipliers." + sectionId).getKeys(false)) {
+               double amount = this.validatedPercentage(ConfigManager.getConfig().getDouble("sell-multipliers." + sectionId + "." + text), text, -100.0, 1000.0, "sell multiplier");
+               if (amount != 0.0) {
+                  orDefault.put(text, amount);
                }
             }
 
-            if (!var11.isEmpty()) {
-               var1.put(var3, var11);
+            if (!orDefault.isEmpty()) {
+               map.put(sectionId, orDefault);
             }
          } else {
             SendMessage.warnMessage(
-               "Cannot add sell multipliers for section '%section%', either the shop section is disabled or not found.".replace("%section%", var3)
+               "Cannot add sell multipliers for section '%section%', either the shop section is disabled or not found.".replace("%section%", sectionId)
             );
          }
       }
 
-      if (!var1.isEmpty()) {
-         this.plugin.setSellMultipliers(var1);
+      if (!map.isEmpty()) {
+         this.plugin.setSellMultipliers(map);
       }
    }
 
@@ -372,14 +372,14 @@ public class StartupReload {
       if (this.plugin.allowEnchanted) {
          return true;
       } else {
-         for (String var2 : ConfigManager.getShops()) {
-            if (ConfigManager.getSection(var2).getBoolean("enchanted-variants")) {
+         for (String text : ConfigManager.getShops()) {
+            if (ConfigManager.getSection(text).getBoolean("enchanted-variants")) {
                return true;
             }
 
-            for (String var4 : this.plugin.getConfigManager().getItemsRaw(var2)) {
-               String var5 = (this.plugin.getShopType(var2) == ShopType.CATEGORY ? "pages." : "") + var4;
-               if (ConfigManager.getShop(var2).getBoolean(var5 + ".enchanted-variants")) {
+            for (String text2 : this.plugin.getConfigManager().getItemsRaw(text)) {
+               String shopId = (this.plugin.getShopType(text) == ShopType.CATEGORY ? "pages." : "") + text2;
+               if (ConfigManager.getShop(text).getBoolean(shopId + ".enchanted-variants")) {
                   return true;
                }
             }
@@ -392,26 +392,26 @@ public class StartupReload {
    public void getShopItemsByMaterialName() {
       this.plugin.getItemManager().clearShopItemIds();
 
-      for (String var2 : this.plugin.getShopSections()) {
-         ShopSection var3 = this.plugin.getSection(var2);
-         if (var3.getType() != ShopType.ROTATING) {
-            for (ShopItem var5 : var3.getShopItems()) {
-               if (!var5.hasItemError() && !var5.isDisplayItem()) {
-                  ItemStack var6x = var5.getItemToGive();
-                  if (var6x == null) {
+      for (String shopId : this.plugin.getShopSections()) {
+         ShopSection section = this.plugin.getSection(shopId);
+         if (section.getType() != ShopType.ROTATING) {
+            for (ShopItem shopItem : section.getShopItems()) {
+               if (!shopItem.hasItemError() && !shopItem.isDisplayItem()) {
+                  ItemStack itemStack = shopItem.getItemToGive();
+                  if (itemStack == null) {
                      continue;
                   }
 
-                  String var6 = var6x.getType().name();
-                  List var7 = this.plugin.shopItemsByMaterialName.getOrDefault(var6, new ArrayList<>());
-                  var7.add(var5);
-                  this.plugin.shopItemsByMaterialName.put(var6, var7);
-                  String var8 = this.plugin.getItemManager().getItem(var5.getShopItem());
-                  if (var8 != null) {
-                     String[] var9 = var8.split(":", 2);
-                     ItemProviderType var10 = ItemProviderType.fromPrefix(var9[0]);
-                     if (var10 != null && var10 != ItemProviderType.HEAD_DATABASE) {
-                        this.plugin.getItemManager().registerItem(var9[1], new ItemType(var10));
+                  String materialName = itemStack.getType().name();
+                  List orDefault = this.plugin.shopItemsByMaterialName.getOrDefault(materialName, new ArrayList<>());
+                  orDefault.add(shopItem);
+                  this.plugin.shopItemsByMaterialName.put(materialName, orDefault);
+                  String item = this.plugin.getItemManager().getItem(shopItem.getShopItem());
+                  if (item != null) {
+                     String[] names = item.split(":", 2);
+                     ItemProviderType itemProviderType = ItemProviderType.fromPrefix(names[0]);
+                     if (itemProviderType != null && itemProviderType != ItemProviderType.HEAD_DATABASE) {
+                        this.plugin.getItemManager().registerItem(names[1], new ItemType(itemProviderType));
                      }
                   }
                }
@@ -421,17 +421,17 @@ public class StartupReload {
    }
 
    public void putShopItemsByOrder() {
-      SortOrder var1 = SortOrder.fromConfig();
-      if (var1 != SortOrder.SHOP_LOAD_ORDER) {
-         for (String var3 : this.plugin.shopItemsByMaterialName.keySet()) {
-            List<ShopItem> var4 = this.plugin.shopItemsByMaterialName.get(var3);
-            if (var4.size() >= 2) {
-               switch (var1) {
+      SortOrder sortOrder = SortOrder.fromConfig();
+      if (sortOrder != SortOrder.SHOP_LOAD_ORDER) {
+         for (String shopId : this.plugin.shopItemsByMaterialName.keySet()) {
+            List<ShopItem> values = this.plugin.shopItemsByMaterialName.get(shopId);
+            if (values.size() >= 2) {
+               switch (sortOrder) {
                   case DESCENDING_SELL_PRICE:
-                     var4.sort((var0, var1x) -> Double.compare(var1x.getSellPrice(), var0.getSellPrice()));
+                     values.sort((element, arg2) -> Double.compare(arg2.getSellPrice(), element.getSellPrice()));
                      break;
                   case ASCENDING_SELL_PRICE:
-                     var4.sort((var0, var1x) -> Double.compare(var0.getSellPrice(), var1x.getSellPrice()));
+                     values.sort((element, arg2) -> Double.compare(element.getSellPrice(), arg2.getSellPrice()));
                }
             }
          }
@@ -445,8 +445,8 @@ public class StartupReload {
    }
 
    public void setupPluginVersion() {
-      ServerInfo.Version var1 = ServerInfo.getVersion();
-      if (var1 == ServerInfo.Version.UNKOWN_VERSION) {
+      ServerInfo.Version version = ServerInfo.getVersion();
+      if (version == ServerInfo.Version.UNKOWN_VERSION) {
          SendMessage.errorMessage("===================================================");
          SendMessage.errorMessage(" ");
          SendMessage.errorMessage(Lang.COULD_NOT_FIND_VALID_VERSION.get());
@@ -454,7 +454,7 @@ public class StartupReload {
          SendMessage.errorMessage(" ");
          SendMessage.errorMessage("===================================================");
          Bukkit.getPluginManager().disablePlugin(OnyxShop.getInstance());
-      } else if (var1.olderOrEqualAs(ServerInfo.Version.v1_16_R2)) {
+      } else if (version.olderOrEqualAs(ServerInfo.Version.v1_16_R2)) {
          SendMessage.errorMessage("===================================================");
          SendMessage.errorMessage(" ");
          SendMessage.errorMessage(
@@ -466,45 +466,45 @@ public class StartupReload {
          Bukkit.getPluginManager().disablePlugin(OnyxShop.getInstance());
       } else {
          try {
-            String var2 = OnyxShop.class.getPackage().getName() + ".versions";
+            String shopId = OnyxShop.class.getPackage().getName() + ".versions";
             this.plugin.versionHandler = (VersionHandler)Class.forName(
-                  var2
+                  shopId
                      + "."
                      + (
                         ServerInfo.supportsPaper()
-                              && (var1 == ServerInfo.Version.v1_21_R6 || var1 == ServerInfo.Version.v1_21_R7)
+                              && (version == ServerInfo.Version.v1_21_R6 || version == ServerInfo.Version.v1_21_R7)
                               && ServerInfo.usesMojangMappings()
                            ? "paper_"
                            : ""
                      )
-                     + var1.name()
+                     + version.name()
                      + "."
-                     + var1.name()
+                     + version.name()
                )
                .newInstance();
             AnvilGUI.WRAPPER = (VersionHandler.AnvilGUI)Class.forName(
-                  var2
+                  shopId
                      + "."
                      + (
                         ServerInfo.supportsPaper()
-                              && (var1 == ServerInfo.Version.v1_21_R6 || var1 == ServerInfo.Version.v1_21_R7)
+                              && (version == ServerInfo.Version.v1_21_R6 || version == ServerInfo.Version.v1_21_R7)
                               && ServerInfo.usesMojangMappings()
                            ? "paper_"
                            : ""
                      )
-                     + var1.name()
+                     + version.name()
                      + ".GUIAnvil"
                )
                .newInstance();
             SendMessage.infoMessage(Lang.MINECRAFT_VERSION_USING.get().replace("%version%", Bukkit.getBukkitVersion().split("-")[0].split("\\.build")[0]));
-         } catch (InstantiationException | IllegalAccessException | ClassCastException | ClassNotFoundException var3) {
+         } catch (InstantiationException | IllegalAccessException | ClassCastException | ClassNotFoundException exception) {
             SendMessage.errorMessage("===================================================");
             SendMessage.errorMessage(" ");
             SendMessage.errorMessage("You are running a unsupported server version, please use a supported server version or update the plugin");
             SendMessage.errorMessage("Version: " + Bukkit.getBukkitVersion());
             SendMessage.errorMessage(" ");
             SendMessage.errorMessage("===================================================");
-            var3.printStackTrace();
+            exception.printStackTrace();
          }
       }
    }

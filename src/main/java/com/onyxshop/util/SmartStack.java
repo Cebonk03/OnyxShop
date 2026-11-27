@@ -6,8 +6,8 @@ import org.bukkit.inventory.ItemStack;
 public class SmartStack {
    private final ItemStack item;
 
-   public SmartStack(ItemStack var1) {
-      this.item = var1;
+   public SmartStack(ItemStack itemStack) {
+      this.item = itemStack;
    }
 
    public ItemStack getItem() {
@@ -17,9 +17,9 @@ public class SmartStack {
    public static class Shulker extends SmartStack {
       private final Map<Integer, ItemStack> items;
 
-      public Shulker(ItemStack var1, Map<Integer, ItemStack> var2) {
-         super(var1);
-         this.items = var2;
+      public Shulker(ItemStack itemStack, Map<Integer, ItemStack> map) {
+         super(itemStack);
+         this.items = map;
       }
 
       public Map<Integer, ItemStack> getItems() {

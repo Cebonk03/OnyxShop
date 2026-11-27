@@ -46,8 +46,8 @@ public class SpawnerManager {
    private SpawnerProvider provider;
    private boolean waiting = false;
 
-   public SpawnerManager(OnyxShop var1) {
-      this.plugin = var1;
+   public SpawnerManager(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public void init() {
@@ -64,9 +64,9 @@ public class SpawnerManager {
          PlayerInteractEvent.getHandlerList().unregister(this.interactEvent);
       }
 
-      SpawnerManager.Provider var1 = SpawnerManager.Provider.getFromString(ConfigManager.getConfig().getString("spawner-provider", "DEFAULT"));
-      SpawnerProvider var2 = this.setup(var1, false);
-      if (var2 == null && !this.waiting) {
+      SpawnerManager.Provider provider = SpawnerManager.Provider.getFromString(ConfigManager.getConfig().getString("spawner-provider", "DEFAULT"));
+      SpawnerProvider spawnerProvider = this.setup(provider, false);
+      if (spawnerProvider == null && !this.waiting) {
          this.provider = this.initProvider(SpawnerManager.Provider.DEFAULT, null);
          SendMessage.infoMessage(Lang.USING_DEFAULT_SPAWNERS.get());
       }
@@ -82,8 +82,8 @@ public class SpawnerManager {
       return this.waiting;
    }
 
-   private SpawnerProvider setup(SpawnerManager.Provider var1, boolean var2) {
-      switch (var1) {
+   private SpawnerProvider setup(SpawnerManager.Provider provider, boolean flag) {
+      switch (provider) {
          case ULTIMATESTACKER:
          case SILKSPAWNERSV2:
          case ROSESTACKER:
@@ -93,91 +93,91 @@ public class SpawnerManager {
          case SMARTSPAWNER:
          case EPICSPAWNERS:
          case UPGRADEABLE_SPAWNERS:
-            if (this.plugin.getServer().getPluginManager().getPlugin(var1.getPluginName()) != null) {
-               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), var1.getName()));
-               if (this.plugin.getServer().getPluginManager().getPlugin(var1.getPluginName()).isEnabled()) {
-                  this.provider = this.initProvider(var1, null);
-                  SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), var1.getName()));
+            if (this.plugin.getServer().getPluginManager().getPlugin(provider.getPluginName()) != null) {
+               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), provider.getName()));
+               if (this.plugin.getServer().getPluginManager().getPlugin(provider.getPluginName()).isEnabled()) {
+                  this.provider = this.initProvider(provider, null);
+                  SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), provider.getName()));
                } else {
-                  this.wait(var1, null);
+                  this.wait(provider, null);
                }
-            } else if (!var2) {
-               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), var1.getName()));
+            } else if (!flag) {
+               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), provider.getName()));
             }
             break;
          case WILDSTACKER:
-            if (this.plugin.getServer().getPluginManager().getPlugin(var1.getPluginName()) != null) {
-               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), var1.getName()));
-               WildStacker var9 = WildStackerAPI.getWildStacker();
-               if (var9 != null && this.plugin.getServer().getPluginManager().getPlugin(var1.getPluginName()).isEnabled()) {
-                  this.provider = this.initProvider(var1, var9);
-                  SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), var1.getName()));
+            if (this.plugin.getServer().getPluginManager().getPlugin(provider.getPluginName()) != null) {
+               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), provider.getName()));
+               WildStacker wildStacker = WildStackerAPI.getWildStacker();
+               if (wildStacker != null && this.plugin.getServer().getPluginManager().getPlugin(provider.getPluginName()).isEnabled()) {
+                  this.provider = this.initProvider(provider, wildStacker);
+                  SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), provider.getName()));
                } else {
-                  this.wait(var1, var9);
+                  this.wait(provider, wildStacker);
                }
-            } else if (!var2) {
-               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), var1.getName()));
+            } else if (!flag) {
+               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), provider.getName()));
             }
             break;
          case SILKSPAWNERS:
-            if (this.plugin.getServer().getPluginManager().getPlugin(var1.getPluginName()) != null) {
-               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), var1.getName()));
+            if (this.plugin.getServer().getPluginManager().getPlugin(provider.getPluginName()) != null) {
+               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), provider.getName()));
 
                try {
-                  if (this.plugin.getServer().getPluginManager().getPlugin(var1.getPluginName()).isEnabled()) {
-                     this.provider = this.initProvider(var1, SilkUtil.hookIntoSilkSpanwers());
-                     SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), var1.getName()));
+                  if (this.plugin.getServer().getPluginManager().getPlugin(provider.getPluginName()).isEnabled()) {
+                     this.provider = this.initProvider(provider, SilkUtil.hookIntoSilkSpanwers());
+                     SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), provider.getName()));
                   } else {
-                     this.wait(var1, null);
+                     this.wait(provider, null);
                   }
-               } catch (NoClassDefFoundError var8) {
+               } catch (NoClassDefFoundError noClassDefFoundError) {
                   try {
                      Class.forName("de.corneliusmay.silkspawners.plugin.SilkSpawners");
                      SendMessage.warnMessage("SilkSpawners_V1 not found but instead found SilkSpawners_V2, updating config setting to use SilkSpawnersV2...");
                      if (this.plugin.getServer().getPluginManager().getPlugin(SpawnerManager.Provider.SILKSPAWNERSV2.getPluginName()).isEnabled()) {
                         this.provider = this.initProvider(SpawnerManager.Provider.SILKSPAWNERSV2, null);
-                        SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), var1.getName()));
+                        SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), provider.getName()));
                      } else {
-                        this.wait(var1, null);
+                        this.wait(provider, null);
                      }
 
                      ConfigManager.getConfig().set("spawner-provider", SpawnerManager.Provider.SILKSPAWNERSV2.name());
                      ConfigManager.saveConfig();
-                  } catch (ClassNotFoundException var7) {
-                     SendMessage.warnMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), var1.getName()));
+                  } catch (ClassNotFoundException exception) {
+                     SendMessage.warnMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), provider.getName()));
                   }
                }
-            } else if (!var2) {
-               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), var1.getName()));
+            } else if (!flag) {
+               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), provider.getName()));
             }
             break;
          case PURPUR:
-            File var3 = new File(this.plugin.getDataFolder().getParentFile().getParentFile(), "purpur.yml");
-            if (var3.exists() && ReflectUtil.isClassPresent("org.purpurmc.purpur.PurpurConfig")) {
-               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), var1.getName()));
-               YamlConfiguration var10 = OnyxShop.getInstance().loadConfiguration(var3, "purpur.yml");
-               if (var10 != null && var10.getBoolean("world-settings.default.gameplay-mechanics.silk-touch.enabled", false)) {
-                  this.provider = this.initProvider(var1, var10);
-                  SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), var1.getName()));
+            File file = new File(this.plugin.getDataFolder().getParentFile().getParentFile(), "purpur.yml");
+            if (file.exists() && ReflectUtil.isClassPresent("org.purpurmc.purpur.PurpurConfig")) {
+               SendMessage.infoMessage(getLog(Lang.SPAWNER_PROVIDER_FOUND.get(), provider.getName()));
+               YamlConfiguration config = OnyxShop.getInstance().loadConfiguration(file, "purpur.yml");
+               if (config != null && config.getBoolean("world-settings.default.gameplay-mechanics.silk-touch.enabled", false)) {
+                  this.provider = this.initProvider(provider, config);
+                  SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), provider.getName()));
                } else {
-                  SendMessage.warnMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), var1.getName()));
+                  SendMessage.warnMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), provider.getName()));
                }
-            } else if (!var2) {
-               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), var1.getName()));
+            } else if (!flag) {
+               SendMessage.warnMessage(getLog(Lang.SPAWNER_PROVIDER_NOT_FOUND.get(), provider.getName()));
             }
             break;
          case DISABLED:
-            this.provider = this.initProvider(var1, null);
+            this.provider = this.initProvider(provider, null);
             SendMessage.infoMessage(Lang.SPAWNER_PROVIDER_DISABLED.get());
             break;
          case DEFAULT:
-            this.provider = this.initProvider(var1, null);
+            this.provider = this.initProvider(provider, null);
             SendMessage.infoMessage(Lang.USING_DEFAULT_SPAWNERS.get());
             break;
          case AUTO:
             SendMessage.infoMessage("Automatically searching for compatible spawner provider....");
 
-            for (SpawnerManager.Provider var5 : Arrays.asList(
+            for (SpawnerManager.Provider provider2 : Arrays.asList(
                SpawnerManager.Provider.UPGRADEABLE_SPAWNERS,
                SpawnerManager.Provider.EPICSPAWNERS,
                SpawnerManager.Provider.WILDSTACKER,
@@ -191,8 +191,8 @@ public class SpawnerManager {
                SpawnerManager.Provider.SMARTSPAWNER,
                SpawnerManager.Provider.PURPUR
             )) {
-               SpawnerProvider var6 = this.setup(var5, true);
-               if (var6 != null || this.waiting) {
+               SpawnerProvider spawnerProvider = this.setup(provider2, true);
+               if (spawnerProvider != null || this.waiting) {
                   break;
                }
             }
@@ -210,19 +210,19 @@ public class SpawnerManager {
       return this.provider;
    }
 
-   private static Translatable getLog(Translatable var0, String var1) {
-      return var0.replace("%provider%", var1);
+   private static Translatable getLog(Translatable text, String text2) {
+      return text.replace("%provider%", text2);
    }
 
-   private void wait(SpawnerManager.Provider var1, @Nullable Object var2) {
+   private void wait(SpawnerManager.Provider provider, @Nullable Object value) {
       this.waiting = true;
-      SendMessage.infoMessage(var1.getName() + " not enabled yet, waiting...");
+      SendMessage.infoMessage(provider.getName() + " not enabled yet, waiting...");
       this.plugin.runTaskLater(() -> {
-         if (this.plugin.getServer().getPluginManager().isPluginEnabled(var1.getPluginName())) {
-            this.provider = this.initProvider(var1, var2);
-            SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), var1.getName()));
+         if (this.plugin.getServer().getPluginManager().isPluginEnabled(provider.getPluginName())) {
+            this.provider = this.initProvider(provider, value);
+            SendMessage.infoMessage(getLog(Lang.USING_EXTERNAL_SPAWNERS.get(), provider.getName()));
          } else {
-            SendMessage.warnMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), var1.getName()));
+            SendMessage.warnMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), provider.getName()));
             this.provider = this.initProvider(SpawnerManager.Provider.DEFAULT, null);
             SendMessage.infoMessage(Lang.USING_DEFAULT_SPAWNERS.get());
          }
@@ -232,30 +232,30 @@ public class SpawnerManager {
       }, 1L);
    }
 
-   public static Translatable getDefaultName(EntityType var0) {
-      Translatable var1 = OnyxShop.getInstance().getSpawnerName(var0);
-      if (var1 != null) {
-         return var1;
+   public static Translatable getDefaultName(EntityType entityType) {
+      Translatable text = OnyxShop.getInstance().getSpawnerName(entityType);
+      if (text != null) {
+         return text;
       } else {
-         String[] var2 = var0.name().toLowerCase().replace("_", " ").split(" ");
-         StringBuffer var3 = new StringBuffer();
+         String[] names = entityType.name().toLowerCase().replace("_", " ").split(" ");
+         StringBuffer stringBuffer = new StringBuffer();
 
-         for (int var4 = 0; var4 < var2.length; var4++) {
-            var3.append(Character.toUpperCase(var2[var4].charAt(0))).append(var2[var4].substring(1)).append(" ");
+         for (int index = 0; index < names.length; index++) {
+            stringBuffer.append(Character.toUpperCase(names[index].charAt(0))).append(names[index].substring(1)).append(" ");
          }
 
-         return Lang.DEFAULT_SPAWNER_NAME.get().replace("%spawner-type%", var3.toString().trim());
+         return Lang.DEFAULT_SPAWNER_NAME.get().replace("%spawner-type%", stringBuffer.toString().trim());
       }
    }
 
-   private SpawnerProvider initProvider(SpawnerManager.Provider var1, @Nullable Object var2) {
-      switch (var1) {
+   private SpawnerProvider initProvider(SpawnerManager.Provider provider, @Nullable Object value) {
+      switch (provider) {
          case ULTIMATESTACKER:
             return new UltimateStackerHook();
          case WILDSTACKER:
-            return new WildStackerHook((WildStacker)var2);
+            return new WildStackerHook((WildStacker)value);
          case SILKSPAWNERS:
-            return new SilkSpawnersHook((SilkUtil)var2);
+            return new SilkSpawnersHook((SilkUtil)value);
          case SILKSPAWNERSV2:
             return this.getSilkSpawnersV2Hook();
          case ROSESTACKER:
@@ -273,7 +273,7 @@ public class SpawnerManager {
          case UPGRADEABLE_SPAWNERS:
             return new UpgradeableSpawnersHook(this.plugin);
          case PURPUR:
-            return new PurpurSpawnerHook((YamlConfiguration)var2);
+            return new PurpurSpawnerHook((YamlConfiguration)value);
          case DISABLED:
             return new DefaultSpawnerProvider(this.plugin, null, null, null);
          case DEFAULT:
@@ -297,20 +297,20 @@ public class SpawnerManager {
       try {
          Class.forName("mc.rellox.spawnerlegacyapi.price.IItemPrice");
          return new SpawnerLegacyHookV4();
-      } catch (Exception var6) {
+      } catch (Exception exception) {
          try {
             Class.forName("mc.rellox.spawnerlegacyapi.SLAPI");
             return (SpawnerProvider)Class.forName("com.onyxshop.providers.spawners.SpawnerLegacyHookV3").newInstance();
-         } catch (Exception var5) {
+         } catch (Exception exception2) {
             try {
                Class.forName("mc.rellox.spawnerlegacy.lib.spawnerlegacyapi.SLAPI");
                return (SpawnerProvider)Class.forName("com.onyxshop.providers.spawners.SpawnerLegacyHookV2").newInstance();
-            } catch (Exception var4) {
+            } catch (Exception exception3) {
                try {
                   return (SpawnerProvider)Class.forName("com.onyxshop.providers.spawners.SpawnerLegacyHookV1").newInstance();
-               } catch (Exception var3) {
+               } catch (Exception exception4) {
                   SendMessage.errorMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), "SpawnerLegacy"));
-                  var3.printStackTrace();
+                  exception4.printStackTrace();
                   return null;
                }
             }
@@ -322,12 +322,12 @@ public class SpawnerManager {
       try {
          Class.forName("de.corneliusmay.silkspawners.api.SilkSpawnersAPI");
          return new SilkSpawnersV2HookV2();
-      } catch (Exception var4) {
+      } catch (Exception exception) {
          try {
             return (SpawnerProvider)Class.forName("com.onyxshop.providers.spawners.SilkSpawnersV2HookV1").newInstance();
-         } catch (Exception var3) {
+         } catch (Exception exception2) {
             SendMessage.errorMessage(getLog(Lang.FAILED_SPAWNER_PROVIDER_INTEGRATION.get(), "SilkSpawners_v2"));
-            var3.printStackTrace();
+            exception2.printStackTrace();
             return null;
          }
       }
@@ -352,8 +352,8 @@ public class SpawnerManager {
 
       private final String name;
 
-      private Provider(String nullxx) {
-         this.name = nullxx;
+      private Provider(String text) {
+         this.name = text;
       }
 
       public String getName() {
@@ -364,12 +364,12 @@ public class SpawnerManager {
          return this.name;
       }
 
-      public static SpawnerManager.Provider getFromString(String var0) {
+      public static SpawnerManager.Provider getFromString(String text) {
          try {
-            SendMessage.infoMessage(SpawnerManager.getLog(Lang.SPAWNER_COMPATIBILITY_ENABLED.get(), var0));
-            return valueOf(var0.toUpperCase(Locale.ENGLISH));
-         } catch (IllegalArgumentException var2) {
-            SendMessage.warnMessage("Failed to find a spawner provider using name '" + var0 + "'");
+            SendMessage.infoMessage(SpawnerManager.getLog(Lang.SPAWNER_COMPATIBILITY_ENABLED.get(), text));
+            return valueOf(text.toUpperCase(Locale.ENGLISH));
+         } catch (IllegalArgumentException exception) {
+            SendMessage.warnMessage("Failed to find a spawner provider using name '" + text + "'");
             return AUTO;
          }
       }

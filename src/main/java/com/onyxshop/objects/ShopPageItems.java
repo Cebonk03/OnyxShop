@@ -13,29 +13,29 @@ public class ShopPageItems {
    private final Map<Integer, ItemStack> items;
    private final List<String> itemOrder;
 
-   public String getItem(int var1) {
-      return this.itemOrder.get(var1);
+   public String getItem(int value) {
+      return this.itemOrder.get(value);
    }
 
    public int getSize() {
       return this.size;
    }
 
-   public void addItem(String var1) {
-      for (int var2 = 0; var2 < this.itemOrder.size(); var2++) {
-         String var3 = this.itemOrder.get(var2);
-         if (var3 == null) {
-            this.itemOrder.set(var2, var1);
+   public void addItem(String itemId) {
+      for (int size = 0; size < this.itemOrder.size(); size++) {
+         String text = this.itemOrder.get(size);
+         if (text == null) {
+            this.itemOrder.set(size, itemId);
             return;
          }
       }
    }
 
-   public void setItem(String var1, ItemStack var2) {
-      for (int var3 = 0; var3 < this.itemOrder.size(); var3++) {
-         String var4 = this.itemOrder.get(var3);
-         if (var4 != null && var4.equals(var1)) {
-            this.items.put(var3, var2);
+   public void setItem(String itemId, ItemStack itemStack) {
+      for (int size = 0; size < this.itemOrder.size(); size++) {
+         String text = this.itemOrder.get(size);
+         if (text != null && text.equals(itemId)) {
+            this.items.put(size, itemStack);
          }
       }
    }
@@ -48,17 +48,17 @@ public class ShopPageItems {
       return new LinkedHashMap<>(this.items);
    }
 
-   public ShopPageItems(Map<Integer, ItemStack> var1, List<String> var2, String var3, int var4) {
-      this.items = var1;
-      this.itemOrder = var2;
-      this.section = var3;
-      this.size = var4;
+   public ShopPageItems(Map<Integer, ItemStack> map, List<String> shopIds, String itemId, int page) {
+      this.items = map;
+      this.itemOrder = shopIds;
+      this.section = itemId;
+      this.size = page;
    }
 
-   public ShopPageItems(String var1) {
+   public ShopPageItems(String shopId) {
       this.items = new HashMap<>();
       this.itemOrder = new ArrayList<>();
-      this.section = var1;
+      this.section = shopId;
       this.size = 54;
    }
 }

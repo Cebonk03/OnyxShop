@@ -34,13 +34,13 @@ public class UserManager {
    private static final LoadingCache<UUID, User> USER_MAP = CacheBuilder.newBuilder()
       .expireAfterAccess(30L, TimeUnit.MINUTES)
       .build(new CacheLoader<UUID, User>() {
-         public User load(UUID var1) {
-            return UserManager.loadUser(Bukkit.getPlayer(var1));
+         public User load(UUID uniqueId) {
+            return UserManager.loadUser(Bukkit.getPlayer(uniqueId));
          }
       });
 
-   public UserManager(OnyxShop var1) {
-      this.plugin = var1;
+   public UserManager(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public void init() {
@@ -61,81 +61,81 @@ public class UserManager {
    }
 
    private String getPrefix() {
-      File var1 = new File(OnyxShop.getInstance().getDataFolder().getParent() + "/floodgate/config.yml");
-      if (!var1.exists()) {
+      File file = new File(OnyxShop.getInstance().getDataFolder().getParent() + "/floodgate/config.yml");
+      if (!file.exists()) {
          SendMessage.logDebugMessage("Failed to find player prefix for floodgate players, using default of '.'...");
          return ".";
       } else {
-         YamlConfiguration var2 = OnyxShop.getInstance().loadConfiguration(var1, "floodgate config.yml");
-         return var2 == null ? "." : var2.getString("username-prefix", ".");
+         YamlConfiguration config = OnyxShop.getInstance().loadConfiguration(file, "floodgate config.yml");
+         return config == null ? "." : config.getString("username-prefix", ".");
       }
    }
 
-   public static User getUser(Player var0) {
+   public static User getUser(Player player) {
       try {
-         return (User)USER_MAP.get(var0.getUniqueId());
-      } catch (ExecutionException var2) {
-         return loadUser(var0);
-      } catch (RuntimeException var3) {
+         return (User)USER_MAP.get(player.getUniqueId());
+      } catch (ExecutionException exception) {
+         return loadUser(player);
+      } catch (RuntimeException exception) {
          // Guava wraps loader failures (e.g. a player who quit before the entry loaded) in
          // UncheckedExecutionException; fall back to a non-cached instance instead of throwing.
-         return loadUser(var0);
+         return loadUser(player);
       }
    }
 
-   public static User loadUser(Player var0) {
-      return new User(var0);
+   public static User loadUser(Player player) {
+      return new User(player);
    }
 
-   public static void invalidate(UUID var0) {
-      USER_MAP.invalidate(var0);
+   public static void invalidate(UUID uniqueId) {
+      USER_MAP.invalidate(uniqueId);
    }
 
-   public static boolean isPrPlayer(Player var0) {
+   public static boolean isPrPlayer(Player player) {
       if (vv != null) {
-         return !versions.contains(vv.getPlayerVersion(var0.getUniqueId()));
+         return !versions.contains(vv.getPlayerVersion(player.getUniqueId()));
       } else {
-         return ps ? versions.contains(ProtocolSupportAPI.getConnection(var0).getVersion().getId()) : false;
+         return ps ? versions.contains(ProtocolSupportAPI.getConnection(player).getVersion().getId()) : false;
       }
    }
 
-   public static boolean isFloodgatePlayer(Player var0) {
-      return fAPI != null ? fAPI.isFloodgatePlayer(var0.getUniqueId()) : var0.getName().startsWith(prefix);
+   public static boolean isFloodgatePlayer(Player player) {
+      return fAPI != null ? fAPI.isFloodgatePlayer(player.getUniqueId()) : player.getName().startsWith(prefix);
    }
 
-   public static Locale getLocale(Player var0, boolean var1) {
-      return getLocale(var0, var1 ? getBedrockLocale(var0) : var0.getLocale());
+   public static Locale getLocale(Player player, boolean flag) {
+      return getLocale(player, flag ? getBedrockLocale(player) : player.getLocale());
    }
 
-   public static Locale getLocale(Player var0, String var1) {
-      Locale var2 = Locale.forLanguageTag(var1.replace("_", "-"));
-      if (var2.getLanguage().isEmpty()) {
-         SendMessage.warnMessage("Failed to parse locale of player " + var0.getName() + " for '" + var1 + "', using server default...");
+   public static Locale getLocale(Player player, String playerName) {
+      Locale locale = Locale.forLanguageTag(playerName.replace("_", "-"));
+      if (locale.getLanguage().isEmpty()) {
+         SendMessage.warnMessage("Failed to parse locale of player " + player.getName() + " for '" + playerName + "', using server default...");
          return Lang.getDefaultLocale();
       } else {
-         Locale var3 = null;
+         Locale locale2 = null;
 
-         for (Locale var5 : Lang.getLocales()) {
-            if (var5.equals(var2)) {
-               return var2;
+         for (Locale locale3 : Lang.getLocales()) {
+            if (locale3.equals(locale)) {
+               return locale;
             }
 
-            if (var5.getCountry().isEmpty() && var5.getLanguage().equals(var2.getLanguage())) {
-               var3 = var5;
+            if (locale3.getCountry().isEmpty() && locale3.getLanguage().equals(locale.getLanguage())) {
+               locale2 = locale3;
             }
          }
 
-         if (var3 != null) {
+         if (locale2 != null) {
             if (OnyxShop.getInstance().perPlayerLanguages) {
                SendMessage.logDevDebugMessage(
-                  "Locale of player " + var0.getName() + " for '" + var2 + "' is not supported by plugin, using lang-" + var3 + ".yml as fallback instead..."
+                  "Locale of player " + player.getName() + " for '" + locale + "' is not supported by plugin, using lang-" + locale2 + ".yml as fallback instead..."
                );
             }
 
-            return var3;
+            return locale2;
          } else {
             if (OnyxShop.getInstance().perPlayerLanguages) {
-               SendMessage.logDebugMessage("Locale of player " + var0.getName() + " for '" + var2 + "' is not supported by plugin, using plugin default...");
+               SendMessage.logDebugMessage("Locale of player " + player.getName() + " for '" + locale + "' is not supported by plugin, using plugin default...");
             }
 
             return Lang.getDefaultLocale();
@@ -143,11 +143,11 @@ public class UserManager {
       }
    }
 
-   public static String getBedrockLocale(Player var0) {
-      return fAPI != null ? fAPI.getPlayer(var0.getUniqueId()).getLanguageCode() : var0.getLocale();
+   public static String getBedrockLocale(Player player) {
+      return fAPI != null ? fAPI.getPlayer(player.getUniqueId()).getLanguageCode() : player.getLocale();
    }
 
    public void reloadPlayerData() {
-      this.plugin.getServer().getOnlinePlayers().forEach(var0 -> USER_MAP.refresh(var0.getUniqueId()));
+      this.plugin.getServer().getOnlinePlayers().forEach(entry -> USER_MAP.refresh(entry.getUniqueId()));
    }
 }

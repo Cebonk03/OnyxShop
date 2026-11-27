@@ -18,218 +18,218 @@ import org.bukkit.entity.Player;
 public class CommandHelper {
    private static OnyxShop plugin;
 
-   public CommandHelper(OnyxShop var1) {
-      plugin = var1;
+   public CommandHelper(OnyxShop plugin2) {
+      plugin = plugin2;
    }
 
-   public static void executeCommandItem(ShopItem var0, Player var1, CommandType var2, Map<EcoType, Double> var3, int var4) {
+   public static void executeCommandItem(ShopItem shopItem, Player player, CommandType commandType, Map<EcoType, Double> map, int value) {
       executeCommandItem(
-         var0,
-         var1,
-         var2,
-         !var0.isABuyPricing() && !var0.isASellPricing()
-            ? var3.values().toArray()[0].toString()
+         shopItem,
+         player,
+         commandType,
+         !shopItem.isABuyPricing() && !shopItem.isASellPricing()
+            ? map.values().toArray()[0].toString()
             : plugin.formatPrices(
-               null, var3, var2 == CommandType.BUY && var0.getABuyPrice().isAll() || var2 == CommandType.SELL && var0.getASellPrice().isAll()
+               null, map, commandType == CommandType.BUY && shopItem.getABuyPrice().isAll() || commandType == CommandType.SELL && shopItem.getASellPrice().isAll()
             ),
-         var4
+         value
       );
    }
 
-   public static void executeCommandItem(ShopItem var0, Player var1, CommandType var2, String var3, int var4) {
-      Iterator var5 = plugin.versionHandler.getNBTCommands(var0.getShopItem(), var2).iterator();
+   public static void executeCommandItem(ShopItem shopItem, Player player, CommandType commandType, String command, int value) {
+      Iterator iterator = plugin.versionHandler.getNBTCommands(shopItem.getShopItem(), commandType).iterator();
 
       while (true) {
-         String var10;
+         String itemId;
          while (true) {
-            if (!var5.hasNext()) {
+            if (!iterator.hasNext()) {
                return;
             }
 
-            var10 = (String)var5.next();
-            var10 = fixCommand(var10);
-            if (!var10.contains("::")) {
+            itemId = (String)iterator.next();
+            itemId = fixCommand(itemId);
+            if (!itemId.contains("::")) {
                break;
             }
 
             try {
-               long var7 = Long.parseLong(var10.split("::")[0]);
-               executeDelayedCommand(var0, var1, getCommand(var10.split("::")[1], var0, var4, var3), var7);
-               plugin.getDelayedCommandProvider().addDelayedCommand(var10.split("::")[1], var7 / 20L * 1000L, var0, var1, var3, var4);
-            } catch (NumberFormatException var9) {
+               long value2 = Long.parseLong(itemId.split("::")[0]);
+               executeDelayedCommand(shopItem, player, getCommand(itemId.split("::")[1], shopItem, value, command), value2);
+               plugin.getDelayedCommandProvider().addDelayedCommand(itemId.split("::")[1], value2 / 20L * 1000L, shopItem, player, command, value);
+            } catch (NumberFormatException exception) {
                break;
             }
          }
 
-         executeDelayedCommand(var0, var1, getCommand(var10, var0, var4, var3), 1L);
+         executeDelayedCommand(shopItem, player, getCommand(itemId, shopItem, value, command), 1L);
       }
    }
 
-   public static void executeCommandItem(DisplayItem var0, Player var1, CommandType var2) {
-      Iterator var3 = plugin.versionHandler.getNBTCommands(var0.getShopItem(), var2).iterator();
+   public static void executeCommandItem(DisplayItem displayItem, Player player, CommandType commandType) {
+      Iterator iterator = plugin.versionHandler.getNBTCommands(displayItem.getShopItem(), commandType).iterator();
 
       while (true) {
-         String var8;
+         String command;
          while (true) {
-            if (!var3.hasNext()) {
+            if (!iterator.hasNext()) {
                return;
             }
 
-            var8 = (String)var3.next();
-            var8 = fixCommand(var8);
-            if (!var8.contains("::")) {
+            command = (String)iterator.next();
+            command = fixCommand(command);
+            if (!command.contains("::")) {
                break;
             }
 
             try {
-               long var5 = Long.parseLong(var8.split("::")[0]);
-               executeDelayedCommand(var0, var1, var0 instanceof ShopItem ? getCommand(var8.split("::")[1], (ShopItem)var0) : var8.split("::")[1], var5);
-               plugin.getDelayedCommandProvider().addDelayedCommand(var8.split("::")[1], var5 / 20L * 1000L, var0, var1);
-            } catch (NumberFormatException var7) {
+               long value = Long.parseLong(command.split("::")[0]);
+               executeDelayedCommand(displayItem, player, displayItem instanceof ShopItem ? getCommand(command.split("::")[1], (ShopItem)displayItem) : command.split("::")[1], value);
+               plugin.getDelayedCommandProvider().addDelayedCommand(command.split("::")[1], value / 20L * 1000L, displayItem, player);
+            } catch (NumberFormatException exception) {
                break;
             }
          }
 
-         executeDelayedCommand(var0, var1, var0 instanceof ShopItem ? getCommand(var8, (ShopItem)var0) : var8, 1L);
+         executeDelayedCommand(displayItem, player, displayItem instanceof ShopItem ? getCommand(command, (ShopItem)displayItem) : command, 1L);
       }
    }
 
-   public static void executeClickCommands(List<String> var0, Player var1) {
-      Iterator var2 = var0.iterator();
+   public static void executeClickCommands(List<String> playerNames, Player player) {
+      Iterator iterator = playerNames.iterator();
 
       while (true) {
-         String var3;
+         String text;
          while (true) {
-            if (!var2.hasNext()) {
+            if (!iterator.hasNext()) {
                return;
             }
 
-            var3 = (String)var2.next();
-            if (!var3.contains("::")) {
+            text = (String)iterator.next();
+            if (!text.contains("::")) {
                break;
             }
 
             try {
-               long var4 = Long.parseLong(var3.split("::")[0]);
-               executeDelayedCommand(null, var1, var3.split("::")[1], var4);
-               plugin.getDelayedCommandProvider().addDelayedCommand(var3.split("::")[1], var4 / 20L * 1000L, null, var1);
-            } catch (NumberFormatException var6) {
+               long value = Long.parseLong(text.split("::")[0]);
+               executeDelayedCommand(null, player, text.split("::")[1], value);
+               plugin.getDelayedCommandProvider().addDelayedCommand(text.split("::")[1], value / 20L * 1000L, null, player);
+            } catch (NumberFormatException exception) {
                break;
             }
          }
 
-         executeDelayedCommand(null, var1, var3, 1L);
+         executeDelayedCommand(null, player, text, 1L);
       }
    }
 
-   public static void executeCommand(DisplayItem var0, Player var1, String var2) {
-      var2 = var2.replace("%player%", var1.getName()).replace("%uuid%", var1.getUniqueId().toString());
-      if (var2.startsWith("/")) {
-         var2 = var2.substring(1);
-      } else if (var2.charAt(2) == '/') {
-         var2 = var2.replaceFirst("/", "");
+   public static void executeCommand(DisplayItem displayItem, Player player, String command) {
+      command = command.replace("%player%", player.getName()).replace("%uuid%", player.getUniqueId().toString());
+      if (command.startsWith("/")) {
+         command = command.substring(1);
+      } else if (command.charAt(2) == '/') {
+         command = command.replaceFirst("/", "");
       }
 
-      var2 = PlaceholderAPIHook.translate(var1, var2);
-      if (var0 != null) {
-         SendMessage.logDebugMessage("Executing command '" + var2 + "' from command item " + var0.getItemPath());
+      command = PlaceholderAPIHook.translate(player, command);
+      if (displayItem != null) {
+         SendMessage.logDebugMessage("Executing command '" + command + "' from command item " + displayItem.getItemPath());
       } else {
-         SendMessage.logDebugMessage("Executing command item with command '" + var2 + "'");
+         SendMessage.logDebugMessage("Executing command item with command '" + command + "'");
       }
 
-      UserManager.getUser(var1).setOpenNewGUI(true);
-      if (var2.startsWith("p:")) {
-         String var3 = var2.substring(2);
-         executeCommand(() -> Bukkit.dispatchCommand(var1, var3), var1);
-      } else if (var2.startsWith("o:")) {
-         String var6 = var2.substring(2);
+      UserManager.getUser(player).setOpenNewGUI(true);
+      if (command.startsWith("p:")) {
+         String text = command.substring(2);
+         executeCommand(() -> Bukkit.dispatchCommand(player, text), player);
+      } else if (command.startsWith("o:")) {
+         String text = command.substring(2);
          executeCommand(() -> {
-            boolean var2x = var1.isOp();
-            if (!var2x) {
+            boolean flag = player.isOp();
+            if (!flag) {
                try {
-                  var1.setOp(true);
-                  Bukkit.dispatchCommand(var1, var6);
+                  player.setOp(true);
+                  Bukkit.dispatchCommand(player, text);
                } finally {
-                  var1.setOp(false);
+                  player.setOp(false);
                }
             } else {
-               Bukkit.dispatchCommand(var1, var6);
+               Bukkit.dispatchCommand(player, text);
             }
-         }, var1);
+         }, player);
       } else {
-         String var9 = var2;
-         executeCommand(() -> Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), var9), null);
+         String text = command;
+         executeCommand(() -> Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), text), null);
       }
    }
 
-   public static void executeDelayedCommand(ScheduleCache.DelayedCommand var0) {
-      Map<String, String> var1 = var0.getArgs();
-      DisplayItem var2 = var1.containsKey("item") ? plugin.getDisplayItem((String)var1.get("item")) : null;
-      int var3 = 1;
+   public static void executeDelayedCommand(ScheduleCache.DelayedCommand delayedCommand) {
+      Map<String, String> args = delayedCommand.getArgs();
+      DisplayItem displayItem = args.containsKey("item") ? plugin.getDisplayItem((String)args.get("item")) : null;
+      int value = 1;
 
       try {
-         var3 = Integer.parseInt(var1.getOrDefault("amount", "1"));
-      } catch (NumberFormatException var7) {
+         value = Integer.parseInt(args.getOrDefault("amount", "1"));
+      } catch (NumberFormatException exception) {
       }
 
-      String var4 = var2 != null
-         ? (var2 instanceof ShopItem ? getCommand(var0.getTask(), (ShopItem)var2, var3, var1.getOrDefault("price", "null")) : var0.getTask())
-         : var0.getTask().replace("%quantity%", String.valueOf(var3)).replace("%price%", var1.getOrDefault("price", "null"));
-      OfflinePlayer var5 = var1.containsKey("uuid")
-         ? Bukkit.getOfflinePlayer(UUID.fromString((String)var1.get("uuid")))
-         : (var1.containsKey("player") ? Bukkit.getOfflinePlayer((String)var1.get("player")) : null);
-      var4 = PlaceholderAPIHook.translate(var5, var4);
-      if (var5 != null && var5.isOnline()) {
-         executeCommand(var2, var5.getPlayer(), var4);
-      } else if (!var4.startsWith("p:") && !var4.startsWith("o:")) {
-         var4 = var4.replace("%player%", var5.getName()).replace("%uuid%", var5.getUniqueId().toString());
-         if (var2 != null) {
-            SendMessage.logDebugMessage("Executing cached delayed command '" + var4 + "' from command item " + var2.getItemPath());
+      String command = displayItem != null
+         ? (displayItem instanceof ShopItem ? getCommand(delayedCommand.getTask(), (ShopItem)displayItem, value, args.getOrDefault("price", "null")) : delayedCommand.getTask())
+         : delayedCommand.getTask().replace("%quantity%", String.valueOf(value)).replace("%price%", args.getOrDefault("price", "null"));
+      OfflinePlayer offlinePlayer = args.containsKey("uuid")
+         ? Bukkit.getOfflinePlayer(UUID.fromString((String)args.get("uuid")))
+         : (args.containsKey("player") ? Bukkit.getOfflinePlayer((String)args.get("player")) : null);
+      command = PlaceholderAPIHook.translate(offlinePlayer, command);
+      if (offlinePlayer != null && offlinePlayer.isOnline()) {
+         executeCommand(displayItem, offlinePlayer.getPlayer(), command);
+      } else if (!command.startsWith("p:") && !command.startsWith("o:")) {
+         command = command.replace("%player%", offlinePlayer.getName()).replace("%uuid%", offlinePlayer.getUniqueId().toString());
+         if (displayItem != null) {
+            SendMessage.logDebugMessage("Executing cached delayed command '" + command + "' from command item " + displayItem.getItemPath());
          } else {
-            SendMessage.logDebugMessage("Executing cached delayed command item with command '" + var4 + "'");
+            SendMessage.logDebugMessage("Executing cached delayed command item with command '" + command + "'");
          }
 
-         if (var4.startsWith("/")) {
-            var4 = var4.substring(1);
+         if (command.startsWith("/")) {
+            command = command.substring(1);
          }
 
-         String var6 = var4;
-         executeCommand(() -> Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), var6), null);
+         String text = command;
+         executeCommand(() -> Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), text), null);
       } else {
          SendMessage.errorMessage(
-            "Failed to execute cached delayed command '" + var4 + "' as player '" + var5.getName() + "' because the target is not online, skipping..."
+            "Failed to execute cached delayed command '" + command + "' as player '" + offlinePlayer.getName() + "' because the target is not online, skipping..."
          );
       }
    }
 
-   private static void executeDelayedCommand(DisplayItem var0, Player var1, String var2, long var3) {
-      plugin.runTaskLater(() -> executeCommand(var0, var1, var2), var3);
+   private static void executeDelayedCommand(DisplayItem displayItem, Player player, String command, long value) {
+      plugin.runTaskLater(() -> executeCommand(displayItem, player, command), value);
    }
 
-   private static String getCommand(String var0, ShopItem var1, int var2, String var3) {
-      return getCommand(var0, var1).replace("%quantity%", String.valueOf(var2)).replace("%price%", var3);
+   private static String getCommand(String command, ShopItem shopItem, int value, String shopId) {
+      return getCommand(command, shopItem).replace("%quantity%", String.valueOf(value)).replace("%price%", shopId);
    }
 
-   private static String getCommand(String var0, ShopItem var1) {
-      return var0.replace("%buyPrice%", String.valueOf(var1.isABuyPricing() ? var1.getABuyPrice().getBuyPrices() : var1.getBuyPrice()))
-         .replace("%sellPrice%", String.valueOf(var1.isASellPricing() ? var1.getASellPrice().getSellPrices() : var1.getSellPrice()));
+   private static String getCommand(String command, ShopItem shopItem) {
+      return command.replace("%buyPrice%", String.valueOf(shopItem.isABuyPricing() ? shopItem.getABuyPrice().getBuyPrices() : shopItem.getBuyPrice()))
+         .replace("%sellPrice%", String.valueOf(shopItem.isASellPricing() ? shopItem.getASellPrice().getSellPrices() : shopItem.getSellPrice()));
    }
 
-   private static String fixCommand(String var0) {
-      return var0.startsWith("\"") && var0.endsWith("\"")
-         ? var0.substring(1, var0.length() - 1)
-         : (var0.startsWith("'") && var0.endsWith("'") ? var0.substring(1, var0.length() - 1) : var0);
+   private static String fixCommand(String command) {
+      return command.startsWith("\"") && command.endsWith("\"")
+         ? command.substring(1, command.length() - 1)
+         : (command.startsWith("'") && command.endsWith("'") ? command.substring(1, command.length() - 1) : command);
    }
 
-   private static void executeCommand(Runnable var0, Player var1) {
+   private static void executeCommand(Runnable task, Player player) {
       if (ServerInfo.isFolia()) {
-         if (var1 != null) {
-            plugin.runTaskFor(var0, var1);
+         if (player != null) {
+            plugin.runTaskFor(task, player);
          } else {
-            plugin.runTask(var0);
+            plugin.runTask(task);
          }
       } else {
-         var0.run();
+         task.run();
       }
    }
 }

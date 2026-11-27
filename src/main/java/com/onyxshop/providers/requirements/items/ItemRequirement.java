@@ -24,26 +24,26 @@ public class ItemRequirement implements com.onyxshop.providers.requirements.Item
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public ItemRequirement(String var1, List<String> var2, String var3, String var4, int var5) throws ItemRequirementLoadException {
+   public ItemRequirement(String itemId, List<String> values, String text, String text2, int value) throws ItemRequirementLoadException {
       try {
-         this.format = new ItemFormat(var1, var4, var5);
-      } catch (NumberFormatException var7) {
-         throw new ItemRequirementLoadException("Invalid amount for " + var1 + ", should be number");
+         this.format = new ItemFormat(itemId, text2, value);
+      } catch (NumberFormatException exception) {
+         throw new ItemRequirementLoadException("Invalid amount for " + itemId + ", should be number");
       }
 
-      this.lore = RequirementManager.getLore(var2, Lang.ITEM_REQUIREMENT_LORE.get().toString(), var1);
-      this.customMSG = var3;
+      this.lore = RequirementManager.getLore(values, Lang.ITEM_REQUIREMENT_LORE.get().toString(), itemId);
+      this.customMSG = text;
       this.load();
    }
 
    @Override
    public void load() throws ItemRequirementLoadException {
       if (this.format.getItem() == null) {
-         String var1 = this.format.getErrorMessage();
-         if (var1.contains("Item provider not enabled yet!")) {
+         String errorMessage = this.format.getErrorMessage();
+         if (errorMessage.contains("Item provider not enabled yet!")) {
             ItemManager.registerDelayed(this);
          } else {
-            throw new ItemRequirementLoadException(var1);
+            throw new ItemRequirementLoadException(errorMessage);
          }
       } else {
          this.requirement = this.format.getItem();
@@ -53,7 +53,7 @@ public class ItemRequirement implements com.onyxshop.providers.requirements.Item
             if (XMaterial.matchXMaterial(this.requirement.getType()) == XMaterial.PLAYER_HEAD) {
                this.iTags.add(NBTMaps.getTag("SkullOwner::Id", this.format.getPath().split("\\.")[0], "." + this.format.getPath().split("\\.", 2)[1]));
             }
-         } catch (IllegalArgumentException var2) {
+         } catch (IllegalArgumentException exception) {
          }
 
          SendMessage.infoMessage("Successfully loaded item requirement '" + this.format.getId() + "' for shop item " + this.format.getPath());
@@ -75,17 +75,17 @@ public class ItemRequirement implements com.onyxshop.providers.requirements.Item
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      int var2 = 0;
+   public boolean isMet(Player player) {
+      int value = 0;
 
-      for (int var3 = 0; var3 < 36; var3++) {
-         ItemStack var4 = var1.getInventory().getItem(var3);
-         if (var4 != null
-            && !var4.getType().equals(Material.AIR)
-            && var4.getType() == this.requirement.getType()
-            && OnyxShop.getInstance().isSimilar(var4, this.requirement, this.iTags)) {
-            var2 += var4.getAmount();
-            if (var2 >= this.requirement.getAmount()) {
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = player.getInventory().getItem(index);
+         if (itemStack != null
+            && !itemStack.getType().equals(Material.AIR)
+            && itemStack.getType() == this.requirement.getType()
+            && OnyxShop.getInstance().isSimilar(itemStack, this.requirement, this.iTags)) {
+            value += itemStack.getAmount();
+            if (value >= this.requirement.getAmount()) {
                return true;
             }
          }
@@ -95,18 +95,18 @@ public class ItemRequirement implements com.onyxshop.providers.requirements.Item
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
-      return this.lore.isReplaced() ? this.lore.get(var1, var2, var3) : this.lore.get(var1, var2, var3, "%itemName%", this.itemName);
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
+      return this.lore.isReplaced() ? this.lore.get(player, flag, flag2) : this.lore.get(player, flag, flag2, "%itemName%", this.itemName);
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.ITEM_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.ITEM_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
          if (!this.lore.isReplaced()) {
-            SendMessage.chatToPlayer(var1, var2);
+            SendMessage.chatToPlayer(player, text);
          } else {
-            SendMessage.chatToPlayer(var1, var2.replace("%itemName%", this.itemName).replace("%amount%", String.valueOf(this.requirement.getAmount())));
+            SendMessage.chatToPlayer(player, text.replace("%itemName%", this.itemName).replace("%amount%", String.valueOf(this.requirement.getAmount())));
          }
       }
    }

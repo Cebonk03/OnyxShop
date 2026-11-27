@@ -1698,11 +1698,11 @@ public enum XMaterial {
    private static final LoadingCache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
       .expireAfterAccess(3L, TimeUnit.HOURS)
       .build(new CacheLoader<String, Pattern>() {
-         public Pattern load(@Nonnull String var1) {
+         public Pattern load(@Nonnull String text) {
             try {
-               return Pattern.compile(var1);
-            } catch (PatternSyntaxException var3) {
-               var3.printStackTrace();
+               return Pattern.compile(text);
+            } catch (PatternSyntaxException exception) {
+               exception.printStackTrace();
                return null;
             }
          }
@@ -1718,37 +1718,37 @@ public enum XMaterial {
    @Nullable
    private final Material material;
 
-   private XMaterial(int nullxx, int nullxxx, @Nonnull String... nullxxxx) {
-      this.data = (byte)nullxx;
-      this.version = (byte)nullxxx;
-      this.legacy = nullxxxx;
-      Material var6 = null;
-      if (!XMaterial.Data.ISFLAT && this.isDuplicated() || (var6 = Material.getMaterial(this.name())) == null) {
-         for (int var7 = nullxxxx.length - 1; var7 >= 0; var7--) {
-            var6 = Material.getMaterial(nullxxxx[var7]);
-            if (var6 != null) {
+   private XMaterial(int value, int value2, @Nonnull String... materialNames) {
+      this.data = (byte)value;
+      this.version = (byte)value2;
+      this.legacy = materialNames;
+      Material material = null;
+      if (!XMaterial.Data.ISFLAT && this.isDuplicated() || (material = Material.getMaterial(this.name())) == null) {
+         for (int index = materialNames.length - 1; index >= 0; index--) {
+            material = Material.getMaterial(materialNames[index]);
+            if (material != null) {
                break;
             }
          }
       }
 
-      this.material = var6;
+      this.material = material;
    }
 
-   private XMaterial(int nullxx, @Nonnull String... nullxxx) {
-      this(nullxx, 0, nullxxx);
+   private XMaterial(int value, @Nonnull String... materialNames) {
+      this(value, 0, materialNames);
    }
 
-   private XMaterial(int nullxx) {
-      this(0, nullxx);
+   private XMaterial(int value) {
+      this(0, value);
    }
 
    private XMaterial() {
       this(0, 0);
    }
 
-   private XMaterial(String... nullxx) {
-      this(0, 0, nullxx);
+   private XMaterial(String... materialNames) {
+      this(0, 0, materialNames);
    }
 
    public static boolean isNewVersion() {
@@ -1759,17 +1759,17 @@ public enum XMaterial {
       return !supports(9);
    }
 
-   public static boolean isShulker(Material var0) {
-      return var0.name().endsWith("SHULKER_BOX");
+   public static boolean isShulker(Material material) {
+      return material.name().endsWith("SHULKER_BOX");
    }
 
-   public static boolean isSign(Material var0) {
-      return var0.name().endsWith("SIGN") || !XMaterial.Data.ISFLAT && var0.name().startsWith("SIGN");
+   public static boolean isSign(Material material) {
+      return material.name().endsWith("SIGN") || !XMaterial.Data.ISFLAT && material.name().startsWith("SIGN");
    }
 
    @Nonnull
-   private static Optional<XMaterial> getIfPresent(@Nonnull String var0) {
-      return Optional.ofNullable(NAMES.get(var0));
+   private static Optional<XMaterial> getIfPresent(@Nonnull String materialName) {
+      return Optional.ofNullable(NAMES.get(materialName));
    }
 
    public static int getVersion() {
@@ -1777,16 +1777,16 @@ public enum XMaterial {
    }
 
    @Nullable
-   private static XMaterial requestOldXMaterial(@Nonnull String var0, byte var1) {
-      String var2 = var0 + var1;
-      XMaterial var3 = (XMaterial)NAME_CACHE.getIfPresent(var2);
-      if (var3 != null) {
-         return var3;
+   private static XMaterial requestOldXMaterial(@Nonnull String materialName, byte value) {
+      String text = materialName + value;
+      XMaterial xMaterial = (XMaterial)NAME_CACHE.getIfPresent(text);
+      if (xMaterial != null) {
+         return xMaterial;
       } else {
-         for (XMaterial var7 : VALUES) {
-            if ((var1 == -1 || var1 == var7.data) && var7.anyMatchLegacy(var0)) {
-               NAME_CACHE.put(var2, var7);
-               return var7;
+         for (XMaterial xMaterial2 : VALUES) {
+            if ((value == -1 || value == xMaterial2.data) && xMaterial2.anyMatchLegacy(materialName)) {
+               NAME_CACHE.put(text, xMaterial2);
+               return xMaterial2;
             }
          }
 
@@ -1795,116 +1795,116 @@ public enum XMaterial {
    }
 
    @Nonnull
-   public static Optional<XMaterial> matchXMaterial(@Nonnull String var0) {
-      Validate.notEmpty(var0, "Cannot match a material with null or empty material name");
-      Optional var1 = matchXMaterialWithData(var0);
-      return var1.isPresent() ? var1 : matchDefinedXMaterial(format(var0), (byte)-1);
+   public static Optional<XMaterial> matchXMaterial(@Nonnull String materialName) {
+      Validate.notEmpty(materialName, "Cannot match a material with null or empty material name");
+      Optional optional = matchXMaterialWithData(materialName);
+      return optional.isPresent() ? optional : matchDefinedXMaterial(format(materialName), (byte)-1);
    }
 
    @Nonnull
-   private static Optional<XMaterial> matchXMaterialWithData(@Nonnull String var0) {
-      int var1 = var0.indexOf(58);
-      if (var1 != -1) {
-         String var2 = format(var0.substring(0, var1));
+   private static Optional<XMaterial> matchXMaterialWithData(@Nonnull String materialName) {
+      int index = materialName.indexOf(58);
+      if (index != -1) {
+         String text = format(materialName.substring(0, index));
 
          try {
-            byte var3 = (byte)Integer.parseInt(StringUtils.deleteWhitespace(var0.substring(var1 + 1)));
-            return var3 >= 0 && var3 < 120 ? matchDefinedXMaterial(var2, var3) : matchDefinedXMaterial(var2, (byte)-1);
-         } catch (NumberFormatException var4) {
-            return matchDefinedXMaterial(var2, (byte)-1);
+            byte value = (byte)Integer.parseInt(StringUtils.deleteWhitespace(materialName.substring(index + 1)));
+            return value >= 0 && value < 120 ? matchDefinedXMaterial(text, value) : matchDefinedXMaterial(text, (byte)-1);
+         } catch (NumberFormatException exception) {
+            return matchDefinedXMaterial(text, (byte)-1);
          }
       } else {
          return Optional.empty();
       }
    }
 
-   public static XMaterial matchXMaterial(@Nonnull Block var0) {
+   public static XMaterial matchXMaterial(@Nonnull Block block) {
       if (XMaterial.Data.ISFLAT) {
-         return matchXMaterial(var0.getType());
+         return matchXMaterial(block.getType());
       } else {
-         String var1 = var0.getType().name();
-         byte var2 = -1;
-         MaterialData var3 = var0.getState().getData();
-         if (var3 instanceof Step) {
-            Step var4 = (Step)var3;
-            if (var4.isInverted() || var1.equals("DOUBLE_STEP")) {
-               var2 = (byte)Integer.parseInt(String.valueOf(var4.getData() & 7));
+         String materialName = block.getType().name();
+         byte value = -1;
+         MaterialData materialData = block.getState().getData();
+         if (materialData instanceof Step) {
+            Step step = (Step)materialData;
+            if (step.isInverted() || materialName.equals("DOUBLE_STEP")) {
+               value = (byte)Integer.parseInt(String.valueOf(step.getData() & 7));
             }
-         } else if (var3 instanceof WoodenStep) {
-            WoodenStep var5 = (WoodenStep)var3;
-            if (var5.isInverted() || var1.equals("WOOD_DOUBLE_STEP")) {
-               var2 = (byte)Integer.parseInt(String.valueOf(var5.getData() & 7));
+         } else if (materialData instanceof WoodenStep) {
+            WoodenStep woodenStep = (WoodenStep)materialData;
+            if (woodenStep.isInverted() || materialName.equals("WOOD_DOUBLE_STEP")) {
+               value = (byte)Integer.parseInt(String.valueOf(woodenStep.getData() & 7));
             }
-         } else if (!var1.contains("CHEST")) {
-            var2 = var0.getData();
+         } else if (!materialName.contains("CHEST")) {
+            value = block.getData();
          }
 
-         byte var6 = var2;
-         return matchDefinedXMaterial(var1, var2)
-            .orElseThrow(() -> new IllegalArgumentException("Unsupported material for block " + var6 + ": " + var0.getType().name()));
+         byte value2 = value;
+         return matchDefinedXMaterial(materialName, value)
+            .orElseThrow(() -> new IllegalArgumentException("Unsupported material for block " + value2 + ": " + block.getType().name()));
       }
    }
 
    @Nonnull
-   public static XMaterial matchXMaterial(@Nonnull Material var0) {
-      Objects.requireNonNull(var0, "Cannot match null material");
-      Optional var1 = matchDefinedXMaterial(var0.name(), (byte)-1);
-      if (var1.isPresent()) {
-         return (XMaterial)var1.get();
+   public static XMaterial matchXMaterial(@Nonnull Material material) {
+      Objects.requireNonNull(material, "Cannot match null material");
+      Optional optional = matchDefinedXMaterial(material.name(), (byte)-1);
+      if (optional.isPresent()) {
+         return (XMaterial)optional.get();
       } else {
-         SendMessage.logDebugMessage("Matching item with unsupported material: " + var0 + " (" + -1 + "), skipping...");
+         SendMessage.logDebugMessage("Matching item with unsupported material: " + material + " (" + -1 + "), skipping...");
          return AIR;
       }
    }
 
    @Nonnull
-   public static XMaterial matchXMaterial(@Nonnull ItemStack var0) {
-      Objects.requireNonNull(var0, "Cannot match null ItemStack");
-      String var1 = var0.getType().name();
-      byte var2 = (byte)(!XMaterial.Data.ISFLAT && var0.getType().getMaxDurability() <= 0 ? var0.getDurability() : -1);
-      if (!XMaterial.Data.ISFLAT && var1.equals("POTION")) {
-         var2 = -1;
+   public static XMaterial matchXMaterial(@Nonnull ItemStack itemStack) {
+      Objects.requireNonNull(itemStack, "Cannot match null ItemStack");
+      String materialName = itemStack.getType().name();
+      byte value = (byte)(!XMaterial.Data.ISFLAT && itemStack.getType().getMaxDurability() <= 0 ? itemStack.getDurability() : -1);
+      if (!XMaterial.Data.ISFLAT && materialName.equals("POTION")) {
+         value = -1;
       }
 
-      Optional var3 = matchDefinedXMaterial(var1, var2);
-      if (var3.isPresent()) {
-         return (XMaterial)var3.get();
+      Optional optional = matchDefinedXMaterial(materialName, value);
+      if (optional.isPresent()) {
+         return (XMaterial)optional.get();
       } else {
-         SendMessage.logDebugMessage("Matching item with unsupported material: " + var1 + " (" + var2 + "), skipping...");
+         SendMessage.logDebugMessage("Matching item with unsupported material: " + materialName + " (" + value + "), skipping...");
          return AIR;
       }
    }
 
    @Nonnull
-   protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String var0, byte var1) {
-      Boolean var2 = null;
-      boolean var3 = var0.equalsIgnoreCase("MAP");
-      if (XMaterial.Data.ISFLAT || !var3 && var1 <= 0 && !(var2 = isDuplicated(var0))) {
-         Optional var4 = getIfPresent(var0);
-         if (var4.isPresent()) {
-            return var4;
+   protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String materialName, byte value) {
+      Boolean flag = null;
+      boolean flag2 = materialName.equalsIgnoreCase("MAP");
+      if (XMaterial.Data.ISFLAT || !flag2 && value <= 0 && !(flag = isDuplicated(materialName))) {
+         Optional optional = getIfPresent(materialName);
+         if (optional.isPresent()) {
+            return optional;
          }
       }
 
-      XMaterial var5 = requestOldXMaterial(var0, var1);
-      if (var5 == null) {
-         return var1 >= 0 && var3 ? Optional.of(FILLED_MAP) : Optional.empty();
+      XMaterial xMaterial = requestOldXMaterial(materialName, value);
+      if (xMaterial == null) {
+         return value >= 0 && flag2 ? Optional.of(FILLED_MAP) : Optional.empty();
       } else {
-         return XMaterial.Data.ISFLAT || (var2 == null ? !isDuplicated(var0) : !var2) ? Optional.of(var5) : getIfPresent(var0);
+         return XMaterial.Data.ISFLAT || (flag == null ? !isDuplicated(materialName) : !flag) ? Optional.of(xMaterial) : getIfPresent(materialName);
       }
    }
 
-   private static boolean isDuplicated(@Nonnull String var0) {
-      return DUPLICATED.contains(var0);
+   private static boolean isDuplicated(@Nonnull String text) {
+      return DUPLICATED.contains(text);
    }
 
    @Nonnull
    @Deprecated
-   public static Optional<XMaterial> matchXMaterial(int var0, byte var1) {
-      if (var0 >= 0 && var0 <= 2267 && var1 >= 0) {
-         for (XMaterial var5 : VALUES) {
-            if (var5.data == var1 && var5.getId() == var0) {
-               return Optional.of(var5);
+   public static Optional<XMaterial> matchXMaterial(int value, byte value2) {
+      if (value >= 0 && value <= 2267 && value2 >= 0) {
+         for (XMaterial xMaterial : VALUES) {
+            if (xMaterial.data == value2 && xMaterial.getId() == value) {
+               return Optional.of(xMaterial);
             }
          }
 
@@ -1914,108 +1914,108 @@ public enum XMaterial {
       }
    }
 
-   public static double getBlockY(Block var0) {
-      double var1 = 0.5;
-      if (var0.getType() != Material.CHEST && var0.getType() != Material.ENDER_CHEST) {
-         if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_13_R1) && var0.getState().getBlockData() instanceof Slab) {
-            Slab var5 = (Slab)var0.getState().getBlockData();
-            if (var5.getType() == Type.BOTTOM) {
-               var1 -= 0.5;
+   public static double getBlockY(Block block) {
+      double amount = 0.5;
+      if (block.getType() != Material.CHEST && block.getType() != Material.ENDER_CHEST) {
+         if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_13_R1) && block.getState().getBlockData() instanceof Slab) {
+            Slab slab = (Slab)block.getState().getBlockData();
+            if (slab.getType() == Type.BOTTOM) {
+               amount -= 0.5;
             }
-         } else if (var0.getState().getData() instanceof Step) {
-            Step var3 = (Step)var0.getState().getData();
-            if (!var3.isInverted()) {
-               var1 -= 0.5;
+         } else if (block.getState().getData() instanceof Step) {
+            Step step = (Step)block.getState().getData();
+            if (!step.isInverted()) {
+               amount -= 0.5;
             }
-         } else if (var0.getState().getData() instanceof WoodenStep) {
-            WoodenStep var4 = (WoodenStep)var0.getState().getData();
-            if (!var4.isInverted()) {
-               var1 -= 0.5;
+         } else if (block.getState().getData() instanceof WoodenStep) {
+            WoodenStep woodenStep = (WoodenStep)block.getState().getData();
+            if (!woodenStep.isInverted()) {
+               amount -= 0.5;
             }
          }
       }
 
-      return var0.getLocation().getBlockY() + var1;
+      return block.getLocation().getBlockY() + amount;
    }
 
    @Nonnull
-   protected static String format(@Nonnull String var0) {
-      int var1 = var0.length();
-      char[] var2 = new char[var1];
-      int var3 = 0;
-      boolean var4 = false;
+   protected static String format(@Nonnull String text) {
+      int value = text.length();
+      char[] character = new char[value];
+      int value2 = 0;
+      boolean flag = false;
 
-      for (int var5 = 0; var5 < var1; var5++) {
-         char var6 = var0.charAt(var5);
-         if (!var4 && var3 != 0 && (var6 == '-' || var6 == ' ' || var6 == '_') && var2[var3] != '_') {
-            var4 = true;
+      for (int index = 0; index < value; index++) {
+         char character2 = text.charAt(index);
+         if (!flag && value2 != 0 && (character2 == '-' || character2 == ' ' || character2 == '_') && character[value2] != '_') {
+            flag = true;
          } else {
-            boolean var7 = false;
-            if (var6 >= 'A' && var6 <= 'Z' || var6 >= 'a' && var6 <= 'z' || (var7 = var6 >= '0' && var6 <= '9')) {
-               if (var4) {
-                  var2[var3++] = '_';
-                  var4 = false;
+            boolean flag2 = false;
+            if (character2 >= 'A' && character2 <= 'Z' || character2 >= 'a' && character2 <= 'z' || (flag2 = character2 >= '0' && character2 <= '9')) {
+               if (flag) {
+                  character[value2++] = '_';
+                  flag = false;
                }
 
-               if (var7) {
-                  var2[var3++] = var6;
+               if (flag2) {
+                  character[value2++] = character2;
                } else {
-                  var2[var3++] = (char)(var6 & '_');
+                  character[value2++] = (char)(character2 & '_');
                }
             }
          }
       }
 
-      return new String(var2, 0, var3);
+      return new String(character, 0, value2);
    }
 
-   public static boolean supports(int var0) {
-      return XMaterial.Data.VERSION >= var0;
+   public static boolean supports(int value) {
+      return XMaterial.Data.VERSION >= value;
    }
 
    @Nonnull
-   public static String getMajorVersion(@Nonnull String var0) {
-      Validate.notEmpty(var0, "Cannot get major Minecraft version from null or empty string");
-      int var1 = var0.lastIndexOf("MC:");
-      if (var1 != -1) {
-         var0 = var0.substring(var1 + 4, var0.length() - 1);
-      } else if (var0.endsWith("SNAPSHOT")) {
-         var1 = var0.indexOf(45);
-         var0 = var0.substring(0, var1);
+   public static String getMajorVersion(@Nonnull String text) {
+      Validate.notEmpty(text, "Cannot get major Minecraft version from null or empty string");
+      int index = text.lastIndexOf("MC:");
+      if (index != -1) {
+         text = text.substring(index + 4, text.length() - 1);
+      } else if (text.endsWith("SNAPSHOT")) {
+         index = text.indexOf(45);
+         text = text.substring(0, index);
       }
 
-      int var2 = var0.lastIndexOf(46);
-      if (var0.indexOf(46) != var2) {
-         var0 = var0.substring(0, var2);
+      int value = text.lastIndexOf(46);
+      if (text.indexOf(46) != value) {
+         text = text.substring(0, value);
       }
 
-      return var0;
+      return text;
    }
 
    public String[] getLegacy() {
       return this.legacy;
    }
 
-   public boolean isOneOf(@Nullable Collection<String> var1) {
-      if (var1 != null && !var1.isEmpty()) {
-         String var2 = this.name();
+   public boolean isOneOf(@Nullable Collection<String> values) {
+      if (values != null && !values.isEmpty()) {
+         String name = this.name();
 
-         for (String var4 : var1) {
-            String var5 = var4.toUpperCase(Locale.ENGLISH);
-            if (var5.startsWith("CONTAINS:")) {
-               var4 = format(var5.substring(9));
-               if (var2.contains(var4)) {
+         for (String text : values) {
+            String text2 = text.toUpperCase(Locale.ENGLISH);
+            if (text2.startsWith("CONTAINS:")) {
+               text = format(text2.substring(9));
+               if (name.contains(text)) {
                   return true;
                }
-            } else if (var5.startsWith("REGEX:")) {
-               var4 = var4.substring(6);
-               Pattern var6 = (Pattern)CACHED_REGEX.getUnchecked(var4);
-               if (var6 != null && var6.matcher(var2).matches()) {
+            } else if (text2.startsWith("REGEX:")) {
+               text = text.substring(6);
+               Pattern pattern = (Pattern)CACHED_REGEX.getUnchecked(text);
+               if (pattern != null && pattern.matcher(name).matches()) {
                   return true;
                }
             } else {
-               Optional var9 = matchXMaterial(var4);
-               if (var9.isPresent() && var9.get() == this) {
+               Optional optional = matchXMaterial(text);
+               if (optional.isPresent() && optional.get() == this) {
                   return true;
                }
             }
@@ -2028,21 +2028,21 @@ public enum XMaterial {
    }
 
    @Nonnull
-   public ItemStack setType(@Nonnull ItemStack var1) {
-      Objects.requireNonNull(var1, "Cannot set material for null ItemStack");
-      Material var2 = this.parseMaterial();
-      Objects.requireNonNull(var2, () -> "Unsupported material: " + this.name());
-      var1.setType(var2);
-      if (!XMaterial.Data.ISFLAT && var2.getMaxDurability() <= 0) {
-         var1.setDurability(this.data);
+   public ItemStack setType(@Nonnull ItemStack itemStack) {
+      Objects.requireNonNull(itemStack, "Cannot set material for null ItemStack");
+      Material material = this.parseMaterial();
+      Objects.requireNonNull(material, () -> "Unsupported material: " + this.name());
+      itemStack.setType(material);
+      if (!XMaterial.Data.ISFLAT && material.getMaxDurability() <= 0) {
+         itemStack.setDurability(this.data);
       }
 
-      return var1;
+      return itemStack;
    }
 
-   private boolean anyMatchLegacy(@Nonnull String var1) {
-      for (int var2 = this.legacy.length - 1; var2 >= 0; var2--) {
-         if (var1.equals(this.legacy[var2])) {
+   private boolean anyMatchLegacy(@Nonnull String text) {
+      for (int index = this.legacy.length - 1; index >= 0; index--) {
+         if (text.equals(this.legacy[index])) {
             return true;
          }
       }
@@ -2058,11 +2058,11 @@ public enum XMaterial {
 
    public int getId() {
       if (this.data == 0 && this.version < 13) {
-         Material var1 = this.parseMaterial();
-         if (var1 == null) {
+         Material material = this.parseMaterial();
+         if (material == null) {
             return -1;
          } else {
-            return XMaterial.Data.ISFLAT && !var1.isLegacy() ? -1 : var1.getId();
+            return XMaterial.Data.ISFLAT && !material.isLegacy() ? -1 : material.getId();
          }
       } else {
          return -1;
@@ -2076,13 +2076,13 @@ public enum XMaterial {
    @Nullable
    public ItemStack parseItem() {
       try {
-         Material var1 = this.parseMaterial();
-         if (var1 == null) {
+         Material material = this.parseMaterial();
+         if (material == null) {
             return null;
          } else {
-            return XMaterial.Data.ISFLAT ? new ItemStack(var1) : new ItemStack(var1, 1, this.data);
+            return XMaterial.Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
          }
-      } catch (IllegalArgumentException var2) {
+      } catch (IllegalArgumentException exception) {
          return null;
       }
    }
@@ -2092,11 +2092,11 @@ public enum XMaterial {
       return this.material;
    }
 
-   public boolean isSimilar(@Nonnull ItemStack var1) {
-      Objects.requireNonNull(var1, "Cannot compare with null ItemStack");
-      return var1.getType() != this.parseMaterial()
+   public boolean isSimilar(@Nonnull ItemStack itemStack) {
+      Objects.requireNonNull(itemStack, "Cannot compare with null ItemStack");
+      return itemStack.getType() != this.parseMaterial()
          ? false
-         : XMaterial.Data.ISFLAT || var1.getDurability() == this.data || var1.getType().getMaxDurability() <= 0;
+         : XMaterial.Data.ISFLAT || itemStack.getDurability() == this.data || itemStack.getType().getMaxDurability() <= 0;
    }
 
    public boolean isSupported() {
@@ -2108,8 +2108,8 @@ public enum XMaterial {
    }
 
    private boolean isDuplicated() {
-      String var1 = this.name();
-      switch (var1) {
+      String name = this.name();
+      switch (name) {
          case "MELON":
          case "CARROT":
          case "POTATO":
@@ -2132,22 +2132,22 @@ public enum XMaterial {
    }
 
    public List<String> getAllSupportedMaterialNames() {
-      List<String> var1 = new java.util.ArrayList<>();
+      List<String> values = new java.util.ArrayList<>();
 
-      for (String var5 : this.legacy) {
-         if (var5.isEmpty()) {
+      for (String materialName : this.legacy) {
+         if (materialName.isEmpty()) {
             break;
          }
 
-         var1.add(var5);
+         values.add(materialName);
       }
 
-      return var1;
+      return values;
    }
 
    static {
-      for (XMaterial var3 : VALUES) {
-         NAMES.put(var3.name(), var3);
+      for (XMaterial xMaterial : VALUES) {
+         NAMES.put(xMaterial.name(), xMaterial);
       }
 
       if (XMaterial.Data.ISFLAT) {

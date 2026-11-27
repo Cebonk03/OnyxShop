@@ -28,9 +28,9 @@ public class AddHandItem extends SubCommad {
    Double buyPrice;
    Double sellPrice;
 
-   public AddHandItem(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public AddHandItem(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -49,59 +49,59 @@ public class AddHandItem extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var1 instanceof Player) {
-         Player var3 = (Player)var1;
-         if (var2.length > 1) {
-            this.section = this.methods.getSection(var3, var2[1]);
+   public void perform(Object value, String[] values) {
+      if (value instanceof Player) {
+         Player player = (Player)value;
+         if (values.length > 1) {
+            this.section = this.methods.getSection(player, values[1]);
             if (this.section != null) {
-               if (var2.length > 2) {
-                  this.buyPrice = this.methods.getPrice(var3, var2[2]);
+               if (values.length > 2) {
+                  this.buyPrice = this.methods.getPrice(player, values[2]);
                   if (this.buyPrice != null) {
-                     if (var2.length > 3) {
-                        this.sellPrice = this.methods.getPrice(var3, var2[3]);
+                     if (values.length > 3) {
+                        this.sellPrice = this.methods.getPrice(player, values[3]);
                         if (this.sellPrice != null) {
-                           this.addItemToShopsConfig(var3, this.plugin.versionHandler.getItemInHand(var3), Arrays.asList(var2).contains("-unsafe"));
+                           this.addItemToShopsConfig(player, this.plugin.versionHandler.getItemInHand(player), Arrays.asList(values).contains("-unsafe"));
                         }
                      } else {
-                        SendMessage.sendMessage(var3, this.getSyntax());
+                        SendMessage.sendMessage(player, this.getSyntax());
                      }
                   }
                } else {
-                  SendMessage.sendMessage(var3, this.getSyntax());
+                  SendMessage.sendMessage(player, this.getSyntax());
                }
             }
          } else {
-            SendMessage.sendMessage(var3, this.getSyntax());
+            SendMessage.sendMessage(player, this.getSyntax());
          }
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 2:
-            if (!var1[1].isEmpty()) {
-               ArrayList var4 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[1], this.plugin.getShopSections(), var4);
-               Collections.sort(var4);
-               return var4;
+            if (!values[1].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[1], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 3:
          case 4:
-            String var2 = var1[var1.length - 1];
-            if (!var2.isEmpty()) {
-               ArrayList var3 = new ArrayList();
-               StringUtil.copyPartialMatches(var2, this.plugin.getExamplePrices(), var3);
-               Collections.sort(var3);
-               return var3;
+            String text = values[values.length - 1];
+            if (!text.isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(text, this.plugin.getExamplePrices(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getExamplePrices();
@@ -110,84 +110,84 @@ public class AddHandItem extends SubCommad {
       }
    }
 
-   private void addItemToShopsConfig(Player var1, ItemStack var2, boolean var3) {
-      SendMessage.chatToPlayer(var1, Lang.EDITSHOP_ADDING_ITEM.get().replace("%shop%", this.section));
-      String var4 = "pages." + this.getNextAvailablePosition();
-      Map<String, Object> var5 = this.plugin.createItem.getShopItem(var2, this.buyPrice, this.sellPrice, var3);
+   private void addItemToShopsConfig(Player player, ItemStack itemStack, boolean flag) {
+      SendMessage.chatToPlayer(player, Lang.EDITSHOP_ADDING_ITEM.get().replace("%shop%", this.section));
+      String itemId = "pages." + this.getNextAvailablePosition();
+      Map<String, Object> shopItem = this.plugin.createItem.getShopItem(itemStack, this.buyPrice, this.sellPrice, flag);
 
-      for (String var7 : var5.keySet()) {
-         ConfigManager.getShop(this.section).set(var4 + "." + var7, var5.get(var7));
+      for (String key : shopItem.keySet()) {
+         ConfigManager.getShop(this.section).set(itemId + "." + key, shopItem.get(key));
       }
 
       ConfigManager.saveShop(this.section);
-      SendMessage.chatToPlayer(var1, Lang.EDITSHOP_ADD_ITEM_SUCCESSFUL.get().replace("%shop%", this.section).replace("%itemPath%", var4));
-      SendMessage.chatToPlayer(var1, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
+      SendMessage.chatToPlayer(player, Lang.EDITSHOP_ADD_ITEM_SUCCESSFUL.get().replace("%shop%", this.section).replace("%itemPath%", itemId));
+      SendMessage.chatToPlayer(player, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
    }
 
    private String getNextAvailablePosition() {
-      Config var1 = ConfigManager.getShop(this.section);
-      if (!var1.contains("pages")) {
+      Config config = ConfigManager.getShop(this.section);
+      if (!config.contains("pages")) {
          return "page1.items.1";
       } else {
-         int var2 = var1.getConfigurationSection("pages").getKeys(false).size();
-         if (var2 == 0) {
+         int size = config.getConfigurationSection("pages").getKeys(false).size();
+         if (size == 0) {
             return "page1.items.1";
          } else {
-            LinkedList var3 = new LinkedList(var1.getConfigurationSection("pages").getKeys(false));
-            String var4 = (String)var3.get(var2 - 1);
-            int var5 = var1.getInt("pages." + var4 + ".gui-rows", 6) * 9 - (this.plugin.navBar.isEnabled(this.section) ? 9 : 0);
-            List var6 = ConfigManager.getSection(this.section).getStringList("item-layout");
-            if (!var6.isEmpty()) {
-               ArrayList<Boolean> var7 = new ArrayList<>();
+            LinkedList sectionIds = new LinkedList(config.getConfigurationSection("pages").getKeys(false));
+            String text = (String)sectionIds.get(size - 1);
+            int value = config.getInt("pages." + text + ".gui-rows", 6) * 9 - (this.plugin.navBar.isEnabled(this.section) ? 9 : 0);
+            List stringList = ConfigManager.getSection(this.section).getStringList("item-layout");
+            if (!stringList.isEmpty()) {
+               ArrayList<Boolean> values = new ArrayList<>();
 
-               for (int var8 = 0; var8 < var5 / 9; var8++) {
-                  String[] var9 = ((String)var6.get(var8)).split(" ");
-                  if (var9.length != 9) {
+               for (int index = 0; index < value / 9; index++) {
+                  String[] values2 = ((String)stringList.get(index)).split(" ");
+                  if (values2.length != 9) {
                      SendMessage.errorMessage(
-                        "Invalid item layout for " + this.section + " page '" + var2 + "': Row " + (var8 + 1) + " contains less or more symbols, expected 9"
+                        "Invalid item layout for " + this.section + " page '" + size + "': Row " + (index + 1) + " contains less or more symbols, expected 9"
                      );
-                     return this.getNextAvailablePositionFromShop(var1, var4, var5, var3.size() + 1);
+                     return this.getNextAvailablePositionFromShop(config, text, value, sectionIds.size() + 1);
                   }
 
-                  if (Arrays.stream(var9).anyMatch(var0 -> !var0.equals("0") && !var0.equals("1"))) {
+                  if (Arrays.stream(values2).anyMatch(element -> !element.equals("0") && !element.equals("1"))) {
                      SendMessage.errorMessage(
                         "Invalid item layout for "
                            + this.section
                            + " page '"
-                           + var2
+                           + size
                            + "': Items from row "
-                           + (var8 + 1)
+                           + (index + 1)
                            + " does not match expected values, expected 0 or 1"
                      );
-                     return this.getNextAvailablePositionFromShop(var1, var4, var5, var3.size() + 1);
+                     return this.getNextAvailablePositionFromShop(config, text, value, sectionIds.size() + 1);
                   }
 
-                  Arrays.stream(var9).forEach(var1x -> var7.add(var1x.equals("1")));
+                  Arrays.stream(values2).forEach(entry -> values.add(entry.equals("1")));
                }
 
-               return this.getNextAvailablePositionFromShop(var1, var4, (int)var7.stream().filter(Boolean::booleanValue).count(), var3.size() + 1);
+               return this.getNextAvailablePositionFromShop(config, text, (int)values.stream().filter(Boolean::booleanValue).count(), sectionIds.size() + 1);
             } else {
-               return this.getNextAvailablePositionFromShop(var1, var4, var5, var3.size() + 1);
+               return this.getNextAvailablePositionFromShop(config, text, value, sectionIds.size() + 1);
             }
          }
       }
    }
 
-   private String getNextAvailablePositionFromShop(Config var1, String var2, int var3, int var4) {
-      ConfigurationSection var5 = var1.getConfigurationSection("pages." + var2 + ".items");
-      if (var5 == null) {
-         return "page" + var2 + ".items.1";
-      } else if (var5.getKeys(false).size() >= var3) {
-         return "page" + var4 + ".items.1";
+   private String getNextAvailablePositionFromShop(Config config, String shopId, int value, int value2) {
+      ConfigurationSection section = config.getConfigurationSection("pages." + shopId + ".items");
+      if (section == null) {
+         return "page" + shopId + ".items.1";
+      } else if (section.getKeys(false).size() >= value) {
+         return "page" + value2 + ".items.1";
       } else {
-         Set var6 = var5.getKeys(false);
-         int var7 = var6.size() + 1;
+         Set keys = section.getKeys(false);
+         int size = keys.size() + 1;
 
-         while (var6.contains(String.valueOf(var7))) {
-            var7++;
+         while (keys.contains(String.valueOf(size))) {
+            size++;
          }
 
-         return var2 + ".items." + var7;
+         return shopId + ".items." + size;
       }
    }
 }

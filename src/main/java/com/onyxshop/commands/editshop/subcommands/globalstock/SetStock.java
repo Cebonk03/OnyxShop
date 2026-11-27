@@ -20,9 +20,9 @@ public class SetStock extends SubCommad {
    String itemLoc;
    int amount;
 
-   public SetStock(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public SetStock(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -41,65 +41,65 @@ public class SetStock extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.globalstock." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.globalstock." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         this.section = this.methods.getSection(var1, var2[2]);
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         this.section = this.methods.getSection(value, values[2]);
          if (this.section != null) {
-            if (var2.length > 3) {
-               this.itemLoc = this.methods.getShopItemLoc(var1, this.section, var2[3]);
+            if (values.length > 3) {
+               this.itemLoc = this.methods.getShopItemLoc(value, this.section, values[3]);
                if (this.itemLoc != null) {
-                  if (var2.length > 4) {
+                  if (values.length > 4) {
                      try {
-                        this.amount = Integer.parseInt(var2[4]);
-                     } catch (NumberFormatException var4) {
-                        SendMessage.sendMessage(var1, Lang.NO_VALID_AMOUNT.get());
+                        this.amount = Integer.parseInt(values[4]);
+                     } catch (NumberFormatException exception) {
+                        SendMessage.sendMessage(value, Lang.NO_VALID_AMOUNT.get());
                         return;
                      }
 
                      this.plugin.getLimitedStockProvider().setItemStock(this.section + "." + this.itemLoc, null, 1, this.amount);
-                     SendMessage.sendMessage(var1, Lang.GLOBALSTOCK_SET_SUCCESSFUL.get().replace("%itemPath%", this.section + "." + this.itemLoc));
+                     SendMessage.sendMessage(value, Lang.GLOBALSTOCK_SET_SUCCESSFUL.get().replace("%itemPath%", this.section + "." + this.itemLoc));
                   } else {
-                     SendMessage.sendMessage(var1, this.getSyntax());
+                     SendMessage.sendMessage(value, this.getSyntax());
                   }
                }
             } else {
-               SendMessage.sendMessage(var1, this.getSyntax());
+               SendMessage.sendMessage(value, this.getSyntax());
             }
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               ArrayList var3 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], this.plugin.getShopSections(), var3);
-               Collections.sort(var3);
-               return var3;
+            if (!values[2].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 4:
-            if (!this.plugin.getShopSections().contains(var1[2])) {
+            if (!this.plugin.getShopSections().contains(values[2])) {
                return null;
             } else {
-               if (!var1[3].isEmpty()) {
-                  ArrayList var2 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[3], this.plugin.getSection(var1[2]).getShopItemLocs(), var2);
-                  Collections.sort(var2);
-                  return var2;
+               if (!values[3].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[3], this.plugin.getSection(values[2]).getShopItemLocs(), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return new ArrayList<>(this.plugin.getSection(var1[2]).getShopItemLocs());
+               return new ArrayList<>(this.plugin.getSection(values[2]).getShopItemLocs());
             }
          case 5:
             return Arrays.asList("1", "5", "10", "25");

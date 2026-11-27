@@ -26,64 +26,64 @@ public class RoseStackerHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      ItemMeta var4 = var2.getItemMeta();
-      if (var1 == null) {
-         BlockStateMeta var5 = (BlockStateMeta)var4;
-         CreatureSpawner var6 = (CreatureSpawner)var5.getBlockState();
-         var6.setSpawnedType(var3);
-         var5.setBlockState(var6);
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (shopItem == null) {
+         BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+         CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+         creatureSpawner.setSpawnedType(entityType);
+         blockStateMeta.setBlockState(creatureSpawner);
       }
 
-      String var8 = null;
-      List var9 = null;
-      if (var4.hasDisplayName()) {
-         var8 = var4.getDisplayName();
+      String type = null;
+      List values = null;
+      if (itemMeta.hasDisplayName()) {
+         type = itemMeta.getDisplayName();
       }
 
-      if (var4.hasLore()) {
-         var9 = var4.getLore();
+      if (itemMeta.hasLore()) {
+         values = itemMeta.getLore();
       }
 
-      ItemStack var7 = ItemUtils.getSpawnerAsStackedItemStack(var3, 1);
-      if (var7 != null && var7.hasItemMeta()) {
-         if (var8 == null && var7.getItemMeta().hasDisplayName()) {
-            var4.setDisplayName(var7.getItemMeta().getDisplayName());
+      ItemStack itemStack2 = ItemUtils.getSpawnerAsStackedItemStack(entityType, 1);
+      if (itemStack2 != null && itemStack2.hasItemMeta()) {
+         if (type == null && itemStack2.getItemMeta().hasDisplayName()) {
+            itemMeta.setDisplayName(itemStack2.getItemMeta().getDisplayName());
          }
 
-         if (var9 == null && var7.getItemMeta().hasLore()) {
-            var4.setLore(var7.getItemMeta().getLore());
+         if (values == null && itemStack2.getItemMeta().hasLore()) {
+            itemMeta.setLore(itemStack2.getItemMeta().getLore());
          }
       }
 
-      if (!var4.hasDisplayName()) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+      if (!itemMeta.hasDisplayName()) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      var4.addItemFlags(ItemFlag.values());
-      var2.setItemMeta(var4);
-      return OnyxShop.getInstance().versionHandler.setNBTInt(var2, "StackSize", 1);
+      itemMeta.addItemFlags(ItemFlag.values());
+      itemStack.setItemMeta(itemMeta);
+      return OnyxShop.getInstance().versionHandler.setNBTInt(itemStack, "StackSize", 1);
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "StackSize", "EntityType", "display::Name", "HideFlags");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "StackSize", "EntityType", "display::Name", "HideFlags");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      Integer var4 = OnyxShop.getInstance().versionHandler.getNBTInt(var1, NBTMaps.CUSTOM_DATA.getTag() + "StackSize");
-      var4 = var4 == null ? 1 : var4;
-      return var4.intValue() * var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      Integer nbtInt = OnyxShop.getInstance().versionHandler.getNBTInt(itemStack, NBTMaps.CUSTOM_DATA.getTag() + "StackSize");
+      nbtInt = nbtInt == null ? 1 : nbtInt;
+      return nbtInt.intValue() * price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      ItemMeta var2 = var1.getItemMeta();
-      BlockStateMeta var3 = (BlockStateMeta)var2;
-      CreatureSpawner var4 = (CreatureSpawner)var3.getBlockState();
-      return var4.getSpawnedType().name();
+   public String getSpawnedType(ItemStack itemStack) {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+      CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+      return creatureSpawner.getSpawnedType().name();
    }
 }

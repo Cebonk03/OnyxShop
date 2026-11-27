@@ -38,203 +38,203 @@ public class PlaceholderProvider {
    private PlaceholderProvider.PlaceholderCache cache;
    private boolean placeholderCache = false;
 
-   public PlaceholderProvider(OnyxShop var1) {
-      this.plugin = var1;
+   public PlaceholderProvider(OnyxShop plugin) {
+      this.plugin = plugin;
       this.defaultMessage = this.format(Lang.TRANSACTION_PLACEHOLDER_DEFAULT.get().getLegacy());
-      int var2 = ConfigManager.getConfig().getInt("placeholders.dynamic-prices-placeholder-cache", 20);
-      this.DYNAMIC_BUY_PRICES_CACHE = CacheBuilder.newBuilder().expireAfterWrite(var2, TimeUnit.SECONDS).build();
-      this.DYNAMIC_SELL_PRICES_CACHE = CacheBuilder.newBuilder().expireAfterWrite(var2, TimeUnit.SECONDS).build();
+      int value = ConfigManager.getConfig().getInt("placeholders.dynamic-prices-placeholder-cache", 20);
+      this.DYNAMIC_BUY_PRICES_CACHE = CacheBuilder.newBuilder().expireAfterWrite(value, TimeUnit.SECONDS).build();
+      this.DYNAMIC_SELL_PRICES_CACHE = CacheBuilder.newBuilder().expireAfterWrite(value, TimeUnit.SECONDS).build();
       this.expansion = new PAPIExpansion(this);
       this.expansion.register();
    }
 
-   public String getItemBuyPrice(String[] var1) {
-      ShopSection var2 = this.plugin.getSection(var1[0]);
-      if (var2 == null) {
-         return "§cNo shop found for '" + var1[0] + "'";
+   public String getItemBuyPrice(String[] itemIds) {
+      ShopSection section = this.plugin.getSection(itemIds[0]);
+      if (section == null) {
+         return "§cNo shop found for '" + itemIds[0] + "'";
       } else {
-         ShopItem var3 = var2.getShopItem(var1[0] + "." + var1[1]);
-         if (var3 == null) {
-            return "§cNo item found in shop '" + var1[0] + "' at index '" + var1[1] + "'";
-         } else if (var3.hasItemError()) {
+         ShopItem shopItem = section.getShopItem(itemIds[0] + "." + itemIds[1]);
+         if (shopItem == null) {
+            return "§cNo item found in shop '" + itemIds[0] + "' at index '" + itemIds[1] + "'";
+         } else if (shopItem.hasItemError()) {
             return "§cCannot get price of invalid item";
-         } else if (!var3.isBuyAble()) {
+         } else if (!shopItem.isBuyAble()) {
             return Lang.CANNOT_PURCHASE_ITEM.get().getLegacy();
-         } else if (!var3.isDynamicPricing()) {
-            return var3.isABuyPricing()
-               ? var3.getABuyPrice().formatBuyPrices(null, null, 1)
-               : OnyxShop.getInstance().formatPrice(var3.getEcoType(), var3.getBuyPrice());
+         } else if (!shopItem.isDynamicPricing()) {
+            return shopItem.isABuyPricing()
+               ? shopItem.getABuyPrice().formatBuyPrices(null, null, 1)
+               : OnyxShop.getInstance().formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice());
          } else {
-            String var4 = (String)this.DYNAMIC_BUY_PRICES_CACHE.getIfPresent(var1[0] + "." + var1[1]);
-            if (var4 != null) {
-               return var4;
+            String text = (String)this.DYNAMIC_BUY_PRICES_CACHE.getIfPresent(itemIds[0] + "." + itemIds[1]);
+            if (text != null) {
+               return text;
             } else {
-               var4 = var3.isABuyPricing()
-                  ? var3.getABuyPrice().formatBuyPrices(null, null, 1)
-                  : OnyxShop.getInstance().formatPrice(var3.getEcoType(), var3.getBuyPrice(1));
-               this.DYNAMIC_BUY_PRICES_CACHE.put(var1[0] + "." + var1[1], var4);
-               return var4;
+               text = shopItem.isABuyPricing()
+                  ? shopItem.getABuyPrice().formatBuyPrices(null, null, 1)
+                  : OnyxShop.getInstance().formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(1));
+               this.DYNAMIC_BUY_PRICES_CACHE.put(itemIds[0] + "." + itemIds[1], text);
+               return text;
             }
          }
       }
    }
 
-   public String getItemSellPrice(String[] var1) {
-      ShopSection var2 = this.plugin.getSection(var1[0]);
-      if (var2 == null) {
-         return "§cNo shop found for '" + var1[0] + "'";
+   public String getItemSellPrice(String[] itemIds) {
+      ShopSection section = this.plugin.getSection(itemIds[0]);
+      if (section == null) {
+         return "§cNo shop found for '" + itemIds[0] + "'";
       } else {
-         ShopItem var3 = var2.getShopItem(var1[0] + "." + var1[1]);
-         if (var3 == null) {
-            return "§cNo item found in shop '" + var1[0] + "' at index '" + var1[1] + "'";
-         } else if (var3.hasItemError()) {
+         ShopItem shopItem = section.getShopItem(itemIds[0] + "." + itemIds[1]);
+         if (shopItem == null) {
+            return "§cNo item found in shop '" + itemIds[0] + "' at index '" + itemIds[1] + "'";
+         } else if (shopItem.hasItemError()) {
             return "§cCannot get price of invalid item";
-         } else if (!var3.isSellAble()) {
+         } else if (!shopItem.isSellAble()) {
             return Lang.CANNOT_SELL_ITEM.get().getLegacy();
-         } else if (!var3.isDynamicPricing()) {
-            return var3.isASellPricing()
-               ? var3.getASellPrice().formatSellPrices(null, null, 1)
-               : OnyxShop.getInstance().formatPrice(var3.getEcoType(), var3.getSellPrice());
+         } else if (!shopItem.isDynamicPricing()) {
+            return shopItem.isASellPricing()
+               ? shopItem.getASellPrice().formatSellPrices(null, null, 1)
+               : OnyxShop.getInstance().formatPrice(shopItem.getEcoType(), shopItem.getSellPrice());
          } else {
-            String var4 = (String)this.DYNAMIC_SELL_PRICES_CACHE.getIfPresent(var1[0] + "." + var1[1]);
-            if (var4 != null) {
-               return var4;
+            String text = (String)this.DYNAMIC_SELL_PRICES_CACHE.getIfPresent(itemIds[0] + "." + itemIds[1]);
+            if (text != null) {
+               return text;
             } else {
-               var4 = var3.isASellPricing()
-                  ? var3.getASellPrice().formatSellPrices(null, null, 1)
-                  : OnyxShop.getInstance().formatPrice(var3.getEcoType(), var3.getSellPrice(1));
-               this.DYNAMIC_SELL_PRICES_CACHE.put(var1[0] + "." + var1[1], var4);
-               return var4;
+               text = shopItem.isASellPricing()
+                  ? shopItem.getASellPrice().formatSellPrices(null, null, 1)
+                  : OnyxShop.getInstance().formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(1));
+               this.DYNAMIC_SELL_PRICES_CACHE.put(itemIds[0] + "." + itemIds[1], text);
+               return text;
             }
          }
       }
    }
 
-   public String getTotalTransactions(Transaction.Mode var1, TransactionLog.TimeFrame var2, String var3) {
-      String var4 = null;
-      String var5 = null;
-      if (!var3.isEmpty()) {
-         if (!var3.contains(".")) {
-            if (this.plugin.getSection(var3) == null) {
-               return "§cNo shop found for '" + var3 + "'";
+   public String getTotalTransactions(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, String text) {
+      String text2 = null;
+      String text3 = null;
+      if (!text.isEmpty()) {
+         if (!text.contains(".")) {
+            if (this.plugin.getSection(text) == null) {
+               return "§cNo shop found for '" + text + "'";
             }
 
-            var4 = var3;
+            text2 = text;
          } else {
-            String[] var6 = var3.split("\\.", 2);
-            ShopSection var7 = this.plugin.getSection(var6[0]);
-            if (var7 == null) {
-               return "§cNo shop found for '" + var6[0] + "'";
+            String[] values = text.split("\\.", 2);
+            ShopSection section = this.plugin.getSection(values[0]);
+            if (section == null) {
+               return "§cNo shop found for '" + values[0] + "'";
             }
 
-            ShopItem var8 = var7.getShopItem(var6[0] + "." + var6[1]);
-            if (var8 == null) {
-               return "§cNo item found in shop '" + var6[0] + "' at index '" + var6[1] + "'";
+            ShopItem shopItem = section.getShopItem(values[0] + "." + values[1]);
+            if (shopItem == null) {
+               return "§cNo item found in shop '" + values[0] + "' at index '" + values[1] + "'";
             }
 
-            var4 = var6[0];
-            var5 = var6[1];
+            text2 = values[0];
+            text3 = values[1];
          }
       }
 
-      PlaceholderProvider.PlaceholderItemCache var9 = this.getPlaceholderItemCache();
-      return var9 == null ? "§cLoading cache..." : String.valueOf(var9.getTotalTransactions(var1, var2, var4, var5));
+      PlaceholderProvider.PlaceholderItemCache placeholderItemCache = this.getPlaceholderItemCache();
+      return placeholderItemCache == null ? "§cLoading cache..." : String.valueOf(placeholderItemCache.getTotalTransactions(mode, timeFrame, text2, text3));
    }
 
-   public String getTotalTransactions(Transaction.Mode var1, TransactionLog.TimeFrame var2, String var3, UUID var4) {
-      String var5 = null;
-      String var6 = null;
-      if (!var3.isEmpty()) {
-         if (!var3.contains(".")) {
-            if (this.plugin.getSection(var3) == null) {
-               return "§cNo shop found for '" + var3 + "'";
+   public String getTotalTransactions(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, String text, UUID uniqueId) {
+      String text2 = null;
+      String text3 = null;
+      if (!text.isEmpty()) {
+         if (!text.contains(".")) {
+            if (this.plugin.getSection(text) == null) {
+               return "§cNo shop found for '" + text + "'";
             }
 
-            var5 = var3;
+            text2 = text;
          } else {
-            String[] var7 = var3.split("\\.", 2);
-            ShopSection var8 = this.plugin.getSection(var7[0]);
-            if (var8 == null) {
-               return "§cNo shop found for '" + var7[0] + "'";
+            String[] values = text.split("\\.", 2);
+            ShopSection section = this.plugin.getSection(values[0]);
+            if (section == null) {
+               return "§cNo shop found for '" + values[0] + "'";
             }
 
-            ShopItem var9 = var8.getShopItem(var7[0] + "." + var7[1]);
-            if (var9 == null) {
-               return "§cNo item found in shop '" + var7[0] + "' at index '" + var7[1] + "'";
+            ShopItem shopItem = section.getShopItem(values[0] + "." + values[1]);
+            if (shopItem == null) {
+               return "§cNo item found in shop '" + values[0] + "' at index '" + values[1] + "'";
             }
 
-            var5 = var7[0];
-            var6 = var7[1];
+            text2 = values[0];
+            text3 = values[1];
          }
       }
 
-      PlaceholderProvider.PlaceholderPlayerItemCache var10 = this.getPlaceholderPlayerItemCache();
-      return var10 == null ? "§cLoading cache..." : String.valueOf(var10.getTotalTransactions(var1, var2, var4, var5, var6));
+      PlaceholderProvider.PlaceholderPlayerItemCache placeholderPlayerItemCache = this.getPlaceholderPlayerItemCache();
+      return placeholderPlayerItemCache == null ? "§cLoading cache..." : String.valueOf(placeholderPlayerItemCache.getTotalTransactions(mode, timeFrame, uniqueId, text2, text3));
    }
 
-   public String getDiscount(Player var1, String var2) {
-      if (this.plugin.getSection(var2) == null) {
-         return "§cNo shop found for '" + var2 + "'";
-      } else if (!this.plugin.hasDiscount(var2)) {
+   public String getDiscount(Player player, String playerName) {
+      if (this.plugin.getSection(playerName) == null) {
+         return "§cNo shop found for '" + playerName + "'";
+      } else if (!this.plugin.hasDiscount(playerName)) {
          return "0";
       } else {
-         double var3 = 0.0;
+         double amount = 0.0;
 
-         for (String var6 : this.plugin.getDiscounts(var2).keySet()) {
-            if (PermissionsCache.hasPermission(var1, "OnyxShop.discounts." + var6)) {
-               double var7 = this.plugin.getDiscounts(var2).get(var6);
-               if (var3 == 0.0 || var3 < var7) {
-                  var3 = var7;
+         for (String key : this.plugin.getDiscounts(playerName).keySet()) {
+            if (PermissionsCache.hasPermission(player, "OnyxShop.discounts." + key)) {
+               double amount2 = this.plugin.getDiscounts(playerName).get(key);
+               if (amount == 0.0 || amount < amount2) {
+                  amount = amount2;
                }
             }
          }
 
-         return String.valueOf(var3);
+         return String.valueOf(amount);
       }
    }
 
-   public String getMultiplier(Player var1, String var2) {
-      if (this.plugin.getSection(var2) == null) {
-         return "§cNo shop found for '" + var2 + "'";
-      } else if (!this.plugin.hasMultiplier(var2)) {
+   public String getMultiplier(Player player, String playerName) {
+      if (this.plugin.getSection(playerName) == null) {
+         return "§cNo shop found for '" + playerName + "'";
+      } else if (!this.plugin.hasMultiplier(playerName)) {
          return "0";
       } else {
-         double var3 = 0.0;
+         double amount = 0.0;
 
-         for (String var6 : this.plugin.getMultipliers(var2).keySet()) {
-            if (PermissionsCache.hasPermission(var1, "OnyxShop.sell-multipliers." + var6)) {
-               double var7 = this.plugin.getMultipliers(var2).get(var6);
-               if (var3 == 0.0 || var3 < var7) {
-                  var3 = var7;
+         for (String key : this.plugin.getMultipliers(playerName).keySet()) {
+            if (PermissionsCache.hasPermission(player, "OnyxShop.sell-multipliers." + key)) {
+               double amount2 = this.plugin.getMultipliers(playerName).get(key);
+               if (amount == 0.0 || amount < amount2) {
+                  amount = amount2;
                }
             }
          }
 
-         return String.valueOf(var3);
+         return String.valueOf(amount);
       }
    }
 
-   public String getShopRotation(String var1) {
-      ShopSection var2 = this.plugin.getSection(var1);
-      return var2 != null && var2.getType() == ShopType.ROTATING ? ((RotatingShop)var2).getNextRotation() : "§cNo rotating shop found for '" + var1 + "'";
+   public String getShopRotation(String shopId) {
+      ShopSection section = this.plugin.getSection(shopId);
+      return section != null && section.getType() == ShopType.ROTATING ? ((RotatingShop)section).getNextRotation() : "§cNo rotating shop found for '" + shopId + "'";
    }
 
-   private String format(String var1) {
-      if (var1.contains("%translations-")) {
+   private String format(String text) {
+      if (text.contains("%translations-")) {
          try {
-            Lang var2 = Lang.valueOf(var1.split("%translations-")[1].split("%")[0].toUpperCase(Locale.ENGLISH).replace("-", "_"));
-            var1 = var1.replace("%translations-" + var2.getKey() + "%", var2.get().getLegacy());
-         } catch (IllegalArgumentException var3) {
+            Lang lang = Lang.valueOf(text.split("%translations-")[1].split("%")[0].toUpperCase(Locale.ENGLISH).replace("-", "_"));
+            text = text.replace("%translations-" + lang.getKey() + "%", lang.get().getLegacy());
+         } catch (IllegalArgumentException exception) {
          }
       }
 
-      return ChatUtil.formatColors(var1);
+      return ChatUtil.formatColors(text);
    }
 
    private void enablePlaceholderStore() {
-      int var1 = ConfigManager.getConfig().getInt("placeholders.transaction-cache") * 20;
-      if (var1 < 200) {
-         var1 = 200;
+      int value = ConfigManager.getConfig().getInt("placeholders.transaction-cache") * 20;
+      if (value < 200) {
+         value = 200;
       }
 
       this.plugin.runTaskAsyncTimer(() -> {
@@ -259,7 +259,7 @@ public class PlaceholderProvider {
          } else {
             this.getPlaceholderPlayerItemCache().reloadActive();
          }
-      }, 0L, var1);
+      }, 0L, value);
       this.placeholderCache = true;
    }
 
@@ -293,73 +293,73 @@ public class PlaceholderProvider {
       }
    }
 
-   private String getTopPlayer(TransactionLog.TimeFrame var1, Transaction.Mode var2) {
-      HashMap<UUID, Integer> var3 = new HashMap<>();
+   private String getTopPlayer(TransactionLog.TimeFrame timeFrame, Transaction.Mode mode) {
+      HashMap<UUID, Integer> map = new HashMap<>();
 
-      for (TransactionLog.SimpleTransaction var5 : this.plugin.getTransactionLog().getTransactions(var1, var2)) {
-         UUID var6 = var5.uuid;
-         int var7 = var5.amount;
-         var3.put(var6, var3.getOrDefault(var6, 0) + var7);
+      for (TransactionLog.SimpleTransaction simpleTransaction : this.plugin.getTransactionLog().getTransactions(timeFrame, mode)) {
+         UUID playerId = simpleTransaction.uuid;
+         int amount = simpleTransaction.amount;
+         map.put(playerId, map.getOrDefault(playerId, 0) + amount);
       }
 
-      if (var3.isEmpty()) {
+      if (map.isEmpty()) {
          return this.defaultMessage;
       } else {
-         UUID var10 = null;
-         int var11 = 0;
+         UUID uniqueId = null;
+         int value = 0;
 
-         for (Entry var13 : var3.entrySet()) {
-            UUID var8 = (UUID)var13.getKey();
-            int var9 = (Integer)var13.getValue();
-            if (var9 > var11) {
-               var11 = var9;
-               var10 = var8;
+         for (Entry entry : map.entrySet()) {
+            UUID uniqueId2 = (UUID)entry.getKey();
+            int value2 = (Integer)entry.getValue();
+            if (value2 > value) {
+               value = value2;
+               uniqueId = uniqueId2;
             }
          }
 
-         return this.getPlayerName(var10);
+         return this.getPlayerName(uniqueId);
       }
    }
 
-   private String getTopItem(TransactionLog.TimeFrame var1, Transaction.Mode var2) {
-      HashMap<String, Integer> var3 = new HashMap<>();
+   private String getTopItem(TransactionLog.TimeFrame timeFrame, Transaction.Mode mode) {
+      HashMap<String, Integer> map = new HashMap<>();
 
-      for (TransactionLog.SimpleTransaction var5 : this.plugin.getTransactionLog().getTransactions(var1, var2)) {
-         String var6 = var5.itemPath;
-         int var7 = var5.amount;
-         var3.put(var6, var3.getOrDefault(var6, 0) + var7);
+      for (TransactionLog.SimpleTransaction simpleTransaction : this.plugin.getTransactionLog().getTransactions(timeFrame, mode)) {
+         String itemId = simpleTransaction.itemPath;
+         int amount = simpleTransaction.amount;
+         map.put(itemId, map.getOrDefault(itemId, 0) + amount);
       }
 
-      if (var3.isEmpty()) {
+      if (map.isEmpty()) {
          return this.defaultMessage;
       } else {
-         String var10 = null;
-         int var11 = 0;
+         String text = null;
+         int value = 0;
 
-         for (Entry var13 : var3.entrySet()) {
-            String var8 = (String)var13.getKey();
-            int var9 = (Integer)var13.getValue();
-            if (var9 > var11) {
-               var11 = var9;
-               var10 = var8;
+         for (Entry entry : map.entrySet()) {
+            String text2 = (String)entry.getKey();
+            int value2 = (Integer)entry.getValue();
+            if (value2 > value) {
+               value = value2;
+               text = text2;
             }
          }
 
-         return this.getItemName(var10);
+         return this.getItemName(text);
       }
    }
 
-   private String getPlayerName(UUID var1) {
-      return this.plugin.getServer().getOfflinePlayer(var1).getName();
+   private String getPlayerName(UUID playerId) {
+      return this.plugin.getServer().getOfflinePlayer(playerId).getName();
    }
 
-   private String getItemName(String var1) {
-      ShopSection var2 = this.plugin.getSections().get(var1.split("\\.")[0]);
-      if (var2 == null) {
+   private String getItemName(String itemId) {
+      ShopSection section = this.plugin.getSections().get(itemId.split("\\.")[0]);
+      if (section == null) {
          return "Unknown";
       } else {
-         DisplayItem var3 = var2.getDisplayItem(var1);
-         return var3 != null ? var3.getDisplayname() : "Unknown";
+         DisplayItem displayItem = section.getDisplayItem(itemId);
+         return displayItem != null ? displayItem.getDisplayname() : "Unknown";
       }
    }
 
@@ -387,24 +387,24 @@ public class PlaceholderProvider {
       final String section;
       final String index;
 
-      public Item(Transaction.Mode var1, TransactionLog.TimeFrame var2, String var3, String var4) {
-         this.mode = var1;
-         this.timeFrame = var2;
-         this.section = var3;
-         this.index = var4;
+      public Item(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, String itemId, String text) {
+         this.mode = mode;
+         this.timeFrame = timeFrame;
+         this.section = itemId;
+         this.index = text;
       }
 
       @Override
-      public boolean equals(Object var1) {
-         if (this == var1) {
+      public boolean equals(Object value) {
+         if (this == value) {
             return true;
-         } else if (!(var1 instanceof PlaceholderProvider.Item)) {
+         } else if (!(value instanceof PlaceholderProvider.Item)) {
             return false;
          } else {
-            PlaceholderProvider.Item var2 = (PlaceholderProvider.Item)var1;
-            return this.mode == var2.mode && this.timeFrame == var2.timeFrame && this.section == null
-               ? var2.section == null
-               : this.section.equals(var2.section) && Objects.equals(this.index, var2.index);
+            PlaceholderProvider.Item item = (PlaceholderProvider.Item)value;
+            return this.mode == item.mode && this.timeFrame == item.timeFrame && this.section == null
+               ? item.section == null
+               : this.section.equals(item.section) && Objects.equals(this.index, item.index);
          }
       }
 
@@ -673,17 +673,17 @@ public class PlaceholderProvider {
       private void reloadActive() {
          this.CACHE
             .replaceAll(
-               (var1, var2) -> PlaceholderProvider.this.plugin
+               (key, value) -> PlaceholderProvider.this.plugin
                   .getTransactionLog()
-                  .getItemTransactions(var1.mode, var1.timeFrame, var1.section, var1.index, null)
+                  .getItemTransactions(key.mode, key.timeFrame, key.section, key.index, null)
             );
       }
 
-      public int getTotalTransactions(Transaction.Mode var1, TransactionLog.TimeFrame var2, String var3, String var4) {
+      public int getTotalTransactions(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, String text, String text2) {
          return this.CACHE
             .computeIfAbsent(
-               new PlaceholderProvider.Item(var1, var2, var3, var4),
-               var1x -> PlaceholderProvider.this.plugin.getTransactionLog().getItemTransactions(var1x.mode, var1x.timeFrame, var1x.section, var1x.index, null)
+               new PlaceholderProvider.Item(mode, timeFrame, text, text2),
+               key -> PlaceholderProvider.this.plugin.getTransactionLog().getItemTransactions(key.mode, key.timeFrame, key.section, key.index, null)
             );
       }
    }
@@ -697,19 +697,19 @@ public class PlaceholderProvider {
       private void reloadActive() {
          this.CACHE
             .replaceAll(
-               (var1, var2) -> PlaceholderProvider.this.plugin
+               (key, value) -> PlaceholderProvider.this.plugin
                   .getTransactionLog()
-                  .getItemTransactions(var1.mode, var1.timeFrame, var1.section, var1.index, var1.playerUUID)
+                  .getItemTransactions(key.mode, key.timeFrame, key.section, key.index, key.playerUUID)
             );
       }
 
-      public int getTotalTransactions(Transaction.Mode var1, TransactionLog.TimeFrame var2, UUID var3, String var4, String var5) {
+      public int getTotalTransactions(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, UUID uniqueId, String text, String text2) {
          return this.CACHE
             .computeIfAbsent(
-               new PlaceholderProvider.PlayerItem(var1, var2, var3, var4, var5),
-               var1x -> PlaceholderProvider.this.plugin
+               new PlaceholderProvider.PlayerItem(mode, timeFrame, uniqueId, text, text2),
+               key -> PlaceholderProvider.this.plugin
                   .getTransactionLog()
-                  .getItemTransactions(var1x.mode, var1x.timeFrame, var1x.section, var1x.index, var1x.playerUUID)
+                  .getItemTransactions(key.mode, key.timeFrame, key.section, key.index, key.playerUUID)
             );
       }
    }
@@ -721,25 +721,25 @@ public class PlaceholderProvider {
       final String section;
       final String index;
 
-      public PlayerItem(Transaction.Mode var1, TransactionLog.TimeFrame var2, UUID var3, String var4, String var5) {
-         this.mode = var1;
-         this.timeFrame = var2;
-         this.playerUUID = var3;
-         this.section = var4;
-         this.index = var5;
+      public PlayerItem(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, UUID playerId, String itemId, String text) {
+         this.mode = mode;
+         this.timeFrame = timeFrame;
+         this.playerUUID = playerId;
+         this.section = itemId;
+         this.index = text;
       }
 
       @Override
-      public boolean equals(Object var1) {
-         if (this == var1) {
+      public boolean equals(Object value) {
+         if (this == value) {
             return true;
-         } else if (!(var1 instanceof PlaceholderProvider.PlayerItem)) {
+         } else if (!(value instanceof PlaceholderProvider.PlayerItem)) {
             return false;
          } else {
-            PlaceholderProvider.PlayerItem var2 = (PlaceholderProvider.PlayerItem)var1;
-            return this.mode == var2.mode && this.timeFrame == var2.timeFrame && this.playerUUID == var2.playerUUID && this.section == null
-               ? var2.section == null
-               : this.section.equals(var2.section) && Objects.equals(this.index, var2.index);
+            PlaceholderProvider.PlayerItem playerItem = (PlaceholderProvider.PlayerItem)value;
+            return this.mode == playerItem.mode && this.timeFrame == playerItem.timeFrame && this.playerUUID == playerItem.playerUUID && this.section == null
+               ? playerItem.section == null
+               : this.section.equals(playerItem.section) && Objects.equals(this.index, playerItem.index);
          }
       }
 

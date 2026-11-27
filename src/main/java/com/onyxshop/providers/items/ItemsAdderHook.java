@@ -21,13 +21,13 @@ public class ItemsAdderHook implements ItemProvider, Listener {
    private final OnyxShop plugin;
    private boolean isReady = false;
 
-   public ItemsAdderHook(OnyxShop var1) {
-      this.plugin = var1;
-      var1.getServer().getPluginManager().registerEvents(this, var1);
+   public ItemsAdderHook(OnyxShop plugin) {
+      this.plugin = plugin;
+      plugin.getServer().getPluginManager().registerEvents(this, plugin);
    }
 
    @EventHandler
-   public void onIALoad(ItemsAdderFirstLoadEvent var1) {
+   public void onIALoad(ItemsAdderFirstLoadEvent event) {
       SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "ItemsAdder"));
       this.isReady = true;
       this.plugin.getItemManager().check();
@@ -44,36 +44,36 @@ public class ItemsAdderHook implements ItemProvider, Listener {
       return this.isReady;
    }
 
-   private Cause getCause(ItemsAdderLoadDataEvent var1) {
+   private Cause getCause(ItemsAdderLoadDataEvent event) {
       try {
-         Field var2 = var1.getClass().getDeclaredField("cause");
-         var2.setAccessible(true);
-         return (Cause)var2.get(var1);
-      } catch (SecurityException | IllegalAccessException | NoSuchFieldException var3) {
+         Field field = event.getClass().getDeclaredField("cause");
+         field.setAccessible(true);
+         return (Cause)field.get(event);
+      } catch (SecurityException | IllegalAccessException | NoSuchFieldException exception) {
          SendMessage.warnMessage("Failed to subscribe ItemsAdder load event");
-         var3.printStackTrace();
+         exception.printStackTrace();
          return Cause.FIRST_LOAD;
       }
    }
 
    @Override
-   public ItemStack getItem(String var1) throws ItemLoadException {
-      CustomStack var2 = CustomStack.getInstance(var1);
-      if (var2 == null) {
-         throw new ItemLoadException(Lang.INVALID_ITEMSADDER_ITEM.get().replace("%id%", var1));
+   public ItemStack getItem(String itemId) throws ItemLoadException {
+      CustomStack customStack = CustomStack.getInstance(itemId);
+      if (customStack == null) {
+         throw new ItemLoadException(Lang.INVALID_ITEMSADDER_ITEM.get().replace("%id%", itemId));
       } else {
-         return var2.getItemStack().clone();
+         return customStack.getItemStack().clone();
       }
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      CustomStack var2 = CustomStack.byItemStack(var1);
-      return var2 == null ? null : var2.getNamespacedID();
+   public String getItem(ItemStack itemStack) {
+      CustomStack customStack = CustomStack.byItemStack(itemStack);
+      return customStack == null ? null : customStack.getNamespacedID();
    }
 
    @Override
-   public String getID(String var1) {
-      return var1.contains(":") ? var1.split(":")[1] : var1;
+   public String getID(String text) {
+      return text.contains(":") ? text.split(":")[1] : text;
    }
 }

@@ -9,9 +9,9 @@ public class RestockItemLimit implements Job {
    }
 
    @Override
-   public void execute(JobExecutionContext var1) {
-      int var2 = (Integer)var1.getJobDetail().getJobDataMap().get("mode");
-      String var3 = (String)var1.getJobDetail().getJobDataMap().get("item");
-      OnyxShop.getInstance().getJobPoolProvider().executeRestockItemLimit(var3, var2, var1.getTrigger().getNextFireTime().getTime());
+   public void execute(JobExecutionContext jobExecutionContext) {
+      int value = (Integer)jobExecutionContext.getJobDetail().getJobDataMap().get("mode");
+      String text = (String)jobExecutionContext.getJobDetail().getJobDataMap().get("item");
+      OnyxShop.getInstance().getJobPoolProvider().executeRestockItemLimit(text, value, jobExecutionContext.getTrigger().getNextFireTime().getTime());
    }
 }

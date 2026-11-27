@@ -3,11 +3,11 @@ package com.onyxshop.util;
 import java.util.List;
 
 public interface ItemLayout {
-   boolean containsKey(int var1);
+   boolean containsKey(int value);
 
-   void add(String var1);
+   void add(String text);
 
-   void set(int var1, String var2);
+   void set(int value, String text);
 
-   List<String> build(Integer var1, int var2);
+   List<String> build(Integer value, int value2);
 }

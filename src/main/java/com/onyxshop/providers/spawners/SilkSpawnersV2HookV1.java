@@ -34,13 +34,13 @@ public class SilkSpawnersV2HookV1 implements SpawnerProvider {
    @Override
    public String getProviderName() {
       try {
-         File var1 = new File(OnyxShop.getInstance().getDataFolder().getParent() + "/SilkSpawners_v2/config.yml");
-         this.ssConfig = OnyxShop.getInstance().loadConfiguration(var1, "SilkSpawners config");
+         File file = new File(OnyxShop.getInstance().getDataFolder().getParent() + "/SilkSpawners_v2/config.yml");
+         this.ssConfig = OnyxShop.getInstance().loadConfiguration(file, "SilkSpawners config");
          this.loadValues();
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to load custom spawner names from SilkSpawnersV2, using default...");
          this.customName = false;
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
 
       return "SILKSPAWNERSV2";
@@ -51,101 +51,101 @@ public class SilkSpawnersV2HookV1 implements SpawnerProvider {
       this.itemLore = this.ssConfig
          .getStringList("spawner.item.lore")
          .stream()
-         .map(var0 -> ChatColor.translateAlternateColorCodes('$', var0))
+         .map(element -> ChatColor.translateAlternateColorCodes('$', element))
          .collect(Collectors.toList());
       this.prefix = ChatColor.translateAlternateColorCodes('$', this.ssConfig.getString("spawner.item.prefix"));
-      String var1 = this.ssConfig.contains("spawner.item.prefix-old") ? "spawner.item.prefix-old" : "spawner.item.prefixOld";
-      this.oldPrefix = ChatColor.translateAlternateColorCodes('$', this.ssConfig.getString(var1));
+      String itemId = this.ssConfig.contains("spawner.item.prefix-old") ? "spawner.item.prefix-old" : "spawner.item.prefixOld";
+      this.oldPrefix = ChatColor.translateAlternateColorCodes('$', this.ssConfig.getString(itemId));
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      String var4 = null;
-      List var5 = null;
-      if (var1 != null) {
-         ItemMeta var6 = var2.getItemMeta();
-         if (var6.hasDisplayName()) {
-            var4 = var6.getDisplayName();
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      String type = null;
+      List values = null;
+      if (shopItem != null) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (itemMeta.hasDisplayName()) {
+            type = itemMeta.getDisplayName();
          }
 
-         if (var6.hasLore()) {
-            var5 = var6.getLore();
+         if (itemMeta.hasLore()) {
+            values = itemMeta.getLore();
          }
       }
 
       if (this.customName) {
-         ItemMeta var9 = var2.getItemMeta();
-         var9.setDisplayName(this.itemName);
-         List<String> var7 = var9.hasLore() ? var9.getLore() : new ArrayList<>();
-         var7.add(0, this.serializedName(var3));
-         var7.addAll(1, this.itemLore);
-         var9.setLore((List)var7);
-         var2.setItemMeta(var9);
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         itemMeta.setDisplayName(this.itemName);
+         List<String> lores = itemMeta.hasLore() ? itemMeta.getLore() : new ArrayList<>();
+         lores.add(0, this.serializedName(entityType));
+         lores.addAll(1, this.itemLore);
+         itemMeta.setLore((List)lores);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      if (var1 != null) {
-         ItemMeta var10 = var2.getItemMeta();
-         if (var4 != null) {
-            var10.setDisplayName(var4);
+      if (shopItem != null) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (type != null) {
+            itemMeta.setDisplayName(type);
          }
 
          if (this.itemName == null || this.itemName.isEmpty()) {
-            OnyxShop.getInstance().getMetaUtils().setDisplayName(var10, SpawnerManager.getDefaultName(var3));
+            OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
          }
 
-         if (var5 != null) {
-            var10.setLore(var5);
+         if (values != null) {
+            itemMeta.setLore(values);
          }
 
-         var2.setItemMeta(var10);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      ItemMeta var11 = var2.getItemMeta();
-      if (var1 == null) {
-         BlockStateMeta var12 = (BlockStateMeta)var11;
-         CreatureSpawner var8 = (CreatureSpawner)var12.getBlockState();
-         var8.setSpawnedType(var3);
-         var12.setBlockState(var8);
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (shopItem == null) {
+         BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+         CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+         creatureSpawner.setSpawnedType(entityType);
+         blockStateMeta.setBlockState(creatureSpawner);
       }
 
-      return var2;
+      return itemStack;
    }
 
-   private String serializedName(EntityType var1) {
-      return this.prefix + OnyxShop.getInstance().getMaterialName(var1.name());
-   }
-
-   @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "display::Name", "display::Lore", "BlockEntityTag");
-      var4.addAll(var3);
-      return this.getSpawnedType(var1).equals(this.getSpawnedType(var2)) && OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   private String serializedName(EntityType entityType) {
+      return this.prefix + OnyxShop.getInstance().getMaterialName(entityType.name());
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "display::Name", "display::Lore", "BlockEntityTag");
+      tags.addAll(shopIds);
+      return this.getSpawnedType(itemStack).equals(this.getSpawnedType(itemStack2)) && OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
+   }
+
+   @Override
+   public String getSpawnedType(ItemStack itemStack) {
       try {
-         if (var1.hasItemMeta() && var1.getItemMeta().hasLore()) {
-            String var2 = (String)var1.getItemMeta().getLore().get(0);
-            if (var2.startsWith(this.prefix)) {
-               return EntityType.fromName(var2.replace(this.prefix, "").replace(" ", "_").toLowerCase()).name();
+         if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasLore()) {
+            String text = (String)itemStack.getItemMeta().getLore().get(0);
+            if (text.startsWith(this.prefix)) {
+               return EntityType.fromName(text.replace(this.prefix, "").replace(" ", "_").toLowerCase()).name();
             }
 
-            if (!this.oldPrefix.equals("") && var2.startsWith(this.oldPrefix)) {
-               return EntityType.fromName(var2.replace(this.oldPrefix, "").replace(" ", "_").toLowerCase()).name();
+            if (!this.oldPrefix.equals("") && text.startsWith(this.oldPrefix)) {
+               return EntityType.fromName(text.replace(this.oldPrefix, "").replace(" ", "_").toLowerCase()).name();
             }
          }
-      } catch (NullPointerException var5) {
+      } catch (NullPointerException exception) {
       }
 
-      ItemMeta var6 = var1.getItemMeta();
-      BlockStateMeta var3 = (BlockStateMeta)var6;
-      CreatureSpawner var4 = (CreatureSpawner)var3.getBlockState();
-      return var4.getSpawnedType().name();
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+      CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+      return creatureSpawner.getSpawnedType().name();
    }
 }

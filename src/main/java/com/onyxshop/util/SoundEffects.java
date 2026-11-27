@@ -25,15 +25,15 @@ public class SoundEffects {
    private Sound backButton;
    private Sound selectAmount;
 
-   public SoundEffects(OnyxShop var1) {
-      this.plugin = var1;
+   public SoundEffects(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    private void loadEffects() {
       try {
          this.soundVolume = Float.parseFloat(ConfigManager.getConfig().getString("sound-effects.volume", "1"));
          this.soundPitch = Float.parseFloat(ConfigManager.getConfig().getString("sound-effects.pitch", "1"));
-      } catch (NumberFormatException var2) {
+      } catch (NumberFormatException exception) {
          SendMessage.warnMessage("Failed to load sound volume settings in config.yml, should be a number");
       }
 
@@ -50,17 +50,17 @@ public class SoundEffects {
       this.selectAmount = this.getSound("sound-effects.select-item-amount");
    }
 
-   private Sound getSound(String var1) {
-      String var2 = ConfigManager.getConfig().getString(var1);
-      if (var2 != null && !var2.isEmpty()) {
+   private Sound getSound(String text) {
+      String text2 = ConfigManager.getConfig().getString(text);
+      if (text2 != null && !text2.isEmpty()) {
          try {
-            return this.getSoundByName(var2);
-         } catch (NullPointerException | IllegalArgumentException var6) {
+            return this.getSoundByName(text2);
+         } catch (NullPointerException | IllegalArgumentException exception) {
             try {
-               SendMessage.warnMessage("Failed to find a sound effect with name '" + var2 + "', using default...");
-               return this.getSoundByName(ConfigManager.getConfig().getDef().getString(var2));
-            } catch (NullPointerException | IllegalArgumentException var5) {
-               SendMessage.warnMessage("Failed to load default sound effect '" + var2 + "', using none...");
+               SendMessage.warnMessage("Failed to find a sound effect with name '" + text2 + "', using default...");
+               return this.getSoundByName(ConfigManager.getConfig().getDef().getString(text2));
+            } catch (NullPointerException | IllegalArgumentException exception2) {
+               SendMessage.warnMessage("Failed to load default sound effect '" + text2 + "', using none...");
                return null;
             }
          }
@@ -69,107 +69,107 @@ public class SoundEffects {
       }
    }
 
-   private Sound getSoundByName(String var1) {
-      BukkitSound var2 = BukkitSound.valueOf(var1);
-      if (var2 != null) {
-         return var2;
-      } else if (this.isNamespacedKey(var1)) {
-         return new KeyedSound(var1);
-      } else if (var1.contains(".")) {
-         throw new IllegalArgumentException("Failed to parse sound into valid namespaced key for " + var1);
+   private Sound getSoundByName(String name) {
+      BukkitSound bukkitSound = BukkitSound.valueOf(name);
+      if (bukkitSound != null) {
+         return bukkitSound;
+      } else if (this.isNamespacedKey(name)) {
+         return new KeyedSound(name);
+      } else if (name.contains(".")) {
+         throw new IllegalArgumentException("Failed to parse sound into valid namespaced key for " + name);
       } else {
          throw new IllegalArgumentException();
       }
    }
 
-   private boolean isNamespacedKey(String var1) {
-      int var2 = var1.indexOf(":");
-      if (var2 == -1) {
-         var1 = "minecraft:" + var1;
-         var2 = 9;
+   private boolean isNamespacedKey(String key) {
+      int index = key.indexOf(":");
+      if (index == -1) {
+         key = "minecraft:" + key;
+         index = 9;
       }
 
-      String var3 = var1.substring(0, var2);
-      String var4 = var1.substring(var2 + 1);
-      Pattern var5 = Pattern.compile("[^a-z0-9_.-]");
-      return !var3.isEmpty() && !var4.isEmpty() && var3.length() + var4.length() + 1 <= 256 && !var5.matcher(var3).find() && !var5.matcher(var4).find();
+      String text = key.substring(0, index);
+      String text2 = key.substring(index + 1);
+      Pattern pattern = Pattern.compile("[^a-z0-9_.-]");
+      return !text.isEmpty() && !text2.isEmpty() && text.length() + text2.length() + 1 <= 256 && !pattern.matcher(text).find() && !pattern.matcher(text2).find();
    }
 
    public void reload() {
       this.loadEffects();
    }
 
-   public void completeTransaction(Player var1, Transaction.Mode var2) {
-      if (var2 == Transaction.Mode.BUY) {
-         this.purchaseItem(var1);
+   public void completeTransaction(Player player, Transaction.Mode mode) {
+      if (mode == Transaction.Mode.BUY) {
+         this.purchaseItem(player);
       } else {
-         this.sellItem(var1);
+         this.sellItem(player);
       }
    }
 
-   public void purchaseItem(Player var1) {
+   public void purchaseItem(Player player) {
       if (this.purchaseItem != null) {
-         this.purchaseItem.play(var1, this.soundVolume, this.soundPitch);
+         this.purchaseItem.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void sellItem(Player var1) {
+   public void sellItem(Player player) {
       if (this.sellItem != null) {
-         this.sellItem.play(var1, this.soundVolume, this.soundPitch);
+         this.sellItem.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void insufficientFunds(Player var1) {
+   public void insufficientFunds(Player player) {
       if (this.insufficientFunds != null) {
-         this.insufficientFunds.play(var1, this.soundVolume, this.soundPitch);
+         this.insufficientFunds.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void insufficientStock(Player var1) {
+   public void insufficientStock(Player player) {
       if (this.insufficientStock != null) {
-         this.insufficientStock.play(var1, this.soundVolume, this.soundPitch);
+         this.insufficientStock.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void openMainMenu(Player var1) {
+   public void openMainMenu(Player player) {
       if (this.openMainMenu != null) {
-         this.openMainMenu.play(var1, this.soundVolume, this.soundPitch);
+         this.openMainMenu.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void closeMainMenu(Player var1) {
+   public void closeMainMenu(Player player) {
       if (this.closeMainMenu != null) {
-         this.closeMainMenu.play(var1, this.soundVolume, this.soundPitch);
+         this.closeMainMenu.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void openShop(Player var1) {
+   public void openShop(Player player) {
       if (this.openShop != null) {
-         this.openShop.play(var1, this.soundVolume, this.soundPitch);
+         this.openShop.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void selectItem(Player var1) {
+   public void selectItem(Player player) {
       if (this.selectItem != null) {
-         this.selectItem.play(var1, this.soundVolume, this.soundPitch);
+         this.selectItem.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void changePage(Player var1) {
+   public void changePage(Player player) {
       if (this.changePage != null) {
-         this.changePage.play(var1, this.soundVolume, this.soundPitch);
+         this.changePage.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void useBackButton(Player var1) {
+   public void useBackButton(Player player) {
       if (this.backButton != null) {
-         this.backButton.play(var1, this.soundVolume, this.soundPitch);
+         this.backButton.play(player, this.soundVolume, this.soundPitch);
       }
    }
 
-   public void changeItemAmount(Player var1) {
+   public void changeItemAmount(Player player) {
       if (this.selectAmount != null) {
-         this.selectAmount.play(var1, this.soundVolume, this.soundPitch);
+         this.selectAmount.play(player, this.soundVolume, this.soundPitch);
       }
    }
 }

@@ -7,77 +7,77 @@ public class Placeholder {
    String original;
    Placeholder.Type type;
 
-   public Placeholder(String var1, String... var2) {
-      this.original = var1;
-      this.type = getPlaceholderType(var1, var2);
+   public Placeholder(String text, String... values) {
+      this.original = text;
+      this.type = getPlaceholderType(text, values);
    }
 
-   public static boolean isPlaceholder(String var0, String... var1) {
-      return getPlaceholderType(var0, var1) != Placeholder.Type.NONE;
+   public static boolean isPlaceholder(String text, String... values) {
+      return getPlaceholderType(text, values) != Placeholder.Type.NONE;
    }
 
    public String getRaw() {
       return this.original;
    }
 
-   public String translate(Player var1, Replacement... var2) {
-      return this.translate(this.original, var1, var2);
+   public String translate(Player player, Replacement... playerNames) {
+      return this.translate(this.original, player, playerNames);
    }
 
-   public String translate(Player var1, String... var2) {
-      return this.translate(this.original, var1, var2);
+   public String translate(Player player, String... playerNames) {
+      return this.translate(this.original, player, playerNames);
    }
 
-   public String translate(String var1, Player var2, Replacement... var3) {
+   public String translate(String playerName, Player player, Replacement... values) {
       if (this.type != Placeholder.Type.PAPI) {
-         var1 = this.replace(var1, var3);
+         playerName = this.replace(playerName, values);
       }
 
-      return this.type != Placeholder.Type.LOCAL ? PlaceholderAPIHook.translate(var2, var1) : var1;
+      return this.type != Placeholder.Type.LOCAL ? PlaceholderAPIHook.translate(player, playerName) : playerName;
    }
 
-   public String translate(String var1, Player var2, String... var3) {
+   public String translate(String playerName, Player player, String... values) {
       if (this.type != Placeholder.Type.PAPI) {
-         var1 = this.replace(var1, var3);
+         playerName = this.replace(playerName, values);
       }
 
-      return this.type != Placeholder.Type.LOCAL ? PlaceholderAPIHook.translate(var2, var1) : var1;
+      return this.type != Placeholder.Type.LOCAL ? PlaceholderAPIHook.translate(player, playerName) : playerName;
    }
 
-   private String replace(String var1, Replacement... var2) {
-      for (Replacement var6 : var2) {
-         if (var1.contains(var6.key)) {
-            var1 = var1.replace(var6.key, var6.value.get());
+   private String replace(String text, Replacement... values) {
+      for (Replacement replacement : values) {
+         if (text.contains(replacement.key)) {
+            text = text.replace(replacement.key, replacement.value.get());
          }
       }
 
-      return var1;
+      return text;
    }
 
-   private String replace(String var1, String... var2) {
-      for (byte var3 = 0; var3 < var2.length; var3 += 2) {
-         if (var1.contains(var2[var3])) {
-            var1 = var1.replace(var2[var3], var2[var3 + 1]);
+   private String replace(String text, String... values) {
+      for (byte index = 0; index < values.length; index += 2) {
+         if (text.contains(values[index])) {
+            text = text.replace(values[index], values[index + 1]);
          }
       }
 
-      return var1;
+      return text;
    }
 
-   private static Placeholder.Type getPlaceholderType(String var0, String... var1) {
-      String var2 = var0;
-      Placeholder.Type var3 = Placeholder.Type.NONE;
+   private static Placeholder.Type getPlaceholderType(String type, String... values) {
+      String text = type;
+      Placeholder.Type type2 = Placeholder.Type.NONE;
 
-      for (String var7 : var1) {
-         if (var2.contains(var7)) {
-            var2 = var2.replaceAll(var7, "");
-            var3 = Placeholder.Type.LOCAL;
+      for (String text2 : values) {
+         if (text.contains(text2)) {
+            text = text.replaceAll(text2, "");
+            type2 = Placeholder.Type.LOCAL;
          }
       }
 
-      return PlaceholderAPIHook.hasPlaceholders(var2)
-         ? (var3 == Placeholder.Type.LOCAL ? Placeholder.Type.BOTH : Placeholder.Type.PAPI)
-         : (var3 == Placeholder.Type.LOCAL ? Placeholder.Type.LOCAL : Placeholder.Type.NONE);
+      return PlaceholderAPIHook.hasPlaceholders(text)
+         ? (type2 == Placeholder.Type.LOCAL ? Placeholder.Type.BOTH : Placeholder.Type.PAPI)
+         : (type2 == Placeholder.Type.LOCAL ? Placeholder.Type.LOCAL : Placeholder.Type.NONE);
    }
 
    private static enum Type {

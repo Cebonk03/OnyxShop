@@ -19,78 +19,78 @@ public class PriceFormatter {
    }
 
    public static PriceFormatter.Format getFormatter() {
-      Locale var0 = Locale.forLanguageTag(ConfigManager.getConfig().getString("locale", "en-US"));
-      NumberFormat var1 = getCurrencyFormat(var0, ConfigManager.getConfig().getString("currency-format", "#,##0.00"), "currency-format");
-      List<String> var2 = getMagnitudes((String)null);
-      return (PriceFormatter.Format)(var2.isEmpty()
-         ? new PriceFormatter.LongFormat(var0, var1)
-         : new PriceFormatter.ShortFormat(var0, var1, var2.toArray(new String[0])));
+      Locale locale = Locale.forLanguageTag(ConfigManager.getConfig().getString("locale", "en-US"));
+      NumberFormat numberFormat = getCurrencyFormat(locale, ConfigManager.getConfig().getString("currency-format", "#,##0.00"), "currency-format");
+      List<String> magnitudes = getMagnitudes((String)null);
+      return (PriceFormatter.Format)(magnitudes.isEmpty()
+         ? new PriceFormatter.LongFormat(locale, numberFormat)
+         : new PriceFormatter.ShortFormat(locale, numberFormat, magnitudes.toArray(new String[0])));
    }
 
-   public static PriceFormatter.Format getFormatter(String var0) {
-      if (!ConfigManager.getConfig().contains(var0 + ".format")
-         && !ConfigManager.getConfig().contains(var0 + ".locale")
-         && !ConfigManager.getConfig().contains(var0 + ".abbreviations")) {
+   public static PriceFormatter.Format getFormatter(String price) {
+      if (!ConfigManager.getConfig().contains(price + ".format")
+         && !ConfigManager.getConfig().contains(price + ".locale")
+         && !ConfigManager.getConfig().contains(price + ".abbreviations")) {
          return EconomyHandler.getDefaultFormatter();
       } else {
-         Locale var1 = Locale.forLanguageTag(getLocale(var0));
-         NumberFormat var2 = getCurrencyFormat(var1, getFormat(var0), var0 + ".format");
-         List<String> var3 = getMagnitudes(var0);
-         return (PriceFormatter.Format)(var3.isEmpty()
-            ? new PriceFormatter.LongFormat(var1, var2)
-            : new PriceFormatter.ShortFormat(var1, var2, var3.toArray(new String[0])));
+         Locale locale = Locale.forLanguageTag(getLocale(price));
+         NumberFormat numberFormat = getCurrencyFormat(locale, getFormat(price), price + ".format");
+         List<String> magnitudes = getMagnitudes(price);
+         return (PriceFormatter.Format)(magnitudes.isEmpty()
+            ? new PriceFormatter.LongFormat(locale, numberFormat)
+            : new PriceFormatter.ShortFormat(locale, numberFormat, magnitudes.toArray(new String[0])));
       }
    }
 
-   private static String getFormat(String var0) {
-      String var1 = ConfigManager.getConfig().getString("currency-format", "#,##0.00");
-      return ConfigManager.getConfig().getString(var0 + ".format", var1);
+   private static String getFormat(String text) {
+      String text2 = ConfigManager.getConfig().getString("currency-format", "#,##0.00");
+      return ConfigManager.getConfig().getString(text + ".format", text2);
    }
 
-   private static String getLocale(String var0) {
-      String var1 = ConfigManager.getConfig().getString("locale", "en-US");
-      return ConfigManager.getConfig().getString(var0 + ".locale", var1);
+   private static String getLocale(String text) {
+      String text2 = ConfigManager.getConfig().getString("locale", "en-US");
+      return ConfigManager.getConfig().getString(text + ".locale", text2);
    }
 
-   private static List<String> getMagnitudes(@Nullable String var0) {
-      if (var0 == null || !ConfigManager.getConfig().contains(var0 + ".abbreviations.enabled")) {
+   private static List<String> getMagnitudes(@Nullable String text) {
+      if (text == null || !ConfigManager.getConfig().contains(text + ".abbreviations.enabled")) {
          return (List<String>)(ConfigManager.getConfig().getBoolean("abbreviations.enabled")
             ? ConfigManager.getConfig().getStringList("abbreviations.formats")
             : new ArrayList<>());
       } else {
-         return (List<String>)(ConfigManager.getConfig().getBoolean(var0 + ".abbreviations.enabled")
-            ? ConfigManager.getConfig().getStringList(var0 + ".abbreviations.formats")
+         return (List<String>)(ConfigManager.getConfig().getBoolean(text + ".abbreviations.enabled")
+            ? ConfigManager.getConfig().getStringList(text + ".abbreviations.formats")
             : new ArrayList<>());
       }
    }
 
-   private static List<String> getMagnitudes(ConfigurationSection var0) {
-      ArrayList var1 = new ArrayList();
+   private static List<String> getMagnitudes(ConfigurationSection section) {
+      ArrayList values = new ArrayList();
 
-      for (String var3 : var0.getKeys(false)) {
-         var1.add(var0.getString(var3));
+      for (String text : section.getKeys(false)) {
+         values.add(section.getString(text));
       }
 
-      return var1;
+      return values;
    }
 
-   private static NumberFormat getCurrencyFormat(Locale var0, String var1, String var2) {
-      DecimalFormat var3;
+   private static NumberFormat getCurrencyFormat(Locale locale, String text, String text2) {
+      DecimalFormat decimalFormat;
       try {
-         var3 = new DecimalFormat(var1, DecimalFormatSymbols.getInstance(var0));
-      } catch (IllegalArgumentException var5) {
-         SendMessage.warnMessage("Could not load currency format of '" + var1 + "' at " + var2 + ", with reason: " + var5.getMessage());
-         var3 = new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(var0));
+         decimalFormat = new DecimalFormat(text, DecimalFormatSymbols.getInstance(locale));
+      } catch (IllegalArgumentException exception) {
+         SendMessage.warnMessage("Could not load currency format of '" + text + "' at " + text2 + ", with reason: " + exception.getMessage());
+         decimalFormat = new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(locale));
       }
 
-      var3.setRoundingMode(RoundingMode.FLOOR);
-      return var3;
+      decimalFormat.setRoundingMode(RoundingMode.FLOOR);
+      return decimalFormat;
    }
 
    public interface Format {
-      String format(EconomyProvider var1, double var2);
+      String format(EconomyProvider economy, double amount);
 
-      double round(double var1);
+      double round(double amount);
    }
 
    public static final class LongFormat implements PriceFormatter.Format {
@@ -98,25 +98,25 @@ public class PriceFormatter {
       private final Locale locale;
       private final NumberFormat format;
 
-      public LongFormat(Locale var1, NumberFormat var2) {
-         this.locale = var1;
-         this.format = var2;
-         this.decimalPoints = var2.getMaximumFractionDigits();
+      public LongFormat(Locale locale, NumberFormat numberFormat) {
+         this.locale = locale;
+         this.format = numberFormat;
+         this.decimalPoints = numberFormat.getMaximumFractionDigits();
       }
 
       @Override
-      public String format(EconomyProvider var1, double var2) {
-         return !var1.isDecimal()
-            ? (var2 == 1.0 ? var1.getSingular() : var1.getPlural()).replace("%price%", String.format(this.locale, "%,.0f", (double)Math.round(var2)))
-            : (var2 == 1.0 ? var1.getSingular() : var1.getPlural()).replace("%price%", this.format.format(var2));
+      public String format(EconomyProvider economy, double amount) {
+         return !economy.isDecimal()
+            ? (amount == 1.0 ? economy.getSingular() : economy.getPlural()).replace("%price%", String.format(this.locale, "%,.0f", (double)Math.round(amount)))
+            : (amount == 1.0 ? economy.getSingular() : economy.getPlural()).replace("%price%", this.format.format(amount));
       }
 
       @Override
-      public double round(double var1) {
-         long var3 = (long)Math.pow(10.0, this.decimalPoints);
-         var1 *= var3;
-         long var5 = Math.round(var1);
-         return (double)var5 / var3;
+      public double round(double amount) {
+         long value = (long)Math.pow(10.0, this.decimalPoints);
+         amount *= value;
+         long value2 = Math.round(amount);
+         return (double)value2 / value;
       }
    }
 
@@ -126,42 +126,42 @@ public class PriceFormatter {
       private final NumberFormat format;
       private final String[] magnitudes;
 
-      public ShortFormat(Locale var1, NumberFormat var2, String[] var3) {
-         this.locale = var1;
-         this.format = var2;
-         this.magnitudes = var3;
-         this.decimalPoints = var2.getMaximumFractionDigits();
+      public ShortFormat(Locale locale, NumberFormat numberFormat, String[] values) {
+         this.locale = locale;
+         this.format = numberFormat;
+         this.magnitudes = values;
+         this.decimalPoints = numberFormat.getMaximumFractionDigits();
       }
 
       @Override
-      public String format(EconomyProvider var1, double var2) {
-         if (var2 >= 1000.0) {
-            return var1.getPlural().replace("%price%", this.formatShort(var2));
+      public String format(EconomyProvider economy, double amount) {
+         if (amount >= 1000.0) {
+            return economy.getPlural().replace("%price%", this.formatShort(amount));
          } else {
-            return !var1.isDecimal()
-               ? (var2 == 1.0 ? var1.getSingular() : var1.getPlural()).replace("%price%", String.format(this.locale, "%,.0f", (double)Math.round(var2)))
-               : (var2 == 1.0 ? var1.getSingular() : var1.getPlural()).replace("%price%", this.format.format(var2));
+            return !economy.isDecimal()
+               ? (amount == 1.0 ? economy.getSingular() : economy.getPlural()).replace("%price%", String.format(this.locale, "%,.0f", (double)Math.round(amount)))
+               : (amount == 1.0 ? economy.getSingular() : economy.getPlural()).replace("%price%", this.format.format(amount));
          }
       }
 
       @Override
-      public double round(double var1) {
-         long var3 = (long)Math.pow(10.0, this.decimalPoints);
-         var1 *= var3;
-         long var5 = Math.round(var1);
-         return (double)var5 / var3;
+      public double round(double amount) {
+         long value = (long)Math.pow(10.0, this.decimalPoints);
+         amount *= value;
+         long value2 = Math.round(amount);
+         return (double)value2 / value;
       }
 
-      private String formatShort(double var1) {
-         int var3 = 0;
+      private String formatShort(double amount) {
+         int value = 0;
 
          while (true) {
-            var1 /= 1000.0;
-            if (var1 < 1000.0) {
-               return var1 == (int)var1 ? (int)var1 + this.magnitudes[var3] : String.format(this.locale, "%,.1f", var1) + this.magnitudes[var3];
+            amount /= 1000.0;
+            if (amount < 1000.0) {
+               return amount == (int)amount ? (int)amount + this.magnitudes[value] : String.format(this.locale, "%,.1f", amount) + this.magnitudes[value];
             }
 
-            var3++;
+            value++;
          }
       }
    }

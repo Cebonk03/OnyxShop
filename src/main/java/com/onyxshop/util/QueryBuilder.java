@@ -31,8 +31,8 @@ public class QueryBuilder {
    private boolean includeSubShops = true;
    private boolean includeHidden = false;
 
-   public QueryBuilder(OnyxShop var1) {
-      this.plugin = var1;
+   public QueryBuilder(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public void reload() {
@@ -53,30 +53,30 @@ public class QueryBuilder {
       }
    }
 
-   public void rotate(RotatingShopProvider var1) {
-      this.itemsByType.values().forEach(var1x -> var1x.removeIf(var1xx -> var1xx.section.equals(var1.getSection())));
-      this.itemsByName.values().forEach(var1x -> var1x.removeIf(var1xx -> var1xx.section.equals(var1.getSection())));
-      if (!this.bannedShops.contains(var1.getSection()) && (this.includeHidden || !var1.isHidden()) && (this.includeSubShops || !var1.isSubSection())) {
-         for (ShopItem var3 : var1.getItemsInRotation()) {
-            String var4 = var3.getShopItem().getType().name();
-            this.itemsByType.computeIfAbsent(var4, var0 -> new ArrayList<>()).add(var3);
-            this.itemsByName.computeIfAbsent(var3.getDisplayname().toLowerCase(Locale.ENGLISH), var0 -> new ArrayList<>()).add(var3);
+   public void rotate(RotatingShopProvider rotatingShopProvider) {
+      this.itemsByType.values().forEach(entry -> entry.removeIf(element -> element.section.equals(rotatingShopProvider.getSection())));
+      this.itemsByName.values().forEach(entry -> entry.removeIf(element -> element.section.equals(rotatingShopProvider.getSection())));
+      if (!this.bannedShops.contains(rotatingShopProvider.getSection()) && (this.includeHidden || !rotatingShopProvider.isHidden()) && (this.includeSubShops || !rotatingShopProvider.isSubSection())) {
+         for (ShopItem shopItem : rotatingShopProvider.getItemsInRotation()) {
+            String shopId = shopItem.getShopItem().getType().name();
+            this.itemsByType.computeIfAbsent(shopId, key -> new ArrayList<>()).add(shopItem);
+            this.itemsByName.computeIfAbsent(shopItem.getDisplayname().toLowerCase(Locale.ENGLISH), key -> new ArrayList<>()).add(shopItem);
          }
       }
    }
 
    private void cacheItemsByType() {
-      for (String var2 : this.plugin.getShopSections().stream().filter(var1 -> !this.bannedShops.contains(var1)).collect(Collectors.toList())) {
-         ShopSection var3 = this.plugin.getSection(var2);
-         if ((var3.getType() != ShopType.ROTATING || ((RotatingShop)var3).getItemsInRotation() != null)
-            && (this.includeHidden || !var3.isHidden())
-            && (this.includeSubShops || !var3.isSubSection())
-            && !this.bannedShops.contains(var3.getSection())) {
-            for (ShopItem var5 : var3.getType() == ShopType.ROTATING ? ((RotatingShop)var3).getItemsInRotation() : var3.getShopItems()) {
-               if (!var5.hasItemError() && !var5.isDisplayItem()) {
-                  String var6 = var5.getShopItem().getType().name();
-                  List var7 = this.itemsByType.computeIfAbsent(var6, var0 -> new ArrayList<>());
-                  var7.add(var5);
+      for (String type : this.plugin.getShopSections().stream().filter(element -> !this.bannedShops.contains(element)).collect(Collectors.toList())) {
+         ShopSection section = this.plugin.getSection(type);
+         if ((section.getType() != ShopType.ROTATING || ((RotatingShop)section).getItemsInRotation() != null)
+            && (this.includeHidden || !section.isHidden())
+            && (this.includeSubShops || !section.isSubSection())
+            && !this.bannedShops.contains(section.getSection())) {
+            for (ShopItem shopItem : section.getType() == ShopType.ROTATING ? ((RotatingShop)section).getItemsInRotation() : section.getShopItems()) {
+               if (!shopItem.hasItemError() && !shopItem.isDisplayItem()) {
+                  String shopId = shopItem.getShopItem().getType().name();
+                  List values = this.itemsByType.computeIfAbsent(shopId, key -> new ArrayList<>());
+                  values.add(shopItem);
                }
             }
          }
@@ -84,40 +84,40 @@ public class QueryBuilder {
    }
 
    private void cacheItemsByName() {
-      for (String var2 : this.plugin.getShopSections().stream().filter(var1 -> !this.bannedShops.contains(var1)).collect(Collectors.toList())) {
-         ShopSection var3 = this.plugin.getSection(var2);
-         if ((var3.getType() != ShopType.ROTATING || ((RotatingShop)var3).getItemsInRotation() != null)
-            && (this.includeHidden || !var3.isHidden())
-            && (this.includeSubShops || !var3.isSubSection())
-            && !this.bannedShops.contains(var3.getSection())) {
-            for (ShopItem var5 : var3.getType() == ShopType.ROTATING ? ((RotatingShop)var3).getItemsInRotation() : var3.getShopItems()) {
-               if (!var5.hasItemError() && !var5.isDisplayItem()) {
-                  String var6 = var5.getDisplayname().toLowerCase(Locale.ENGLISH);
-                  List var7 = this.itemsByName.computeIfAbsent(var6, var0 -> new ArrayList<>());
-                  var7.add(var5);
-                  ItemStack var8 = var5.getShopItem();
-                  if (this.plugin.versionHandler.hasData(var8, NBTMaps.ENCHANTMENTS.getTag())
-                     || this.plugin.versionHandler.hasData(var8, NBTMaps.STORED_ENCHANTMENTS.getTag())) {
-                     for (SimpleEnchantment var10 : OnyxShop.getInstance().enchantsProvider.getEnchantsOfItem(var8)) {
-                        if (var10.getProvider() == EnchantsProvider.Provider.VANILLA) {
-                           for (String var12 : XEnchantment.matchXEnchantment((Enchantment)var10.getEnchant()).getNames(var8)) {
-                              List var13 = this.itemsByName
-                                 .computeIfAbsent(var12.toLowerCase(Locale.ENGLISH) + " " + var10.getLvl(), var0 -> new ArrayList<>());
-                              var13.add(var5);
+      for (String name : this.plugin.getShopSections().stream().filter(element -> !this.bannedShops.contains(element)).collect(Collectors.toList())) {
+         ShopSection section = this.plugin.getSection(name);
+         if ((section.getType() != ShopType.ROTATING || ((RotatingShop)section).getItemsInRotation() != null)
+            && (this.includeHidden || !section.isHidden())
+            && (this.includeSubShops || !section.isSubSection())
+            && !this.bannedShops.contains(section.getSection())) {
+            for (ShopItem shopItem : section.getType() == ShopType.ROTATING ? ((RotatingShop)section).getItemsInRotation() : section.getShopItems()) {
+               if (!shopItem.hasItemError() && !shopItem.isDisplayItem()) {
+                  String text = shopItem.getDisplayname().toLowerCase(Locale.ENGLISH);
+                  List values = this.itemsByName.computeIfAbsent(text, key -> new ArrayList<>());
+                  values.add(shopItem);
+                  ItemStack itemStack = shopItem.getShopItem();
+                  if (this.plugin.versionHandler.hasData(itemStack, NBTMaps.ENCHANTMENTS.getTag())
+                     || this.plugin.versionHandler.hasData(itemStack, NBTMaps.STORED_ENCHANTMENTS.getTag())) {
+                     for (SimpleEnchantment simpleEnchantment : OnyxShop.getInstance().enchantsProvider.getEnchantsOfItem(itemStack)) {
+                        if (simpleEnchantment.getProvider() == EnchantsProvider.Provider.VANILLA) {
+                           for (String text2 : XEnchantment.matchXEnchantment((Enchantment)simpleEnchantment.getEnchant()).getNames(itemStack)) {
+                              List values2 = this.itemsByName
+                                 .computeIfAbsent(text2.toLowerCase(Locale.ENGLISH) + " " + simpleEnchantment.getLvl(), key -> new ArrayList<>());
+                              values2.add(shopItem);
                            }
                         } else {
-                           List var11 = this.itemsByName
-                              .computeIfAbsent(var10.getName().toLowerCase(Locale.ENGLISH) + " " + var10.getLvl(), var0 -> new ArrayList<>());
-                           var11.add(var5);
+                           List values2 = this.itemsByName
+                              .computeIfAbsent(simpleEnchantment.getName().toLowerCase(Locale.ENGLISH) + " " + simpleEnchantment.getLvl(), key -> new ArrayList<>());
+                           values2.add(shopItem);
                         }
                      }
                   }
 
-                  if (this.plugin.versionHandler.hasData(var8, NBTMaps.BASE_POTION.getTag().split("::")[0])) {
-                     for (PotionTypes var15 : PotionTypes.getPotionTypes(var8)) {
-                        for (String var18 : var15.getNames(var8)) {
-                           List var19 = this.itemsByName.computeIfAbsent(var18.toLowerCase(Locale.ENGLISH), var0 -> new ArrayList<>());
-                           var19.add(var5);
+                  if (this.plugin.versionHandler.hasData(itemStack, NBTMaps.BASE_POTION.getTag().split("::")[0])) {
+                     for (PotionTypes potionTypes : PotionTypes.getPotionTypes(itemStack)) {
+                        for (String text2 : potionTypes.getNames(itemStack)) {
+                           List values2 = this.itemsByName.computeIfAbsent(text2.toLowerCase(Locale.ENGLISH), key -> new ArrayList<>());
+                           values2.add(shopItem);
                         }
                      }
                   }
@@ -127,31 +127,31 @@ public class QueryBuilder {
       }
    }
 
-   public LinkedList<ShopItem> queryByName(String var1) {
-      var1 = var1.toLowerCase(Locale.ENGLISH);
-      LinkedList var2 = new LinkedList();
-      String[] var3 = var1.split(" ");
+   public LinkedList<ShopItem> queryByName(String name) {
+      name = name.toLowerCase(Locale.ENGLISH);
+      LinkedList values = new LinkedList();
+      String[] values2 = name.split(" ");
 
-      for (Entry var5 : this.itemsByName.entrySet()) {
-         if (var3.length == 1 ? ((String)var5.getKey()).contains(var1) : Arrays.stream(var3).anyMatch(var1x -> ((String)var5.getKey()).contains(var1x))) {
-            var2.addAll((Collection)var5.getValue());
+      for (Entry entry : this.itemsByName.entrySet()) {
+         if (values2.length == 1 ? ((String)entry.getKey()).contains(name) : Arrays.stream(values2).anyMatch(element -> ((String)entry.getKey()).contains(element))) {
+            values.addAll((Collection)entry.getValue());
          }
       }
 
-      return var2;
+      return values;
    }
 
-   public LinkedList<ShopItem> queryByType(String var1) {
-      var1 = var1.toUpperCase(Locale.ENGLISH);
-      LinkedList var2 = new LinkedList();
-      String[] var3 = var1.split(" ");
+   public LinkedList<ShopItem> queryByType(String type) {
+      type = type.toUpperCase(Locale.ENGLISH);
+      LinkedList values = new LinkedList();
+      String[] values2 = type.split(" ");
 
-      for (Entry var5 : this.itemsByType.entrySet()) {
-         if (var3.length == 1 ? ((String)var5.getKey()).contains(var1) : Arrays.stream(var3).anyMatch(var1x -> ((String)var5.getKey()).contains(var1x))) {
-            var2.addAll((Collection)var5.getValue());
+      for (Entry entry : this.itemsByType.entrySet()) {
+         if (values2.length == 1 ? ((String)entry.getKey()).contains(type) : Arrays.stream(values2).anyMatch(element -> ((String)entry.getKey()).contains(element))) {
+            values.addAll((Collection)entry.getValue());
          }
       }
 
-      return var2;
+      return values;
    }
 }

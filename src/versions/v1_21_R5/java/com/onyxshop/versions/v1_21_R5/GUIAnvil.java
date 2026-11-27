@@ -21,78 +21,78 @@ import org.bukkit.inventory.Inventory;
 
 public class GUIAnvil implements VersionHandler.AnvilGUI {
    @Override
-   public VersionHandler.AnvilGUI.AnvilContainer newAnvilContainer(Player var1, String var2) {
-      return new GUIAnvil.AnvilContainer(var1, var2);
+   public VersionHandler.AnvilGUI.AnvilContainer newAnvilContainer(Player player, String playerName) {
+      return new GUIAnvil.AnvilContainer(player, playerName);
    }
 
-   private int getRealNextContainerId(Player var1) {
-      return this.toNMS(var1).nextContainerCounter();
-   }
-
-   @Override
-   public int getNextContainerId(Player var1, Object var2) {
-      return ((GUIAnvil.AnvilContainer)var2).getContainerId();
+   private int getRealNextContainerId(Player player) {
+      return this.toNMS(player).nextContainerCounter();
    }
 
    @Override
-   public void handleInventoryCloseEvent(Player var1) {
+   public int getNextContainerId(Player player, Object value) {
+      return ((GUIAnvil.AnvilContainer)value).getContainerId();
+   }
+
+   @Override
+   public void handleInventoryCloseEvent(Player player) {
       try {
-         CraftEventFactory.handleInventoryCloseEvent(this.toNMS(var1));
-      } catch (NoSuchMethodError var5) {
+         CraftEventFactory.handleInventoryCloseEvent(this.toNMS(player));
+      } catch (NoSuchMethodError noSuchMethodError) {
          try {
-            Class var3 = Class.forName("org.bukkit.event.inventory.InventoryCloseEvent$Reason");
+            Class type = Class.forName("org.bukkit.event.inventory.InventoryCloseEvent$Reason");
             ReflectUtil.invokeStaticLegacyMethod(
-               "handleInventoryCloseEvent", CraftEventFactory.class, new Class[]{EntityHuman.class, var3}, this.toNMS(var1), var3.getField("PLUGIN").get(null)
+               "handleInventoryCloseEvent", CraftEventFactory.class, new Class[]{EntityHuman.class, type}, this.toNMS(player), type.getField("PLUGIN").get(null)
             );
-         } catch (Exception var4) {
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to open anvil GUI for player");
-            throw new RuntimeException(var4);
+            throw new RuntimeException(exception);
          }
       }
    }
 
    @Override
-   public void sendPacketOpenWindow(Player var1, int var2, String var3) {
-      this.toNMS(var1).g.b(new PacketPlayOutOpenWindow(var2, Containers.i, IChatBaseComponent.b(var3)));
+   public void sendPacketOpenWindow(Player player, int value, String playerName) {
+      this.toNMS(player).g.b(new PacketPlayOutOpenWindow(value, Containers.i, IChatBaseComponent.b(playerName)));
    }
 
    @Override
-   public void sendPacketCloseWindow(Player var1, int var2) {
-      this.toNMS(var1).g.b(new PacketPlayOutCloseWindow(var2));
+   public void sendPacketCloseWindow(Player player, int value) {
+      this.toNMS(player).g.b(new PacketPlayOutCloseWindow(value));
    }
 
    @Override
-   public void setActiveContainerDefault(Player var1) {
-      this.toNMS(var1).cn = this.toNMS(var1).cm;
+   public void setActiveContainerDefault(Player player) {
+      this.toNMS(player).cn = this.toNMS(player).cm;
    }
 
    @Override
-   public void setActiveContainer(Player var1, Object var2) {
-      this.toNMS(var1).cn = (Container)var2;
+   public void setActiveContainer(Player player, Object value) {
+      this.toNMS(player).cn = (Container)value;
    }
 
    @Override
-   public void setActiveContainerId(Object var1, int var2) {
+   public void setActiveContainerId(Object value, int id) {
    }
 
    @Override
-   public void addActiveContainerSlotListener(Object var1, Player var2) {
-      this.toNMS(var2).a((Container)var1);
+   public void addActiveContainerSlotListener(Object value, Player player) {
+      this.toNMS(player).a((Container)value);
    }
 
-   private EntityPlayer toNMS(Player var1) {
-      return ((CraftPlayer)var1).getHandle();
+   private EntityPlayer toNMS(Player player) {
+      return ((CraftPlayer)player).getHandle();
    }
 
    private class AnvilContainer extends ContainerAnvil implements VersionHandler.AnvilGUI.AnvilContainer {
-      public AnvilContainer(Player nullx, String nullxx) {
+      public AnvilContainer(Player player, String playerName) {
          super(
-            GUIAnvil.this.getRealNextContainerId(nullx),
-            GUIAnvil.this.toNMS(nullx).gs(),
-            ContainerAccess.a(((CraftWorld)nullx.getWorld()).getHandle(), new BlockPosition(0, 0, 0))
+            GUIAnvil.this.getRealNextContainerId(player),
+            GUIAnvil.this.toNMS(player).gs(),
+            ContainerAccess.a(((CraftWorld)player.getWorld()).getHandle(), new BlockPosition(0, 0, 0))
          );
          this.checkReachable = false;
-         this.setTitle(IChatBaseComponent.b(nullxx));
+         this.setTitle(IChatBaseComponent.b(playerName));
       }
 
       public void l() {

@@ -36,137 +36,137 @@ public class StandProvider {
    private final Map<UUID, Stand> loaded = new HashMap<>();
    private final Set<StandLoc> spawnLocations = new HashSet<>();
 
-   public StandProvider(OnyxShop var1) {
-      this.plugin = var1;
-      this.storage = new StandStorage(var1);
+   public StandProvider(OnyxShop plugin) {
+      this.plugin = plugin;
+      this.storage = new StandStorage(plugin);
       this.stands = this.storage.getStoredStands();
       this.plugin.getServer().getPluginManager().registerEvents(new StandListener(this.plugin, this), this.plugin);
       SendMessage.infoMessage(Lang.LOADED_SHOP_STAND_MODULE.get().replace("%count%", String.valueOf(this.stands.size())));
       this.plugin.runTaskLater(this::loadSpawnRegions, 20L);
    }
 
-   public Stand getStand(UUID var1) {
-      return this.loaded.get(var1);
+   public Stand getStand(UUID uniqueId) {
+      return this.loaded.get(uniqueId);
    }
 
-   public Stand getStand(StandLoc var1) {
-      return this.stands.stream().filter(var1x -> var1x.getLoc().equals(var1)).findFirst().orElse(null);
+   public Stand getStand(StandLoc standLoc) {
+      return this.stands.stream().filter(element -> element.getLoc().equals(standLoc)).findFirst().orElse(null);
    }
 
-   public Stand getStand(int var1) {
-      return this.stands.stream().filter(var1x -> var1x.getId() == var1).findFirst().orElse(null);
+   public Stand getStand(int value) {
+      return this.stands.stream().filter(element -> element.getId() == value).findFirst().orElse(null);
    }
 
    public Set<Stand> getStands() {
       return this.stands;
    }
 
-   public void createStand(Block var1, String var2, StandType var3) throws StandLoadException {
-      SimpleLocation var4 = new SimpleLocation(var1);
-      Stand var5 = new Stand(this.stands.size() + 1, var4, var2, var3, new StandSettings());
-      UUID var6 = var5.load();
-      this.stands.add(var5);
-      this.loaded.put(var6, var5);
+   public void createStand(Block block, String type, StandType standType) throws StandLoadException {
+      SimpleLocation simpleLocation = new SimpleLocation(block);
+      Stand stand = new Stand(this.stands.size() + 1, simpleLocation, type, standType, new StandSettings());
+      UUID uniqueId = stand.load();
+      this.stands.add(stand);
+      this.loaded.put(uniqueId, stand);
    }
 
-   public void loadStands(SimpleChunk var1) {
-      Set var2 = this.stands.stream().filter(var1x -> var1.contains(var1x.getLoc())).collect(Collectors.toSet());
-      this.loadStands(var2);
+   public void loadStands(SimpleChunk simpleChunk) {
+      Set values = this.stands.stream().filter(element -> simpleChunk.contains(element.getLoc())).collect(Collectors.toSet());
+      this.loadStands(values);
    }
 
-   public boolean reloadStand(Stand var1) {
+   public boolean reloadStand(Stand stand) {
       try {
-         var1.unload();
-         this.loaded.remove(var1.getStand());
-      } catch (StandUnloadException var3) {
-         SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(var1.getId())).replace("%reason%", var3.getMessage()));
+         stand.unload();
+         this.loaded.remove(stand.getStand());
+      } catch (StandUnloadException exception) {
+         SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(stand.getId())).replace("%reason%", exception.getMessage()));
          return false;
       }
 
       this.plugin.runTaskLater(() -> {
          try {
-            UUID var2 = var1.load();
-            this.loaded.put(var2, var1);
-         } catch (StandLoadException var3x) {
-            SendMessage.errorMessage(Lang.SHOP_STAND_LOAD_FAILED.get().replace("%id%", String.valueOf(var1.getId())).replace("%reason%", var3x.getMessage()));
+            UUID uniqueId = stand.load();
+            this.loaded.put(uniqueId, stand);
+         } catch (StandLoadException exception) {
+            SendMessage.errorMessage(Lang.SHOP_STAND_LOAD_FAILED.get().replace("%id%", String.valueOf(stand.getId())).replace("%reason%", exception.getMessage()));
          }
       }, 2L);
       return true;
    }
 
-   private void loadStands(Set<Stand> var1) {
-      for (Stand var3 : var1) {
+   private void loadStands(Set<Stand> values) {
+      for (Stand stand : values) {
          try {
-            UUID var4 = var3.load();
-            this.loaded.put(var4, var3);
-         } catch (StandLoadException var5) {
-            SendMessage.errorMessage(Lang.SHOP_STAND_LOAD_FAILED.get().replace("%id%", String.valueOf(var3.getId())).replace("%reason%", var5.getMessage()));
+            UUID uniqueId = stand.load();
+            this.loaded.put(uniqueId, stand);
+         } catch (StandLoadException exception) {
+            SendMessage.errorMessage(Lang.SHOP_STAND_LOAD_FAILED.get().replace("%id%", String.valueOf(stand.getId())).replace("%reason%", exception.getMessage()));
          }
       }
    }
 
-   public void checkAndUnload(SimpleChunk var1) {
-      Set var2 = this.loaded.values().stream().filter(var1x -> var1.contains(var1x.getLoc())).collect(Collectors.toSet());
-      this.unloadStands(var2);
+   public void checkAndUnload(SimpleChunk simpleChunk) {
+      Set values = this.loaded.values().stream().filter(element -> simpleChunk.contains(element.getLoc())).collect(Collectors.toSet());
+      this.unloadStands(values);
    }
 
-   private void unloadStands(Set<Stand> var1) {
-      for (Stand var3 : var1) {
+   private void unloadStands(Set<Stand> values) {
+      for (Stand stand : values) {
          try {
-            var3.unload();
-         } catch (StandUnloadException var5) {
-            SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(var3.getId())).replace("%reason%", var5.getMessage()));
+            stand.unload();
+         } catch (StandUnloadException exception) {
+            SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(stand.getId())).replace("%reason%", exception.getMessage()));
          }
       }
    }
 
    private void loadSpawnRegions() {
-      for (World var2 : Bukkit.getWorlds()) {
-         this.spawnLocations.add(new StandLoc(var2.getSpawnLocation()));
+      for (World world : Bukkit.getWorlds()) {
+         this.spawnLocations.add(new StandLoc(world.getSpawnLocation()));
 
-         for (Chunk var6 : var2.getLoadedChunks()) {
-            this.loadStands(new SimpleChunk(var6));
+         for (Chunk chunk : world.getLoadedChunks()) {
+            this.loadStands(new SimpleChunk(chunk));
          }
       }
    }
 
-   public void destroy(Stand var1) {
+   public void destroy(Stand stand) {
       try {
-         var1.unload();
-         var1.getLoc().toBukkit().getBlock().setType(Material.AIR);
-         this.stands.remove(var1);
-         this.loaded.remove(var1.getStand());
-         SendMessage.infoMessage(Lang.REMOVED_SHOP_STAND.get().replace("%location%", var1.getLoc().toString()));
-      } catch (StandUnloadException var3) {
-         SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(var1.getId())).replace("%reason%", var3.getMessage()));
+         stand.unload();
+         stand.getLoc().toBukkit().getBlock().setType(Material.AIR);
+         this.stands.remove(stand);
+         this.loaded.remove(stand.getStand());
+         SendMessage.infoMessage(Lang.REMOVED_SHOP_STAND.get().replace("%location%", stand.getLoc().toString()));
+      } catch (StandUnloadException exception) {
+         SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(stand.getId())).replace("%reason%", exception.getMessage()));
          SendMessage.errorMessage("Forcing removal...");
-         this.unloadInvalid(var1, var1.getLoc().toBukkit());
+         this.unloadInvalid(stand, stand.getLoc().toBukkit());
       }
    }
 
-   private void unloadInvalid(Stand var1, Location var2) {
-      var2.add(0.5, 0.5, 0.5);
+   private void unloadInvalid(Stand stand, Location location) {
+      location.add(0.5, 0.5, 0.5);
 
-      for (Entity var5 : var2.getWorld().getNearbyEntities(var2, 1.0, 1.0, 1.0)) {
-         if (var5 instanceof Item && this.matchesLoc(var5.getLocation(), var2)) {
-            var5.remove();
+      for (Entity entity : location.getWorld().getNearbyEntities(location, 1.0, 1.0, 1.0)) {
+         if (entity instanceof Item && this.matchesLoc(entity.getLocation(), location)) {
+            entity.remove();
          }
       }
 
-      var2.subtract(0.0, 0.5, 0.0);
+      location.subtract(0.0, 0.5, 0.0);
 
-      for (Entity var8 : var2.getWorld().getNearbyEntities(var2, 1.0, 1.0, 1.0)) {
-         if (var8 instanceof ArmorStand && var8.getLocation().equals(var2)) {
-            var8.remove();
+      for (Entity entity : location.getWorld().getNearbyEntities(location, 1.0, 1.0, 1.0)) {
+         if (entity instanceof ArmorStand && entity.getLocation().equals(location)) {
+            entity.remove();
          }
       }
 
-      this.stands.remove(var1);
-      this.loaded.remove(var1.getStand());
+      this.stands.remove(stand);
+      this.loaded.remove(stand.getStand());
    }
 
-   private boolean matchesLoc(Location var1, Location var2) {
-      return var1.getX() == var2.getX() && var1.getY() == var2.getY() && var1.getZ() == var2.getZ();
+   private boolean matchesLoc(Location location, Location location2) {
+      return location.getX() == location2.getX() && location.getY() == location2.getY() && location.getZ() == location2.getZ();
    }
 
    public void reload() {
@@ -180,11 +180,11 @@ public class StandProvider {
    }
 
    public void stop() {
-      for (Stand var2 : this.loaded.values()) {
+      for (Stand stand : this.loaded.values()) {
          try {
-            var2.unload();
-         } catch (StandUnloadException var4) {
-            SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(var2.getId())).replace("%reason%", var4.getMessage()));
+            stand.unload();
+         } catch (StandUnloadException exception) {
+            SendMessage.errorMessage(Lang.SHOP_STAND_UNLOAD_FAILED.get().replace("%id%", String.valueOf(stand.getId())).replace("%reason%", exception.getMessage()));
          }
       }
 

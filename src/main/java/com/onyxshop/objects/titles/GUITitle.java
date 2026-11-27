@@ -12,20 +12,20 @@ import org.bukkit.entity.Player;
 public class GUITitle {
    private final Map<Locale, GUITitle.Localized> variants = new HashMap<>();
 
-   public GUITitle(Lang var1, String var2) {
-      for (Locale var4 : Lang.getLocales()) {
-         Translatable var5 = var1.get(var4);
-         Translatable var6 = Lang.getOrNull(var2, var4);
-         this.variants.put(var4, new GUITitle.Localized(var5, var6 == null ? var5 : var6));
+   public GUITitle(Lang lang, String title) {
+      for (Locale locale : Lang.getLocales()) {
+         Translatable text = lang.get(locale);
+         Translatable text2 = Lang.getOrNull(title, locale);
+         this.variants.put(locale, new GUITitle.Localized(text, text2 == null ? text : text2));
       }
    }
 
-   public Translatable getTitle(Player var1) {
-      GUITitle.Localized var2 = this.variants.getOrDefault(UserManager.getUser(var1).getLocale(), this.variants.get(Lang.getDefaultLocale()));
-      if (UserManager.getUser(var1).isBedrock()) {
-         return var2.bedrockPlaceholders ? var2.bedrockTitle.translate(var1) : var2.bedrockTitle;
+   public Translatable getTitle(Player player) {
+      GUITitle.Localized localized = this.variants.getOrDefault(UserManager.getUser(player).getLocale(), this.variants.get(Lang.getDefaultLocale()));
+      if (UserManager.getUser(player).isBedrock()) {
+         return localized.bedrockPlaceholders ? localized.bedrockTitle.translate(player) : localized.bedrockTitle;
       } else {
-         return var2.placeholders ? var2.title.translate(var1) : var2.title;
+         return localized.placeholders ? localized.title.translate(player) : localized.title;
       }
    }
 
@@ -35,11 +35,11 @@ public class GUITitle {
       private final Translatable bedrockTitle;
       private final boolean bedrockPlaceholders;
 
-      private Localized(Translatable var1, Translatable var2) {
-         this.title = var1;
-         this.placeholders = PlaceholderAPIHook.hasPlaceholders(var1.toString());
-         this.bedrockTitle = var2;
-         this.bedrockPlaceholders = PlaceholderAPIHook.hasPlaceholders(var2.toString());
+      private Localized(Translatable text, Translatable text2) {
+         this.title = text;
+         this.placeholders = PlaceholderAPIHook.hasPlaceholders(text.toString());
+         this.bedrockTitle = text2;
+         this.bedrockPlaceholders = PlaceholderAPIHook.hasPlaceholders(text2.toString());
       }
    }
 }

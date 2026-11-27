@@ -38,9 +38,9 @@ public class Migrate extends SubCommad {
    String pluginName;
    String image;
 
-   public Migrate(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public Migrate(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -59,43 +59,43 @@ public class Migrate extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length <= 1) {
-         SendMessage.sendMessage(var1, this.getSyntax());
-      } else if (!this.supported.containsKey(var2[1].toLowerCase(Locale.ENGLISH))) {
-         SendMessage.sendMessage(var1, Lang.PLUGIN_NOT_FOUND.get());
+   public void perform(Object value, String[] values) {
+      if (values.length <= 1) {
+         SendMessage.sendMessage(value, this.getSyntax());
+      } else if (!this.supported.containsKey(values[1].toLowerCase(Locale.ENGLISH))) {
+         SendMessage.sendMessage(value, Lang.PLUGIN_NOT_FOUND.get());
       } else {
-         this.pluginName = var2[1].toLowerCase(Locale.ENGLISH);
-         if (var2.length <= 2) {
-            SendMessage.sendMessage(var1, this.getSyntax());
+         this.pluginName = values[1].toLowerCase(Locale.ENGLISH);
+         if (values.length <= 2) {
+            SendMessage.sendMessage(value, this.getSyntax());
          } else {
-            this.image = var2[2].toLowerCase(Locale.ENGLISH);
-            boolean var3 = false;
-            boolean var4 = false;
-            boolean var5 = false;
+            this.image = values[2].toLowerCase(Locale.ENGLISH);
+            boolean flag = false;
+            boolean flag2 = false;
+            boolean flag3 = false;
 
-            for (String var9 : var2) {
-               if (var9.equalsIgnoreCase("--override")) {
-                  var3 = true;
-               } else if (var9.equalsIgnoreCase("--database")) {
-                  var4 = true;
-               } else if (var9.equalsIgnoreCase("--confirm")) {
-                  var5 = true;
+            for (String text : values) {
+               if (text.equalsIgnoreCase("--override")) {
+                  flag = true;
+               } else if (text.equalsIgnoreCase("--database")) {
+                  flag2 = true;
+               } else if (text.equalsIgnoreCase("--confirm")) {
+                  flag3 = true;
                }
             }
 
-            if ((var3 || var4) && !var5) {
+            if ((flag || flag2) && !flag3) {
                SendMessage.warnMessage(
                   "This command will override any existing shop data. We suggest creating backups of your current shops.yml, sections.yml and/or database before using this command."
                );
-               SendMessage.warnMessage(var1, "We will not be responsible for any data loss of your current shop settings if no backups are made.");
+               SendMessage.warnMessage(value, "We will not be responsible for any data loss of your current shop settings if no backups are made.");
                SendMessage.infoMessage(
-                  var1,
+                  value,
                   ChatColor.GREEN
                      + "Use this command with the "
                      + ChatColor.WHITE
@@ -104,212 +104,212 @@ public class Migrate extends SubCommad {
                      + "flag to continue migration using this command."
                );
             } else {
-               boolean var10 = var3;
-               boolean var11 = var4;
-               this.plugin.runTaskAsync(() -> this.migrateData(var1, var10, var11));
+               boolean flag4 = flag;
+               boolean flag5 = flag2;
+               this.plugin.runTaskAsync(() -> this.migrateData(value, flag4, flag5));
             }
          }
       }
    }
 
    private Map<String, List<String>> getSupportedFiles() {
-      HashMap var1 = new HashMap();
-      var1.put("economyshopgui", Arrays.asList("V1toV2"));
-      return var1;
+      HashMap map = new HashMap();
+      map.put("economyshopgui", Arrays.asList("V1toV2"));
+      return map;
    }
 
-   private void migrateData(Object var1, boolean var2, boolean var3) {
+   private void migrateData(Object value, boolean flag, boolean flag2) {
       if (this.pluginName.equalsIgnoreCase("economyshopgui")) {
-         int var4 = 0;
-         boolean var5 = false;
-         HashSet var6 = new HashSet();
-         File var7 = new File(this.plugin.getDataFolder(), "shops.yml");
-         if (var7.exists()) {
+         int value2 = 0;
+         boolean flag3 = false;
+         HashSet values = new HashSet();
+         File file = new File(this.plugin.getDataFolder(), "shops.yml");
+         if (file.exists()) {
             SendMessage.logDebugMessage("Started migrating data from shops.yml....");
-            YamlConfiguration var8 = this.plugin.loadConfiguration(var7, "shops.yml");
-            if (var2) {
-               File var9 = new File(this.plugin.getDataFolder() + File.separator + "shops");
-               if (var9.exists() && var9.isDirectory()) {
-                  for (File var13 : var9.listFiles()) {
+            YamlConfiguration config = this.plugin.loadConfiguration(file, "shops.yml");
+            if (flag) {
+               File file2 = new File(this.plugin.getDataFolder() + File.separator + "shops");
+               if (file2.exists() && file2.isDirectory()) {
+                  for (File file3 : file2.listFiles()) {
                      try {
-                        Files.delete(var13.toPath());
-                        SendMessage.infoMessage("Deleted " + var9.getName() + " shops config while migrating using the --override flag.");
-                     } catch (IOException var23) {
+                        Files.delete(file3.toPath());
+                        SendMessage.infoMessage("Deleted " + file2.getName() + " shops config while migrating using the --override flag.");
+                     } catch (IOException exception) {
                         SendMessage.warnMessage(
-                           "A unknown exception occurred while removing " + var9.getName() + " shops config while migrating using the --override flag."
+                           "A unknown exception occurred while removing " + file2.getName() + " shops config while migrating using the --override flag."
                         );
-                        var23.printStackTrace();
+                        exception.printStackTrace();
                      }
                   }
                }
             }
 
-            for (String var30 : var8.getKeys(false)) {
-               if (ConfigManager.getShop(var30) != null) {
-                  if (!var2) {
-                     var6.add(var30);
-                     SendMessage.logDebugMessage("Skipping section " + var30 + " because it already exists...");
+            for (String text : config.getKeys(false)) {
+               if (ConfigManager.getShop(text) != null) {
+                  if (!flag) {
+                     values.add(text);
+                     SendMessage.logDebugMessage("Skipping section " + text + " because it already exists...");
                      continue;
                   }
 
-                  SendMessage.warnMessage(var1, "Overriding " + var30 + " from shops.yml");
+                  SendMessage.warnMessage(value, "Overriding " + text + " from shops.yml");
                }
 
-               YamlConfiguration var33 = new YamlConfiguration();
-               int var36 = 1;
-               LinkedHashMap var39 = new LinkedHashMap();
-               HashMap<Integer, Map<String, Object>> var14 = new HashMap<>();
-               boolean var15 = false;
+               YamlConfiguration config2 = new YamlConfiguration();
+               int value3 = 1;
+               LinkedHashMap map = new LinkedHashMap();
+               HashMap<Integer, Map<String, Object>> map2 = new HashMap<>();
+               boolean flag4 = false;
 
-               for (String var17 : var8.getConfigurationSection(var30).getKeys(false)) {
-                  int var18 = var8.getInt(var30 + "." + var17 + ".slot");
-                  if (var18 != 0) {
-                     var15 = true;
-                     int var19 = (int)Math.ceil(var18 / 45.0);
-                     if (var14.containsKey(var19)) {
-                        ((Map)var14.get(var19)).put(var17, var8.get(var30 + "." + var17));
+               for (String sectionId : config.getConfigurationSection(text).getKeys(false)) {
+                  int slot = config.getInt(text + "." + sectionId + ".slot");
+                  if (slot != 0) {
+                     flag4 = true;
+                     int value4 = (int)Math.ceil(slot / 45.0);
+                     if (map2.containsKey(value4)) {
+                        ((Map)map2.get(value4)).put(sectionId, config.get(text + "." + sectionId));
                      } else {
-                        for (int var20 = 1; var20 < var19; var20++) {
-                           if (!var14.containsKey(var20)) {
-                              var14.put(var20, new HashMap());
+                        for (int index = 1; index < value4; index++) {
+                           if (!map2.containsKey(index)) {
+                              map2.put(index, new HashMap());
                            }
                         }
 
-                        LinkedHashMap var49 = new LinkedHashMap();
-                        var49.put(var17, var8.get(var30 + "." + var17));
-                        var14.put(var19, var49);
+                        LinkedHashMap map3 = new LinkedHashMap();
+                        map3.put(sectionId, config.get(text + "." + sectionId));
+                        map2.put(value4, map3);
                      }
                   }
 
-                  if (var39.size() == 45) {
-                     var14.put(var36, var39);
-                     var39 = new LinkedHashMap();
-                     var39.put(var17, var8.get(var30 + "." + var17));
-                     var36++;
+                  if (map.size() == 45) {
+                     map2.put(value3, map);
+                     map = new LinkedHashMap();
+                     map.put(sectionId, config.get(text + "." + sectionId));
+                     value3++;
                   } else {
-                     var39.put(var17, var8.get(var30 + "." + var17));
+                     map.put(sectionId, config.get(text + "." + sectionId));
                   }
                }
 
-               if (!var39.isEmpty()) {
-                  if (var14.containsKey(var36)) {
-                     ((Map)var14.get(var36)).putAll(var39);
+               if (!map.isEmpty()) {
+                  if (map2.containsKey(value3)) {
+                     ((Map)map2.get(value3)).putAll(map);
                   } else {
-                     var14.put(var36, var39);
+                     map2.put(value3, map);
                   }
                }
 
-               if (var14.isEmpty()) {
-                  SendMessage.warnMessage("Skipping " + var30 + " from shops.yml because no data to migrate could be found.");
+               if (map2.isEmpty()) {
+                  SendMessage.warnMessage("Skipping " + text + " from shops.yml because no data to migrate could be found.");
                } else {
-                  var5 = true;
-                  SendMessage.logDebugMessage("Migrating section " + var30 + " with " + var14.values().stream().mapToInt(var0 -> var0.size()).sum() + " items.");
+                  flag3 = true;
+                  SendMessage.logDebugMessage("Migrating section " + text + " with " + map2.values().stream().mapToInt(value4 -> value4.size()).sum() + " items.");
 
-                  for (int var46 = 0; var46 < var14.size(); var46++) {
-                     String var48 = "page" + (var46 + 1);
-                     var33.set("pages." + var48 + ".gui-rows", var15 ? 6 : CalculateAmount.getSlots(((Map)var14.get(var46 + 1)).size()) / 9);
-                     var33.set("pages." + var48 + ".items", var14.get(var46 + 1));
-                     SendMessage.logDebugMessage("Created new page for section " + var30 + " with " + ((Map)var14.get(var46 + 1)).size() + " items.");
+                  for (int size = 0; size < map2.size(); size++) {
+                     String text2 = "page" + (size + 1);
+                     config2.set("pages." + text2 + ".gui-rows", flag4 ? 6 : CalculateAmount.getSlots(((Map)map2.get(size + 1)).size()) / 9);
+                     config2.set("pages." + text2 + ".items", map2.get(size + 1));
+                     SendMessage.logDebugMessage("Created new page for section " + text + " with " + ((Map)map2.get(size + 1)).size() + " items.");
                   }
 
-                  File var47 = new File(this.plugin.getDataFolder() + File.separator + "shops" + File.separator, var30 + ".yml");
+                  File file2 = new File(this.plugin.getDataFolder() + File.separator + "shops" + File.separator, text + ".yml");
 
                   try {
-                     var33.save(var47);
-                     var4++;
+                     config2.save(file2);
+                     value2++;
                      SendMessage.infoMessage(
                         "Migrated "
-                           + var30
+                           + text
                            + " with "
-                           + var14.size()
+                           + map2.size()
                            + " pages and a total of "
-                           + var14.values().stream().mapToInt(var0 -> var0.size()).sum()
+                           + map2.values().stream().mapToInt(value4 -> value4.size()).sum()
                            + " items and saved to "
-                           + var47.getAbsolutePath()
+                           + file2.getAbsolutePath()
                      );
-                  } catch (IOException var25) {
-                     if (var1 instanceof Player) {
-                        SendMessage.warnMessage("A unknown error occurred while migrating shop '" + var30 + "', look in your console for more details.");
+                  } catch (IOException exception) {
+                     if (value instanceof Player) {
+                        SendMessage.warnMessage("A unknown error occurred while migrating shop '" + text + "', look in your console for more details.");
                      }
 
-                     SendMessage.warnMessage("A unknown error occurred while saving new shop file " + var47.getName());
-                     var25.printStackTrace();
+                     SendMessage.warnMessage("A unknown error occurred while saving new shop file " + file2.getName());
+                     exception.printStackTrace();
                   }
                }
             }
          }
 
-         File var26 = new File(this.plugin.getDataFolder(), "sections.yml");
-         if (var26.exists()) {
+         File file2 = new File(this.plugin.getDataFolder(), "sections.yml");
+         if (file2.exists()) {
             SendMessage.logDebugMessage("Started migrating data from sections.yml....");
-            YamlConfiguration var28 = this.plugin.loadConfiguration(var26, "sections.yml");
-            if (var2) {
-               File var31 = new File(this.plugin.getDataFolder() + File.separator + "sections");
-               if (var31.exists() && var31.isDirectory()) {
-                  for (File var42 : var31.listFiles()) {
+            YamlConfiguration config = this.plugin.loadConfiguration(file2, "sections.yml");
+            if (flag) {
+               File file3 = new File(this.plugin.getDataFolder() + File.separator + "sections");
+               if (file3.exists() && file3.isDirectory()) {
+                  for (File file4 : file3.listFiles()) {
                      try {
-                        Files.delete(var42.toPath());
-                        SendMessage.infoMessage("Deleted " + var31.getName() + " sections config while migrating using the --override flag.");
-                     } catch (IOException var22) {
+                        Files.delete(file4.toPath());
+                        SendMessage.infoMessage("Deleted " + file3.getName() + " sections config while migrating using the --override flag.");
+                     } catch (IOException exception) {
                         SendMessage.warnMessage(
-                           "A unknown exception occurred while removing " + var31.getName() + " sections config while migrating using the --override flag."
+                           "A unknown exception occurred while removing " + file3.getName() + " sections config while migrating using the --override flag."
                         );
-                        var22.printStackTrace();
+                        exception.printStackTrace();
                      }
                   }
                }
             }
 
-            if (!var28.contains("ShopSections")) {
+            if (!config.contains("ShopSections")) {
                SendMessage.warnMessage("No sections found in sections.yml");
             } else {
-               for (String var35 : var28.getConfigurationSection("ShopSections").getKeys(false)) {
-                  if (ConfigManager.getSection(var35) != null) {
-                     if (!var2) {
-                        var6.add(var35);
-                        SendMessage.logDebugMessage("Skipping section " + var35 + " because it already exists...");
+               for (String shopId : config.getConfigurationSection("ShopSections").getKeys(false)) {
+                  if (ConfigManager.getSection(shopId) != null) {
+                     if (!flag) {
+                        values.add(shopId);
+                        SendMessage.logDebugMessage("Skipping section " + shopId + " because it already exists...");
                         continue;
                      }
 
-                     SendMessage.warnMessage(var1, "Overriding " + var35 + " from sections.yml");
+                     SendMessage.warnMessage(value, "Overriding " + shopId + " from sections.yml");
                   }
 
-                  YamlConfiguration var38 = new YamlConfiguration();
-                  SendMessage.logDebugMessage("Migrating section " + var35 + "...");
-                  Map<String, Object> var41 = this.getSectionData(var28, var35);
-                  if (var41.isEmpty()) {
-                     SendMessage.warnMessage("Skipping " + var35 + " from sections.yml because no data to migrate could be found.");
+                  YamlConfiguration config2 = new YamlConfiguration();
+                  SendMessage.logDebugMessage("Migrating section " + shopId + "...");
+                  Map<String, Object> sectionData = this.getSectionData(config, shopId);
+                  if (sectionData.isEmpty()) {
+                     SendMessage.warnMessage("Skipping " + shopId + " from sections.yml because no data to migrate could be found.");
                   } else {
-                     var5 = true;
+                     flag3 = true;
 
-                     for (String var45 : var41.keySet()) {
-                        var38.set(var45, var41.get(var45));
+                     for (String key : sectionData.keySet()) {
+                        config2.set(key, sectionData.get(key));
                      }
 
-                     File var44 = new File(this.plugin.getDataFolder() + File.separator + "sections" + File.separator, var35 + ".yml");
+                     File file3 = new File(this.plugin.getDataFolder() + File.separator + "sections" + File.separator, shopId + ".yml");
 
                      try {
-                        var38.save(var44);
-                        var4++;
-                        SendMessage.infoMessage("Migrated " + var35 + " and saved to " + var44.getAbsolutePath());
-                     } catch (IOException var24) {
-                        if (var1 instanceof Player) {
-                           SendMessage.warnMessage("A unknown error occurred while migrating shop '" + var35 + "', look in your console for more details.");
+                        config2.save(file3);
+                        value2++;
+                        SendMessage.infoMessage("Migrated " + shopId + " and saved to " + file3.getAbsolutePath());
+                     } catch (IOException exception) {
+                        if (value instanceof Player) {
+                           SendMessage.warnMessage("A unknown error occurred while migrating shop '" + shopId + "', look in your console for more details.");
                         }
 
-                        SendMessage.warnMessage("A unknown error occurred while saving new shop file " + var44.getName());
-                        var24.printStackTrace();
+                        SendMessage.warnMessage("A unknown error occurred while saving new shop file " + file3.getName());
+                        exception.printStackTrace();
                      }
                   }
                }
             }
          }
 
-         if (!var2 && !var6.isEmpty()) {
+         if (!flag && !values.isEmpty()) {
             SendMessage.warnMessage(
-               var1,
+               value,
                "Failed to migrate data for shops "
-                  + Arrays.toString(var6.toArray())
+                  + Arrays.toString(values.toArray())
                   + " because they already exist. If you wish to override them, you can use this command with the "
                   + ChatColor.WHITE
                   + "--override "
@@ -318,16 +318,16 @@ public class Migrate extends SubCommad {
             );
          }
 
-         if (!var5) {
-            SendMessage.warnMessage(var1, "No changes found to migrate!");
+         if (!flag3) {
+            SendMessage.warnMessage(value, "No changes found to migrate!");
             return;
          }
 
-         if (!var3) {
+         if (!flag2) {
             SendMessage.infoMessage(
-               var1,
+               value,
                "Completed migrating data for "
-                  + var4
+                  + value2
                   + " shops and sections which can now be found in "
                   + ChatColor.WHITE
                   + "/sections/<shopName>.yml"
@@ -337,7 +337,7 @@ public class Migrate extends SubCommad {
                   + "/shops/<shopName.yml>"
             );
             SendMessage.infoMessage(
-               var1,
+               value,
                "Use command "
                   + ChatColor.WHITE
                   + "/sreload"
@@ -348,108 +348,108 @@ public class Migrate extends SubCommad {
                   + ChatColor.GREEN
                   + "flag to migrate item stocks/item sell limits."
             );
-            SendMessage.warnMessage(var1, "Note that this will reset DynamicPricing data.");
+            SendMessage.warnMessage(value, "Note that this will reset DynamicPricing data.");
             return;
          }
 
          if (this.plugin.getProviderManager().getDatabase() != null) {
-            com.onyxshop.database.Database var29 = this.plugin.getProviderManager().getDatabase();
-            SendMessage.infoMessage(var1, "Starting migration of database... This can take some time, please let it complete or your database may go corrupt.");
-            SendMessage.infoMessage(var1, "See your console for any additional messages.");
+            com.onyxshop.database.Database database = this.plugin.getProviderManager().getDatabase();
+            SendMessage.infoMessage(value, "Starting migration of database... This can take some time, please let it complete or your database may go corrupt.");
+            SendMessage.infoMessage(value, "See your console for any additional messages.");
 
             try {
-               if (var29 instanceof MySQL) {
-                  ((MySQL)var29).migrateV4toV5();
+               if (database instanceof MySQL) {
+                  ((MySQL)database).migrateV4toV5();
                } else {
                   ConfigUtil.createBackup(Paths.get(this.plugin.getDataFolder() + File.separator + "database.db"));
-                  ((SQLite)var29).migrateV4toV5();
+                  ((SQLite)database).migrateV4toV5();
                }
 
-               SendMessage.infoMessage(var1, "Successfully migrated data from database.");
-            } catch (Exception var21) {
-               SendMessage.errorMessage(var1, "A unknown error occurred while migrating the database, please look in your console for any errors.");
+               SendMessage.infoMessage(value, "Successfully migrated data from database.");
+            } catch (Exception exception) {
+               SendMessage.errorMessage(value, "A unknown error occurred while migrating the database, please look in your console for any errors.");
                SendMessage.errorMessage("Error while migrating database:");
-               var21.printStackTrace();
+               exception.printStackTrace();
             }
          }
 
-         SendMessage.infoMessage(var1, "Restart your server to reload all changes.");
+         SendMessage.infoMessage(value, "Restart your server to reload all changes.");
       }
    }
 
-   private Map<String, Object> getSectionData(YamlConfiguration var1, String var2) {
-      Set<String> var3 = var1.getConfigurationSection("ShopSections." + var2).getKeys(false);
-      LinkedHashMap<String, Object> var4 = new LinkedHashMap<>();
-      var3.remove("enable");
-      var4.put("enable", var1.getBoolean("ShopSections." + var2 + ".enable", true));
-      var3.remove("slot");
-      var4.put("slot", var1.getInt("ShopSections." + var2 + ".slot"));
-      var3.remove("title");
-      var4.put("title", var1.getString("ShopSections." + var2 + ".title", ""));
-      var3.remove("hidden");
-      var4.put("hidden", var1.getBoolean("ShopSections." + var2 + ".hidden", false));
-      var3.remove("subSection");
-      var4.put("sub-section", var1.getBoolean("ShopSections." + var2 + ".subSection", false));
-      var3.remove("fill-item");
-      var4.put("display-item", var1.getBoolean("ShopSections." + var2 + ".fill-item", false));
-      if (var3.remove("economy")) {
-         var4.put("economy", var1.getString("ShopSections." + var2 + ".economy"));
+   private Map<String, Object> getSectionData(YamlConfiguration config, String sectionId) {
+      Set<String> keys = config.getConfigurationSection("ShopSections." + sectionId).getKeys(false);
+      LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+      keys.remove("enable");
+      map.put("enable", config.getBoolean("ShopSections." + sectionId + ".enable", true));
+      keys.remove("slot");
+      map.put("slot", config.getInt("ShopSections." + sectionId + ".slot"));
+      keys.remove("title");
+      map.put("title", config.getString("ShopSections." + sectionId + ".title", ""));
+      keys.remove("hidden");
+      map.put("hidden", config.getBoolean("ShopSections." + sectionId + ".hidden", false));
+      keys.remove("subSection");
+      map.put("sub-section", config.getBoolean("ShopSections." + sectionId + ".subSection", false));
+      keys.remove("fill-item");
+      map.put("display-item", config.getBoolean("ShopSections." + sectionId + ".fill-item", false));
+      if (keys.remove("economy")) {
+         map.put("economy", config.getString("ShopSections." + sectionId + ".economy"));
       }
 
-      if (var3.remove("click-commands")) {
-         var4.put("click-commands", var1.getStringList("ShopSections." + var2 + ".click-commands"));
+      if (keys.remove("click-commands")) {
+         map.put("click-commands", config.getStringList("ShopSections." + sectionId + ".click-commands"));
       }
 
-      if (!var1.getBoolean("ShopSections." + var2 + ".dynamic-pricing", true)) {
-         var3.remove("dynamic-pricing");
-         var4.put("dynamic-pricing.enabled", false);
+      if (!config.getBoolean("ShopSections." + sectionId + ".dynamic-pricing", true)) {
+         keys.remove("dynamic-pricing");
+         map.put("dynamic-pricing.enabled", false);
       }
 
-      if (!var3.contains("fillItem")) {
-         var4.put("fill-item.material", "AIR");
+      if (!keys.contains("fillItem")) {
+         map.put("fill-item.material", "AIR");
       } else {
-         for (String var6 : var1.getConfigurationSection("ShopSections." + var2 + ".fillItem").getKeys(false)) {
-            var4.put("fill-item." + var6, var1.get("ShopSections." + var2 + ".fillItem." + var6));
+         for (String shopId : config.getConfigurationSection("ShopSections." + sectionId + ".fillItem").getKeys(false)) {
+            map.put("fill-item." + shopId, config.get("ShopSections." + sectionId + ".fillItem." + shopId));
          }
       }
 
-      var4.put("nav-bar.mode", "INHERIT");
-      HashMap var8 = new HashMap();
+      map.put("nav-bar.mode", "INHERIT");
+      HashMap map2 = new HashMap();
 
-      for (String var7 : var3) {
-         if (var7.equalsIgnoreCase("displayname")) {
-            var8.put("name", var1.getString("ShopSections." + var2 + ".displayname"));
+      for (String text : keys) {
+         if (text.equalsIgnoreCase("displayname")) {
+            map2.put("name", config.getString("ShopSections." + sectionId + ".displayname"));
          }
 
-         var8.put(var7, var1.get("ShopSections." + var2 + "." + var7));
+         map2.put(text, config.get("ShopSections." + sectionId + "." + text));
       }
 
-      var4.put("item", var8);
-      return var4;
+      map.put("item", map2);
+      return map;
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 2:
-            if (!var1[1].isEmpty()) {
-               ArrayList var3 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[1], this.supported.keySet(), var3);
-               Collections.sort(var3);
-               return var3;
+            if (!values[1].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[1], this.supported.keySet(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return new ArrayList<>(this.supported.keySet());
          case 3:
-            if (this.supported.containsKey(var1[1].toLowerCase(Locale.ENGLISH))) {
-               if (!var1[2].isEmpty()) {
-                  ArrayList var2 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[2], this.supported.get(var1[1].toLowerCase(Locale.ENGLISH)), var2);
-                  Collections.sort(var2);
-                  return var2;
+            if (this.supported.containsKey(values[1].toLowerCase(Locale.ENGLISH))) {
+               if (!values[2].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[2], this.supported.get(values[1].toLowerCase(Locale.ENGLISH)), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return this.supported.get(var1[1].toLowerCase(Locale.ENGLISH));
+               return this.supported.get(values[1].toLowerCase(Locale.ENGLISH));
             }
 
             return null;

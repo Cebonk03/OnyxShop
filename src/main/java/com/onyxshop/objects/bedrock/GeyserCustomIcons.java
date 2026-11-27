@@ -45,127 +45,127 @@ public final class GeyserCustomIcons {
       try {
          Class.forName("org.geysermc.geyser.GeyserImpl");
          return true;
-      } catch (Throwable var1) {
+      } catch (Throwable exception) {
          return false;
       }
    }
 
-   public static String getIcon(ItemStack var0, String var1, Player var2, boolean var3) {
+   public static String getIcon(ItemStack itemStack, String itemId, Player player, boolean flag) {
       if (!enabled) {
          return null;
       } else {
-         Integer var4 = getRawId(var0, var1, var2);
-         return var4 == null ? null : String.valueOf(var4 * 65536 + (var3 ? '耀' : 0));
+         Integer rawId = getRawId(itemStack, itemId, player);
+         return rawId == null ? null : String.valueOf(rawId * 65536 + (flag ? '耀' : 0));
       }
    }
 
-   public static Integer getRawId(ItemStack var0, String var1, Player var2) {
+   public static Integer getRawId(ItemStack itemStack, String id, Player player) {
       try {
-         GeyserSession var3 = GeyserImpl.getInstance().connectionByUuid(var2.getUniqueId());
-         if (var3 == null) {
+         GeyserSession geyserSession = GeyserImpl.getInstance().connectionByUuid(player.getUniqueId());
+         if (geyserSession == null) {
             return null;
          } else {
-            ItemMappings var4 = var3.getItemMappings();
-            ItemMapping var5 = var4.getMapping(var1);
-            if (var5 == null) {
+            ItemMappings itemMappings = geyserSession.getItemMappings();
+            ItemMapping itemMapping = itemMappings.getMapping(id);
+            if (itemMapping == null) {
                return null;
             } else {
-               GeyserItemStack var6 = GeyserItemStack.of(var3, var5.getJavaItem().javaId(), var0.getAmount(), buildComponents(var0));
-               ItemDefinition var7 = ItemTranslator.getBedrockItemDefinition(var3, var6);
-               int var8 = var7.getRuntimeId();
-               if (var0.getType() == Material.PLAYER_HEAD && var8 == var5.getBedrockDefinition().getRuntimeId()) {
-                  Integer var9 = getSkullId(var4, var0);
-                  if (var9 != null) {
-                     var8 = var9;
+               GeyserItemStack geyserItemStack = GeyserItemStack.of(geyserSession, itemMapping.getJavaItem().javaId(), itemStack.getAmount(), buildComponents(itemStack));
+               ItemDefinition itemDefinition = ItemTranslator.getBedrockItemDefinition(geyserSession, geyserItemStack);
+               int runtimeId = itemDefinition.getRuntimeId();
+               if (itemStack.getType() == Material.PLAYER_HEAD && runtimeId == itemMapping.getBedrockDefinition().getRuntimeId()) {
+                  Integer skullId = getSkullId(itemMappings, itemStack);
+                  if (skullId != null) {
+                     runtimeId = skullId;
                   }
                }
 
-               return var8;
+               return runtimeId;
             }
          }
-      } catch (Throwable var10) {
+      } catch (Throwable exception) {
          return null;
       }
    }
 
-   private static DataComponents buildComponents(ItemStack var0) {
-      DataComponents var1 = new DataComponents(new HashMap());
-      if (ServerInfo.supportsComponents() && OnyxShop.getInstance().versionHandler.hasData(var0, NBTMaps.ITEM_MODEL.getTag())) {
-         String var2 = getItemModel(var0);
-         if (var2 != null) {
-            var1.put(DataComponentTypes.ITEM_MODEL, Key.key(var2));
+   private static DataComponents buildComponents(ItemStack itemStack) {
+      DataComponents dataComponents = new DataComponents(new HashMap());
+      if (ServerInfo.supportsComponents() && OnyxShop.getInstance().versionHandler.hasData(itemStack, NBTMaps.ITEM_MODEL.getTag())) {
+         String itemModel = getItemModel(itemStack);
+         if (itemModel != null) {
+            dataComponents.put(DataComponentTypes.ITEM_MODEL, Key.key(itemModel));
          }
       }
 
-      if (OnyxShop.getInstance().versionHandler.hasData(var0, NBTMaps.CUSTOM_MODEL_DATA.getTag())) {
-         ItemMeta var4 = var0.getItemMeta();
+      if (OnyxShop.getInstance().versionHandler.hasData(itemStack, NBTMaps.CUSTOM_MODEL_DATA.getTag())) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
          if (ServerInfo.supportsComponents()) {
-            CustomModelDataComponent var3 = var4.getCustomModelDataComponent();
-            var1.put(
+            CustomModelDataComponent customModelDataComponent = itemMeta.getCustomModelDataComponent();
+            dataComponents.put(
                DataComponentTypes.CUSTOM_MODEL_DATA,
                new CustomModelData(
-                  var3.getFloats(), var3.getFlags(), var3.getStrings(), var3.getColors().stream().map(Color::asARGB).collect(Collectors.toList())
+                  customModelDataComponent.getFloats(), customModelDataComponent.getFlags(), customModelDataComponent.getStrings(), customModelDataComponent.getColors().stream().map(Color::asARGB).collect(Collectors.toList())
                )
             );
          } else {
-            var1.put(
+            dataComponents.put(
                DataComponentTypes.CUSTOM_MODEL_DATA,
                new CustomModelData(
-                  Collections.singletonList((float)var4.getCustomModelData()), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
+                  Collections.singletonList((float)itemMeta.getCustomModelData()), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
                )
             );
          }
       }
 
-      return var1;
+      return dataComponents;
    }
 
-   private static Integer getSkullId(ItemMappings var0, ItemStack var1) {
-      String var2 = getSkinHash(var1);
-      if (var2 == null) {
+   private static Integer getSkullId(ItemMappings itemMappings, ItemStack itemStack) {
+      String skinHash = getSkinHash(itemStack);
+      if (skinHash == null) {
          return null;
       } else {
-         CustomSkull var3 = (CustomSkull)BlockRegistries.CUSTOM_SKULLS.get(var2);
-         if (var3 == null) {
+         CustomSkull customSkull = (CustomSkull)BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+         if (customSkull == null) {
             return null;
          } else {
-            ItemDefinition var4 = (ItemDefinition)var0.getCustomBlockItemDefinitions().get(var3.getCustomBlockData());
-            return var4 == null ? null : var4.getRuntimeId();
+            ItemDefinition itemDefinition = (ItemDefinition)itemMappings.getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
+            return itemDefinition == null ? null : itemDefinition.getRuntimeId();
          }
       }
    }
 
-   private static String getItemModel(ItemStack var0) {
+   private static String getItemModel(ItemStack itemStack) {
       try {
-         if (!var0.hasItemMeta()) {
+         if (!itemStack.hasItemMeta()) {
             return null;
          } else {
-            NamespacedKey var1 = var0.getItemMeta().getItemModel();
-            return var1 == null ? null : var1.toString();
+            NamespacedKey namespacedKey = itemStack.getItemMeta().getItemModel();
+            return namespacedKey == null ? null : namespacedKey.toString();
          }
-      } catch (Throwable var2) {
+      } catch (Throwable exception) {
          return null;
       }
    }
 
-   private static String getSkinHash(ItemStack var0) {
+   private static String getSkinHash(ItemStack itemStack) {
       try {
-         ItemMeta var1 = var0.getItemMeta();
-         String var2 = SkullUtil.getSkullTexture((SkullMeta)var1);
-         if (var2 != null && !var2.isEmpty()) {
-            String var3 = new String(Base64.getDecoder().decode(var2), StandardCharsets.UTF_8);
-            Matcher var4 = SKIN_URL.matcher(var3);
-            if (!var4.find()) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         String skullTexture = SkullUtil.getSkullTexture((SkullMeta)itemMeta);
+         if (skullTexture != null && !skullTexture.isEmpty()) {
+            String text = new String(Base64.getDecoder().decode(skullTexture), StandardCharsets.UTF_8);
+            Matcher matcher = SKIN_URL.matcher(text);
+            if (!matcher.find()) {
                return null;
             } else {
-               String var5 = var4.group(1);
-               int var6 = var5.lastIndexOf(47);
-               return var6 >= 0 ? var5.substring(var6 + 1) : var5;
+               String text2 = matcher.group(1);
+               int index = text2.lastIndexOf(47);
+               return index >= 0 ? text2.substring(index + 1) : text2;
             }
          } else {
             return null;
          }
-      } catch (Throwable var7) {
+      } catch (Throwable exception) {
          return null;
       }
    }

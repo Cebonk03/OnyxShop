@@ -4,16 +4,16 @@ import org.bukkit.plugin.Plugin;
 import su.nightexpress.coinsengine.api.currency.Currency;
 
 public class CoinsUser {
-   public CurrencyData getCurrencyData(Currency var1) {
+   public CurrencyData getCurrencyData(Currency currency) {
       return null;
    }
 
-   public void addBalance(Currency var1, double var2) {
+   public void addBalance(Currency currency, double balance) {
    }
 
-   public void removeBalance(Currency var1, double var2) {
+   public void removeBalance(Currency currency, double balance) {
    }
 
-   public void saveData(Plugin var1) {
+   public void saveData(Plugin plugin) {
    }
 }

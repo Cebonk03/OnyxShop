@@ -29,16 +29,16 @@ public class ZEssentialsEconomy implements EconomyProvider {
    private boolean wait = false;
    private PriceFormatter.Format priceFormat;
 
-   public ZEssentialsEconomy(String var1) {
-      this.currency = var1;
+   public ZEssentialsEconomy(String text) {
+      this.currency = text;
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().isPluginEnabled("zEssentials")) {
-         EssentialsPlugin var2 = (EssentialsPlugin)Bukkit.getServer().getPluginManager().getPlugin("zEssentials");
-         if (var2 != null) {
-            this.registerCurrency(var2.getEconomyManager());
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().isPluginEnabled("zEssentials")) {
+         EssentialsPlugin essentialsPlugin = (EssentialsPlugin)Bukkit.getServer().getPluginManager().getPlugin("zEssentials");
+         if (essentialsPlugin != null) {
+            this.registerCurrency(essentialsPlugin.getEconomyManager());
          } else {
             throw new EconomyLoadException("Failed to hook into zEssentials");
          }
@@ -47,52 +47,52 @@ public class ZEssentialsEconomy implements EconomyProvider {
       }
    }
 
-   private void registerCurrency(EconomyManager var1) throws EconomyLoadException {
-      String var2;
+   private void registerCurrency(EconomyManager economyManager) throws EconomyLoadException {
+      String text;
       if (this.currency != null && !this.currency.isEmpty()) {
-         Optional var3 = var1.getEconomy(this.currency);
-         if (!var3.isPresent()) {
+         Optional optional = economyManager.getEconomy(this.currency);
+         if (!optional.isPresent()) {
             throw new EconomyLoadException("Failed to register a zEssentials currency named as '" + this.currency + "'");
          }
 
-         this.cur = (Economy)var3.get();
-         var2 = this.currency;
+         this.cur = (Economy)optional.get();
+         text = this.currency;
          SendMessage.infoMessage("Successfully registered currency '" + this.currency + "' from zEssentials");
       } else {
          try {
-            this.cur = var1.getDefaultEconomy();
-            var2 = this.cur.getName();
+            this.cur = economyManager.getDefaultEconomy();
+            text = this.cur.getName();
             SendMessage.infoMessage("Successfully hooked into zEssentials and using default currency: " + this.cur.getName() + "(" + this.cur.getSymbol() + ")");
-         } catch (IndexOutOfBoundsException var4) {
+         } catch (IndexOutOfBoundsException exception) {
             throw new EconomyLoadException("Failed to find a currency in zEssentials");
          }
       }
 
-      String var5 = ConfigManager.getPathIgnoreCase("currency-formats.zEssentials:" + var2);
-      if (!ConfigManager.getConfig().contains(var5)) {
-         var5 = ConfigManager.getPathIgnoreCase("currency-formats.zEssentials");
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.zEssentials:" + text);
+      if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+         pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.zEssentials");
       }
 
-      this.manager = var1;
-      this.formatSingular(var5);
-      this.formatPlural(var5);
-      this.formatFriendly(var5);
-      this.priceFormat = PriceFormatter.getFormatter(var5);
+      this.manager = economyManager;
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
+      this.formatFriendly(pathIgnoreCase);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return this.manager.getBalance(var1, this.cur).doubleValue();
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return this.manager.getBalance(offlinePlayer, this.cur).doubleValue();
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      this.manager.deposit(var1.getUniqueId(), this.cur, BigDecimal.valueOf(var2));
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.manager.deposit(offlinePlayer.getUniqueId(), this.cur, BigDecimal.valueOf(balance));
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      this.manager.withdraw(var1.getUniqueId(), this.cur, BigDecimal.valueOf(var2));
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.manager.withdraw(offlinePlayer.getUniqueId(), this.cur, BigDecimal.valueOf(balance));
       return true;
    }
 
@@ -127,13 +127,13 @@ public class ZEssentialsEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -143,29 +143,29 @@ public class ZEssentialsEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", this.cur.getSymbol()));
-      if (this.isSymbol(var2)) {
-         this.singular = this.cur.getFormat().replace("%symbol%", var2);
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", this.cur.getSymbol()));
+      if (this.isSymbol(text2)) {
+         this.singular = this.cur.getFormat().replace("%symbol%", text2);
       } else {
-         this.singular = this.cur.getFormat().replace("%currency-format%", var2);
+         this.singular = this.cur.getFormat().replace("%currency-format%", text2);
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", this.cur.getSymbol()));
-      if (this.isSymbol(var2)) {
-         this.plural = this.cur.getFormat().replace("%symbol%", var2);
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", this.cur.getSymbol()));
+      if (this.isSymbol(text2)) {
+         this.plural = this.cur.getFormat().replace("%symbol%", text2);
       } else {
-         this.plural = this.cur.getFormat().replace("%currency-format%", var2);
+         this.plural = this.cur.getFormat().replace("%currency-format%", text2);
       }
    }
 
-   private void formatFriendly(String var1) {
-      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".friendly", this.cur.getSymbol()));
+   private void formatFriendly(String text) {
+      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".friendly", this.cur.getSymbol()));
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

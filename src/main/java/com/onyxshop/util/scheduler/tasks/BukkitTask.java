@@ -5,8 +5,8 @@ import com.onyxshop.util.scheduler.ScheduledTask;
 public class BukkitTask implements ScheduledTask {
    private final org.bukkit.scheduler.BukkitTask task;
 
-   public BukkitTask(org.bukkit.scheduler.BukkitTask var1) {
-      this.task = var1;
+   public BukkitTask(org.bukkit.scheduler.BukkitTask bukkitTask) {
+      this.task = bukkitTask;
    }
 
    @Override

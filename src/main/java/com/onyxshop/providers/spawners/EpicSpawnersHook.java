@@ -15,8 +15,8 @@ import org.jetbrains.annotations.Nullable;
 public class EpicSpawnersHook implements SpawnerProvider {
    private final OnyxShop plugin;
 
-   public EpicSpawnersHook(OnyxShop var1) {
-      this.plugin = var1;
+   public EpicSpawnersHook(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    @Override
@@ -25,35 +25,35 @@ public class EpicSpawnersHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      var2 = this.plugin.versionHandler.setNBTInt(var2, "size", 1);
-      var2 = this.plugin.versionHandler.setNBTString(var2, "data", var3.name());
-      var2 = this.plugin.versionHandler.setNBTString(var2, "tier", "Tier_1");
-      ItemMeta var4 = var2.getItemMeta();
-      if (!var4.hasDisplayName()) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      itemStack = this.plugin.versionHandler.setNBTInt(itemStack, "size", 1);
+      itemStack = this.plugin.versionHandler.setNBTString(itemStack, "data", entityType.name());
+      itemStack = this.plugin.versionHandler.setNBTString(itemStack, "tier", "Tier_1");
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (!itemMeta.hasDisplayName()) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      var2.setItemMeta(var4);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "size", "tier", "display::Name");
-      var4.addAll(var3);
-      return this.plugin.isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "size", "tier", "display::Name");
+      tags.addAll(shopIds);
+      return this.plugin.isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      Integer var4 = this.plugin.versionHandler.getNBTInt(var1, NBTMaps.CUSTOM_DATA.getTag() + "size");
-      var4 = var4 == null ? 1 : var4;
-      return var4.intValue() * var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      Integer nbtInt = this.plugin.versionHandler.getNBTInt(itemStack, NBTMaps.CUSTOM_DATA.getTag() + "size");
+      nbtInt = nbtInt == null ? 1 : nbtInt;
+      return nbtInt.intValue() * price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      return this.plugin.versionHandler.getNBTString(var1, "data");
+   public String getSpawnedType(ItemStack itemStack) {
+      return this.plugin.versionHandler.getNBTString(itemStack, "data");
    }
 }

@@ -21,23 +21,23 @@ public class UpdateMessage {
    private final Player player;
    private final Consumer<String> onComplete;
 
-   public UpdateMessage(Player var1, Consumer<String> var2) {
-      this.onComplete = var2;
-      this.player = var1;
-      this.startConversation(var1);
+   public UpdateMessage(Player player, Consumer<String> task) {
+      this.onComplete = task;
+      this.player = player;
+      this.startConversation(player);
    }
 
-   private void startConversation(Player var1) {
+   private void startConversation(Player player) {
       this.factory = new ConversationFactory(OnyxShop.getInstance());
       this.conv = this.factory
          .withFirstPrompt(new StringPrompt() {
-            public String getPromptText(ConversationContext var1) {
+            public String getPromptText(ConversationContext conversationContext) {
                UpdateMessage.this.player.sendTitle("§bEnter update message", "", 5, 80, 5);
                return "§aEnter a update message of the changes made in this update, maximum 128 characters.";
             }
 
-            public Prompt acceptInput(ConversationContext var1, String var2) {
-               var1.setSessionData("result", var2);
+            public Prompt acceptInput(ConversationContext conversationContext, String text) {
+               conversationContext.setSessionData("result", text);
                return Prompt.END_OF_CONVERSATION;
             }
          })
@@ -46,7 +46,7 @@ public class UpdateMessage {
          .withLocalEcho(false)
          .withTimeout(60)
          .withPrefix(new UpdateMessage.ConvPrefix())
-         .buildConversation(var1);
+         .buildConversation(player);
       this.conv.begin();
    }
 
@@ -54,25 +54,25 @@ public class UpdateMessage {
       private ConvAbandon() {
       }
 
-      public void conversationAbandoned(ConversationAbandonedEvent var1) {
-         Player var2 = (Player)var1.getContext().getForWhom();
-         if (var1.gracefulExit()) {
-            String var3 = (String)var1.getContext().getSessionData("result");
-            if (var3.length() < 16) {
-               SendMessage.chatToPlayer(var2, "§cMessage must be longer as 16 characters, please write a descriptive explanation of your update");
-               UpdateMessage.this.startConversation(var2);
+      public void conversationAbandoned(ConversationAbandonedEvent event) {
+         Player player = (Player)event.getContext().getForWhom();
+         if (event.gracefulExit()) {
+            String text = (String)event.getContext().getSessionData("result");
+            if (text.length() < 16) {
+               SendMessage.chatToPlayer(player, "§cMessage must be longer as 16 characters, please write a descriptive explanation of your update");
+               UpdateMessage.this.startConversation(player);
                return;
             }
 
-            if (var3.length() > 128) {
-               SendMessage.chatToPlayer(var2, "§cMessage cannot be longer as 128 characters, please write a descriptive explanation of your update");
-               UpdateMessage.this.startConversation(var2);
+            if (text.length() > 128) {
+               SendMessage.chatToPlayer(player, "§cMessage cannot be longer as 128 characters, please write a descriptive explanation of your update");
+               UpdateMessage.this.startConversation(player);
                return;
             }
 
-            UpdateMessage.this.onComplete.accept(var3);
+            UpdateMessage.this.onComplete.accept(text);
          } else {
-            SendMessage.chatToPlayer(var2, Lang.EXITED_CONVERSATION.get());
+            SendMessage.chatToPlayer(player, Lang.EXITED_CONVERSATION.get());
          }
       }
    }
@@ -81,7 +81,7 @@ public class UpdateMessage {
       private ConvPrefix() {
       }
 
-      public String getPrefix(ConversationContext var1) {
+      public String getPrefix(ConversationContext conversationContext) {
          return Lang.SHOP_PREFIX.get().getLegacy() + ChatColor.RESET + " ";
       }
    }

@@ -59,10 +59,10 @@ public class LimitedSellProvider {
    private SQLBatch sqlBatch;
    private final boolean cache;
 
-   public LimitedSellProvider(OnyxShop var1, Database var2) {
-      this.plugin = var1;
-      this.database = var2;
-      this.cache = var2 instanceof SQLite;
+   public LimitedSellProvider(OnyxShop plugin, Database database) {
+      this.plugin = plugin;
+      this.database = database;
+      this.cache = database instanceof SQLite;
       SendMessage.infoMessage(Lang.LOADING_LIMITED_SELL.get());
       this.loadLimitedSellModes();
       this.loadRestockTimes();
@@ -91,151 +91,151 @@ public class LimitedSellProvider {
    }
 
    private void startRestockTimers() {
-      Map var1 = this.getCachedSchedulers();
-      int var2 = this.loadRestockTimers(var1);
-      if (var2 != 0) {
-         SendMessage.infoMessage("Completed loading " + var2 + " sell limit restock cron schedulers");
+      Map cachedSchedulers = this.getCachedSchedulers();
+      int restockTime = this.loadRestockTimers(cachedSchedulers);
+      if (restockTime != 0) {
+         SendMessage.infoMessage("Completed loading " + restockTime + " sell limit restock cron schedulers");
       }
    }
 
    private void reloadRestockTimers() {
-      int var1 = this.loadRestockTimers(this.restockSchedulers);
-      if (var1 != 0) {
-         SendMessage.infoMessage("Successfully reloaded " + var1 + " sell limit restock cron schedulers");
+      int restockTime = this.loadRestockTimers(this.restockSchedulers);
+      if (restockTime != 0) {
+         SendMessage.infoMessage("Successfully reloaded " + restockTime + " sell limit restock cron schedulers");
       }
    }
 
-   private int loadRestockTimers(Map<ScheduleManager.Item, Long> var1) {
-      AtomicInteger var2 = new AtomicInteger(0);
+   private int loadRestockTimers(Map<ScheduleManager.Item, Long> restockTimes) {
+      AtomicInteger counter = new AtomicInteger(0);
       this.itemModes
          .forEach(
-            (var3, var4) -> {
-               ScheduleManager.Item var5 = new ScheduleManager.Item(var3, var4);
+            (key, value) -> {
+               ScheduleManager.Item item = new ScheduleManager.Item(key, value);
 
                try {
-                  Date var6 = this.scheduleJob(var5);
-                  if (var6 == null) {
+                  Date date = this.scheduleJob(item);
+                  if (date == null) {
                      return;
                   }
 
-                  if (var1.containsKey(var5)) {
-                     if ((Long)var1.get(var5) <= 0L && !this.restockSchedulers.containsKey(var5)) {
-                        this.restockItem(var3, var4, var6.getTime());
+                  if (restockTimes.containsKey(item)) {
+                     if ((Long)restockTimes.get(item) <= 0L && !this.restockSchedulers.containsKey(item)) {
+                        this.restockItem(key, value, date.getTime());
                         SendMessage.infoMessage(
                            "Successfully restocked item '"
-                              + var3
+                              + key
                               + "' for "
-                              + (var4 == 1 ? "global" : "player")
+                              + (value == 1 ? "global" : "player")
                               + " sell limit while cron schedule ended at "
-                              + TimeUtils.getReadableTime((Long)var1.get(var5))
+                              + TimeUtils.getReadableTime((Long)restockTimes.get(item))
                               + " when server was offline"
                         );
                      }
 
-                     if ((Long)var1.get(var5) != var6.getTime()) {
-                        SendMessage.infoMessage("Detected cron schedule change for item " + var3 + ", updating schedule with next fire time at " + var6);
-                        var1.put(var5, var6.getTime());
+                     if ((Long)restockTimes.get(item) != date.getTime()) {
+                        SendMessage.infoMessage("Detected cron schedule change for item " + key + ", updating schedule with next fire time at " + date);
+                        restockTimes.put(item, date.getTime());
                      }
                   } else {
-                     var1.put(var5, var6.getTime());
+                     restockTimes.put(item, date.getTime());
                   }
 
                   SendMessage.logDebugMessage(
                      "Successfully loaded cron restock schedule for item '"
-                        + var3
+                        + key
                         + "' for "
-                        + (var4 == 1 ? "global" : "player")
+                        + (value == 1 ? "global" : "player")
                         + " sell limit with next schedule date at "
-                        + var6
+                        + date
                   );
-                  var2.incrementAndGet();
-               } catch (RuntimeException var7) {
-                  SendMessage.warnMessage("Invalid cron expression format with reason: '" + var7.getCause().getMessage());
-                  SendMessage.errorItemShops(var3);
-               } catch (SchedulerException var8) {
+                  counter.incrementAndGet();
+               } catch (RuntimeException exception) {
+                  SendMessage.warnMessage("Invalid cron expression format with reason: '" + exception.getCause().getMessage());
+                  SendMessage.errorItemShops(key);
+               } catch (SchedulerException exception) {
                   SendMessage.warnMessage("A unknown error occurred while creating a new cron schedule");
-                  SendMessage.errorShops(var5.section, var5.path);
-                  var8.printStackTrace();
-               } catch (Exception var9) {
-                  var9.printStackTrace();
+                  SendMessage.errorShops(item.section, item.path);
+                  exception.printStackTrace();
+               } catch (Exception exception) {
+                  exception.printStackTrace();
                }
             }
          );
-      this.restockSchedulers = var1;
-      return var2.get();
+      this.restockSchedulers = restockTimes;
+      return counter.get();
    }
 
-   private Date scheduleJob(ScheduleManager.Item var1) throws SchedulerException {
-      String var2 = null;
-      if (var1.mode == 2) {
-         var2 = ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-player-sell-frequency");
-         if (var2 == null) {
+   private Date scheduleJob(ScheduleManager.Item item) throws SchedulerException {
+      String text = null;
+      if (item.mode == 2) {
+         text = ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-player-sell-frequency");
+         if (text == null) {
             return null;
          }
 
-         if (ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-player-sell") != null) {
+         if (ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-player-sell") != null) {
             SendMessage.warnMessage("A item cannot have a restock timeframe aswell as a restock frequency, using frequency as default...");
-            SendMessage.errorShops(var1.section, var1.path);
+            SendMessage.errorShops(item.section, item.path);
          }
-      } else if (var1.mode == 1) {
-         var2 = ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-global-sell-frequency");
-         if (var2 == null) {
+      } else if (item.mode == 1) {
+         text = ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-global-sell-frequency");
+         if (text == null) {
             return null;
          }
 
-         if (ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-global-sell") != null) {
+         if (ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-global-sell") != null) {
             SendMessage.warnMessage("A item cannot have a restock timeframe aswell as a restock frequency, using frequency as default...");
-            SendMessage.errorShops(var1.section, var1.path);
+            SendMessage.errorShops(item.section, item.path);
          }
       }
 
-      JobDetail var3 = JobBuilder.newJob(RestockItemLimit.class)
-         .setJobData(new JobDataMap(ImmutableMap.of("item", var1.getItemPath(), "mode", var1.mode)))
-         .withIdentity(var1.getItemPath() + "_JOB", "ONYX_RESTOCK_ITEM_LIMIT")
+      JobDetail jobDetail = JobBuilder.newJob(RestockItemLimit.class)
+         .setJobData(new JobDataMap(ImmutableMap.of("item", item.getItemPath(), "mode", item.mode)))
+         .withIdentity(item.getItemPath() + "_JOB", "ONYX_RESTOCK_ITEM_LIMIT")
          .build();
-      Trigger var4 = TriggerBuilder.newTrigger()
-         .withIdentity(var1.getItemPath() + "_TRIGGER", "ONYX_RESTOCK_ITEM_LIMIT")
-         .withSchedule(CronScheduleBuilder.cronSchedule(var2))
+      Trigger trigger = TriggerBuilder.newTrigger()
+         .withIdentity(item.getItemPath() + "_TRIGGER", "ONYX_RESTOCK_ITEM_LIMIT")
+         .withSchedule(CronScheduleBuilder.cronSchedule(text))
          .build();
-      if (!this.restockSchedulers.containsKey(var1)) {
-         this.plugin.getScheduleManager().schedule(var3, var4);
-         if (var4.getNextFireTime() == null) {
-            SendMessage.warnMessage("Failed to schedule cron expression as it will never fire again, for item " + var1 + " and schedule " + var2);
-            SendMessage.errorShops(var1.section, var1.path);
+      if (!this.restockSchedulers.containsKey(item)) {
+         this.plugin.getScheduleManager().schedule(jobDetail, trigger);
+         if (trigger.getNextFireTime() == null) {
+            SendMessage.warnMessage("Failed to schedule cron expression as it will never fire again, for item " + item + " and schedule " + text);
+            SendMessage.errorShops(item.section, item.path);
             return null;
          }
       }
 
-      return var4.getNextFireTime();
+      return trigger.getNextFireTime();
    }
 
    private Map<ScheduleManager.Item, Long> getCachedSchedulers() {
-      Object var1 = new HashMap();
+      Object value = new HashMap();
 
       try {
-         var1 = this.database.getSellLimitSchedulers();
-      } catch (SQLException var3) {
+         value = this.database.getSellLimitSchedulers();
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while getting item sell limit schedules from database");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
 
-      return (Map<ScheduleManager.Item, Long>)var1;
+      return (Map<ScheduleManager.Item, Long>)value;
    }
 
-   public int getSellLimitMode(String var1) {
-      return this.itemModes.get(var1) != null ? this.itemModes.get(var1) : 0;
+   public int getSellLimitMode(String text) {
+      return this.itemModes.get(text) != null ? this.itemModes.get(text) : 0;
    }
 
    private void loadLimitedSellModes() {
-      for (String var2 : ConfigManager.getShops()) {
-         for (String var4 : this.plugin.getConfigManager().getItemsRaw(var2)) {
-            if (!ConfigManager.getShop(var2)
-               .contains((this.plugin.getConfigManager().getShopType(var2) == ShopType.ROTATING ? "pages." : "") + var4 + ".action")) {
-               String var5 = var2 + "." + var4;
-               if (ConfigManager.getShop(var2).contains(this.getItemLoc(var5) + ".sell-limit-player")) {
-                  this.itemModes.put(var5, 2);
-               } else if (ConfigManager.getShop(var2).contains(this.getItemLoc(var5) + ".sell-limit-global")) {
-                  this.itemModes.put(var5, 1);
+      for (String text : ConfigManager.getShops()) {
+         for (String text2 : this.plugin.getConfigManager().getItemsRaw(text)) {
+            if (!ConfigManager.getShop(text)
+               .contains((this.plugin.getConfigManager().getShopType(text) == ShopType.ROTATING ? "pages." : "") + text2 + ".action")) {
+               String text3 = text + "." + text2;
+               if (ConfigManager.getShop(text).contains(this.getItemLoc(text3) + ".sell-limit-player")) {
+                  this.itemModes.put(text3, 2);
+               } else if (ConfigManager.getShop(text).contains(this.getItemLoc(text3) + ".sell-limit-global")) {
+                  this.itemModes.put(text3, 1);
                }
             }
          }
@@ -251,88 +251,88 @@ public class LimitedSellProvider {
    }
 
    private void refreshLimitCache() {
-      Map<String, Integer> var1;
-      Map<String, Map<UUID, Integer>> var2;
+      Map<String, Integer> limits;
+      Map<String, Map<UUID, Integer>> map;
       try {
-         var1 = this.database.getAllSellLimits();
-         var2 = this.database.getAllPlayerSellLimits();
-      } catch (SQLException var4) {
+         limits = this.database.getAllSellLimits();
+         map = this.database.getAllPlayerSellLimits();
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Exception occurred while loading the sell limit display cache");
-         SendMessage.errorMessage(var4.getClass().getName() + ": " + var4.getMessage());
+         SendMessage.errorMessage(exception.getClass().getName() + ": " + exception.getMessage());
          return;
       }
 
-      this.itemModes.forEach((var3, var4x) -> {
-         if (var4x == 2) {
-            HashMap var5 = new HashMap();
+      this.itemModes.forEach((key, value) -> {
+         if (value == 2) {
+            HashMap map2 = new HashMap();
 
-            for (Entry var7 : var2.getOrDefault(var3, Collections.emptyMap()).entrySet()) {
-               var5.put((UUID)var7.getKey(), this.getPlayerLimit((UUID)var7.getKey(), var3, (Integer)var7.getValue()));
+            for (Entry entry : map.getOrDefault(key, Collections.emptyMap()).entrySet()) {
+               map2.put((UUID)entry.getKey(), this.getPlayerLimit((UUID)entry.getKey(), key, (Integer)entry.getValue()));
             }
 
-            this.CASHED_PLAYER_LIMITS.put(var3, var5);
-         } else if (var4x == 1) {
-            Integer var8 = (Integer)var1.get(var3);
-            if (var8 == null) {
-               var8 = this.getGlobalSellLimit(var3);
-               this.setItemLimit(var3, var8);
+            this.CASHED_PLAYER_LIMITS.put(key, map2);
+         } else if (value == 1) {
+            Integer value2 = (Integer)limits.get(key);
+            if (value2 == null) {
+               value2 = this.getGlobalSellLimit(key);
+               this.setItemLimit(key, value2);
             }
 
-            this.CASHED_GLOBAL_LIMITS.put(var3, this.getGlobalSellLimit(var3, var8));
+            this.CASHED_GLOBAL_LIMITS.put(key, this.getGlobalSellLimit(key, value2));
          }
       });
    }
 
    private void reloadOriginals() {
       try {
-         Map var1 = this.database.getOriginalLimits();
-         this.itemModes.forEach((var2x, var3) -> {
-            Integer var4 = (Integer)var1.get(var2x);
-            if (var4 != null && var4 != 0) {
-               if (var3 == 2) {
-                  int var5 = this.getPlayerSellLimit(var2x);
-                  if (var4 != var5) {
-                     SendMessage.logDebugMessage(Lang.PLAYER_SELL_LIMIT_CHANGE.get().replace("%path%", var2x));
-                     this.database.setOriginalLimit(var2x, var5);
-                     this.database.setPlayerSellLimit(var2x, var5);
+         Map originalLimits = this.database.getOriginalLimits();
+         this.itemModes.forEach((key, value) -> {
+            Integer value2 = (Integer)originalLimits.get(key);
+            if (value2 != null && value2 != 0) {
+               if (value == 2) {
+                  int playerSellLimit = this.getPlayerSellLimit(key);
+                  if (value2 != playerSellLimit) {
+                     SendMessage.logDebugMessage(Lang.PLAYER_SELL_LIMIT_CHANGE.get().replace("%path%", key));
+                     this.database.setOriginalLimit(key, playerSellLimit);
+                     this.database.setPlayerSellLimit(key, playerSellLimit);
                      if (this.cache || this.plugin.displayCache) {
-                        HashMap var6 = new HashMap();
-                        this.CASHED_PLAYER_LIMITS.get(var2x).keySet().forEach(var2xx -> var6.put(var2xx, var5));
-                        this.CASHED_PLAYER_LIMITS.put(var2x, var6);
+                        HashMap map = new HashMap();
+                        this.CASHED_PLAYER_LIMITS.get(key).keySet().forEach(entry -> map.put(entry, playerSellLimit));
+                        this.CASHED_PLAYER_LIMITS.put(key, map);
                      }
                   }
-               } else if (var3 == 1) {
-                  int var7 = this.getGlobalSellLimit(var2x);
-                  if (var4 != var7) {
-                     SendMessage.logDebugMessage(Lang.GLOBAL_SELL_LIMIT_CHANGE.get().replace("%path%", var2x));
-                     this.database.setOriginalLimit(var2x, var7);
-                     this.database.setSellLimit(var2x, var7);
-                     this.CASHED_GLOBAL_LIMITS.put(var2x, var7);
+               } else if (value == 1) {
+                  int globalSellLimit = this.getGlobalSellLimit(key);
+                  if (value2 != globalSellLimit) {
+                     SendMessage.logDebugMessage(Lang.GLOBAL_SELL_LIMIT_CHANGE.get().replace("%path%", key));
+                     this.database.setOriginalLimit(key, globalSellLimit);
+                     this.database.setSellLimit(key, globalSellLimit);
+                     this.CASHED_GLOBAL_LIMITS.put(key, globalSellLimit);
                   }
                }
             } else {
-               this.database.setOriginalLimit(var2x, var3 == 2 ? this.getPlayerSellLimit(var2x) : this.getGlobalSellLimit(var2x));
+               this.database.setOriginalLimit(key, value == 2 ? this.getPlayerSellLimit(key) : this.getGlobalSellLimit(key));
             }
          });
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to check for sell limit updates:");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    private void loadRestockTimes() {
       try {
          this.PLAYER_RESTOCK_TIMER = this.database.getPlayerSellLimitRestockTimes();
-      } catch (SQLException var3) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for player sell limits");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
 
       try {
          this.GLOBAL_RESTOCK_TIMER = this.database.getSellLimitRestockTimes();
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for global sell limits");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
@@ -340,61 +340,61 @@ public class LimitedSellProvider {
       if (this.cache) {
          this.sqlBatch.drain();
       } else {
-         long var1 = System.currentTimeMillis();
+         long startTime = System.currentTimeMillis();
          SendMessage.logDebugMessage("Saving item sell limits to database, please wait...");
          this.saveRestockTimes();
          this.saveSchedulers();
-         SendMessage.logDebugMessage("Finished saving sell limits to database in " + (System.currentTimeMillis() - var1) + "ms");
+         SendMessage.logDebugMessage("Finished saving sell limits to database in " + (System.currentTimeMillis() - startTime) + "ms");
       }
    }
 
    private void saveSchedulers() {
       try {
          this.database.setItemStockSchedulers(this.restockSchedulers);
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while saving the item restock schedulers");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    private void saveRestockTimes() {
       try {
          this.database.setPlayerSellLimitRestockTimes(this.PLAYER_RESTOCK_TIMER);
-      } catch (SQLException var3) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while saving the player item sell restock times");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
 
       try {
          this.database.setSellLimitRestockTimes(this.GLOBAL_RESTOCK_TIMER);
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while saving the global item sell restock times");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private void restockGlobalItem(String var1) throws ParseException {
-      long var2 = TimeUtils.getTime(ConfigManager.getShop(var1.split("\\.")[0]).getString(this.getItemLoc(var1) + ".auto-restock-global-sell"))
+   private void restockGlobalItem(String itemId) throws ParseException {
+      long restockTime = TimeUtils.getTime(ConfigManager.getShop(itemId.split("\\.")[0]).getString(this.getItemLoc(itemId) + ".auto-restock-global-sell"))
          + System.currentTimeMillis();
-      this.GLOBAL_RESTOCK_TIMER.put(var1, var2);
+      this.GLOBAL_RESTOCK_TIMER.put(itemId, restockTime);
       if (this.cache) {
-         this.sqlBatch.addQuery(new GlobalRestockTimerQuery(var1, var2));
+         this.sqlBatch.addQuery(new GlobalRestockTimerQuery(itemId, restockTime));
       }
    }
 
-   private void restockPlayerItem(UUID var1, String var2) throws ParseException {
-      long var3 = TimeUtils.getTime(ConfigManager.getShop(var2.split("\\.")[0]).getString(this.getItemLoc(var2) + ".auto-restock-player-sell"))
+   private void restockPlayerItem(UUID playerId, String itemId) throws ParseException {
+      long restockTime = TimeUtils.getTime(ConfigManager.getShop(itemId.split("\\.")[0]).getString(this.getItemLoc(itemId) + ".auto-restock-player-sell"))
          + System.currentTimeMillis();
-      if (this.PLAYER_RESTOCK_TIMER.containsKey(var2)) {
-         this.PLAYER_RESTOCK_TIMER.get(var2).put(var1, var3);
+      if (this.PLAYER_RESTOCK_TIMER.containsKey(itemId)) {
+         this.PLAYER_RESTOCK_TIMER.get(itemId).put(playerId, restockTime);
       } else {
-         HashMap var5 = new HashMap();
-         var5.put(var1, var3);
-         this.PLAYER_RESTOCK_TIMER.put(var2, var5);
+         HashMap map = new HashMap();
+         map.put(playerId, restockTime);
+         this.PLAYER_RESTOCK_TIMER.put(itemId, map);
       }
 
       if (this.cache) {
-         this.sqlBatch.addQuery(new PlayerRestockTimerQuery(var2, var1.toString(), var3));
+         this.sqlBatch.addQuery(new PlayerRestockTimerQuery(itemId, playerId.toString(), restockTime));
       }
    }
 
@@ -403,260 +403,260 @@ public class LimitedSellProvider {
       this.GLOBAL_RESTOCK_TIMER.clear();
    }
 
-   private LimitedSellProvider.Snapshot loadPageLimit(LoreFormatter.PageIndex var1, UUID var2) {
-      ArrayList var3 = new ArrayList();
-      ArrayList var4 = new ArrayList();
+   private LimitedSellProvider.Snapshot loadPageLimit(LoreFormatter.PageIndex pageIndex, UUID uniqueId) {
+      ArrayList values = new ArrayList();
+      ArrayList values2 = new ArrayList();
 
-      for (ShopItem var6 : var1.getItems()) {
-         int var7 = var6.getLimitedSellMode();
-         if (var7 == 1) {
-            var3.add(var6.getItemPath());
-         } else if (var7 == 2) {
-            var4.add(var6.getItemPath());
+      for (ShopItem shopItem : pageIndex.getItems()) {
+         int limitedSellMode = shopItem.getLimitedSellMode();
+         if (limitedSellMode == 1) {
+            values.add(shopItem.getItemPath());
+         } else if (limitedSellMode == 2) {
+            values2.add(shopItem.getItemPath());
          }
       }
 
-      if (!var3.isEmpty() || !var4.isEmpty()) {
+      if (!values.isEmpty() || !values2.isEmpty()) {
          try {
-            HashMap var9 = new HashMap();
-            if (!var3.isEmpty()) {
-               var9.putAll(this.database.getSellLimits(var3));
+            HashMap map = new HashMap();
+            if (!values.isEmpty()) {
+               map.putAll(this.database.getSellLimits(values));
             }
 
-            if (!var4.isEmpty()) {
-               var9.putAll(this.database.getPlayerSellLimitAmounts(var4, var2));
+            if (!values2.isEmpty()) {
+               map.putAll(this.database.getPlayerSellLimitAmounts(values2, uniqueId));
             }
 
-            LimitedSellProvider.Snapshot var10 = new LimitedSellProvider.Snapshot(var1, var9);
-            this.PAGE_LIMIT_SNAPSHOT.set(var10);
-            return var10;
-         } catch (SQLException var8) {
+            LimitedSellProvider.Snapshot snapshot = new LimitedSellProvider.Snapshot(pageIndex, map);
+            this.PAGE_LIMIT_SNAPSHOT.set(snapshot);
+            return snapshot;
+         } catch (SQLException exception) {
             SendMessage.errorMessage("Failed to batch load sell limits for a shop page");
-            var8.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      return new LimitedSellProvider.Snapshot(var1, Collections.EMPTY_MAP);
+      return new LimitedSellProvider.Snapshot(pageIndex, Collections.EMPTY_MAP);
    }
 
-   private long getLongLeftToRestock(String var1) {
-      return this.restockSchedulers.getOrDefault(new ScheduleManager.Item(var1, 1), this.GLOBAL_RESTOCK_TIMER.get(var1)) - System.currentTimeMillis();
+   private long getLongLeftToRestock(String text) {
+      return this.restockSchedulers.getOrDefault(new ScheduleManager.Item(text, 1), this.GLOBAL_RESTOCK_TIMER.get(text)) - System.currentTimeMillis();
    }
 
-   public String getTimeLeftToRestock(String var1) {
-      return TimeUtils.getReadableTime(this.getLongLeftToRestock(var1));
+   public String getTimeLeftToRestock(String text) {
+      return TimeUtils.getReadableTime(this.getLongLeftToRestock(text));
    }
 
-   private long getLongLeftToRestock(UUID var1, String var2) {
-      return this.PLAYER_RESTOCK_TIMER.containsKey(var2)
-         ? this.PLAYER_RESTOCK_TIMER.get(var2).get(var1) - System.currentTimeMillis()
-         : this.restockSchedulers.get(new ScheduleManager.Item(var2, 2)) - System.currentTimeMillis();
+   private long getLongLeftToRestock(UUID uniqueId, String text) {
+      return this.PLAYER_RESTOCK_TIMER.containsKey(text)
+         ? this.PLAYER_RESTOCK_TIMER.get(text).get(uniqueId) - System.currentTimeMillis()
+         : this.restockSchedulers.get(new ScheduleManager.Item(text, 2)) - System.currentTimeMillis();
    }
 
-   public String getTimeLeftToRestock(UUID var1, String var2) {
-      return TimeUtils.getReadableTime(this.getLongLeftToRestock(var1, var2));
+   public String getTimeLeftToRestock(UUID uniqueId, String text) {
+      return TimeUtils.getReadableTime(this.getLongLeftToRestock(uniqueId, text));
    }
 
-   public long getTimeLeftToRestock(ShopItem var1, UUID var2) {
-      if (var1.getLimitedStockMode() == 1) {
-         return this.getLongLeftToRestock(var1.getItemPath());
+   public long getTimeLeftToRestock(ShopItem shopItem, UUID uniqueId) {
+      if (shopItem.getLimitedStockMode() == 1) {
+         return this.getLongLeftToRestock(shopItem.getItemPath());
       } else {
-         return var1.getLimitedStockMode() == 2 ? this.getLongLeftToRestock(var2, var1.getItemPath()) : -1L;
+         return shopItem.getLimitedStockMode() == 2 ? this.getLongLeftToRestock(uniqueId, shopItem.getItemPath()) : -1L;
       }
    }
 
-   private int getGlobalSellLimit(String var1) {
-      return ConfigManager.getShop(var1.split("\\.")[0]).getInt(this.getItemLoc(var1) + ".sell-limit-global", 0);
+   private int getGlobalSellLimit(String text) {
+      return ConfigManager.getShop(text.split("\\.")[0]).getInt(this.getItemLoc(text) + ".sell-limit-global", 0);
    }
 
-   public int getPlayerSellLimit(String var1) {
-      return ConfigManager.getShop(var1.split("\\.")[0]).getInt(this.getItemLoc(var1) + ".sell-limit-player", 0);
+   public int getPlayerSellLimit(String playerName) {
+      return ConfigManager.getShop(playerName.split("\\.")[0]).getInt(this.getItemLoc(playerName) + ".sell-limit-player", 0);
    }
 
-   private void setItemLimit(String var1, int var2) {
+   private void setItemLimit(String itemId, int limit) {
       if (this.cache || this.plugin.displayCache) {
-         this.CASHED_GLOBAL_LIMITS.put(var1, var2);
+         this.CASHED_GLOBAL_LIMITS.put(itemId, limit);
       }
 
       if (this.cache) {
-         this.sqlBatch.addQuery(new ItemStockQuery(var1, var2));
+         this.sqlBatch.addQuery(new ItemStockQuery(itemId, limit));
       } else {
-         this.database.setSellLimit(var1, var2);
+         this.database.setSellLimit(itemId, limit);
       }
    }
 
-   public int getSellLimit(String var1) {
-      return this.getSellLimit(var1, false, null, null);
+   public int getSellLimit(String text) {
+      return this.getSellLimit(text, false, null, null);
    }
 
-   public int getSellLimit(String var1, boolean var2) {
-      return this.getSellLimit(var1, var2, null, null);
+   public int getSellLimit(String text, boolean flag) {
+      return this.getSellLimit(text, flag, null, null);
    }
 
-   public int getSellLimit(String var1, boolean var2, LoreFormatter.PageIndex var3, UUID var4) {
-      return this.getGlobalSellLimit(var1, this.getCashedGlobalLimit(var1, var2, var3, var4));
+   public int getSellLimit(String lore, boolean flag, LoreFormatter.PageIndex pageIndex, UUID uniqueId) {
+      return this.getGlobalSellLimit(lore, this.getCashedGlobalLimit(lore, flag, pageIndex, uniqueId));
    }
 
-   private int getGlobalSellLimit(String var1, int var2) {
-      if (var2 <= 0) {
+   private int getGlobalSellLimit(String text, int limit) {
+      if (limit <= 0) {
          try {
-            if (this.getLongLeftToRestock(var1) <= 0L) {
-               this.GLOBAL_RESTOCK_TIMER.remove(var1);
-               int var3 = this.getGlobalSellLimit(var1);
-               this.setItemLimit(var1, var3);
-               SendMessage.logDebugMessage(Lang.RESTOCKED_GLOBAL_SELL_LIMIT.get().replace("%path%", var1));
-               return var3;
+            if (this.getLongLeftToRestock(text) <= 0L) {
+               this.GLOBAL_RESTOCK_TIMER.remove(text);
+               int globalSellLimit = this.getGlobalSellLimit(text);
+               this.setItemLimit(text, globalSellLimit);
+               SendMessage.logDebugMessage(Lang.RESTOCKED_GLOBAL_SELL_LIMIT.get().replace("%path%", text));
+               return globalSellLimit;
             } else {
                return -1;
             }
-         } catch (NullPointerException var7) {
+         } catch (NullPointerException exception) {
             try {
-               this.restockGlobalItem(var1);
-               SendMessage.logDebugMessage(Lang.RESTOCKING_GLOBAL_SELL_LIMIT.get().replace("%path%", var1));
+               this.restockGlobalItem(text);
+               SendMessage.logDebugMessage(Lang.RESTOCKING_GLOBAL_SELL_LIMIT.get().replace("%path%", text));
                return -1;
-            } catch (ParseException var5) {
+            } catch (ParseException exception2) {
                SendMessage.errorMessage(
-                  "Invalid time format for global sell restock time of item '" + var1 + "', you need to specify a format like '00:05:00'(HH:mm:ss)"
+                  "Invalid time format for global sell restock time of item '" + text + "', you need to specify a format like '00:05:00'(HH:mm:ss)"
                );
                return -3;
-            } catch (NullPointerException var6) {
+            } catch (NullPointerException exception2) {
                return -4;
             }
          }
       } else {
-         return var2;
+         return limit;
       }
    }
 
-   public void setLimit(ShopItem var1, UUID var2, int var3) {
-      if (var1.getLimitedSellMode() == 2) {
-         this.setPlayerLimit(var2, var1.getItemPath(), var3);
-      } else if (var1.getLimitedSellMode() == 1) {
-         this.setItemLimit(var1.getItemPath(), var3);
+   public void setLimit(ShopItem shopItem, UUID uniqueId, int limit) {
+      if (shopItem.getLimitedSellMode() == 2) {
+         this.setPlayerLimit(uniqueId, shopItem.getItemPath(), limit);
+      } else if (shopItem.getLimitedSellMode() == 1) {
+         this.setItemLimit(shopItem.getItemPath(), limit);
       }
 
-      if (var3 == 0) {
-         this.restockItems(var1, var2);
+      if (limit == 0) {
+         this.restockItems(shopItem, uniqueId);
       }
    }
 
-   public void restockItem(String var1, int var2, long var3) {
-      ScheduleManager.Item var5 = new ScheduleManager.Item(var1, var2);
-      this.restockSchedulers.put(var5, var3);
+   public void restockItem(String itemId, int restockTime, long value) {
+      ScheduleManager.Item item = new ScheduleManager.Item(itemId, restockTime);
+      this.restockSchedulers.put(item, value);
       if (this.cache) {
-         this.sqlBatch.addQuery(new RestockScheduleQuery(var5, var3));
+         this.sqlBatch.addQuery(new RestockScheduleQuery(item, value));
       }
 
-      if (var2 == 2) {
-         int var6 = this.getPlayerSellLimit(var1);
-         this.setPlayerLimit(null, var1, var6);
-      } else if (var2 == 1) {
-         int var7 = this.getGlobalSellLimit(var1);
-         this.setItemLimit(var1, var7);
+      if (restockTime == 2) {
+         int playerSellLimit = this.getPlayerSellLimit(itemId);
+         this.setPlayerLimit(null, itemId, playerSellLimit);
+      } else if (restockTime == 1) {
+         int globalSellLimit = this.getGlobalSellLimit(itemId);
+         this.setItemLimit(itemId, globalSellLimit);
       }
    }
 
-   private void restockItems(ShopItem var1, UUID var2) {
+   private void restockItems(ShopItem shopItem, UUID uniqueId) {
       try {
-         if (var1.getLimitedSellMode() == 2) {
-            if (var2 == null) {
-               for (UUID var4 : this.CASHED_PLAYER_LIMITS.get(var1.getItemPath()).keySet()) {
-                  this.restockPlayerItem(var4, var1.getItemPath());
+         if (shopItem.getLimitedSellMode() == 2) {
+            if (uniqueId == null) {
+               for (UUID uniqueId2 : this.CASHED_PLAYER_LIMITS.get(shopItem.getItemPath()).keySet()) {
+                  this.restockPlayerItem(uniqueId2, shopItem.getItemPath());
                }
             } else {
-               this.restockPlayerItem(var2, var1.getItemPath());
+               this.restockPlayerItem(uniqueId, shopItem.getItemPath());
             }
-         } else if (var1.getLimitedSellMode() == 1) {
-            this.restockGlobalItem(var1.getItemPath());
+         } else if (shopItem.getLimitedSellMode() == 1) {
+            this.restockGlobalItem(shopItem.getItemPath());
          }
-      } catch (ParseException var5) {
-         SendMessage.errorMessage("Could not get the restock time of item '" + var1.getItemPath() + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
-      } catch (NullPointerException var6) {
+      } catch (ParseException exception) {
+         SendMessage.errorMessage("Could not get the restock time of item '" + shopItem.getItemPath() + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
+      } catch (NullPointerException exception) {
       }
    }
 
-   public void sellItems(ShopItem var1, UUID var2, int var3, boolean var4) {
-      if (var1.getLimitedSellMode() == 2) {
-         this.setPlayerLimit(var2, var1.getItemPath(), Math.max(0, this.getCashedPlayerLimit(var1.getItemPath(), var2, false) - var3));
-         if (var4) {
-            this.getPlayerLimit(var2, var1.getItemPath());
+   public void sellItems(ShopItem shopItem, UUID uniqueId, int value, boolean flag) {
+      if (shopItem.getLimitedSellMode() == 2) {
+         this.setPlayerLimit(uniqueId, shopItem.getItemPath(), Math.max(0, this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, false) - value));
+         if (flag) {
+            this.getPlayerLimit(uniqueId, shopItem.getItemPath());
          }
-      } else if (var1.getLimitedSellMode() == 1) {
-         this.setItemLimit(var1.getItemPath(), Math.max(0, this.getCashedGlobalLimit(var1.getItemPath(), false) - var3));
-         if (var4) {
-            this.getSellLimit(var1.getItemPath());
+      } else if (shopItem.getLimitedSellMode() == 1) {
+         this.setItemLimit(shopItem.getItemPath(), Math.max(0, this.getCashedGlobalLimit(shopItem.getItemPath(), false) - value));
+         if (flag) {
+            this.getSellLimit(shopItem.getItemPath());
          }
       }
    }
 
-   public int sellItemsSafe(ShopItem var1, UUID var2, int var3, boolean var4) {
-      int var5 = -5;
-      if (var1.getLimitedSellMode() == 2) {
-         var5 = this.getCashedPlayerLimit(var1.getItemPath(), var2, false);
-         if (var5 < var3) {
-            var3 = var5;
+   public int sellItemsSafe(ShopItem shopItem, UUID uniqueId, int value, boolean flag) {
+      int value2 = -5;
+      if (shopItem.getLimitedSellMode() == 2) {
+         value2 = this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, false);
+         if (value2 < value) {
+            value = value2;
          }
 
-         this.setPlayerLimit(var2, var1.getItemPath(), var5 - var3);
-         if (var4) {
-            this.getPlayerLimit(var2, var1.getItemPath());
+         this.setPlayerLimit(uniqueId, shopItem.getItemPath(), value2 - value);
+         if (flag) {
+            this.getPlayerLimit(uniqueId, shopItem.getItemPath());
          }
-      } else if (var1.getLimitedSellMode() == 1) {
-         var5 = this.getCashedGlobalLimit(var1.getItemPath(), false);
-         if (var5 < var3) {
-            var3 = var5;
+      } else if (shopItem.getLimitedSellMode() == 1) {
+         value2 = this.getCashedGlobalLimit(shopItem.getItemPath(), false);
+         if (value2 < value) {
+            value = value2;
          }
 
-         this.setItemLimit(var1.getItemPath(), var5 - var3);
-         if (var4) {
-            this.getSellLimit(var1.getItemPath());
+         this.setItemLimit(shopItem.getItemPath(), value2 - value);
+         if (flag) {
+            this.getSellLimit(shopItem.getItemPath());
          }
       }
 
-      return var5;
+      return value2;
    }
 
-   public void resetItemLinit(String var1, String var2, UUID var3, int var4) {
-      if (var1 != null && var2 != null) {
-         if (var4 == 2) {
-            this.setPlayerLimit(var3, var1 + "." + var2, this.getPlayerSellLimit(var1 + "." + var2));
-            if (this.PLAYER_RESTOCK_TIMER.containsKey(var1 + "." + var2)) {
-               if (var3 == null) {
-                  this.PLAYER_RESTOCK_TIMER.remove(var1 + "." + var2);
+   public void resetItemLinit(String itemId, String text, UUID uniqueId, int value) {
+      if (itemId != null && text != null) {
+         if (value == 2) {
+            this.setPlayerLimit(uniqueId, itemId + "." + text, this.getPlayerSellLimit(itemId + "." + text));
+            if (this.PLAYER_RESTOCK_TIMER.containsKey(itemId + "." + text)) {
+               if (uniqueId == null) {
+                  this.PLAYER_RESTOCK_TIMER.remove(itemId + "." + text);
                } else {
-                  this.PLAYER_RESTOCK_TIMER.get(var1 + "." + var2).remove(var3);
+                  this.PLAYER_RESTOCK_TIMER.get(itemId + "." + text).remove(uniqueId);
                }
             }
-         } else if (var4 == 1) {
-            this.setItemLimit(var1 + "." + var2, this.getGlobalSellLimit(var1 + "." + var2));
-            this.GLOBAL_RESTOCK_TIMER.remove(var1 + "." + var2);
+         } else if (value == 1) {
+            this.setItemLimit(itemId + "." + text, this.getGlobalSellLimit(itemId + "." + text));
+            this.GLOBAL_RESTOCK_TIMER.remove(itemId + "." + text);
          }
       } else {
-         if (var1 == null) {
-            if (var4 == 2) {
-               if (var3 != null) {
-                  RemovePlayerStockQuery var12 = new RemovePlayerStockQuery(var3.toString(), null);
+         if (itemId == null) {
+            if (value == 2) {
+               if (uniqueId != null) {
+                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(uniqueId.toString(), null);
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var12);
+                     this.sqlBatch.addQuery(removePlayerStockQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, var12);
+                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, removePlayerStockQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
-                     for (String var25 : this.CASHED_PLAYER_LIMITS.keySet()) {
-                        this.CASHED_PLAYER_LIMITS.get(var25).remove(var3);
+                     for (String key : this.CASHED_PLAYER_LIMITS.keySet()) {
+                        this.CASHED_PLAYER_LIMITS.get(key).remove(uniqueId);
                      }
                   }
 
-                  for (String var26 : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     this.PLAYER_RESTOCK_TIMER.get(var26).remove(var3);
+                  for (String text2 : this.PLAYER_RESTOCK_TIMER.keySet()) {
+                     this.PLAYER_RESTOCK_TIMER.get(text2).remove(uniqueId);
                   }
                } else {
-                  ClearPlayerStockQuery var11 = new ClearPlayerStockQuery();
+                  ClearPlayerStockQuery clearPlayerStockQuery = new ClearPlayerStockQuery();
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var11);
+                     this.sqlBatch.addQuery(clearPlayerStockQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, var11);
+                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, clearPlayerStockQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
@@ -665,12 +665,12 @@ public class LimitedSellProvider {
 
                   this.PLAYER_RESTOCK_TIMER.clear();
                }
-            } else if (var4 == 1) {
-               ClearStockQuery var10 = new ClearStockQuery();
+            } else if (value == 1) {
+               ClearStockQuery clearStockQuery = new ClearStockQuery();
                if (this.cache) {
-                  this.sqlBatch.addQuery(var10);
+                  this.sqlBatch.addQuery(clearStockQuery);
                } else {
-                  this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, var10);
+                  this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, clearStockQuery);
                }
 
                if (this.cache || this.plugin.displayCache) {
@@ -679,70 +679,70 @@ public class LimitedSellProvider {
 
                this.GLOBAL_RESTOCK_TIMER.clear();
             }
-         } else if (var2 == null) {
-            if (var4 == 2) {
-               if (var3 != null) {
-                  RemovePlayerStockQuery var9 = new RemovePlayerStockQuery(var3.toString(), var1);
+         } else if (text == null) {
+            if (value == 2) {
+               if (uniqueId != null) {
+                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(uniqueId.toString(), itemId);
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var9);
+                     this.sqlBatch.addQuery(removePlayerStockQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, var9);
+                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, removePlayerStockQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
-                     for (String var23 : this.CASHED_PLAYER_LIMITS.keySet()) {
-                        if (var23.split("\\.")[0].equals(var1)) {
-                           this.CASHED_PLAYER_LIMITS.get(var23).remove(var3);
+                     for (String text2 : this.CASHED_PLAYER_LIMITS.keySet()) {
+                        if (text2.split("\\.")[0].equals(itemId)) {
+                           this.CASHED_PLAYER_LIMITS.get(text2).remove(uniqueId);
                         }
                      }
                   }
 
-                  for (String var24 : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     if (var24.split("\\.")[0].equals(var1)) {
-                        this.PLAYER_RESTOCK_TIMER.get(var24).remove(var3);
+                  for (String text2 : this.PLAYER_RESTOCK_TIMER.keySet()) {
+                     if (text2.split("\\.")[0].equals(itemId)) {
+                        this.PLAYER_RESTOCK_TIMER.get(text2).remove(uniqueId);
                      }
                   }
                } else {
-                  RemovePlayerStocksQuery var8 = new RemovePlayerStocksQuery(var1);
+                  RemovePlayerStocksQuery removePlayerStocksQuery = new RemovePlayerStocksQuery(itemId);
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var8);
+                     this.sqlBatch.addQuery(removePlayerStocksQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, var8);
+                     this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, removePlayerStocksQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
-                     for (String var21 : this.CASHED_PLAYER_LIMITS.keySet()) {
-                        if (var21.split("\\.")[0].equals(var1)) {
-                           this.CASHED_PLAYER_LIMITS.get(var21).clear();
+                     for (String text2 : this.CASHED_PLAYER_LIMITS.keySet()) {
+                        if (text2.split("\\.")[0].equals(itemId)) {
+                           this.CASHED_PLAYER_LIMITS.get(text2).clear();
                         }
                      }
                   }
 
-                  for (String var22 : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     if (var22.split("\\.")[0].equals(var1)) {
-                        this.PLAYER_RESTOCK_TIMER.get(var22).clear();
+                  for (String text2 : this.PLAYER_RESTOCK_TIMER.keySet()) {
+                     if (text2.split("\\.")[0].equals(itemId)) {
+                        this.PLAYER_RESTOCK_TIMER.get(text2).clear();
                      }
                   }
                }
-            } else if (var4 == 1) {
-               RemoveStockQuery var5 = new RemoveStockQuery(var1);
+            } else if (value == 1) {
+               RemoveStockQuery removeStockQuery = new RemoveStockQuery(itemId);
                if (this.cache) {
-                  this.sqlBatch.addQuery(var5);
+                  this.sqlBatch.addQuery(removeStockQuery);
                } else {
-                  this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, var5);
+                  this.database.executeQuery(SQLBatch.Type.SELL_LIMIT, removeStockQuery);
                }
 
                if (this.cache || this.plugin.displayCache) {
-                  for (String var7 : new ArrayList<>(this.CASHED_GLOBAL_LIMITS.keySet())) {
-                     if (var7.split("\\.")[0].equals(var1)) {
-                        this.CASHED_GLOBAL_LIMITS.remove(var7);
+                  for (String text2 : new ArrayList<>(this.CASHED_GLOBAL_LIMITS.keySet())) {
+                     if (text2.split("\\.")[0].equals(itemId)) {
+                        this.CASHED_GLOBAL_LIMITS.remove(text2);
                      }
                   }
                }
 
-               for (String var20 : new ArrayList<>(this.GLOBAL_RESTOCK_TIMER.keySet())) {
-                  if (var20.split("\\.")[0].equals(var1)) {
-                     this.GLOBAL_RESTOCK_TIMER.remove(var20);
+               for (String text2 : new ArrayList<>(this.GLOBAL_RESTOCK_TIMER.keySet())) {
+                  if (text2.split("\\.")[0].equals(itemId)) {
+                     this.GLOBAL_RESTOCK_TIMER.remove(text2);
                   }
                }
             }
@@ -754,189 +754,189 @@ public class LimitedSellProvider {
       }
    }
 
-   private void updateCashedPlayerLimit(String var1, UUID var2, int var3) {
-      if (var2 == null) {
+   private void updateCashedPlayerLimit(String playerName, UUID uniqueId, int limit) {
+      if (uniqueId == null) {
          if (this.cache) {
-            this.sqlBatch.addQuery(new UpdatePlayerStockQuery(var1, var3));
+            this.sqlBatch.addQuery(new UpdatePlayerStockQuery(playerName, limit));
          }
 
          try {
-            this.CASHED_PLAYER_LIMITS.get(var1).replaceAll((var1x, var2x) -> var3);
-         } catch (NullPointerException var7) {
+            this.CASHED_PLAYER_LIMITS.get(playerName).replaceAll((key, value) -> limit);
+         } catch (NullPointerException exception) {
          }
       } else {
          if (this.cache) {
-            this.sqlBatch.addQuery(new PlayerStockQuery(var1, var2.toString(), var3));
+            this.sqlBatch.addQuery(new PlayerStockQuery(playerName, uniqueId.toString(), limit));
          }
 
          try {
-            this.CASHED_PLAYER_LIMITS.get(var1).put(var2, var3);
-         } catch (NullPointerException var6) {
-            HashMap var5 = new HashMap();
-            var5.put(var2, var3);
-            this.CASHED_PLAYER_LIMITS.put(var1, var5);
+            this.CASHED_PLAYER_LIMITS.get(playerName).put(uniqueId, limit);
+         } catch (NullPointerException exception) {
+            HashMap map = new HashMap();
+            map.put(uniqueId, limit);
+            this.CASHED_PLAYER_LIMITS.put(playerName, map);
          }
       }
    }
 
-   private int getCashedPlayerLimit(String var1, UUID var2, boolean var3) {
-      return this.getCashedPlayerLimit(var1, var2, var3, null);
+   private int getCashedPlayerLimit(String playerName, UUID uniqueId, boolean flag) {
+      return this.getCashedPlayerLimit(playerName, uniqueId, flag, null);
    }
 
-   private int getCashedPlayerLimit(String var1, UUID var2, boolean var3, LoreFormatter.PageIndex var4) {
-      if (this.cache || var3 && this.plugin.displayCache) {
+   private int getCashedPlayerLimit(String playerName, UUID uniqueId, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      if (this.cache || flag && this.plugin.displayCache) {
          try {
-            if (this.CASHED_PLAYER_LIMITS.get(var1).containsKey(var2)) {
-               return this.CASHED_PLAYER_LIMITS.get(var1).get(var2);
+            if (this.CASHED_PLAYER_LIMITS.get(playerName).containsKey(uniqueId)) {
+               return this.CASHED_PLAYER_LIMITS.get(playerName).get(uniqueId);
             }
-         } catch (NullPointerException var8) {
+         } catch (NullPointerException exception) {
          }
       }
 
-      if (var3 && var4 != null) {
-         LimitedSellProvider.Snapshot var5 = this.PAGE_LIMIT_SNAPSHOT.get();
-         if (var5 == null || var5.pageIndex != var4) {
-            var5 = this.loadPageLimit(var4, var2);
+      if (flag && pageIndex != null) {
+         LimitedSellProvider.Snapshot snapshot = this.PAGE_LIMIT_SNAPSHOT.get();
+         if (snapshot == null || snapshot.pageIndex != pageIndex) {
+            snapshot = this.loadPageLimit(pageIndex, uniqueId);
          }
 
-         if (var5.snapshot.containsKey(var1)) {
-            return var5.snapshot.get(var1);
-         }
-      }
-
-      try {
-         return this.database.getPlayerSellLimit(var2, var1);
-      } catch (SQLException var7) {
-         SendMessage.errorMessage("Failed to read stored player sell limit for " + var1 + ": " + var7.getMessage());
-         Map<UUID, Integer> var6 = this.CASHED_PLAYER_LIMITS.get(var1);
-         return var6 != null && var6.containsKey(var2) ? var6.get(var2) : 0;
-      }
-   }
-
-   private int getCashedGlobalLimit(String var1, boolean var2) {
-      return this.getCashedGlobalLimit(var1, var2, null, null);
-   }
-
-   private int getCashedGlobalLimit(String var1, boolean var2, LoreFormatter.PageIndex var3, UUID var4) {
-      if (this.cache || var2 && this.plugin.displayCache) {
-         Integer var5 = this.CASHED_GLOBAL_LIMITS.get(var1);
-         if (var5 != null) {
-            return var5;
-         }
-      }
-
-      if (var2 && var3 != null) {
-         LimitedSellProvider.Snapshot var8 = this.PAGE_LIMIT_SNAPSHOT.get();
-         if (var8 == null || var8.pageIndex != var3) {
-            var8 = this.loadPageLimit(var3, var4);
-         }
-
-         if (var8.snapshot.containsKey(var1)) {
-            return var8.snapshot.get(var1);
+         if (snapshot.snapshot.containsKey(playerName)) {
+            return snapshot.snapshot.get(playerName);
          }
       }
 
       try {
-         return this.database.getSellLimit(var1);
-      } catch (SQLException var7) {
-         SendMessage.errorMessage("Failed to read stored global sell limit for " + var1 + ": " + var7.getMessage());
-         Integer var6 = this.CASHED_GLOBAL_LIMITS.get(var1);
-         return var6 != null ? var6 : 0;
+         return this.database.getPlayerSellLimit(uniqueId, playerName);
+      } catch (SQLException exception) {
+         SendMessage.errorMessage("Failed to read stored player sell limit for " + playerName + ": " + exception.getMessage());
+         Map<UUID, Integer> limits = this.CASHED_PLAYER_LIMITS.get(playerName);
+         return limits != null && limits.containsKey(uniqueId) ? limits.get(uniqueId) : 0;
       }
    }
 
-   public Translatable getStockLore(ShopItem var1, Player var2, int var3) {
-      int var4 = Math.min(var3, this.getItemLimit(var1, var2.getUniqueId(), true));
-      if (var4 >= 0) {
-         return Lang.CURRENT_SELL_LIMIT.get(var2).replace("%limit%", String.valueOf(var4));
-      } else if (var4 == -1) {
-         return Lang.RESTOCKING_SELL_LIMIT.get(var2).replace("%time%", this.getTimeLeftToRestock(var1.getItemPath()));
-      } else if (var4 == -2) {
-         return Lang.RESTOCKING_SELL_LIMIT.get(var2).replace("%time%", this.getTimeLeftToRestock(var2.getUniqueId(), var1.getItemPath()));
+   private int getCashedGlobalLimit(String text, boolean flag) {
+      return this.getCashedGlobalLimit(text, flag, null, null);
+   }
+
+   private int getCashedGlobalLimit(String lore, boolean flag, LoreFormatter.PageIndex pageIndex, UUID uniqueId) {
+      if (this.cache || flag && this.plugin.displayCache) {
+         Integer limit = this.CASHED_GLOBAL_LIMITS.get(lore);
+         if (limit != null) {
+            return limit;
+         }
+      }
+
+      if (flag && pageIndex != null) {
+         LimitedSellProvider.Snapshot snapshot = this.PAGE_LIMIT_SNAPSHOT.get();
+         if (snapshot == null || snapshot.pageIndex != pageIndex) {
+            snapshot = this.loadPageLimit(pageIndex, uniqueId);
+         }
+
+         if (snapshot.snapshot.containsKey(lore)) {
+            return snapshot.snapshot.get(lore);
+         }
+      }
+
+      try {
+         return this.database.getSellLimit(lore);
+      } catch (SQLException exception) {
+         SendMessage.errorMessage("Failed to read stored global sell limit for " + lore + ": " + exception.getMessage());
+         Integer value = this.CASHED_GLOBAL_LIMITS.get(lore);
+         return value != null ? value : 0;
+      }
+   }
+
+   public Translatable getStockLore(ShopItem shopItem, Player player, int stock) {
+      int limit = Math.min(stock, this.getItemLimit(shopItem, player.getUniqueId(), true));
+      if (limit >= 0) {
+         return Lang.CURRENT_SELL_LIMIT.get(player).replace("%limit%", String.valueOf(limit));
+      } else if (limit == -1) {
+         return Lang.RESTOCKING_SELL_LIMIT.get(player).replace("%time%", this.getTimeLeftToRestock(shopItem.getItemPath()));
+      } else if (limit == -2) {
+         return Lang.RESTOCKING_SELL_LIMIT.get(player).replace("%time%", this.getTimeLeftToRestock(player.getUniqueId(), shopItem.getItemPath()));
       } else {
-         return var4 != -3 && var4 != -4 ? SendMessage.fromConfig("∞") : Lang.REACHED_SELL_LIMIT.get(var2);
+         return limit != -3 && limit != -4 ? SendMessage.fromConfig("∞") : Lang.REACHED_SELL_LIMIT.get(player);
       }
    }
 
-   public int getItemLimit(ShopItem var1, UUID var2, boolean var3) {
-      return this.getItemLimit(var1, var2, var3, false, null);
+   public int getItemLimit(ShopItem shopItem, UUID uniqueId, boolean flag) {
+      return this.getItemLimit(shopItem, uniqueId, flag, false, null);
    }
 
-   public int getItemLimit(ShopItem var1, UUID var2, boolean var3, boolean var4, LoreFormatter.PageIndex var5) {
-      if (var1.getLimitedSellMode() == 2) {
-         return var3 ? this.getPlayerLimit(var2, var1.getItemPath(), var4, var5) : this.getCashedPlayerLimit(var1.getItemPath(), var2, var4);
-      } else if (var1.getLimitedSellMode() == 1) {
-         return var3 ? this.getSellLimit(var1.getItemPath(), var4, var5, var2) : this.getCashedGlobalLimit(var1.getItemPath(), var4);
+   public int getItemLimit(ShopItem shopItem, UUID uniqueId, boolean flag, boolean flag2, LoreFormatter.PageIndex pageIndex) {
+      if (shopItem.getLimitedSellMode() == 2) {
+         return flag ? this.getPlayerLimit(uniqueId, shopItem.getItemPath(), flag2, pageIndex) : this.getCashedPlayerLimit(shopItem.getItemPath(), uniqueId, flag2);
+      } else if (shopItem.getLimitedSellMode() == 1) {
+         return flag ? this.getSellLimit(shopItem.getItemPath(), flag2, pageIndex, uniqueId) : this.getCashedGlobalLimit(shopItem.getItemPath(), flag2);
       } else {
          return 123456789;
       }
    }
 
-   private void setPlayerLimit(UUID var1, String var2, int var3) {
+   private void setPlayerLimit(UUID playerId, String text, int limit) {
       if (this.cache || this.plugin.displayCache) {
-         this.updateCashedPlayerLimit(var2, var1, var3);
+         this.updateCashedPlayerLimit(text, playerId, limit);
       }
 
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-         if (var1 == null) {
-            this.database.setPlayerSellLimit(var2, var3);
+         if (playerId == null) {
+            this.database.setPlayerSellLimit(text, limit);
          } else {
-            this.database.setPlayerSellLimit(var1, var2, var3);
+            this.database.setPlayerSellLimit(playerId, text, limit);
          }
       }
    }
 
-   public int getPlayerLimit(UUID var1, String var2) {
-      return this.getPlayerLimit(var1, var2, false, null);
+   public int getPlayerLimit(UUID playerId, String text) {
+      return this.getPlayerLimit(playerId, text, false, null);
    }
 
-   public int getPlayerLimit(UUID var1, String var2, boolean var3, LoreFormatter.PageIndex var4) {
-      return this.getPlayerLimit(var1, var2, this.getCashedPlayerLimit(var2, var1, var3, var4));
+   public int getPlayerLimit(UUID playerId, String lore, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      return this.getPlayerLimit(playerId, lore, this.getCashedPlayerLimit(lore, playerId, flag, pageIndex));
    }
 
-   private int getPlayerLimit(UUID var1, String var2, int var3) {
-      if (var3 <= 0) {
+   private int getPlayerLimit(UUID playerId, String text, int limit) {
+      if (limit <= 0) {
          try {
-            if (this.getLongLeftToRestock(var1, var2) <= 0L) {
-               this.PLAYER_RESTOCK_TIMER.get(var2).remove(var1);
-               int var4 = this.getPlayerSellLimit(var2);
-               this.setPlayerLimit(var1, var2, var4);
-               SendMessage.logDebugMessage(Lang.RESTOCKED_PLAYER_SELL_LIMIT.get().replace("%path%", var2).replace("%playerUUID%", String.valueOf(var1)));
-               return var4;
+            if (this.getLongLeftToRestock(playerId, text) <= 0L) {
+               this.PLAYER_RESTOCK_TIMER.get(text).remove(playerId);
+               int playerSellLimit = this.getPlayerSellLimit(text);
+               this.setPlayerLimit(playerId, text, playerSellLimit);
+               SendMessage.logDebugMessage(Lang.RESTOCKED_PLAYER_SELL_LIMIT.get().replace("%path%", text).replace("%playerUUID%", String.valueOf(playerId)));
+               return playerSellLimit;
             } else {
                return -2;
             }
-         } catch (NullPointerException var8) {
+         } catch (NullPointerException exception) {
             try {
-               this.restockPlayerItem(var1, var2);
-               SendMessage.logDebugMessage(Lang.RESTOCKING_PLAYER_SELL_LIMIT.get().replace("%path%", var2).replace("%playerUUID%", String.valueOf(var1)));
+               this.restockPlayerItem(playerId, text);
+               SendMessage.logDebugMessage(Lang.RESTOCKING_PLAYER_SELL_LIMIT.get().replace("%path%", text).replace("%playerUUID%", String.valueOf(playerId)));
                return -2;
-            } catch (ParseException var6) {
+            } catch (ParseException exception2) {
                SendMessage.errorMessage(
-                  "Invalid time format for player sell restock time of item '" + var2 + "', you need to specify a format like '00:05:00'(HH:mm:ss)"
+                  "Invalid time format for player sell restock time of item '" + text + "', you need to specify a format like '00:05:00'(HH:mm:ss)"
                );
                return -3;
-            } catch (NullPointerException var7) {
+            } catch (NullPointerException exception2) {
                return -4;
             }
          }
       } else {
-         return var3;
+         return limit;
       }
    }
 
-   private String getItemLoc(String var1) {
-      String[] var2 = var1.split("\\.", 2);
-      return (this.plugin.getShopType(var2[0]) == ShopType.CATEGORY ? "pages." : "") + var2[1];
+   private String getItemLoc(String itemId) {
+      String[] values = itemId.split("\\.", 2);
+      return (this.plugin.getShopType(values[0]) == ShopType.CATEGORY ? "pages." : "") + values[1];
    }
 
    private static final class Snapshot {
       public final LoreFormatter.PageIndex pageIndex;
       public final Map<String, Integer> snapshot;
 
-      private Snapshot(LoreFormatter.PageIndex var1, Map<String, Integer> var2) {
-         this.pageIndex = var1;
-         this.snapshot = var2;
+      private Snapshot(LoreFormatter.PageIndex pageIndex, Map<String, Integer> pages) {
+         this.pageIndex = pageIndex;
+         this.snapshot = pages;
       }
    }
 }

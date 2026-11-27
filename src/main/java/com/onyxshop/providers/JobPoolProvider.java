@@ -17,8 +17,8 @@ public class JobPoolProvider {
    private long delay;
    private int poolID = 0;
 
-   public JobPoolProvider(OnyxShop var1) {
-      this.plugin = var1;
+   public JobPoolProvider(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public void init() {
@@ -27,26 +27,26 @@ public class JobPoolProvider {
       SendMessage.infoMessage("Created job pool provider with max size of " + this.MAX_POOL_SIZE + " and execution delay of " + this.delay + "ticks");
    }
 
-   public synchronized void executeRestockItemLimit(String var1, int var2, long var3) {
+   public synchronized void executeRestockItemLimit(String itemId, int restockTime, long limit) {
       if (this.currentPool == null) {
          this.createNewPoolAndSchedule();
       }
 
-      int var5 = this.currentPool
-         .addAndGetSize(new ScheduledRestockJob(() -> this.plugin.getLimitedSellProvider().restockItem(var1, var2, var3), var1, var2, var3));
-      if (var5 >= this.MAX_POOL_SIZE) {
+      int value = this.currentPool
+         .addAndGetSize(new ScheduledRestockJob(() -> this.plugin.getLimitedSellProvider().restockItem(itemId, restockTime, limit), itemId, restockTime, limit));
+      if (value >= this.MAX_POOL_SIZE) {
          this.executePoolNow(this.currentPool, true);
       }
    }
 
-   public synchronized void executeRestockItemStock(String var1, int var2, long var3) {
+   public synchronized void executeRestockItemStock(String itemId, int restockTime, long stock) {
       if (this.currentPool == null) {
          this.createNewPoolAndSchedule();
       }
 
-      int var5 = this.currentPool
-         .addAndGetSize(new ScheduledRestockJob(() -> this.plugin.getLimitedStockProvider().restockItem(var1, var2, var3), var1, var2, var3));
-      if (var5 >= this.MAX_POOL_SIZE) {
+      int value = this.currentPool
+         .addAndGetSize(new ScheduledRestockJob(() -> this.plugin.getLimitedStockProvider().restockItem(itemId, restockTime, stock), itemId, restockTime, stock));
+      if (value >= this.MAX_POOL_SIZE) {
          this.executePoolNow(this.currentPool, true);
       }
    }
@@ -61,13 +61,13 @@ public class JobPoolProvider {
       this.expireTask = this.plugin.runTaskLater(() -> this.executePoolNow(this.currentPool, false), this.delay);
    }
 
-   private synchronized void executePoolNow(PoolJob var1, boolean var2) {
+   private synchronized void executePoolNow(PoolJob poolJob, boolean flag) {
       this.expireTask.cancel();
       this.currentPool = null;
-      if (var2) {
-         this.plugin.runTask(var1::execute);
+      if (flag) {
+         this.plugin.runTask(poolJob::execute);
       } else {
-         var1.execute();
+         poolJob.execute();
       }
 
       this.isRunning.lazySet(false);

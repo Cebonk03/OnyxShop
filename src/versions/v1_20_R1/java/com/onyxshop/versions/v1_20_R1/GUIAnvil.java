@@ -19,66 +19,66 @@ import org.bukkit.inventory.Inventory;
 
 public class GUIAnvil implements VersionHandler.AnvilGUI {
    @Override
-   public VersionHandler.AnvilGUI.AnvilContainer newAnvilContainer(Player var1, String var2) {
-      return new GUIAnvil.AnvilContainer(var1, var2);
+   public VersionHandler.AnvilGUI.AnvilContainer newAnvilContainer(Player player, String playerName) {
+      return new GUIAnvil.AnvilContainer(player, playerName);
    }
 
-   private int getRealNextContainerId(Player var1) {
-      return this.toNMS(var1).nextContainerCounter();
-   }
-
-   @Override
-   public int getNextContainerId(Player var1, Object var2) {
-      return ((GUIAnvil.AnvilContainer)var2).getContainerId();
+   private int getRealNextContainerId(Player player) {
+      return this.toNMS(player).nextContainerCounter();
    }
 
    @Override
-   public void handleInventoryCloseEvent(Player var1) {
-      CraftEventFactory.handleInventoryCloseEvent(this.toNMS(var1));
+   public int getNextContainerId(Player player, Object value) {
+      return ((GUIAnvil.AnvilContainer)value).getContainerId();
    }
 
    @Override
-   public void sendPacketOpenWindow(Player var1, int var2, String var3) {
-      this.toNMS(var1).c.a(new PacketPlayOutOpenWindow(var2, Containers.h, IChatBaseComponent.b(var3)));
+   public void handleInventoryCloseEvent(Player player) {
+      CraftEventFactory.handleInventoryCloseEvent(this.toNMS(player));
    }
 
    @Override
-   public void sendPacketCloseWindow(Player var1, int var2) {
-      this.toNMS(var1).c.a(new PacketPlayOutCloseWindow(var2));
+   public void sendPacketOpenWindow(Player player, int value, String playerName) {
+      this.toNMS(player).c.a(new PacketPlayOutOpenWindow(value, Containers.h, IChatBaseComponent.b(playerName)));
    }
 
    @Override
-   public void setActiveContainerDefault(Player var1) {
-      this.toNMS(var1).bR = this.toNMS(var1).bQ;
+   public void sendPacketCloseWindow(Player player, int value) {
+      this.toNMS(player).c.a(new PacketPlayOutCloseWindow(value));
    }
 
    @Override
-   public void setActiveContainer(Player var1, Object var2) {
-      this.toNMS(var1).bR = (Container)var2;
+   public void setActiveContainerDefault(Player player) {
+      this.toNMS(player).bR = this.toNMS(player).bQ;
    }
 
    @Override
-   public void setActiveContainerId(Object var1, int var2) {
+   public void setActiveContainer(Player player, Object value) {
+      this.toNMS(player).bR = (Container)value;
    }
 
    @Override
-   public void addActiveContainerSlotListener(Object var1, Player var2) {
-      this.toNMS(var2).a((Container)var1);
+   public void setActiveContainerId(Object value, int id) {
    }
 
-   private EntityPlayer toNMS(Player var1) {
-      return ((CraftPlayer)var1).getHandle();
+   @Override
+   public void addActiveContainerSlotListener(Object value, Player player) {
+      this.toNMS(player).a((Container)value);
+   }
+
+   private EntityPlayer toNMS(Player player) {
+      return ((CraftPlayer)player).getHandle();
    }
 
    private class AnvilContainer extends ContainerAnvil implements VersionHandler.AnvilGUI.AnvilContainer {
-      public AnvilContainer(Player nullx, String nullxx) {
+      public AnvilContainer(Player player, String playerName) {
          super(
-            GUIAnvil.this.getRealNextContainerId(nullx),
-            new PlayerInventory(GUIAnvil.this.toNMS(nullx)),
-            ContainerAccess.a(((CraftWorld)nullx.getWorld()).getHandle(), new BlockPosition(0, 0, 0))
+            GUIAnvil.this.getRealNextContainerId(player),
+            new PlayerInventory(GUIAnvil.this.toNMS(player)),
+            ContainerAccess.a(((CraftWorld)player.getWorld()).getHandle(), new BlockPosition(0, 0, 0))
          );
          this.checkReachable = false;
-         this.setTitle(IChatBaseComponent.b(nullxx));
+         this.setTitle(IChatBaseComponent.b(playerName));
       }
 
       public void m() {

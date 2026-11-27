@@ -42,58 +42,58 @@ import org.bukkit.util.StringUtil;
 public class CommandManager extends PluginCommands {
    private final ArrayList<SubCommad> subCommands = new ArrayList<>();
 
-   public CommandManager(OnyxShop var1, List<String> var2) {
+   public CommandManager(OnyxShop plugin, List<String> commands) {
       super(
-         var1,
+         plugin,
          "editshop",
          "Allows to edit the shop with ingame commands",
          "/editshop <subCommand> ...",
          "OnyxShop.editshop",
          Collections.singletonList("onyx"),
-         var2
+         commands
       );
-      Methods var3 = new Methods(var1);
-      this.subCommands.add(new AddItem(var1, var3));
-      this.subCommands.add(new EditItem(var1, var3));
-      this.subCommands.add(new DeleteItem(var1, var3));
-      this.subCommands.add(new AddHandItem(var1, var3));
-      this.subCommands.add(new Import(var1, var3));
-      this.subCommands.add(new Migrate(var1, var3));
-      this.subCommands.add(new AddSection(var1, var3));
-      this.subCommands.add(new EditSection(var1, var3));
-      this.subCommands.add(new DeleteSection(var1, var3));
+      Methods methods = new Methods(plugin);
+      this.subCommands.add(new AddItem(plugin, methods));
+      this.subCommands.add(new EditItem(plugin, methods));
+      this.subCommands.add(new DeleteItem(plugin, methods));
+      this.subCommands.add(new AddHandItem(plugin, methods));
+      this.subCommands.add(new Import(plugin, methods));
+      this.subCommands.add(new Migrate(plugin, methods));
+      this.subCommands.add(new AddSection(plugin, methods));
+      this.subCommands.add(new EditSection(plugin, methods));
+      this.subCommands.add(new DeleteSection(plugin, methods));
       this.subCommands.add(new Update());
       this.subCommands.add(new UploadLayout());
       this.subCommands.add(new InstallLayout());
       this.subCommands.add(new UpdateLayout());
-      this.subCommands.add(new GlobalStock(var1, var3));
-      this.subCommands.add(new PlayerStock(var1, var3));
-      this.subCommands.add(new GlobalSell(var1, var3));
-      this.subCommands.add(new PlayerSell(var1, var3));
-      this.subCommands.add(new DynamicPricing(var1, var3));
-      this.subCommands.add(new RotatingShop(var1, var3));
-      this.subCommands.add(new ShopStands(var1, var3));
-      this.subCommands.add(new TransactionLogs(var1, var3));
-      this.subCommands.add(new Modifiers(var1, var3));
-      this.subCommands.add(new Database(var1));
+      this.subCommands.add(new GlobalStock(plugin, methods));
+      this.subCommands.add(new PlayerStock(plugin, methods));
+      this.subCommands.add(new GlobalSell(plugin, methods));
+      this.subCommands.add(new PlayerSell(plugin, methods));
+      this.subCommands.add(new DynamicPricing(plugin, methods));
+      this.subCommands.add(new RotatingShop(plugin, methods));
+      this.subCommands.add(new ShopStands(plugin, methods));
+      this.subCommands.add(new TransactionLogs(plugin, methods));
+      this.subCommands.add(new Modifiers(plugin, methods));
+      this.subCommands.add(new Database(plugin));
    }
 
    @Override
-   public boolean execute(CommandSender var1, String var2, String[] var3) {
+   public boolean execute(CommandSender sender, String command, String[] values) {
       if (ConfigManager.badYaml != null) {
-         SendMessage.sendMessage(var1, ChatColor.DARK_RED + "This command cannot be executed now, please fix the configuration formatting first!");
+         SendMessage.sendMessage(sender, ChatColor.DARK_RED + "This command cannot be executed now, please fix the configuration formatting first!");
          return true;
       } else {
-         if (var1 instanceof Player) {
-            Player var7 = (Player)var1;
-            if (this.hasAccessInWorld(var7)) {
-               if (var3.length > 0) {
-                  for (SubCommad var6 : this.subCommands) {
-                     if (var3[0].equalsIgnoreCase(var6.getName())) {
-                        if (var6.hasPermission(var1)) {
-                           var6.perform(var1, var3);
+         if (sender instanceof Player) {
+            Player player = (Player)sender;
+            if (this.hasAccessInWorld(player)) {
+               if (values.length > 0) {
+                  for (SubCommad subCommad : this.subCommands) {
+                     if (values[0].equalsIgnoreCase(subCommad.getName())) {
+                        if (subCommad.hasPermission(sender)) {
+                           subCommad.perform(sender, values);
                         } else {
-                           SendMessage.chatToPlayer(var7, Lang.NO_PERMISSIONS.get());
+                           SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
                         }
 
                         return true;
@@ -101,33 +101,33 @@ public class CommandManager extends PluginCommands {
                   }
                }
 
-               if (this.hasPermission(var7)) {
-                  this.sendAllSyntaxes(var1);
+               if (this.hasPermission(player)) {
+                  this.sendAllSyntaxes(sender);
                } else {
-                  SendMessage.chatToPlayer(var7, Lang.NO_PERMISSIONS.get());
+                  SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
                }
             }
-         } else if (var1 instanceof ConsoleCommandSender || var1 instanceof BlockCommandSender || var1 instanceof RemoteConsoleCommandSender) {
-            if (var1 instanceof BlockCommandSender) {
-               SendMessage.warnMessage(var1, Lang.NO_PERMISSIONS.get());
+         } else if (sender instanceof ConsoleCommandSender || sender instanceof BlockCommandSender || sender instanceof RemoteConsoleCommandSender) {
+            if (sender instanceof BlockCommandSender) {
+               SendMessage.warnMessage(sender, Lang.NO_PERMISSIONS.get());
                return true;
             }
 
-            if (var3.length > 0) {
-               if (var3[0].equalsIgnoreCase("addhanditem")
-                  || var3[0].equalsIgnoreCase("update")
-                  || var3[0].equalsIgnoreCase("uploadLayout")
-                  || var3[0].equalsIgnoreCase("installLayout")) {
-                  SendMessage.warnMessage(var1, Lang.REAL_PLAYER.get());
+            if (values.length > 0) {
+               if (values[0].equalsIgnoreCase("addhanditem")
+                  || values[0].equalsIgnoreCase("update")
+                  || values[0].equalsIgnoreCase("uploadLayout")
+                  || values[0].equalsIgnoreCase("installLayout")) {
+                  SendMessage.warnMessage(sender, Lang.REAL_PLAYER.get());
                   return true;
                }
 
-               for (SubCommad var5 : this.subCommands) {
-                  if (var3[0].equalsIgnoreCase(var5.getName())) {
-                     if (var5.hasPermission(var1)) {
-                        var5.perform(var1, var3);
+               for (SubCommad subCommad : this.subCommands) {
+                  if (values[0].equalsIgnoreCase(subCommad.getName())) {
+                     if (subCommad.hasPermission(sender)) {
+                        subCommad.perform(sender, values);
                      } else {
-                        SendMessage.warnMessage(var1, Lang.NO_PERMISSIONS.get());
+                        SendMessage.warnMessage(sender, Lang.NO_PERMISSIONS.get());
                      }
 
                      return true;
@@ -135,43 +135,43 @@ public class CommandManager extends PluginCommands {
                }
             }
 
-            this.sendAllSyntaxes(var1);
+            this.sendAllSyntaxes(sender);
          }
 
          return true;
       }
    }
 
-   private boolean hasPermission(CommandSender var1) {
-      return this.subCommands.stream().anyMatch(var1x -> var1x.hasPermission(var1));
+   private boolean hasPermission(CommandSender sender) {
+      return this.subCommands.stream().anyMatch(element -> element.hasPermission(sender));
    }
 
    @Override
-   public List<String> tabComplete(CommandSender var1, String var2, String[] var3) {
-      if (!this.hasPermission(var1)) {
+   public List<String> tabComplete(CommandSender sender, String command, String[] values) {
+      if (!this.hasPermission(sender)) {
          return Collections.emptyList();
       } else {
-         ArrayList var4 = new ArrayList();
-         if (var3.length == 1) {
-            for (SubCommad var9 : this.subCommands) {
-               if (var9.hasPermission(var1)) {
-                  var4.add(var9.getName());
+         ArrayList values2 = new ArrayList();
+         if (values.length == 1) {
+            for (SubCommad subCommad : this.subCommands) {
+               if (subCommad.hasPermission(sender)) {
+                  values2.add(subCommad.getName());
                }
             }
 
-            if (!var3[0].isEmpty()) {
-               ArrayList var8 = new ArrayList();
-               StringUtil.copyPartialMatches(var3[0], var4, var8);
-               Collections.sort(var8);
-               return var8;
+            if (!values[0].isEmpty()) {
+               ArrayList values3 = new ArrayList();
+               StringUtil.copyPartialMatches(values[0], values2, values3);
+               Collections.sort(values3);
+               return values3;
             } else {
-               return var4;
+               return values2;
             }
          } else {
-            if (var3.length >= 2) {
-               for (SubCommad var6 : this.subCommands) {
-                  if (var3[0].equalsIgnoreCase(var6.getName()) && var6.hasPermission(var1)) {
-                     return var6.getTabCompletion(var3);
+            if (values.length >= 2) {
+               for (SubCommad subCommad : this.subCommands) {
+                  if (values[0].equalsIgnoreCase(subCommad.getName()) && subCommad.hasPermission(sender)) {
+                     return subCommad.getTabCompletion(values);
                   }
                }
             }
@@ -181,25 +181,25 @@ public class CommandManager extends PluginCommands {
       }
    }
 
-   private void sendAllSyntaxes(Object var1) {
-      SendMessage.sendMessage(var1, Lang.SELLALL_COMMAND_USAGES.get());
-      StringBuilder var2 = new StringBuilder();
+   private void sendAllSyntaxes(Object value) {
+      SendMessage.sendMessage(value, Lang.SELLALL_COMMAND_USAGES.get());
+      StringBuilder builder = new StringBuilder();
 
-      for (int var3 = 0; var3 < this.subCommands.size(); var3++) {
-         SubCommad var4 = this.subCommands.get(var3);
-         if (var4.hasPermission((CommandSender)var1)
+      for (int size = 0; size < this.subCommands.size(); size++) {
+         SubCommad subCommad = this.subCommands.get(size);
+         if (subCommad.hasPermission((CommandSender)value)
             && (
-               !(var1 instanceof ConsoleCommandSender)
-                  || !(var4 instanceof AddHandItem) && !(var4 instanceof Update) && !(var4 instanceof InstallLayout) && !(var4 instanceof UploadLayout)
+               !(value instanceof ConsoleCommandSender)
+                  || !(subCommad instanceof AddHandItem) && !(subCommad instanceof Update) && !(subCommad instanceof InstallLayout) && !(subCommad instanceof UploadLayout)
             )) {
-            var2.append(ChatColor.WHITE + " - " + ChatColor.RESET);
-            var2.append(var4.getSyntax()).append(ChatColor.DARK_GRAY).append(" - ").append(ChatColor.RESET).append(var4.getDescription());
-            if (var3 != this.subCommands.size()) {
-               var2.append("\n");
+            builder.append(ChatColor.WHITE + " - " + ChatColor.RESET);
+            builder.append(subCommad.getSyntax()).append(ChatColor.DARK_GRAY).append(" - ").append(ChatColor.RESET).append(subCommad.getDescription());
+            if (size != this.subCommands.size()) {
+               builder.append("\n");
             }
          }
       }
 
-      SendMessage.sendMessage(var1, var2.toString());
+      SendMessage.sendMessage(value, builder.toString());
    }
 }

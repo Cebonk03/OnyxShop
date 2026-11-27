@@ -29,53 +29,53 @@ public class StandListener implements Listener {
    private final OnyxShop plugin;
    private final StandProvider provider;
 
-   public StandListener(OnyxShop var1, StandProvider var2) {
-      this.plugin = var1;
-      this.provider = var2;
+   public StandListener(OnyxShop plugin, StandProvider standProvider) {
+      this.plugin = plugin;
+      this.provider = standProvider;
    }
 
    @EventHandler
-   public void onChunkLoad(ChunkLoadEvent var1) {
-      this.provider.loadStands(new SimpleChunk(var1.getChunk()));
+   public void onChunkLoad(ChunkLoadEvent event) {
+      this.provider.loadStands(new SimpleChunk(event.getChunk()));
    }
 
    @EventHandler
-   public void onChunkUnload(ChunkUnloadEvent var1) {
-      this.provider.checkAndUnload(new SimpleChunk(var1.getChunk()));
+   public void onChunkUnload(ChunkUnloadEvent event) {
+      this.provider.checkAndUnload(new SimpleChunk(event.getChunk()));
    }
 
    @EventHandler
-   public void onBlockBreak(BlockBreakEvent var1) {
-      if (StandType.isValidType(var1.getBlock().getType())) {
-         Stand var2 = this.provider.getStand(new StandLoc(var1.getBlock()));
-         if (var2 != null) {
-            Player var3 = var1.getPlayer();
-            if (!PermissionsCache.hasPermission(var3, "OnyxShop.editshop.shopstands.edit")) {
-               SendMessage.chatToPlayer(var3, Lang.NO_PERMISSIONS.get());
-               var1.setCancelled(true);
+   public void onBlockBreak(BlockBreakEvent event) {
+      if (StandType.isValidType(event.getBlock().getType())) {
+         Stand stand = this.provider.getStand(new StandLoc(event.getBlock()));
+         if (stand != null) {
+            Player player = event.getPlayer();
+            if (!PermissionsCache.hasPermission(player, "OnyxShop.editshop.shopstands.edit")) {
+               SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
+               event.setCancelled(true);
             } else {
-               new StandManagement(this.plugin, var3, var2);
-               var1.setCancelled(true);
+               new StandManagement(this.plugin, player, stand);
+               event.setCancelled(true);
             }
          }
       }
    }
 
    @EventHandler
-   public void onBlockPlace(BlockPlaceEvent var1) {
-      if (StandType.isValidType(var1.getBlock().getType())) {
-         String var2 = this.plugin.versionHandler.getNBTString(var1.getItemInHand(), "shopstand_item");
-         if (var2 != null) {
-            Player var3 = var1.getPlayer();
-            if (!PermissionsCache.hasPermission(var3, "OnyxShop.editshop.shopstands.create")) {
-               SendMessage.chatToPlayer(var3, Lang.NO_PERMISSIONS.get());
-               var1.setCancelled(true);
+   public void onBlockPlace(BlockPlaceEvent event) {
+      if (StandType.isValidType(event.getBlock().getType())) {
+         String nbtString = this.plugin.versionHandler.getNBTString(event.getItemInHand(), "shopstand_item");
+         if (nbtString != null) {
+            Player player = event.getPlayer();
+            if (!PermissionsCache.hasPermission(player, "OnyxShop.editshop.shopstands.create")) {
+               SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
+               event.setCancelled(true);
             } else {
                try {
-                  this.provider.createStand(var1.getBlock(), var2, StandType.fromType(var1.getBlock()));
-                  SendMessage.chatToPlayer(var3, Lang.CREATED_NEW_SHOP_STAND.get().replace("%item%", var2));
-               } catch (StandLoadException var5) {
-                  SendMessage.chatToPlayer(var3, Lang.ERROR_CREATING_NEW_SHOP_STAND.get().replace("%reason%", var5.getMessage()));
+                  this.provider.createStand(event.getBlock(), nbtString, StandType.fromType(event.getBlock()));
+                  SendMessage.chatToPlayer(player, Lang.CREATED_NEW_SHOP_STAND.get().replace("%item%", nbtString));
+               } catch (StandLoadException exception) {
+                  SendMessage.chatToPlayer(player, Lang.ERROR_CREATING_NEW_SHOP_STAND.get().replace("%reason%", exception.getMessage()));
                }
             }
          }
@@ -83,40 +83,40 @@ public class StandListener implements Listener {
    }
 
    @EventHandler
-   public void onEntityDamageByEntity(EntityDamageByEntityEvent var1) {
-      if (var1.getEntity() instanceof ArmorStand && var1.getDamager() instanceof Player) {
-         ArmorStand var2 = (ArmorStand)var1.getEntity();
-         Stand var3 = this.provider.getStand(var2.getUniqueId());
-         if (var3 != null) {
-            ShopItem var4 = this.plugin.getShopItem(var3.getItem());
-            if (var4 == null) {
-               SendMessage.warnMessage(Lang.CANNOT_OPEN_SHOP_STAND.get().replace("%player%", var1.getEntity().getName()).replace("%item%", var3.getItem()));
+   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+      if (event.getEntity() instanceof ArmorStand && event.getDamager() instanceof Player) {
+         ArmorStand armorStand = (ArmorStand)event.getEntity();
+         Stand stand = this.provider.getStand(armorStand.getUniqueId());
+         if (stand != null) {
+            ShopItem shopItem = this.plugin.getShopItem(stand.getItem());
+            if (shopItem == null) {
+               SendMessage.warnMessage(Lang.CANNOT_OPEN_SHOP_STAND.get().replace("%player%", event.getEntity().getName()).replace("%item%", stand.getItem()));
             } else {
-               Player var5 = (Player)var1.getDamager();
-               if (var5.isSneaking() && PermissionsCache.hasPermission(var5, "OnyxShop.editshop.shopstands.edit")) {
-                  new StandManagement(this.plugin, var5, var3);
-               } else if (var4.isBuyAble()) {
-                  if (!this.isAllowedGamemode(var5)) {
+               Player player = (Player)event.getDamager();
+               if (player.isSneaking() && PermissionsCache.hasPermission(player, "OnyxShop.editshop.shopstands.edit")) {
+                  new StandManagement(this.plugin, player, stand);
+               } else if (shopItem.isBuyAble()) {
+                  if (!this.isAllowedGamemode(player)) {
                      return;
                   }
 
-                  if (!PermissionsCache.hasPermission(var5, "OnyxShop.shop." + var3.getItem().split("\\.")[0])) {
-                     SendMessage.chatToPlayer(var5, Lang.NO_PERMISSIONS.get());
-                     var1.setCancelled(true);
+                  if (!PermissionsCache.hasPermission(player, "OnyxShop.shop." + stand.getItem().split("\\.")[0])) {
+                     SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
+                     event.setCancelled(true);
                      return;
                   }
 
-                  if (!var4.canPurchase(var5, "shop", false)) {
+                  if (!shopItem.canPurchase(player, "shop", false)) {
                      return;
                   }
 
-                  if (!var4.meetsRequirements(var5, false)) {
+                  if (!shopItem.meetsRequirements(player, false)) {
                      return;
                   }
 
-                  new TransactionMenu(var5, var4, null, true, Transaction.Mode.BUY, Transaction.Type.SHOPSTAND_BUY_SCREEN, 1).open(false);
+                  new TransactionMenu(player, shopItem, null, true, Transaction.Mode.BUY, Transaction.Type.SHOPSTAND_BUY_SCREEN, 1).open(false);
                } else {
-                  SendMessage.chatToPlayer(var5, Lang.CANNOT_PURCHASE_ITEM.get());
+                  SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
                }
             }
          }
@@ -124,28 +124,28 @@ public class StandListener implements Listener {
    }
 
    @EventHandler
-   public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent var1) {
-      if (var1.getRightClicked() instanceof ArmorStand) {
-         ArmorStand var2 = (ArmorStand)var1.getRightClicked();
-         Stand var3 = this.provider.getStand(var2.getUniqueId());
-         if (var3 != null) {
-            ShopItem var4 = this.plugin.getShopItem(var3.getItem());
-            if (var4 == null) {
-               SendMessage.warnMessage(Lang.CANNOT_OPEN_SHOP_STAND.get().replace("%player%", var1.getPlayer().getName()).replace("%item%", var3.getItem()));
+   public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+      if (event.getRightClicked() instanceof ArmorStand) {
+         ArmorStand armorStand = (ArmorStand)event.getRightClicked();
+         Stand stand = this.provider.getStand(armorStand.getUniqueId());
+         if (stand != null) {
+            ShopItem shopItem = this.plugin.getShopItem(stand.getItem());
+            if (shopItem == null) {
+               SendMessage.warnMessage(Lang.CANNOT_OPEN_SHOP_STAND.get().replace("%player%", event.getPlayer().getName()).replace("%item%", stand.getItem()));
             } else {
-               Player var5 = var1.getPlayer();
-               if (this.isAllowedGamemode(var5)) {
-                  if (!PermissionsCache.hasPermission(var5, "OnyxShop.shop." + var3.getItem().split("\\.")[0])) {
-                     SendMessage.chatToPlayer(var5, Lang.NO_PERMISSIONS.get());
-                     var1.setCancelled(true);
+               Player player = event.getPlayer();
+               if (this.isAllowedGamemode(player)) {
+                  if (!PermissionsCache.hasPermission(player, "OnyxShop.shop." + stand.getItem().split("\\.")[0])) {
+                     SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
+                     event.setCancelled(true);
                      return;
                   }
 
-                  if (!var4.isSellAble()) {
-                     SendMessage.chatToPlayer(var5, Lang.CANNOT_SELL_ITEM.get());
-                  } else if (var4.canPurchase(var5, "shop", false)) {
-                     if (var4.meetsRequirements(var5, false)) {
-                        new TransactionMenu(var5, var4, null, true, Transaction.Mode.SELL, Transaction.Type.SHOPSTAND_SELL_SCREEN, 1).open(false);
+                  if (!shopItem.isSellAble()) {
+                     SendMessage.chatToPlayer(player, Lang.CANNOT_SELL_ITEM.get());
+                  } else if (shopItem.canPurchase(player, "shop", false)) {
+                     if (shopItem.meetsRequirements(player, false)) {
+                        new TransactionMenu(player, shopItem, null, true, Transaction.Mode.SELL, Transaction.Type.SHOPSTAND_SELL_SCREEN, 1).open(false);
                      }
                   }
                }
@@ -154,9 +154,9 @@ public class StandListener implements Listener {
       }
    }
 
-   private boolean isAllowedGamemode(Player var1) {
-      if (this.plugin.bannedGamemodes.contains(var1.getGameMode()) && !PermissionsCache.hasPermission(var1, "OnyxShop.bypassgamemode")) {
-         SendMessage.chatToPlayer(var1, Lang.CANNOT_ENTER_SHOP_BANNED_GAMEMODE.get().replace("%gamemode%", var1.getGameMode().name().toLowerCase()));
+   private boolean isAllowedGamemode(Player player) {
+      if (this.plugin.bannedGamemodes.contains(player.getGameMode()) && !PermissionsCache.hasPermission(player, "OnyxShop.bypassgamemode")) {
+         SendMessage.chatToPlayer(player, Lang.CANNOT_ENTER_SHOP_BANNED_GAMEMODE.get().replace("%gamemode%", player.getGameMode().name().toLowerCase()));
          return false;
       } else {
          return true;

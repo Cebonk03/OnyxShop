@@ -23,7 +23,7 @@ public final class CoinsEngineAPI {
       return null;
    }
 
-   public static Currency getCurrency(String var0) {
+   public static Currency getCurrency(String text) {
       return null;
    }
 
@@ -31,17 +31,17 @@ public final class CoinsEngineAPI {
       return Collections.emptyList();
    }
 
-   public static double getBalance(Player var0, Currency var1) {
+   public static double getBalance(Player player, Currency currency) {
       return 0.0;
    }
 
-   public static double getBalance(UUID var0, Currency var1) {
+   public static double getBalance(UUID uniqueId, Currency currency) {
       return 0.0;
    }
 
-   public static void addBalance(UUID var0, Currency var1, double var2) {
+   public static void addBalance(UUID uniqueId, Currency currency, double balance) {
    }
 
-   public static void removeBalance(UUID var0, Currency var1, double var2) {
+   public static void removeBalance(UUID uniqueId, Currency currency, double balance) {
    }
 }

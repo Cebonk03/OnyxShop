@@ -30,10 +30,10 @@ public class UpgradeableSpawnersHook implements SpawnerProvider {
    private final OnyxShop plugin;
    private FileConfiguration entities;
 
-   public UpgradeableSpawnersHook(OnyxShop var1) {
-      this.plugin = var1;
-      File var2 = new File(OnyxShop.getInstance().getDataFolder().getParent() + "/UpgradeableSpawners/entities.yml");
-      if (var2.exists()) {
+   public UpgradeableSpawnersHook(OnyxShop plugin) {
+      this.plugin = plugin;
+      File file = new File(OnyxShop.getInstance().getDataFolder().getParent() + "/UpgradeableSpawners/entities.yml");
+      if (file.exists()) {
          this.entities = OnyxShop.getInstance()
             .loadConfiguration(
                new File(OnyxShop.getInstance().getDataFolder().getParent() + "/UpgradeableSpawners/entities.yml"), "Upgradeable Spawners config"
@@ -49,50 +49,50 @@ public class UpgradeableSpawnersHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      if (!this.isEnabled(var3)) {
-         throw new ItemLoadException("Entity '" + var3.name().toLowerCase(Locale.ENGLISH) + "' is not enabled inside the entities.yml of UpgradeableSpawners.");
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      if (!this.isEnabled(entityType)) {
+         throw new ItemLoadException("Entity '" + entityType.name().toLowerCase(Locale.ENGLISH) + "' is not enabled inside the entities.yml of UpgradeableSpawners.");
       } else {
-         if (var1 == null) {
-            var2 = this.plugin.versionHandler.setNBTInt(var2, "PublicBukkitValues::upgradeablespawners:uspawners", 1);
-            var2 = this.plugin
+         if (shopItem == null) {
+            itemStack = this.plugin.versionHandler.setNBTInt(itemStack, "PublicBukkitValues::upgradeablespawners:uspawners", 1);
+            itemStack = this.plugin
                .versionHandler
                .setNBTString(
-                  var2,
+                  itemStack,
                   "PublicBukkitValues::upgradeablespawners:l",
                   "\"NEARBY_ENTITIES:1\",\"PLAYER_RANGE:1\",\"PERIOD_AMOUNT:1\",\"SPAWN_AMOUNT:1\",\"SPAWN_INTERVAL:1\""
                );
-            var2 = this.plugin.versionHandler.setNBTInt(var2, "PublicBukkitValues::upgradeablespawners:entities", 0);
-            var2 = this.plugin.versionHandler.setNBTInt(var2, "PublicBukkitValues::upgradeablespawners:period", 0);
-            var2 = this.plugin.versionHandler.setNBTString(var2, "PublicBukkitValues::upgradeablespawners:entity", var3.name());
-            var2 = this.plugin.versionHandler.setNBTString(var2, "PublicBukkitValues::upgradeablespawners:bought", "");
+            itemStack = this.plugin.versionHandler.setNBTInt(itemStack, "PublicBukkitValues::upgradeablespawners:entities", 0);
+            itemStack = this.plugin.versionHandler.setNBTInt(itemStack, "PublicBukkitValues::upgradeablespawners:period", 0);
+            itemStack = this.plugin.versionHandler.setNBTString(itemStack, "PublicBukkitValues::upgradeablespawners:entity", entityType.name());
+            itemStack = this.plugin.versionHandler.setNBTString(itemStack, "PublicBukkitValues::upgradeablespawners:bought", "");
          } else {
-            var1.addTaggable(TaggableItemType.UPGRADEABLE_SPAWNERS);
+            shopItem.addTaggable(TaggableItemType.UPGRADEABLE_SPAWNERS);
          }
 
-         var2 = this.plugin.versionHandler.setNBTInt(var2, "HideFlags", -1);
-         ItemMeta var4 = var2.getItemMeta();
-         if (!var4.hasDisplayName()) {
-            OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+         itemStack = this.plugin.versionHandler.setNBTInt(itemStack, "HideFlags", -1);
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (!itemMeta.hasDisplayName()) {
+            OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
          }
 
-         var2.setItemMeta(var4);
-         return var2;
+         itemStack.setItemMeta(itemMeta);
+         return itemStack;
       }
    }
 
-   private boolean isEnabled(EntityType var1) {
-      return this.entities == null ? true : this.entities.getBoolean("types." + var1.name().toLowerCase(Locale.ENGLISH) + ".enabled", true);
+   private boolean isEnabled(EntityType entityType) {
+      return this.entities == null ? true : this.entities.getBoolean("types." + entityType.name().toLowerCase(Locale.ENGLISH) + ".enabled", true);
    }
 
-   public static ItemStack tag(ItemStack var0, Player var1) {
-      return OnyxShop.getInstance().versionHandler.setNBTString(var0, "PublicBukkitValues::upgradeablespawners:o", var1.getUniqueId().toString());
+   public static ItemStack tag(ItemStack itemStack, Player player) {
+      return OnyxShop.getInstance().versionHandler.setNBTString(itemStack, "PublicBukkitValues::upgradeablespawners:o", player.getUniqueId().toString());
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
       try {
-         List var4 = NBTMaps.getTags(
+         List values = NBTMaps.getTags(
             false,
             "PublicBukkitValues::upgradeablespawners:l",
             "PublicBukkitValues::upgradeablespawners:bought",
@@ -103,27 +103,27 @@ public class UpgradeableSpawnersHook implements SpawnerProvider {
             "display::Lore",
             "HideFlags"
          );
-         var4.addAll(var3);
-         return new UpgradeableSpawnersHook.SpawnerData(var1).equals(new UpgradeableSpawnersHook.SpawnerData(var2)) && this.plugin.isSimilar(var1, var2, var4);
-      } catch (IllegalArgumentException var5) {
-         var5.printStackTrace();
+         values.addAll(shopIds);
+         return new UpgradeableSpawnersHook.SpawnerData(itemStack).equals(new UpgradeableSpawnersHook.SpawnerData(itemStack2)) && this.plugin.isSimilar(itemStack, itemStack2, values);
+      } catch (IllegalArgumentException exception) {
+         exception.printStackTrace();
          return false;
       }
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      String var2 = this.plugin.versionHandler.getNBTString(var1, "PublicBukkitValues::upgradeablespawners:entity");
+   public String getSpawnedType(ItemStack itemStack) {
+      String nbtString = this.plugin.versionHandler.getNBTString(itemStack, "PublicBukkitValues::upgradeablespawners:entity");
 
       try {
-         return EntityType.valueOf(var2.toUpperCase()).name();
-      } catch (IllegalArgumentException var4) {
-         SendMessage.warnMessage("Could not load entity type '" + var2 + "'");
+         return EntityType.valueOf(nbtString.toUpperCase()).name();
+      } catch (IllegalArgumentException exception) {
+         SendMessage.warnMessage("Could not load entity type '" + nbtString + "'");
          return null;
       }
    }
@@ -135,45 +135,45 @@ public class UpgradeableSpawnersHook implements SpawnerProvider {
       private int SPAWN_AMOUNT = 0;
       private int SPAWN_INTERVAL = 0;
 
-      public SpawnerData(ItemStack nullx) {
-         String var3 = UpgradeableSpawnersHook.this.plugin.versionHandler.getNBTString(nullx, "PublicBukkitValues::upgradeablespawners:l");
-         if (var3 == null) {
+      public SpawnerData(ItemStack itemStack) {
+         String nbtString = UpgradeableSpawnersHook.this.plugin.versionHandler.getNBTString(itemStack, "PublicBukkitValues::upgradeablespawners:l");
+         if (nbtString == null) {
             throw new IllegalArgumentException("Data cannot be null");
          } else {
-            String[] var4 = var3.replace("\"", "").split(",");
+            String[] values = nbtString.replace("\"", "").split(",");
 
-            for (String var8 : var4) {
-               switch (UpgradeableSpawnersHook.SpawnerSettings.valueOf(var8.split(":")[0])) {
+            for (String text : values) {
+               switch (UpgradeableSpawnersHook.SpawnerSettings.valueOf(text.split(":")[0])) {
                   case NEARBY_ENTITIES:
-                     this.NEARBY_ENTITIES = Integer.parseInt(var8.split(":")[1]);
+                     this.NEARBY_ENTITIES = Integer.parseInt(text.split(":")[1]);
                      break;
                   case PLAYER_RANGE:
-                     this.PLAYER_RANGE = Integer.parseInt(var8.split(":")[1]);
+                     this.PLAYER_RANGE = Integer.parseInt(text.split(":")[1]);
                      break;
                   case PERIOD_AMOUNT:
-                     this.PERIOD_AMOUNT = Integer.parseInt(var8.split(":")[1]);
+                     this.PERIOD_AMOUNT = Integer.parseInt(text.split(":")[1]);
                      break;
                   case SPAWN_AMOUNT:
-                     this.SPAWN_AMOUNT = Integer.parseInt(var8.split(":")[1]);
+                     this.SPAWN_AMOUNT = Integer.parseInt(text.split(":")[1]);
                      break;
                   case SPAWN_INTERVAL:
-                     this.SPAWN_INTERVAL = Integer.parseInt(var8.split(":")[1]);
+                     this.SPAWN_INTERVAL = Integer.parseInt(text.split(":")[1]);
                }
             }
          }
       }
 
       @Override
-      public boolean equals(Object var1) {
-         if (this == var1) {
+      public boolean equals(Object value) {
+         if (this == value) {
             return true;
-         } else if (var1 != null && this.getClass() == var1.getClass()) {
-            UpgradeableSpawnersHook.SpawnerData var2 = (UpgradeableSpawnersHook.SpawnerData)var1;
-            return this.NEARBY_ENTITIES == var2.NEARBY_ENTITIES
-               && this.PLAYER_RANGE == var2.PLAYER_RANGE
-               && this.PERIOD_AMOUNT == var2.PERIOD_AMOUNT
-               && this.SPAWN_AMOUNT == var2.SPAWN_AMOUNT
-               && this.SPAWN_INTERVAL == var2.SPAWN_INTERVAL;
+         } else if (value != null && this.getClass() == value.getClass()) {
+            UpgradeableSpawnersHook.SpawnerData spawnerData = (UpgradeableSpawnersHook.SpawnerData)value;
+            return this.NEARBY_ENTITIES == spawnerData.NEARBY_ENTITIES
+               && this.PLAYER_RANGE == spawnerData.PLAYER_RANGE
+               && this.PERIOD_AMOUNT == spawnerData.PERIOD_AMOUNT
+               && this.SPAWN_AMOUNT == spawnerData.SPAWN_AMOUNT
+               && this.SPAWN_INTERVAL == spawnerData.SPAWN_INTERVAL;
          } else {
             return false;
          }

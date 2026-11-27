@@ -10,20 +10,20 @@ public class PriceModifierData {
    public PriceModifierData() {
    }
 
-   public Double get(PriceModifierType var1) {
-      return this.modifiers.get(var1);
+   public Double get(PriceModifierType priceModifierType) {
+      return this.modifiers.get(priceModifierType);
    }
 
-   public double getOr(PriceModifierType var1, double var2) {
-      return this.modifiers.getOrDefault(var1, var2);
+   public double getOr(PriceModifierType priceModifierType, double price) {
+      return this.modifiers.getOrDefault(priceModifierType, price);
    }
 
-   public void set(PriceModifierType var1, double var2) {
-      this.modifiers.put(var1, var2);
+   public void set(PriceModifierType priceModifierType, double price) {
+      this.modifiers.put(priceModifierType, price);
    }
 
-   public void remove(PriceModifierType var1) {
-      this.modifiers.remove(var1);
+   public void remove(PriceModifierType priceModifierType) {
+      this.modifiers.remove(priceModifierType);
    }
 
    public Set<PriceModifierType> keySet() {

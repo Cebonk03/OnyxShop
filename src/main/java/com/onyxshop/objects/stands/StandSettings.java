@@ -5,10 +5,10 @@ import java.util.Objects;
 public final class StandSettings {
    private boolean hologram = true;
 
-   public StandSettings(String var1) {
-      if (var1 != null) {
-         String[] var2 = var1.split("\\|");
-         this.hologram = var2[0].equals("1");
+   public StandSettings(String text) {
+      if (text != null) {
+         String[] values = text.split("\\|");
+         this.hologram = values[0].equals("1");
       }
    }
 
@@ -25,18 +25,18 @@ public final class StandSettings {
 
    @Override
    public String toString() {
-      StringBuilder var1 = new StringBuilder();
-      var1.append(this.hologram ? 1 : 0).append("|");
-      return var1.toString();
+      StringBuilder builder = new StringBuilder();
+      builder.append(this.hologram ? 1 : 0).append("|");
+      return builder.toString();
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         StandSettings var2 = (StandSettings)var1;
-         return this.hologram == var2.hologram;
+      } else if (value != null && this.getClass() == value.getClass()) {
+         StandSettings standSettings = (StandSettings)value;
+         return this.hologram == standSettings.hologram;
       } else {
          return false;
       }

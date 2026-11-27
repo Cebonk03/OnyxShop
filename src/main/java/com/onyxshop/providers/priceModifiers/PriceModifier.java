@@ -6,7 +6,7 @@ public class PriceModifier {
    public PriceModifier() {
    }
 
-   public double modify(Player var1, double var2) {
+   public double modify(Player player, double amount) {
       return 0.0;
    }
 }

@@ -46,31 +46,31 @@ public class TransactionMenu extends ShopInventory {
    private int sellLimit;
    private int amount;
 
-   public TransactionMenu(Player var1, ShopItem var2, String var3, boolean var4, Transaction.Mode var5, Transaction.Type var6, int var7) {
-      this.shopItem = var2;
-      this.player = var1;
-      this.rootSection = var3;
-      this.disabledBackButton = var4;
-      this.transactionMode = var5;
-      this.transactionType = var6;
+   public TransactionMenu(Player player, ShopItem shopItem, String playerName, boolean flag, Transaction.Mode mode, Transaction.Type type, int value) {
+      this.shopItem = shopItem;
+      this.player = player;
+      this.rootSection = playerName;
+      this.disabledBackButton = flag;
+      this.transactionMode = mode;
+      this.transactionType = type;
       this.ecoType = this.getEcoType();
-      this.selectedItem = new TransactionMenu.SelectedItem(var2);
+      this.selectedItem = new TransactionMenu.SelectedItem(shopItem);
       this.amount = this.getInitialAmount(this.shopItem.isFixedStackSize() ? this.shopItem.getFixedStackSize() : this.shopItem.getStackSize());
-      this.itemStock = var2.getLimitedStockMode() != 0
-         ? OnyxShop.getInstance().getLimitedStockProvider().getItemStock(var2, var1.getUniqueId(), true)
+      this.itemStock = shopItem.getLimitedStockMode() != 0
+         ? OnyxShop.getInstance().getLimitedStockProvider().getItemStock(shopItem, player.getUniqueId(), true)
          : 0;
-      this.sellLimit = var2.getLimitedSellMode() != 0 ? OnyxShop.getInstance().getLimitedSellProvider().getItemLimit(var2, var1.getUniqueId(), true) : 0;
+      this.sellLimit = shopItem.getLimitedSellMode() != 0 ? OnyxShop.getInstance().getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true) : 0;
       this.inv = OnyxShop.getInstance()
          .getMetaUtils()
-         .createInventory(this, CalculateAmount.getInvSlotsDef(UserManager.getUser(var1), TransactionMenus.getSize(var6)), this.getInvTitle());
+         .createInventory(this, CalculateAmount.getInvSlotsDef(UserManager.getUser(player), TransactionMenus.getSize(type)), this.getInvTitle());
       this.init();
       this.startUpdateTask();
       OnyxShop.getInstance().getSoundEffects().selectItem(this.player);
    }
 
    private void startUpdateTask() {
-      long var1 = OnyxShop.getInstance().getSection(this.shopItem.section).getUpdateInterval();
-      if (var1 > 0L) {
+      long updateInterval = OnyxShop.getInstance().getSection(this.shopItem.section).getUpdateInterval();
+      if (updateInterval > 0L) {
          this.updateTask = OnyxShop.getInstance().runTaskTimer(() -> {
             if (this.inv.getViewers().isEmpty()) {
                this.updateTask.cancel();
@@ -79,23 +79,23 @@ public class TransactionMenu extends ShopInventory {
                   this.setSelectedItem(true);
                }
             }
-         }, var1, var1);
+         }, updateInterval, updateInterval);
       }
    }
 
-   private int getInitialAmount(int var1) {
-      int var2;
+   private int getInitialAmount(int amount) {
+      int value;
       if (this.transactionMode == Transaction.Mode.BUY) {
-         var2 = this.shopItem.isMinBuy(var1) ? Math.max(this.shopItem.getMinBuy(), var1) : var1;
+         value = this.shopItem.isMinBuy(amount) ? Math.max(this.shopItem.getMinBuy(), amount) : amount;
       } else {
          if (this.transactionMode != Transaction.Mode.SELL) {
             return 1;
          }
 
-         var2 = this.shopItem.isMinSell(var1) ? Math.max(this.shopItem.getMinSell(), var1) : var1;
+         value = this.shopItem.isMinSell(amount) ? Math.max(this.shopItem.getMinSell(), amount) : amount;
       }
 
-      return this.shopItem.isFixedStackSize() ? this.shopItem.getClosestStackSize(var2) : var2;
+      return this.shopItem.isFixedStackSize() ? this.shopItem.getClosestStackSize(value) : value;
    }
 
    public EcoType getEcoType() {
@@ -119,8 +119,8 @@ public class TransactionMenu extends ShopInventory {
       return this.ecoType;
    }
 
-   public void setEcoType(EcoType var1) {
-      this.ecoType = var1;
+   public void setEcoType(EcoType ecoType) {
+      this.ecoType = ecoType;
    }
 
    public Player getPlayer() {
@@ -128,9 +128,9 @@ public class TransactionMenu extends ShopInventory {
    }
 
    private EcoType getNextEcoType() {
-      List var1 = this.transactionMode == Transaction.Mode.BUY ? this.shopItem.getABuyPrice().getTypes() : this.shopItem.getASellPrice().getTypes();
-      int var2 = var1.indexOf(this.ecoType);
-      return var2 + 1 == var1.size() ? (EcoType)var1.get(0) : (EcoType)var1.get(var2 + 1);
+      List types = this.transactionMode == Transaction.Mode.BUY ? this.shopItem.getABuyPrice().getTypes() : this.shopItem.getASellPrice().getTypes();
+      int index = types.indexOf(this.ecoType);
+      return index + 1 == types.size() ? (EcoType)types.get(0) : (EcoType)types.get(index + 1);
    }
 
    public boolean isAPricing() {
@@ -141,8 +141,8 @@ public class TransactionMenu extends ShopInventory {
       return this.isAPricing() && (this.transactionMode == Transaction.Mode.BUY ? this.shopItem.getABuyPrice().isAll() : this.shopItem.getASellPrice().isAll());
    }
 
-   public double getPrice(int var1) {
-      return this.shopItem.getBuyPrice(this.player, var1);
+   public double getPrice(int price) {
+      return this.shopItem.getBuyPrice(this.player, price);
    }
 
    public int getLimitedStockMode() {
@@ -169,20 +169,20 @@ public class TransactionMenu extends ShopInventory {
       return this.itemStock;
    }
 
-   public void updateItemStock(int var1) {
-      this.itemStock -= var1;
+   public void updateItemStock(int stock) {
+      this.itemStock -= stock;
    }
 
-   public void addItemStock(int var1) {
-      this.itemStock += var1;
+   public void addItemStock(int stock) {
+      this.itemStock += stock;
    }
 
    public int getSellLimit() {
       return this.sellLimit;
    }
 
-   public void updateSellLimit(int var1) {
-      this.sellLimit -= var1;
+   public void updateSellLimit(int limit) {
+      this.sellLimit -= limit;
    }
 
    public String getItemPath() {
@@ -201,13 +201,13 @@ public class TransactionMenu extends ShopInventory {
       return this.amount;
    }
 
-   public void setAmount(int var1) {
-      this.amount = var1;
+   public void setAmount(int amount) {
+      this.amount = amount;
    }
 
    public void emptyCache() {
-      for (ItemStack var2 : this.CACHE) {
-         this.player.getInventory().removeItem(new ItemStack[]{var2});
+      for (ItemStack itemStack : this.CACHE) {
+         this.player.getInventory().removeItem(new ItemStack[]{itemStack});
       }
 
       this.CACHE.clear();
@@ -221,167 +221,167 @@ public class TransactionMenu extends ShopInventory {
       return this.transactionType == Transaction.Type.BUY_STACKS_SCREEN ? this.amount * this.getMaxStackSize() : this.amount;
    }
 
-   public Double getAvailableItems(int var1) {
+   public Double getAvailableItems(int value) {
       this.CACHE.clear();
       if (this.shopItem.getLimitedSellMode() != 0 && OnyxShop.getInstance().sellLimits) {
-         int var2 = OnyxShop.getInstance().getLimitedSellProvider().getItemLimit(this.shopItem, this.player.getUniqueId(), true);
-         if (var2 < var1) {
-            var1 = var2;
+         int itemLimit = OnyxShop.getInstance().getLimitedSellProvider().getItemLimit(this.shopItem, this.player.getUniqueId(), true);
+         if (itemLimit < value) {
+            value = itemLimit;
          }
 
-         this.sellLimit = var2;
-         if (var2 <= 0) {
+         this.sellLimit = itemLimit;
+         if (itemLimit <= 0) {
             return -1.0;
          }
       }
 
       if (this.shopItem.isSellCommand() && !this.shopItem.isRequireItem()) {
-         this.amount = var1;
+         this.amount = value;
          return this.shopItem.getSellPrice();
       } else {
-         if (this.shopItem.isMaxSell(var1)) {
-            var1 = this.shopItem.getMaxSell();
+         if (this.shopItem.isMaxSell(value)) {
+            value = this.shopItem.getMaxSell();
          }
 
-         int var8 = 0;
-         double var3 = 0.0;
+         int value2 = 0;
+         double amount = 0.0;
 
-         for (int var5 = 0; var5 < 36; var5++) {
-            ItemStack var6 = this.player.getInventory().getItem(var5);
-            if (var6 != null && !var6.getType().equals(Material.AIR) && this.shopItem.match(var6)) {
-               if (var1 < var6.getAmount()) {
-                  ItemStack var7 = new ItemStack(var6);
-                  var7.setAmount(var1);
-                  this.CACHE.add(var7);
-                  var3 += this.shopItem.getSellPrice(this.player, var6, var1, var8);
-                  var8 += var1;
+         for (int index = 0; index < 36; index++) {
+            ItemStack itemStack = this.player.getInventory().getItem(index);
+            if (itemStack != null && !itemStack.getType().equals(Material.AIR) && this.shopItem.match(itemStack)) {
+               if (value < itemStack.getAmount()) {
+                  ItemStack itemStack2 = new ItemStack(itemStack);
+                  itemStack2.setAmount(value);
+                  this.CACHE.add(itemStack2);
+                  amount += this.shopItem.getSellPrice(this.player, itemStack, value, value2);
+                  value2 += value;
                   break;
                }
 
-               this.CACHE.add(new ItemStack(var6));
-               var3 += this.shopItem.getSellPrice(this.player, var6, var6.getAmount(), var8);
-               var8 += var6.getAmount();
-               var1 -= var6.getAmount();
+               this.CACHE.add(new ItemStack(itemStack));
+               amount += this.shopItem.getSellPrice(this.player, itemStack, itemStack.getAmount(), value2);
+               value2 += itemStack.getAmount();
+               value -= itemStack.getAmount();
             }
          }
 
-         if (this.shopItem.isMinSell(var8)) {
+         if (this.shopItem.isMinSell(value2)) {
             return null;
          } else {
-            this.amount = var8;
-            return var8 == 0 ? null : var3;
+            this.amount = value2;
+            return value2 == 0 ? null : amount;
          }
       }
    }
 
-   public Map<EcoType, Double> getAvailableItemsA(int var1) {
+   public Map<EcoType, Double> getAvailableItemsA(int value) {
       this.CACHE.clear();
       if (this.shopItem.getLimitedSellMode() != 0 && OnyxShop.getInstance().sellLimits) {
-         int var2 = OnyxShop.getInstance().getLimitedSellProvider().getItemLimit(this.shopItem, this.player.getUniqueId(), true);
-         if (var2 < var1) {
-            var1 = var2;
+         int itemLimit = OnyxShop.getInstance().getLimitedSellProvider().getItemLimit(this.shopItem, this.player.getUniqueId(), true);
+         if (itemLimit < value) {
+            value = itemLimit;
          }
 
-         this.sellLimit = var2;
-         if (var2 <= 0) {
+         this.sellLimit = itemLimit;
+         if (itemLimit <= 0) {
             return Collections.EMPTY_MAP;
          }
       }
 
       if (this.shopItem.isSellCommand() && !this.shopItem.isRequireItem()) {
-         this.amount = var1;
+         this.amount = value;
          return this.shopItem.getASellPrice().getSellPrices();
       } else {
-         if (this.shopItem.isMaxSell(var1)) {
-            var1 = this.shopItem.getMaxSell();
+         if (this.shopItem.isMaxSell(value)) {
+            value = this.shopItem.getMaxSell();
          }
 
-         int var7 = 0;
-         HashMap<EcoType, Double> var3 = new HashMap<>();
+         int value2 = 0;
+         HashMap<EcoType, Double> map = new HashMap<>();
 
-         for (int var4 = 0; var4 < 36; var4++) {
-            ItemStack var5 = this.player.getInventory().getItem(var4);
-            if (var5 != null && !var5.getType().equals(Material.AIR) && this.shopItem.match(var5)) {
-               if (var1 < var5.getAmount()) {
-                  ItemStack var6 = new ItemStack(var5);
-                  var6.setAmount(var1);
-                  this.CACHE.add(var6);
+         for (int index = 0; index < 36; index++) {
+            ItemStack itemStack = this.player.getInventory().getItem(index);
+            if (itemStack != null && !itemStack.getType().equals(Material.AIR) && this.shopItem.match(itemStack)) {
+               if (value < itemStack.getAmount()) {
+                  ItemStack itemStack2 = new ItemStack(itemStack);
+                  itemStack2.setAmount(value);
+                  this.CACHE.add(itemStack2);
                   this.shopItem
                      .getASellPrice()
-                     .getSellPrices(this.ecoType, this.player, var5, var1, var7, this.shopItem.getSellModifiers())
-                     .forEach((var1x, var2x) -> var3.put(var1x, var3.getOrDefault(var1x, 0.0) + var2x));
-                  var7 += var1;
+                     .getSellPrices(this.ecoType, this.player, itemStack, value, value2, this.shopItem.getSellModifiers())
+                     .forEach((key, value4) -> map.put(key, map.getOrDefault(key, 0.0) + value4));
+                  value2 += value;
                   break;
                }
 
-               this.CACHE.add(new ItemStack(var5));
+               this.CACHE.add(new ItemStack(itemStack));
                this.shopItem
                   .getASellPrice()
-                  .getSellPrices(this.ecoType, this.player, var5, var5.getAmount(), var7, this.shopItem.getSellModifiers())
-                  .forEach((var1x, var2x) -> var3.put(var1x, var3.getOrDefault(var1x, 0.0) + var2x));
-               var7 += var5.getAmount();
-               var1 -= var5.getAmount();
+                  .getSellPrices(this.ecoType, this.player, itemStack, itemStack.getAmount(), value2, this.shopItem.getSellModifiers())
+                  .forEach((key, value4) -> map.put(key, map.getOrDefault(key, 0.0) + value4));
+               value2 += itemStack.getAmount();
+               value -= itemStack.getAmount();
             }
          }
 
-         if (this.shopItem.isMinSell(var7)) {
+         if (this.shopItem.isMinSell(value2)) {
             return null;
          } else {
-            this.amount = var7;
-            return var7 == 0 ? null : var3;
+            this.amount = value2;
+            return value2 == 0 ? null : map;
          }
       }
    }
 
    public int getFreeSpace() {
-      int var1 = 0;
-      int var2 = this.shopItem.getItemToGive().getMaxStackSize();
-      ArrayList var3 = new ArrayList<>(Arrays.asList(this.player.getInventory().getContents()));
+      int value = 0;
+      int maxStackSize = this.shopItem.getItemToGive().getMaxStackSize();
+      ArrayList values = new ArrayList<>(Arrays.asList(this.player.getInventory().getContents()));
 
-      for (int var4 = 0; var4 < 36; var4++) {
-         ItemStack var5 = (ItemStack)var3.get(var4);
-         if (var5 == null || var5.getType().equals(Material.AIR)) {
-            var1 += var2;
-         } else if (var5.isSimilar(this.shopItem.getItemToGive()) && var5.getAmount() < var2) {
-            var1 += var2 - var5.getAmount();
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = (ItemStack)values.get(index);
+         if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
+            value += maxStackSize;
+         } else if (itemStack.isSimilar(this.shopItem.getItemToGive()) && itemStack.getAmount() < maxStackSize) {
+            value += maxStackSize - itemStack.getAmount();
          }
       }
 
-      return var1;
+      return value;
    }
 
-   public int getAmountToSell(int var1) {
-      int var2 = this.getTotalAmount();
-      if (var2 > var1 && !OnyxShop.getInstance().dropItemsOnGround) {
-         var2 = var1;
+   public int getAmountToSell(int amount) {
+      int totalAmount = this.getTotalAmount();
+      if (totalAmount > amount && !OnyxShop.getInstance().dropItemsOnGround) {
+         totalAmount = amount;
       }
 
-      if (this.shopItem.isMaxBuy(var2)) {
-         var2 = this.shopItem.getMaxBuy();
+      if (this.shopItem.isMaxBuy(totalAmount)) {
+         totalAmount = this.shopItem.getMaxBuy();
       }
 
-      if (this.shopItem.isMinBuy(var2)) {
-         var2 = this.shopItem.getMinBuy();
+      if (this.shopItem.isMinBuy(totalAmount)) {
+         totalAmount = this.shopItem.getMinBuy();
       }
 
       if (this.shopItem.getLimitedStockMode() != 0) {
-         var2 = Math.min(
-            var2, this.itemStock = OnyxShop.getInstance().getLimitedStockProvider().getItemStock(this.shopItem, this.player.getUniqueId(), true)
+         totalAmount = Math.min(
+            totalAmount, this.itemStock = OnyxShop.getInstance().getLimitedStockProvider().getItemStock(this.shopItem, this.player.getUniqueId(), true)
          );
       }
 
       if (!OnyxShop.getInstance().dropItemsOnGround) {
-         var2 = Math.min(var2, var1);
+         totalAmount = Math.min(totalAmount, amount);
       }
 
-      return Math.max(0, var2);
+      return Math.max(0, totalAmount);
    }
 
-   public void sendTransactionCompleteMessage(double var1) {
+   public void sendTransactionCompleteMessage(double amount) {
       SendMessage.sendTransactionMessage(
          this.player,
          this.getTotalAmount(),
-         var1,
+         amount,
          this.shopItem,
          this.transactionMode,
          this.transactionType,
@@ -391,11 +391,11 @@ public class TransactionMenu extends ShopInventory {
       );
    }
 
-   public void sendTransactionCompleteMessage(double var1, int var3) {
+   public void sendTransactionCompleteMessage(double amount, int value) {
       SendMessage.sendTransactionMessage(
          this.player,
-         var3,
-         var1,
+         value,
+         amount,
          this.shopItem,
          this.transactionMode,
          this.transactionType,
@@ -405,11 +405,11 @@ public class TransactionMenu extends ShopInventory {
       );
    }
 
-   public void sendTransactionCompleteMessage(Map<EcoType, Double> var1, int var2) {
+   public void sendTransactionCompleteMessage(Map<EcoType, Double> map, int value) {
       SendMessage.sendTransactionMessage(
          this.player,
-         var2,
-         var1,
+         value,
+         map,
          this.shopItem,
          this.transactionMode,
          this.transactionType,
@@ -424,25 +424,25 @@ public class TransactionMenu extends ShopInventory {
    }
 
    public Translatable getInvTitle() {
-      Translatable var1 = null;
+      Translatable text = null;
       switch (this.transactionType) {
          case SELL_SCREEN:
-            var1 = TitleManager.get(TitleManager.Menu.SELL_SCREEN, this.player);
+            text = TitleManager.get(TitleManager.Menu.SELL_SCREEN, this.player);
             break;
          case BUY_SCREEN:
-            var1 = TitleManager.get(TitleManager.Menu.BUY_SCREEN, this.player);
+            text = TitleManager.get(TitleManager.Menu.BUY_SCREEN, this.player);
             break;
          case BUY_STACKS_SCREEN:
-            var1 = TitleManager.get(TitleManager.Menu.BUY_STACKS, this.player);
+            text = TitleManager.get(TitleManager.Menu.BUY_STACKS, this.player);
             break;
          case SHOPSTAND_BUY_SCREEN:
-            var1 = TitleManager.get(TitleManager.Menu.SHOPSTAND_BUY_SCREEN, this.player);
+            text = TitleManager.get(TitleManager.Menu.SHOPSTAND_BUY_SCREEN, this.player);
             break;
          case SHOPSTAND_SELL_SCREEN:
-            var1 = TitleManager.get(TitleManager.Menu.SHOPSTAND_SELL_SCREEN, this.player);
+            text = TitleManager.get(TitleManager.Menu.SHOPSTAND_SELL_SCREEN, this.player);
       }
 
-      return var1.replace("%item%", this.shopItem.getDisplayname())
+      return text.replace("%item%", this.shopItem.getDisplayname())
          .replace("%material%", OnyxShop.getInstance().getMaterialName(this.shopItem.getItemToGive().getType().name()));
    }
 
@@ -450,98 +450,98 @@ public class TransactionMenu extends ShopInventory {
       return this.transactionMode == Transaction.Mode.BUY ? this.shopItem.isBuyAble() : this.shopItem.isSellAble();
    }
 
-   public Map<EcoType, Double> getPrices(int var1) {
+   public Map<EcoType, Double> getPrices(int value) {
       return this.shopItem.isABuyPricing()
-         ? this.shopItem.getABuyPrice().getBuyPrices(this.ecoType, this.player, var1, this.shopItem.getBuyModifiers())
-         : Collections.singletonMap(this.ecoType, this.shopItem.getBuyPrice(this.player, var1));
+         ? this.shopItem.getABuyPrice().getBuyPrices(this.ecoType, this.player, value, this.shopItem.getBuyModifiers())
+         : Collections.singletonMap(this.ecoType, this.shopItem.getBuyPrice(this.player, value));
    }
 
-   private void updateButtons(int var1) {
-      TransactionItem var2 = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.FILLITEM);
-      int var3 = OnyxShop.getInstance().allowIllegalStacks ? 64 : this.selectedItem.maxStackSize;
+   private void updateButtons(int value) {
+      TransactionItem transactionItem = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.FILLITEM);
+      int size = OnyxShop.getInstance().allowIllegalStacks ? 64 : this.selectedItem.maxStackSize;
       if (this.shopItem.isFixedStackSize()) {
-         var3 = this.shopItem.getSmallestStackSize(var3);
+         size = this.shopItem.getSmallestStackSize(size);
       }
 
-      if (var1 > this.amount || !this.isMaxAmount(var1)) {
+      if (value > this.amount || !this.isMaxAmount(value)) {
          if (visualLimitAction != TransactionMenu.VisualLimitAction.NONE) {
-            for (TransactionItem var5 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.INCREASE_AMOUNT)) {
-               if (var1 + var5.getAction().amount <= var3 && !this.isMaxAmount(var1 + var5.getAction().amount)) {
-                  this.setItem(var5.getSlots(), var5.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+            for (TransactionItem transactionItem2 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.INCREASE_AMOUNT)) {
+               if (value + transactionItem2.getAction().amount <= size && !this.isMaxAmount(value + transactionItem2.getAction().amount)) {
+                  this.setItem(transactionItem2.getSlots(), transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                } else if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                   this.setItem(
-                     var5.getSlots(),
-                     new ItemBuilder(var5.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                     transactionItem2.getSlots(),
+                     new ItemBuilder(transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                         .withDisplayName(Lang.MAX_AMOUNT_REACHED.get(this.player))
                         .build()
                   );
                } else {
-                  this.setItem(var5.getSlots(), var2 == null ? new ItemStack(Material.AIR) : var2.getItem());
+                  this.setItem(transactionItem2.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                }
             }
 
-            for (TransactionItem var9 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.SELECT_AMOUNT)) {
-               if (var1 != var9.getAction().amount && !this.isMaxAmount(var9.getAction().amount)) {
-                  this.setItem(var9.getSlots(), var9.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+            for (TransactionItem transactionItem2 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.SELECT_AMOUNT)) {
+               if (value != transactionItem2.getAction().amount && !this.isMaxAmount(transactionItem2.getAction().amount)) {
+                  this.setItem(transactionItem2.getSlots(), transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                } else if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                   this.setItem(
-                     var9.getSlots(),
-                     new ItemBuilder(var9.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                     transactionItem2.getSlots(),
+                     new ItemBuilder(transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                         .withDisplayName(Lang.MAX_AMOUNT_REACHED.get(this.player))
                         .build()
                   );
                } else {
-                  this.setItem(var9.getSlots(), var2 == null ? new ItemStack(Material.AIR) : var2.getItem());
+                  this.setItem(transactionItem2.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                }
             }
          }
 
-         var1 = var1 <= var3 && !this.isMaxAmount(var1) ? var1 : (this.getMaxAmount() != 0 ? Math.min(var3, this.getMaxAmount()) : var3);
+         value = value <= size && !this.isMaxAmount(value) ? value : (this.getMaxAmount() != 0 ? Math.min(size, this.getMaxAmount()) : size);
       }
 
-      if (var1 < this.amount || !this.isMinAmount(var1)) {
+      if (value < this.amount || !this.isMinAmount(value)) {
          if (visualLimitAction != TransactionMenu.VisualLimitAction.NONE) {
-            for (TransactionItem var10 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.DECREASE_AMOUNT)) {
-               if (var1 - var10.getAction().amount >= 1 && !this.isMinAmount(var1 - var10.getAction().amount)) {
-                  this.setItem(var10.getSlots(), var10.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+            for (TransactionItem transactionItem2 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.DECREASE_AMOUNT)) {
+               if (value - transactionItem2.getAction().amount >= 1 && !this.isMinAmount(value - transactionItem2.getAction().amount)) {
+                  this.setItem(transactionItem2.getSlots(), transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                } else if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                   this.setItem(
-                     var10.getSlots(),
-                     new ItemBuilder(var10.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                     transactionItem2.getSlots(),
+                     new ItemBuilder(transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                         .withDisplayName(Lang.MIN_AMOUNT_REACHED.get(this.player))
                         .build()
                   );
                } else {
-                  this.setItem(var10.getSlots(), var2 == null ? new ItemStack(Material.AIR) : var2.getItem());
+                  this.setItem(transactionItem2.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                }
             }
 
-            for (TransactionItem var11 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.SELECT_AMOUNT)) {
-               if (var1 != var11.getAction().amount && !this.isMaxAmount(var1 + var11.getAction().amount)) {
-                  this.setItem(var11.getSlots(), var11.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+            for (TransactionItem transactionItem2 : TransactionMenus.getItemsByType(this.transactionType, CreateItem.TransactionItemType.SELECT_AMOUNT)) {
+               if (value != transactionItem2.getAction().amount && !this.isMaxAmount(value + transactionItem2.getAction().amount)) {
+                  this.setItem(transactionItem2.getSlots(), transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                } else if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                   this.setItem(
-                     var11.getSlots(),
-                     new ItemBuilder(var11.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                     transactionItem2.getSlots(),
+                     new ItemBuilder(transactionItem2.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                         .withDisplayName(Lang.MAX_AMOUNT_REACHED.get(this.player))
                         .build()
                   );
                } else {
-                  this.setItem(var11.getSlots(), var2 == null ? new ItemStack(Material.AIR) : var2.getItem());
+                  this.setItem(transactionItem2.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                }
             }
          }
 
-         var1 = var1 >= 1 && !this.isMinAmount(var1) ? var1 : (this.getMinAmount() != 0 ? Math.max(1, this.getMinAmount()) : 1);
+         value = value >= 1 && !this.isMinAmount(value) ? value : (this.getMinAmount() != 0 ? Math.max(1, this.getMinAmount()) : 1);
       }
 
-      this.amount = var1;
+      this.amount = value;
    }
 
    public void setConfirmTransactionItem() {
-      TransactionItem var1 = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.CONFIRM);
-      if (var1 != null) {
-         ItemStack var2 = var1.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount());
+      TransactionItem transactionItem = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.CONFIRM);
+      if (transactionItem != null) {
+         ItemStack itemStack = transactionItem.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount());
          if (this.isAPricing()
             && (
                this.transactionMode == Transaction.Mode.BUY
@@ -549,111 +549,111 @@ public class TransactionMenu extends ShopInventory {
                   : !this.shopItem.getASellPrice().isAll() && this.shopItem.getASellPrice().getTypes().size() != 1
             )
             && !Lang.RIGHT_CLICK_CHANGE_CURRENCY.get(this.player).getLegacy().isEmpty()) {
-            ItemBuilder var3 = new ItemBuilder(var2);
-            var3.addLore(
+            ItemBuilder itemBuilder = new ItemBuilder(itemStack);
+            itemBuilder.addLore(
                Lang.RIGHT_CLICK_CHANGE_CURRENCY
                   .get(this.player)
                   .replace("%currency%", OnyxShop.getInstance().getEcoHandler().getEcon(this.getNextEcoType()).getFriendly())
             );
-            this.setItem(var1.getSlots(), var3.build());
+            this.setItem(transactionItem.getSlots(), itemBuilder.build());
          } else {
-            this.setItem(var1.getSlots(), var2);
+            this.setItem(transactionItem.getSlots(), itemStack);
          }
       }
    }
 
-   public void setSelectedItem(boolean var1) {
-      TransactionItem var2 = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.SELECTED_ITEM);
-      if (var2 != null) {
-         this.setItem(var2.getSlots(), this.selectedItem.get());
+   public void setSelectedItem(boolean flag) {
+      TransactionItem transactionItem = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.SELECTED_ITEM);
+      if (transactionItem != null) {
+         this.setItem(transactionItem.getSlots(), this.selectedItem.get());
       }
    }
 
    private void init() {
-      TransactionItem var1 = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.FILLITEM);
-      int var2 = OnyxShop.getInstance().allowIllegalStacks ? 64 : this.selectedItem.maxStackSize;
+      TransactionItem transactionItem = TransactionMenus.getItemByType(this.transactionType, CreateItem.TransactionItemType.FILLITEM);
+      int size = OnyxShop.getInstance().allowIllegalStacks ? 64 : this.selectedItem.maxStackSize;
       TransactionMenus.getItems(this.transactionType)
          .forEach(
-            var3x -> {
-               switch (var3x.getType()) {
+            entry -> {
+               switch (entry.getType()) {
                   case DECREASE_AMOUNT:
                      if (visualLimitAction != TransactionMenu.VisualLimitAction.NONE
                         && checkInitialAmount
                         && (
-                           this.amount - var3x.getAction().amount < 1
-                              || this.isMinAmount(this.amount - var3x.getAction().amount)
+                           this.amount - entry.getAction().amount < 1
+                              || this.isMinAmount(this.amount - entry.getAction().amount)
                               || !this.shopItem.isAllowQuantity()
                         )) {
                         if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                            this.setItem(
-                              var3x.getSlots(),
-                              new ItemBuilder(var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                              entry.getSlots(),
+                              new ItemBuilder(entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                                  .withDisplayName(Lang.MIN_AMOUNT_REACHED.get(this.player))
                                  .build()
                            );
                         } else {
-                           this.setItem(var3x.getSlots(), var1 == null ? new ItemStack(Material.AIR) : var1.getItem());
+                           this.setItem(entry.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                         }
                      } else {
-                        this.setItem(var3x.getSlots(), var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+                        this.setItem(entry.getSlots(), entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                      }
                      break;
                   case INCREASE_AMOUNT:
                      if (visualLimitAction != TransactionMenu.VisualLimitAction.NONE
                         && checkInitialAmount
                         && (
-                           this.amount + var3x.getAction().amount > var2
-                              || this.isMaxAmount(this.amount + var3x.getAction().amount)
+                           this.amount + entry.getAction().amount > size
+                              || this.isMaxAmount(this.amount + entry.getAction().amount)
                               || !this.shopItem.isAllowQuantity()
                         )) {
                         if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                            this.setItem(
-                              var3x.getSlots(),
-                              new ItemBuilder(var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                              entry.getSlots(),
+                              new ItemBuilder(entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                                  .withDisplayName(Lang.MAX_AMOUNT_REACHED.get(this.player))
                                  .build()
                            );
                         } else {
-                           this.setItem(var3x.getSlots(), var1 == null ? new ItemStack(Material.AIR) : var1.getItem());
+                           this.setItem(entry.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                         }
                      } else {
-                        this.setItem(var3x.getSlots(), var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+                        this.setItem(entry.getSlots(), entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                      }
                      break;
                   case SELECT_AMOUNT:
-                     if ((visualLimitAction == TransactionMenu.VisualLimitAction.NONE || !checkInitialAmount || this.amount != var3x.getAction().amount)
-                        && !this.isMaxAmount(var3x.getAction().amount)
+                     if ((visualLimitAction == TransactionMenu.VisualLimitAction.NONE || !checkInitialAmount || this.amount != entry.getAction().amount)
+                        && !this.isMaxAmount(entry.getAction().amount)
                         && this.shopItem.isAllowQuantity()) {
-                        this.setItem(var3x.getSlots(), var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+                        this.setItem(entry.getSlots(), entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                      } else if (visualLimitAction == TransactionMenu.VisualLimitAction.RENAME) {
                         this.setItem(
-                           var3x.getSlots(),
-                           new ItemBuilder(var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                           entry.getSlots(),
+                           new ItemBuilder(entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                               .withDisplayName(Lang.MAX_AMOUNT_REACHED.get(this.player))
                               .build()
                         );
                      } else {
-                        this.setItem(var3x.getSlots(), var1 == null ? new ItemStack(Material.AIR) : var1.getItem());
+                        this.setItem(entry.getSlots(), transactionItem == null ? new ItemStack(Material.AIR) : transactionItem.getItem());
                      }
                      break;
                   case NORMAL:
-                     this.setItem(var3x.getSlots(), var3x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
+                     this.setItem(entry.getSlots(), entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()));
                }
             }
          );
-      if (var1 != null) {
-         for (int var3 = 0; var3 < this.inv.getSize() - (OnyxShop.getInstance().navBar.isEnableTransactionNav() ? 9 : 0); var3++) {
-            if (this.inv.getItem(var3) == null) {
-               this.inv.setItem(var3, var1.getItem());
+      if (transactionItem != null) {
+         for (int index = 0; index < this.inv.getSize() - (OnyxShop.getInstance().navBar.isEnableTransactionNav() ? 9 : 0); index++) {
+            if (this.inv.getItem(index) == null) {
+               this.inv.setItem(index, transactionItem.getItem());
             }
          }
       }
    }
 
-   private boolean isMaxAmount(int var1) {
+   private boolean isMaxAmount(int amount) {
       return this.transactionMode == Transaction.Mode.BUY
-         ? (this.transactionType == Transaction.Type.BUY_STACKS_SCREEN ? this.shopItem.isMaxBuy(var1 * this.getMaxStackSize()) : this.shopItem.isMaxBuy(var1))
-         : this.shopItem.isMaxSell(var1);
+         ? (this.transactionType == Transaction.Type.BUY_STACKS_SCREEN ? this.shopItem.isMaxBuy(amount * this.getMaxStackSize()) : this.shopItem.isMaxBuy(amount))
+         : this.shopItem.isMaxSell(amount);
    }
 
    private int getMaxAmount() {
@@ -662,10 +662,10 @@ public class TransactionMenu extends ShopInventory {
          : this.shopItem.getMaxSell();
    }
 
-   private boolean isMinAmount(int var1) {
+   private boolean isMinAmount(int amount) {
       return this.transactionMode == Transaction.Mode.BUY
-         ? (this.transactionType == Transaction.Type.BUY_STACKS_SCREEN ? this.shopItem.isMinBuy(var1 * this.getMaxStackSize()) : this.shopItem.isMinBuy(var1))
-         : this.shopItem.isMinSell(var1);
+         ? (this.transactionType == Transaction.Type.BUY_STACKS_SCREEN ? this.shopItem.isMinBuy(amount * this.getMaxStackSize()) : this.shopItem.isMinBuy(amount))
+         : this.shopItem.isMinSell(amount);
    }
 
    private int getMinAmount() {
@@ -674,57 +674,57 @@ public class TransactionMenu extends ShopInventory {
          : this.shopItem.getMinSell();
    }
 
-   public void updateAmount(CreateItem.TransactionItemAction var1) {
-      int var2 = this.amount;
-      switch (var1.type) {
+   public void updateAmount(CreateItem.TransactionItemAction transactionItemAction) {
+      int amount = this.amount;
+      switch (transactionItemAction.type) {
          case ADD:
-            var2 += var1.amount;
+            amount += transactionItemAction.amount;
             break;
          case REMOVE:
-            var2 -= var1.amount;
+            amount -= transactionItemAction.amount;
             break;
          case SET:
-            var2 = var1.amount;
+            amount = transactionItemAction.amount;
       }
 
       if (this.shopItem.isFixedStackSize()) {
-         if (var2 > this.amount) {
-            var2 = this.shopItem.getLargestStackSize(var2);
+         if (amount > this.amount) {
+            amount = this.shopItem.getLargestStackSize(amount);
          } else {
-            var2 = this.shopItem.getSmallestStackSize(var2);
+            amount = this.shopItem.getSmallestStackSize(amount);
          }
       }
 
-      this.updateButtons(var2);
+      this.updateButtons(amount);
       this.setSelectedItem(false);
       this.setConfirmTransactionItem();
    }
 
-   private void setItem(List<Integer> var1, ItemStack var2) {
-      var1.forEach(var2x -> this.inv.setItem(var2x, var2));
+   private void setItem(List<Integer> numbers, ItemStack itemStack) {
+      numbers.forEach(entry -> this.inv.setItem(entry, itemStack));
    }
 
-   public void open(boolean var1) {
-      this.open(var1, false);
+   public void open(boolean flag) {
+      this.open(flag, false);
    }
 
-   public void open(boolean var1, boolean var2) {
+   public void open(boolean flag, boolean flag2) {
       if (OnyxShop.getInstance().bedrock
          && OnyxShop.getInstance().bedrockMenus
          && UserManager.getUser(this.player).isBedrock()
          && OnyxShop.getInstance().getBedrockInventorys().isEnabledFor(this.player)) {
          OnyxShop.getInstance().getBedrockInventorys().openTransactionMenu(this);
       } else {
-         if (this.shopItem.isDynamicPricing() || var2) {
+         if (this.shopItem.isDynamicPricing() || flag2) {
             TransactionMenus.getItemsByAction(
                   this.transactionType, CreateItem.TransactionItemActionType.INSTA_BUY, CreateItem.TransactionItemActionType.INSTA_SELL
                )
                .forEach(
-                  var1x -> this.setItem(var1x.getSlots(), var1x.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
+                  entry -> this.setItem(entry.getSlots(), entry.getItem(this.shopItem, this.player, this.transactionType, this.ecoType, this.getTotalAmount()))
                );
          }
 
-         this.setSelectedItem(var1);
+         this.setSelectedItem(flag);
          this.setConfirmTransactionItem();
          if (this.transactionType != Transaction.Type.SHOPSTAND_BUY_SCREEN && this.transactionType != Transaction.Type.SHOPSTAND_SELL_SCREEN) {
             OnyxShop.getInstance().navBar.addTransactionNavBar(this.inv, this.transactionMode, this.player, this.shopItem, this.getEcoTypeSimple());
@@ -736,9 +736,9 @@ public class TransactionMenu extends ShopInventory {
       }
    }
 
-   private void open(Player var1) {
-      UserManager.getUser(var1).setOpenNewGUI(true);
-      var1.openInventory(this.inv);
+   private void open(Player player) {
+      UserManager.getUser(player).setOpenNewGUI(true);
+      player.openInventory(this.inv);
    }
 
    private EcoType getEcoTypeSimple() {
@@ -760,12 +760,12 @@ public class TransactionMenu extends ShopInventory {
       Set<Integer> placeholders;
       int pricingPlaceholder = -2;
 
-      public SelectedItem(ShopItem nullx) {
-         TransactionItem var3 = TransactionMenus.getItemByType(TransactionMenu.this.transactionType, CreateItem.TransactionItemType.SELECTED_ITEM);
-         this.item = nullx.getShopItem().clone();
+      public SelectedItem(ShopItem shopItem) {
+         TransactionItem transactionItem = TransactionMenus.getItemByType(TransactionMenu.this.transactionType, CreateItem.TransactionItemType.SELECTED_ITEM);
+         this.item = shopItem.getShopItem().clone();
          this.maxStackSize = this.item.getMaxStackSize();
-         if (var3 != null) {
-            this.placeholders = this.getPlaceholders(var3.getItem().getItemMeta());
+         if (transactionItem != null) {
+            this.placeholders = this.getPlaceholders(transactionItem.getItem().getItemMeta());
          }
       }
 
@@ -776,12 +776,12 @@ public class TransactionMenu extends ShopInventory {
       }
 
       private void parsePlaceholders() {
-         ItemMeta var1 = this.item.getItemMeta();
+         ItemMeta itemMeta = this.item.getItemMeta();
          if (this.displayname != null) {
             OnyxShop.getInstance()
                .getMetaUtils()
                .setDisplayName(
-                  var1,
+                  itemMeta,
                   this.translatePapi(this.displayname, -1)
                      .replace("%amount%", String.valueOf(TransactionMenu.this.getTotalAmount()))
                      .replace("%price%", this.formatPrice(this.displayname, -1))
@@ -789,33 +789,33 @@ public class TransactionMenu extends ShopInventory {
          }
 
          if (this.lore != null) {
-            ArrayList var2 = new ArrayList<>(this.lore);
+            ArrayList values = new ArrayList<>(this.lore);
 
-            for (int var3 = 0; var3 < var2.size(); var3++) {
-               var2.set(
-                  var3,
-                  this.translatePapi((Translatable)var2.get(var3), var3)
+            for (int size = 0; size < values.size(); size++) {
+               values.set(
+                  size,
+                  this.translatePapi((Translatable)values.get(size), size)
                      .replace("%amount%", String.valueOf(TransactionMenu.this.getTotalAmount()))
-                     .replace("%price%", this.formatPrice((Translatable)var2.get(var3), var3))
+                     .replace("%price%", this.formatPrice((Translatable)values.get(size), size))
                );
             }
 
-            this.addStockLore(var2);
-            OnyxShop.getInstance().getMetaUtils().setLore(var1, var2);
+            this.addStockLore(values);
+            OnyxShop.getInstance().getMetaUtils().setLore(itemMeta, values);
          }
 
-         this.item.setItemMeta(var1);
+         this.item.setItemMeta(itemMeta);
       }
 
-      private String formatPrice(Translatable var1, int var2) {
-         if (this.pricingPlaceholder != var2) {
+      private String formatPrice(Translatable text, int price) {
+         if (this.pricingPlaceholder != price) {
             return "0";
          } else if (TransactionMenu.this.transactionMode == Transaction.Mode.BUY) {
             return TransactionMenu.this.shopItem.isABuyPricing()
                ? TransactionMenu.this.shopItem
                   .getABuyPrice()
                   .formatBuyPrices(
-                     var1.getLegacy().split("%price%")[0],
+                     text.getLegacy().split("%price%")[0],
                      TransactionMenu.this.ecoType,
                      TransactionMenu.this.player,
                      TransactionMenu.this.amount,
@@ -830,7 +830,7 @@ public class TransactionMenu extends ShopInventory {
                ? TransactionMenu.this.shopItem
                   .getASellPrice()
                   .formatSellPrices(
-                     var1.getLegacy().split("%price%")[0],
+                     text.getLegacy().split("%price%")[0],
                      TransactionMenu.this.ecoType,
                      TransactionMenu.this.player,
                      TransactionMenu.this.amount,
@@ -844,19 +844,19 @@ public class TransactionMenu extends ShopInventory {
          }
       }
 
-      private Translatable translatePapi(Translatable var1, int var2) {
-         return !this.placeholders.contains(var2) ? var1 : var1.translate(TransactionMenu.this.player);
+      private Translatable translatePapi(Translatable text, int value) {
+         return !this.placeholders.contains(value) ? text : text.translate(TransactionMenu.this.player);
       }
 
-      private void addStockLore(List<Translatable> var1) {
+      private void addStockLore(List<Translatable> values) {
          if (TransactionMenu.this.transactionMode == Transaction.Mode.BUY && TransactionMenu.this.shopItem.getLimitedStockMode() != 0) {
-            var1.add(
+            values.add(
                OnyxShop.getInstance()
                   .getLimitedStockProvider()
                   .getStockLore(TransactionMenu.this.shopItem, TransactionMenu.this.player, TransactionMenu.this.itemStock)
             );
          } else if (TransactionMenu.this.transactionMode == Transaction.Mode.SELL && TransactionMenu.this.shopItem.getLimitedSellMode() != 0) {
-            var1.add(
+            values.add(
                OnyxShop.getInstance()
                   .getLimitedSellProvider()
                   .getStockLore(TransactionMenu.this.shopItem, TransactionMenu.this.player, TransactionMenu.this.sellLimit)
@@ -864,30 +864,30 @@ public class TransactionMenu extends ShopInventory {
          }
       }
 
-      private Set<Integer> getPlaceholders(ItemMeta var1) {
-         if (var1.hasDisplayName()) {
-            Translatable var2 = OnyxShop.getInstance().getMetaUtils().getDisplayName(var1);
-            if (var2.toString().contains("%price%")) {
+      private Set<Integer> getPlaceholders(ItemMeta itemMeta) {
+         if (itemMeta.hasDisplayName()) {
+            Translatable text = OnyxShop.getInstance().getMetaUtils().getDisplayName(itemMeta);
+            if (text.toString().contains("%price%")) {
                this.pricingPlaceholder = -1;
             }
 
-            this.displayname = var2;
+            this.displayname = text;
          }
 
-         if (var1.hasLore()) {
-            List var4 = OnyxShop.getInstance().getMetaUtils().getLore(var1);
+         if (itemMeta.hasLore()) {
+            List lore = OnyxShop.getInstance().getMetaUtils().getLore(itemMeta);
 
-            for (int var3 = 0; var3 < var4.size(); var3++) {
-               if (((Translatable)var4.get(var3)).toString().contains("%price%")) {
-                  this.pricingPlaceholder = var3;
+            for (int size = 0; size < lore.size(); size++) {
+               if (((Translatable)lore.get(size)).toString().contains("%price%")) {
+                  this.pricingPlaceholder = size;
                   break;
                }
             }
 
-            this.lore = var4;
+            this.lore = lore;
          }
 
-         return PlaceholderAPIHook.getPlaceholders(var1).keySet();
+         return PlaceholderAPIHook.getPlaceholders(itemMeta).keySet();
       }
    }
 
@@ -902,7 +902,7 @@ public class TransactionMenu extends ShopInventory {
       public static TransactionMenu.VisualLimitAction get() {
          try {
             return valueOf(ConfigManager.getConfig().getString("visual-transaction-limits.action").toUpperCase(Locale.ROOT));
-         } catch (IllegalArgumentException var1) {
+         } catch (IllegalArgumentException exception) {
             SendMessage.logDebugMessage(
                "Failed to load transaction visual limit for " + ConfigManager.getConfig().getString("visual-transaction-limits.action")
             );

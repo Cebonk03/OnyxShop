@@ -9,13 +9,13 @@ public class ShopTitle {
    private final ShopTitle.Title title;
    private final ShopTitle.Title bedrockTitle;
 
-   public ShopTitle(Translatable var1) {
-      this(var1, null);
+   public ShopTitle(Translatable text) {
+      this(text, null);
    }
 
-   public ShopTitle(Translatable var1, Translatable var2) {
-      this.title = new ShopTitle.Title(var1);
-      this.bedrockTitle = var2 == null ? this.title : new ShopTitle.Title(var2);
+   public ShopTitle(Translatable text, Translatable text2) {
+      this.title = new ShopTitle.Title(text);
+      this.bedrockTitle = text2 == null ? this.title : new ShopTitle.Title(text2);
    }
 
    public Translatable getTitle() {
@@ -30,8 +30,8 @@ public class ShopTitle {
       return this.title.getRaw();
    }
 
-   public Translatable getTitle(Player var1, int var2, int var3) {
-      return (UserManager.getUser(var1).isBedrock() ? this.bedrockTitle : this.title).getTitle(var1, var2, var3);
+   public Translatable getTitle(Player player, int value, int value2) {
+      return (UserManager.getUser(player).isBedrock() ? this.bedrockTitle : this.title).getTitle(player, value, value2);
    }
 
    public boolean isStatic() {
@@ -43,10 +43,10 @@ public class ShopTitle {
       private final boolean dynamicPages;
       private final boolean placeholders;
 
-      private Title(Translatable var1) {
-         this.title = var1;
-         this.dynamicPages = var1.toString().contains("%page%") || var1.toString().contains("%pages%");
-         this.placeholders = PlaceholderAPIHook.hasPlaceholders(var1.toString().replace("%page%", "").replace("%pages%", ""));
+      private Title(Translatable text) {
+         this.title = text;
+         this.dynamicPages = text.toString().contains("%page%") || text.toString().contains("%pages%");
+         this.placeholders = PlaceholderAPIHook.hasPlaceholders(text.toString().replace("%page%", "").replace("%pages%", ""));
       }
 
       private Translatable get() {
@@ -57,17 +57,17 @@ public class ShopTitle {
          return this.title.toString();
       }
 
-      private Translatable getTitle(Player var1, int var2, int var3) {
-         Translatable var4 = this.title;
+      private Translatable getTitle(Player player, int value, int value2) {
+         Translatable text = this.title;
          if (this.dynamicPages) {
-            var4 = this.title.replace("%page%", var2 + "").replace("%pages%", var3 + "");
+            text = this.title.replace("%page%", value + "").replace("%pages%", value2 + "");
          }
 
          if (this.placeholders) {
-            var4 = var4.translate(var1);
+            text = text.translate(player);
          }
 
-         return var4;
+         return text;
       }
 
       private boolean isStatic() {

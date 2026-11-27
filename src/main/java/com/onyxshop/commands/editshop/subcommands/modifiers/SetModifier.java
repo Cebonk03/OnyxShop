@@ -25,9 +25,9 @@ public class SetModifier extends SubCommad {
    private final Methods methods;
    private final OnyxShop plugin;
 
-   public SetModifier(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public SetModifier(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -46,177 +46,177 @@ public class SetModifier extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.modifiers." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.modifiers." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         OfflinePlayer var3 = Bukkit.getOfflinePlayer(var2[2]);
-         if (var2.length > 3) {
-            Modifiers.ModifierLocation var4;
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(values[2]);
+         if (values.length > 3) {
+            Modifiers.ModifierLocation modifierLocation;
             try {
-               var4 = Modifiers.ModifierLocation.valueOf(var2[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var14) {
-               SendMessage.warnMessage(var1, ChatColor.RED + "Invalid location, should be SECTION or ITEM");
+               modifierLocation = Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+               SendMessage.warnMessage(value, ChatColor.RED + "Invalid location, should be SECTION or ITEM");
                return;
             }
 
-            if (var2.length > 4) {
-               String var5 = this.methods.getSection(var1, var2[4]);
-               if (var5 != null) {
-                  String var6 = null;
-                  if (var4 == Modifiers.ModifierLocation.ITEM) {
-                     if (var2.length <= 5) {
-                        SendMessage.sendMessage(var1, this.getSyntax());
+            if (values.length > 4) {
+               String section = this.methods.getSection(value, values[4]);
+               if (section != null) {
+                  String text = null;
+                  if (modifierLocation == Modifiers.ModifierLocation.ITEM) {
+                     if (values.length <= 5) {
+                        SendMessage.sendMessage(value, this.getSyntax());
                         return;
                      }
 
-                     var6 = this.methods.getShopItemLoc(var1, var5, var2[5]);
-                     if (var6 == null) {
+                     text = this.methods.getShopItemLoc(value, section, values[5]);
+                     if (text == null) {
                         return;
                      }
                   }
 
-                  if (var2.length > (var4 == Modifiers.ModifierLocation.SECTION ? 5 : 6)) {
-                     PriceModifierType var7;
+                  if (values.length > (modifierLocation == Modifiers.ModifierLocation.SECTION ? 5 : 6)) {
+                     PriceModifierType priceModifierType;
                      try {
-                        var7 = PriceModifierType.valueOf(var2[var4 == Modifiers.ModifierLocation.SECTION ? 5 : 6].toUpperCase(Locale.ROOT));
-                     } catch (IllegalArgumentException var13) {
-                        SendMessage.warnMessage(var1, ChatColor.RED + "Invalid modifier type, should be BOTH, BUY or SELL");
+                        priceModifierType = PriceModifierType.valueOf(values[modifierLocation == Modifiers.ModifierLocation.SECTION ? 5 : 6].toUpperCase(Locale.ROOT));
+                     } catch (IllegalArgumentException exception) {
+                        SendMessage.warnMessage(value, ChatColor.RED + "Invalid modifier type, should be BOTH, BUY or SELL");
                         return;
                      }
 
-                     if (var2.length > (var4 == Modifiers.ModifierLocation.SECTION ? 6 : 7)) {
-                        String var10 = var2[var4 == Modifiers.ModifierLocation.SECTION ? 6 : 7].replace("+", "").replace("%", "");
+                     if (values.length > (modifierLocation == Modifiers.ModifierLocation.SECTION ? 6 : 7)) {
+                        String text2 = values[modifierLocation == Modifiers.ModifierLocation.SECTION ? 6 : 7].replace("+", "").replace("%", "");
 
-                        double var8;
+                        double amount;
                         try {
-                           var8 = 100.0 + Math.round(Double.parseDouble(var10) * 100.0) / 100.0;
-                        } catch (NumberFormatException var12) {
-                           SendMessage.sendMessage(var1, Lang.NO_VALID_AMOUNT.get());
+                           amount = 100.0 + Math.round(Double.parseDouble(text2) * 100.0) / 100.0;
+                        } catch (NumberFormatException exception) {
+                           SendMessage.sendMessage(value, Lang.NO_VALID_AMOUNT.get());
                            return;
                         }
 
-                        if (var8 < 0.0) {
-                           SendMessage.warnMessage(var1, "Amount cannot be below -100%");
+                        if (amount < 0.0) {
+                           SendMessage.warnMessage(value, "Amount cannot be below -100%");
                         } else {
-                           if (var4 == Modifiers.ModifierLocation.SECTION) {
-                              this.plugin.getModifierManager().setCommandSectionModifier(var3.getUniqueId(), var5, var7, var8);
-                           } else if (var4 == Modifiers.ModifierLocation.ITEM) {
-                              this.plugin.getModifierManager().setCommandItemModifier(var3.getUniqueId(), var5 + "." + var6, var7, var8);
+                           if (modifierLocation == Modifiers.ModifierLocation.SECTION) {
+                              this.plugin.getModifierManager().setCommandSectionModifier(offlinePlayer.getUniqueId(), section, priceModifierType, amount);
+                           } else if (modifierLocation == Modifiers.ModifierLocation.ITEM) {
+                              this.plugin.getModifierManager().setCommandItemModifier(offlinePlayer.getUniqueId(), section + "." + text, priceModifierType, amount);
                            }
 
-                           var8 -= 100.0;
+                           amount -= 100.0;
                            SendMessage.infoMessage(
-                              var1,
+                              value,
                               Lang.PLAYER_PRICE_MODIFIER_SET
                                  .get()
-                                 .replace("%location%", var4.name())
-                                 .replace("%player_name%", var3.getName() == null ? "null" : var3.getName())
-                                 .replace("%player_uuid%", var3.getUniqueId().toString())
-                                 .replace("%type%", var7 == PriceModifierType.BOTH ? "BUY and SELL" : var7.name())
-                                 .replace("%amount%", String.valueOf(var8 < 0.0 ? var8 : "+" + var8))
+                                 .replace("%location%", modifierLocation.name())
+                                 .replace("%player_name%", offlinePlayer.getName() == null ? "null" : offlinePlayer.getName())
+                                 .replace("%player_uuid%", offlinePlayer.getUniqueId().toString())
+                                 .replace("%type%", priceModifierType == PriceModifierType.BOTH ? "BUY and SELL" : priceModifierType.name())
+                                 .replace("%amount%", String.valueOf(amount < 0.0 ? amount : "+" + amount))
                            );
                         }
                      } else {
-                        SendMessage.sendMessage(var1, this.getSyntax());
+                        SendMessage.sendMessage(value, this.getSyntax());
                      }
                   } else {
-                     SendMessage.sendMessage(var1, this.getSyntax());
+                     SendMessage.sendMessage(value, this.getSyntax());
                   }
                }
             } else {
-               SendMessage.sendMessage(var1, this.getSyntax());
+               SendMessage.sendMessage(value, this.getSyntax());
             }
          } else {
-            SendMessage.sendMessage(var1, this.getSyntax());
+            SendMessage.sendMessage(value, this.getSyntax());
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               List var11 = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-               ArrayList var13 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], var11, var13);
-               Collections.sort(var13);
-               return var13;
+            if (!values[2].isEmpty()) {
+               List playerNames = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], playerNames, values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getServer().getOnlinePlayers().stream().<String>map(Player::getName).collect(Collectors.toList());
          case 4:
-            if (!var1[3].isEmpty()) {
-               ArrayList var10 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[3], Arrays.stream(Modifiers.ModifierLocation.values()).map(Enum::name).collect(Collectors.toList()), var10);
-               Collections.sort(var10);
-               return var10;
+            if (!values[3].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[3], Arrays.stream(Modifiers.ModifierLocation.values()).map(Enum::name).collect(Collectors.toList()), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return Arrays.stream(Modifiers.ModifierLocation.values()).map(Enum::name).collect(Collectors.toList());
          case 5:
-            if (!var1[4].isEmpty()) {
-               ArrayList var9 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[4], this.plugin.getShopSections(), var9);
-               Collections.sort(var9);
-               return var9;
+            if (!values[4].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[4], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 6:
-            Modifiers.ModifierLocation var2;
+            Modifiers.ModifierLocation modifierLocation;
             try {
-               var2 = Modifiers.ModifierLocation.valueOf(var1[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var8) {
+               modifierLocation = Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
                return null;
             }
 
-            if (var2 == Modifiers.ModifierLocation.ITEM && !this.plugin.getShopSections().contains(var1[4])) {
+            if (modifierLocation == Modifiers.ModifierLocation.ITEM && !this.plugin.getShopSections().contains(values[4])) {
                return null;
             } else {
-               if (!var1[5].isEmpty()) {
-                  ArrayList var12 = new ArrayList();
+               if (!values[5].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
                   StringUtil.copyPartialMatches(
-                     var1[5],
-                     (Iterable)(var2 == Modifiers.ModifierLocation.SECTION
+                     values[5],
+                     (Iterable)(modifierLocation == Modifiers.ModifierLocation.SECTION
                         ? Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList())
-                        : this.plugin.getSection(var1[4]).getShopItemLocs()),
-                     var12
+                        : this.plugin.getSection(values[4]).getShopItemLocs()),
+                     values2
                   );
-                  Collections.sort(var12);
-                  return var12;
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return var2 == Modifiers.ModifierLocation.SECTION
+               return modifierLocation == Modifiers.ModifierLocation.SECTION
                   ? Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList())
-                  : this.plugin.getSection(var1[4]).getShopItemLocs();
+                  : this.plugin.getSection(values[4]).getShopItemLocs();
             }
          case 7:
-            Modifiers.ModifierLocation var3;
+            Modifiers.ModifierLocation modifierLocation2;
             try {
-               var3 = Modifiers.ModifierLocation.valueOf(var1[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var7) {
+               modifierLocation2 = Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
                return null;
             }
 
-            return var3 == Modifiers.ModifierLocation.SECTION
+            return modifierLocation2 == Modifiers.ModifierLocation.SECTION
                ? Arrays.asList("+15%", "+33.33%", "-20%", "-72.5%")
                : Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList());
          case 8:
-            Modifiers.ModifierLocation var4;
+            Modifiers.ModifierLocation modifierLocation3;
             try {
-               var4 = Modifiers.ModifierLocation.valueOf(var1[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var6) {
+               modifierLocation3 = Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
                return null;
             }
 
-            return var4 == Modifiers.ModifierLocation.ITEM ? Arrays.asList("+15%", "+33.33%", "-20%", "-72.5%") : null;
+            return modifierLocation3 == Modifiers.ModifierLocation.ITEM ? Arrays.asList("+15%", "+33.33%", "-20%", "-72.5%") : null;
          default:
             return null;
       }

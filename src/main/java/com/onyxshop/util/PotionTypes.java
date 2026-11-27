@@ -72,114 +72,114 @@ public enum PotionTypes {
    private final String[] aliases;
    public static final EnumSet<PotionTypes> VALUES = EnumSet.allOf(PotionTypes.class);
 
-   private PotionTypes(String nullxx, int nullxxx, boolean nullxxxx, int nullxxxxx, boolean nullxxxxxx, String... nullxxxxxxx) {
-      this.type = nullxx;
-      this.ticks = nullxxx;
-      this.extended = nullxxxx;
-      this.level = nullxxxxx;
-      this.upgraded = nullxxxxxx;
-      this.aliases = nullxxxxxxx;
+   private PotionTypes(String text, int value, boolean flag, int value2, boolean flag2, String... values) {
+      this.type = text;
+      this.ticks = value;
+      this.extended = flag;
+      this.level = value2;
+      this.upgraded = flag2;
+      this.aliases = values;
    }
 
-   private PotionTypes(String nullxx, String nullxxx, int nullxxxx, boolean nullxxxxx, int nullxxxxxx, boolean nullxxxxxxx, String... nullxxxxxxxx) {
-      this.type = ServerInfo.supportsComponents() ? nullxx : nullxxx;
-      this.ticks = nullxxxx;
-      this.extended = nullxxxxx;
-      this.level = nullxxxxxx;
-      this.upgraded = nullxxxxxxx;
-      this.aliases = nullxxxxxxxx;
+   private PotionTypes(String text, String text2, int value, boolean flag, int value2, boolean flag2, String... values) {
+      this.type = ServerInfo.supportsComponents() ? text : text2;
+      this.ticks = value;
+      this.extended = flag;
+      this.level = value2;
+      this.upgraded = flag2;
+      this.aliases = values;
    }
 
-   public static Optional<PotionTypes> matchPotionType(String var0) {
-      var0 = var0.replace(" ", "_").toUpperCase(Locale.ENGLISH);
+   public static Optional<PotionTypes> matchPotionType(String type) {
+      type = type.replace(" ", "_").toUpperCase(Locale.ENGLISH);
 
-      for (PotionTypes var2 : VALUES) {
-         if (var2.name().equalsIgnoreCase(var0) || var2.anyMatchAliases(var0)) {
-            return Optional.of(var2);
+      for (PotionTypes potionTypes : VALUES) {
+         if (potionTypes.name().equalsIgnoreCase(type) || potionTypes.anyMatchAliases(type)) {
+            return Optional.of(potionTypes);
          }
       }
 
       return Optional.empty();
    }
 
-   public static Optional<PotionTypes> getFromType(String var0) {
-      var0 = var0.replace(" ", "_").toUpperCase(Locale.ENGLISH);
+   public static Optional<PotionTypes> getFromType(String type) {
+      type = type.replace(" ", "_").toUpperCase(Locale.ENGLISH);
 
-      for (PotionTypes var2 : VALUES) {
-         if (var2.type.equalsIgnoreCase(var0) || var2.anyMatchAliases(var0)) {
-            return Optional.of(var2);
+      for (PotionTypes potionTypes : VALUES) {
+         if (potionTypes.type.equalsIgnoreCase(type) || potionTypes.anyMatchAliases(type)) {
+            return Optional.of(potionTypes);
          }
       }
 
       return Optional.empty();
    }
 
-   public static PotionTypes matchPotionType(PotionEffect var0) {
-      for (PotionTypes var2 : VALUES) {
-         if (var2.isSupported()
-            && var2.hasEffect()
-            && var2.parsePotionEffectType().equals(var0.getType())
-            && var2.ticks == var0.getDuration()
-            && var2.level == var0.getAmplifier()) {
-            return var2;
+   public static PotionTypes matchPotionType(PotionEffect potionEffect) {
+      for (PotionTypes potionTypes : VALUES) {
+         if (potionTypes.isSupported()
+            && potionTypes.hasEffect()
+            && potionTypes.parsePotionEffectType().equals(potionEffect.getType())
+            && potionTypes.ticks == potionEffect.getDuration()
+            && potionTypes.level == potionEffect.getAmplifier()) {
+            return potionTypes;
          }
       }
 
       return WATER;
    }
 
-   public static PotionTypes matchPotionType(PotionType var0) {
-      for (PotionTypes var2 : VALUES) {
-         if (var2.isSupported() && var2.parsePotionType().equals(var0)) {
-            return var2;
+   public static PotionTypes matchPotionType(PotionType potionType) {
+      for (PotionTypes potionTypes : VALUES) {
+         if (potionTypes.isSupported() && potionTypes.parsePotionType().equals(potionType)) {
+            return potionTypes;
          }
       }
 
       return WATER;
    }
 
-   public static Optional<PotionTypes> matchPotionDataLegacy(PotionType var0, boolean var1, boolean var2) {
-      for (PotionTypes var4 : VALUES) {
-         if (var4.isSupported() && var4.parsePotionType().equals(var0) && var4.extended == var1 && var4.upgraded == var2) {
-            return Optional.of(var4);
+   public static Optional<PotionTypes> matchPotionDataLegacy(PotionType potionType, boolean flag, boolean flag2) {
+      for (PotionTypes potionTypes : VALUES) {
+         if (potionTypes.isSupported() && potionTypes.parsePotionType().equals(potionType) && potionTypes.extended == flag && potionTypes.upgraded == flag2) {
+            return Optional.of(potionTypes);
          }
       }
 
       return Optional.empty();
    }
 
-   public static Optional<PotionTypes> matchPotionData(PotionType var0) {
-      for (PotionTypes var2 : VALUES) {
-         if (var2.isSupported() && var2.name().equals(var0.name())) {
-            return Optional.of(var2);
+   public static Optional<PotionTypes> matchPotionData(PotionType potionType) {
+      for (PotionTypes potionTypes : VALUES) {
+         if (potionTypes.isSupported() && potionTypes.name().equals(potionType.name())) {
+            return Optional.of(potionTypes);
          }
       }
 
       return Optional.empty();
    }
 
-   public List<String> getNames(ItemStack var1) {
-      HashSet<String> var2 = new HashSet<>();
-      var2.add(XMaterial.matchXMaterial(var1).name() + " of " + this.name());
+   public List<String> getNames(ItemStack itemStack) {
+      HashSet<String> values = new HashSet<>();
+      values.add(XMaterial.matchXMaterial(itemStack).name() + " of " + this.name());
 
-      for (String var6 : this.aliases) {
-         if (!this.name().contains(var6) && !var2.stream().anyMatch(var1x -> var1x.contains(var6)) && var6.length() >= 4) {
-            var2.add(XMaterial.matchXMaterial(var1).name() + " of " + var6);
+      for (String text : this.aliases) {
+         if (!this.name().contains(text) && !values.stream().anyMatch(element -> element.contains(text)) && text.length() >= 4) {
+            values.add(XMaterial.matchXMaterial(itemStack).name() + " of " + text);
          }
       }
 
-      return var2.stream().map(var0 -> OnyxShop.getInstance().getMaterialName(var0)).collect(Collectors.toList());
+      return values.stream().map(element -> OnyxShop.getInstance().getMaterialName(element)).collect(Collectors.toList());
    }
 
-   public static boolean canHaveEffects(Material var0) {
-      return XMaterial.matchXMaterial(var0).equals(XMaterial.POTION)
-         || XMaterial.matchXMaterial(var0).equals(XMaterial.LINGERING_POTION)
-         || XMaterial.matchXMaterial(var0).equals(XMaterial.SPLASH_POTION)
-         || XMaterial.matchXMaterial(var0).equals(XMaterial.TIPPED_ARROW);
+   public static boolean canHaveEffects(Material material) {
+      return XMaterial.matchXMaterial(material).equals(XMaterial.POTION)
+         || XMaterial.matchXMaterial(material).equals(XMaterial.LINGERING_POTION)
+         || XMaterial.matchXMaterial(material).equals(XMaterial.SPLASH_POTION)
+         || XMaterial.matchXMaterial(material).equals(XMaterial.TIPPED_ARROW);
    }
 
-   public static boolean canHaveEffects(ItemStack var0) {
-      switch (XMaterial.matchXMaterial(var0)) {
+   public static boolean canHaveEffects(ItemStack itemStack) {
+      switch (XMaterial.matchXMaterial(itemStack)) {
          case POTION:
          case LINGERING_POTION:
          case SPLASH_POTION:
@@ -201,31 +201,31 @@ public enum PotionTypes {
       return this.hasEffect() ? new PotionEffect(this.parsePotionEffectType(), this.ticks, this.level, false) : null;
    }
 
-   public static List<PotionTypes> getPotionTypes(ItemStack var0) {
-      ArrayList var1 = new ArrayList();
-      if (var0 == null) {
-         return var1;
+   public static List<PotionTypes> getPotionTypes(ItemStack itemStack) {
+      ArrayList values = new ArrayList();
+      if (itemStack == null) {
+         return values;
       } else {
-         PotionMeta var2 = (PotionMeta)var0.getItemMeta();
-         if (var2 == null) {
-            return var1;
+         PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
+         if (potionMeta == null) {
+            return values;
          } else {
             if (OnyxShop.getInstance().version >= 19) {
-               Optional var3 = OnyxShop.getInstance().versionHandler.getBasePotion(var0);
-               if (var3.isPresent()) {
-                  var1.add((PotionTypes)var3.get());
+               Optional optional = OnyxShop.getInstance().versionHandler.getBasePotion(itemStack);
+               if (optional.isPresent()) {
+                  values.add((PotionTypes)optional.get());
                }
 
-               for (PotionEffect var5 : var2.getCustomEffects()) {
-                  var1.add(matchPotionType(var5));
+               for (PotionEffect potionEffect : potionMeta.getCustomEffects()) {
+                  values.add(matchPotionType(potionEffect));
                }
             } else {
-               for (PotionEffect var7 : var2.getCustomEffects()) {
-                  var1.add(matchPotionType(var7));
+               for (PotionEffect potionEffect : potionMeta.getCustomEffects()) {
+                  values.add(matchPotionType(potionEffect));
                }
             }
 
-            return var1;
+            return values;
          }
       }
    }
@@ -249,14 +249,14 @@ public enum PotionTypes {
    public boolean isSupported() {
       try {
          return this.parsePotionType() != null || !this.hasEffect();
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          return false;
       }
    }
 
-   private boolean anyMatchAliases(String var1) {
-      for (String var5 : this.aliases) {
-         if (var1.equals(var5) || var1.equals(StringUtils.remove(var5, '_'))) {
+   private boolean anyMatchAliases(String text) {
+      for (String text2 : this.aliases) {
+         if (text.equals(text2) || text.equals(StringUtils.remove(text2, '_'))) {
             return true;
          }
       }
@@ -265,79 +265,79 @@ public enum PotionTypes {
    }
 
    public static List<String> getNames() {
-      ArrayList var0 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (PotionTypes var4 : values()) {
-         if (var4.isSupported()) {
-            var0.add(var4.type);
+      for (PotionTypes potionTypes : values()) {
+         if (potionTypes.isSupported()) {
+            values.add(potionTypes.type);
          }
       }
 
-      return var0;
+      return values;
    }
 
-   public ItemStack addEffect(ItemStack var1, boolean var2) {
+   public ItemStack addEffect(ItemStack itemStack, boolean flag) {
       if (OnyxShop.getInstance().version != 18) {
          if (OnyxShop.getInstance().versionHandler != null) {
-            var1 = OnyxShop.getInstance().versionHandler.setPotionType(var1, this);
+            itemStack = OnyxShop.getInstance().versionHandler.setPotionType(itemStack, this);
          } else {
-            PotionMeta var3 = (PotionMeta)var1.getItemMeta();
-            if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_20_R2) && var3.getBasePotionType().getEffectType() == null) {
-               var3.setBasePotionType(PotionType.valueOf(this.name()));
+            PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
+            if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_20_R2) && potionMeta.getBasePotionType().getEffectType() == null) {
+               potionMeta.setBasePotionType(PotionType.valueOf(this.name()));
             } else {
                if (!this.hasEffect()) {
-                  return var1;
+                  return itemStack;
                }
 
-               var3.addCustomEffect(new PotionEffect(this.parsePotionEffectType(), this.getDuration(), this.getAmplifier(), false, true, true), false);
+               potionMeta.addCustomEffect(new PotionEffect(this.parsePotionEffectType(), this.getDuration(), this.getAmplifier(), false, true, true), false);
             }
 
-            var1.setItemMeta(var3);
+            itemStack.setItemMeta(potionMeta);
          }
       } else if (this.hasEffect()) {
-         this.createOldPotion(var1, var2);
+         this.createOldPotion(itemStack, flag);
       }
 
-      return var1;
+      return itemStack;
    }
 
-   private ItemStack createOldPotion(ItemStack var1, boolean var2) {
-      PotionMeta var3 = (PotionMeta)var1.getItemMeta();
+   private ItemStack createOldPotion(ItemStack itemStack, boolean flag) {
+      PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
       if (!this.hasEffect()) {
-         return var1;
+         return itemStack;
       } else {
-         if (var3.hasCustomEffects()) {
-            var3.addCustomEffect(new PotionEffect(this.parsePotionEffectType(), this.getDuration(), this.getAmplifier()), false);
+         if (potionMeta.hasCustomEffects()) {
+            potionMeta.addCustomEffect(new PotionEffect(this.parsePotionEffectType(), this.getDuration(), this.getAmplifier()), false);
          } else {
-            var3.setBasePotionType(this.parsePotionType());
-            var3.addCustomEffect(new PotionEffect(this.parsePotionEffectType(), this.getDuration(), this.getAmplifier()), false);
-            var3.setMainEffect(this.parsePotionEffectType());
+            potionMeta.setBasePotionType(this.parsePotionType());
+            potionMeta.addCustomEffect(new PotionEffect(this.parsePotionEffectType(), this.getDuration(), this.getAmplifier()), false);
+            potionMeta.setMainEffect(this.parsePotionEffectType());
          }
 
-         return var1;
+         return itemStack;
       }
    }
 
-   public static ItemStack getPotion(String var0) {
-      ItemStack var1 = new ItemStack(Material.POTION);
-      return OnyxShop.getInstance().versionHandler.setPotionType(var1, matchPotionType(var0).get());
+   public static ItemStack getPotion(String itemId) {
+      ItemStack itemStack = new ItemStack(Material.POTION);
+      return OnyxShop.getInstance().versionHandler.setPotionType(itemStack, matchPotionType(itemId).get());
    }
 
    public ItemStack getPotion() {
-      ItemStack var1 = new ItemStack(Material.POTION);
-      return OnyxShop.getInstance().versionHandler.setPotionType(var1, this);
+      ItemStack itemStack = new ItemStack(Material.POTION);
+      return OnyxShop.getInstance().versionHandler.setPotionType(itemStack, this);
    }
 
    public static List<PotionTypes> getSupportedPotions() {
-      ArrayList var0 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (PotionTypes var4 : values()) {
-         if (var4.isSupported()) {
-            var0.add(var4);
+      for (PotionTypes potionTypes : values()) {
+         if (potionTypes.isSupported()) {
+            values.add(potionTypes);
          }
       }
 
-      return var0;
+      return values;
    }
 
    public boolean hasEffect() {

@@ -21,14 +21,14 @@ public class BreweryHook implements ItemProvider {
    private final boolean breweryX;
    private boolean isReady = false;
 
-   public BreweryHook(OnyxShop var1, boolean var2) {
-      this.plugin = var1;
-      this.breweryX = var2;
-      if (var1.getServer().getPluginManager().isPluginEnabled(this.getRealName())) {
+   public BreweryHook(OnyxShop plugin, boolean flag) {
+      this.plugin = plugin;
+      this.breweryX = flag;
+      if (plugin.getServer().getPluginManager().isPluginEnabled(this.getRealName())) {
          this.enable();
       } else {
-         var1.runTaskLater(() -> {
-            if (!var1.getServer().getPluginManager().isPluginEnabled(this.getRealName())) {
+         plugin.runTaskLater(() -> {
+            if (!plugin.getServer().getPluginManager().isPluginEnabled(this.getRealName())) {
                SendMessage.errorMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", this.getRealName()));
             } else {
                this.enable();
@@ -54,80 +54,80 @@ public class BreweryHook implements ItemProvider {
    }
 
    @Override
-   public ItemStack getItem(String var1) throws ItemLoadException {
+   public ItemStack getItem(String itemId) throws ItemLoadException {
       if (!this.isReady) {
          return null;
       } else {
-         String[] var2 = var1.split("\\.");
+         String[] values = itemId.split("\\.");
 
          try {
-            BRecipe var3 = BreweryApi.getRecipe(var2[0]);
-            if (var3 == null) {
-               throw new ItemLoadException("Cannot find brewery recipe for '" + var2[0] + "." + var2[1] + "'");
+            BRecipe bRecipe = BreweryApi.getRecipe(values[0]);
+            if (bRecipe == null) {
+               throw new ItemLoadException("Cannot find brewery recipe for '" + values[0] + "." + values[1] + "'");
             } else {
-               int var9;
+               int value;
                try {
-                  var9 = Integer.parseInt(var2[1]);
-               } catch (NumberFormatException var7) {
-                  throw new ItemLoadException("Invalid brew quality for " + var2[1] + ", should be a number!");
+                  value = Integer.parseInt(values[1]);
+               } catch (NumberFormatException exception) {
+                  throw new ItemLoadException("Invalid brew quality for " + values[1] + ", should be a number!");
                }
 
-               ItemStack var5 = BreweryApi.createBrewItem(var2[0], var9);
-               Brew var6 = BreweryApi.getBrew(var5);
-               this.seal(var6, var5);
-               return var5;
+               ItemStack itemStack = BreweryApi.createBrewItem(values[0], value);
+               Brew brew = BreweryApi.getBrew(itemStack);
+               this.seal(brew, itemStack);
+               return itemStack;
             }
-         } catch (Exception var8) {
-            String var4;
-            if (var8 instanceof ArrayIndexOutOfBoundsException) {
-               var4 = "Invalid syntax for Brewery item, should be '<recipeName>.<quality>'. But got '" + var1 + "'";
-            } else if (!(var8 instanceof ItemLoadException)) {
-               var4 = "Error while creating Brew item from Brewery";
-               var8.printStackTrace();
+         } catch (Exception exception) {
+            String text;
+            if (exception instanceof ArrayIndexOutOfBoundsException) {
+               text = "Invalid syntax for Brewery item, should be '<recipeName>.<quality>'. But got '" + itemId + "'";
+            } else if (!(exception instanceof ItemLoadException)) {
+               text = "Error while creating Brew item from Brewery";
+               exception.printStackTrace();
             } else {
-               var4 = var8.getMessage();
+               text = exception.getMessage();
             }
 
-            throw new ItemLoadException("Failed to load Brew with reason: " + var4);
+            throw new ItemLoadException("Failed to load Brew with reason: " + text);
          }
       }
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      Brew var2 = Brew.get(var1);
-      if (var2 == null) {
+   public String getItem(ItemStack itemStack) {
+      Brew brew = Brew.get(itemStack);
+      if (brew == null) {
          return null;
       } else {
-         String var3 = BreweryApi.getRecipeName(var2);
-         if (var3 == null) {
+         String recipeName = BreweryApi.getRecipeName(brew);
+         if (recipeName == null) {
             return null;
          } else {
-            int var4 = var2.getQuality();
-            return var3 + "." + var4;
+            int quality = brew.getQuality();
+            return recipeName + "." + quality;
          }
       }
    }
 
    @Override
-   public String getID(String var1) {
-      return var1.split(":")[0];
+   public String getID(String text) {
+      return text.split(":")[0];
    }
 
    private String getRealName() {
       return this.breweryX ? "BreweryX" : "Brewery";
    }
 
-   private void seal(Brew var1, ItemStack var2) throws ItemLoadException {
+   private void seal(Brew brew, ItemStack itemStack) throws ItemLoadException {
       if (!this.breweryX) {
-         var1.seal(var2, (org.bukkit.entity.Player)null);
+         brew.seal(itemStack, (org.bukkit.entity.Player)null);
       } else {
          try {
-            Method var3 = var1.getClass().getDeclaredMethod("seal", ItemStack.class, Player.class);
-            var3.setAccessible(true);
-            var3.invoke(var1, var2, null);
-         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException var4) {
-            var4.printStackTrace();
+            Method method = brew.getClass().getDeclaredMethod("seal", ItemStack.class, Player.class);
+            method.setAccessible(true);
+            method.invoke(brew, itemStack, null);
+         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException exception) {
+            exception.printStackTrace();
             throw new ItemLoadException("Failed to seal brew");
          }
       }

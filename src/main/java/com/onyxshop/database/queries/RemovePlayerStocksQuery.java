@@ -6,22 +6,22 @@ import com.onyxshop.database.SQLQueries;
 public class RemovePlayerStocksQuery implements Query {
    private final String section;
 
-   public RemovePlayerStocksQuery(String var1) {
-      this.section = var1 == null ? "%" : "%" + var1 + "%";
+   public RemovePlayerStocksQuery(String playerName) {
+      this.section = playerName == null ? "%" : "%" + playerName + "%";
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.REMOVE_STOCK.init(var1, this.section);
+   public String format(String text) {
+      return SQLQueries.REMOVE_STOCK.init(text, this.section);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         RemovePlayerStocksQuery var2 = (RemovePlayerStocksQuery)var1;
-         return this.section.equals(var2.section);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         RemovePlayerStocksQuery removePlayerStocksQuery = (RemovePlayerStocksQuery)value;
+         return this.section.equals(removePlayerStocksQuery.section);
       } else {
          return false;
       }

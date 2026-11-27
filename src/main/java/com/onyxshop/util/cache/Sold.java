@@ -26,29 +26,29 @@ public class Sold {
       return this.prices;
    }
 
-   public void addIndex(int var1) {
-      this.indexes.add(var1);
+   public void addIndex(int index) {
+      this.indexes.add(index);
    }
 
-   public Sold addValues(int var1, Map<EcoType, Double> var2) {
-      this.amount = this.amount + var1;
-      var2.forEach((var1x, var2x) -> this.prices.merge(var1x, var2x, Double::sum));
+   public Sold addValues(int value, Map<EcoType, Double> map) {
+      this.amount = this.amount + value;
+      map.forEach((key, value2) -> this.prices.merge(key, value2, Double::sum));
       return this;
    }
 
-   public Sold addValue(Sold var1) {
-      this.amount = this.amount + var1.getAmount();
-      var1.getPrices().forEach((var1x, var2) -> this.prices.merge(var1x, var2, Double::sum));
+   public Sold addValue(Sold sold) {
+      this.amount = this.amount + sold.getAmount();
+      sold.getPrices().forEach((key, value) -> this.prices.merge(key, value, Double::sum));
       return this;
    }
 
-   public Sold addAmount(int var1) {
-      this.amount = this.amount + var1;
+   public Sold addAmount(int amount) {
+      this.amount = this.amount + amount;
       return this;
    }
 
-   public Sold addPrice(Map<EcoType, Double> var1) {
-      var1.forEach((var1x, var2) -> this.prices.put(var1x, this.prices.getOrDefault(var1x, 0.0) + var2));
+   public Sold addPrice(Map<EcoType, Double> prices) {
+      prices.forEach((key, value) -> this.prices.put(key, this.prices.getOrDefault(key, 0.0) + value));
       return this;
    }
 }

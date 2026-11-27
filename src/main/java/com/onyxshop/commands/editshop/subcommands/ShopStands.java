@@ -21,27 +21,27 @@ public class ShopStands extends SubCommad {
    private final OnyxShop plugin;
    private final ArrayList<SubCommad> subCommads = new ArrayList<>();
 
-   public ShopStands(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.subCommads.add(new Give(var1, var2));
-      this.subCommads.add(new Destroy(var1, var2));
-      this.subCommads.add(new Browse(var1, var2));
+   public ShopStands(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.subCommads.add(new Give(plugin, methods));
+      this.subCommads.add(new Destroy(plugin, methods));
+      this.subCommads.add(new Browse(plugin, methods));
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
+   public void perform(Object value, String[] values) {
       if (!this.plugin.shopStands) {
-         SendMessage.warnMessage(var1, Lang.SHOP_STANDS_MODULE_NOT_ENABLED.get());
+         SendMessage.warnMessage(value, Lang.SHOP_STANDS_MODULE_NOT_ENABLED.get());
       } else {
-         if (var1 instanceof Player) {
-            Player var6 = (Player)var1;
-            if (var2.length > 1) {
-               for (SubCommad var5 : this.subCommads) {
-                  if (var2[1].equalsIgnoreCase(var5.getName())) {
-                     if (var5.hasPermission(var6)) {
-                        var5.perform(var1, var2);
+         if (value instanceof Player) {
+            Player player = (Player)value;
+            if (values.length > 1) {
+               for (SubCommad subCommad : this.subCommads) {
+                  if (values[1].equalsIgnoreCase(subCommad.getName())) {
+                     if (subCommad.hasPermission(player)) {
+                        subCommad.perform(value, values);
                      } else {
-                        SendMessage.chatToPlayer(var6, Lang.NO_PERMISSIONS.get());
+                        SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
                      }
 
                      return;
@@ -49,32 +49,32 @@ public class ShopStands extends SubCommad {
                }
             }
 
-            if (this.hasPermission(var6)) {
-               this.sendAllSyntaxes(var1);
+            if (this.hasPermission(player)) {
+               this.sendAllSyntaxes(value);
             } else {
-               SendMessage.chatToPlayer(var6, Lang.NO_PERMISSIONS.get());
+               SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get());
             }
          } else {
-            if (var1 instanceof org.bukkit.command.BlockCommandSender) {
-               SendMessage.warnMessage(var1, Lang.NO_PERMISSIONS.get());
+            if (value instanceof org.bukkit.command.BlockCommandSender) {
+               SendMessage.warnMessage(value, Lang.NO_PERMISSIONS.get());
                return;
             }
 
-            if (var2.length > 1) {
-               if (var2[1].equalsIgnoreCase("browse") || var2[1].equalsIgnoreCase("give")) {
-                  SendMessage.warnMessage(var1, Lang.REAL_PLAYER.get());
+            if (values.length > 1) {
+               if (values[1].equalsIgnoreCase("browse") || values[1].equalsIgnoreCase("give")) {
+                  SendMessage.warnMessage(value, Lang.REAL_PLAYER.get());
                   return;
                }
 
-               for (SubCommad var4 : this.subCommads) {
-                  if (var2[1].equalsIgnoreCase(var4.getName())) {
-                     var4.perform(var1, var2);
+               for (SubCommad subCommad : this.subCommads) {
+                  if (values[1].equalsIgnoreCase(subCommad.getName())) {
+                     subCommad.perform(value, values);
                      return;
                   }
                }
             }
 
-            this.sendAllSyntaxes(var1);
+            this.sendAllSyntaxes(value);
          }
       }
    }
@@ -95,52 +95,52 @@ public class ShopStands extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return this.subCommads.stream().anyMatch(var1x -> var1x.hasPermission(var1));
+   public boolean hasPermission(CommandSender sender) {
+      return this.subCommads.stream().anyMatch(element -> element.hasPermission(sender));
    }
 
-   private void sendAllSyntaxes(Object var1) {
-      SendMessage.sendMessage(var1, Lang.SELLALL_COMMAND_USAGES.get());
-      StringBuilder var2 = new StringBuilder();
+   private void sendAllSyntaxes(Object value) {
+      SendMessage.sendMessage(value, Lang.SELLALL_COMMAND_USAGES.get());
+      StringBuilder builder = new StringBuilder();
 
-      for (int var3 = 0; var3 < this.subCommads.size(); var3++) {
-         SubCommad var4 = this.subCommads.get(var3);
-         if (var4.hasPermission((CommandSender)var1) && (!(var1 instanceof ConsoleCommandSender) || !(var4 instanceof Give) && !(var4 instanceof Browse))) {
-            var2.append(ChatColor.WHITE + " - " + ChatColor.RESET);
-            var2.append(var4.getSyntax()).append(ChatColor.DARK_GRAY).append(" - ").append(ChatColor.RESET).append(var4.getDescription());
-            if (var3 != this.subCommads.size()) {
-               var2.append("\n");
+      for (int size = 0; size < this.subCommads.size(); size++) {
+         SubCommad subCommad = this.subCommads.get(size);
+         if (subCommad.hasPermission((CommandSender)value) && (!(value instanceof ConsoleCommandSender) || !(subCommad instanceof Give) && !(subCommad instanceof Browse))) {
+            builder.append(ChatColor.WHITE + " - " + ChatColor.RESET);
+            builder.append(subCommad.getSyntax()).append(ChatColor.DARK_GRAY).append(" - ").append(ChatColor.RESET).append(subCommad.getDescription());
+            if (size != this.subCommads.size()) {
+               builder.append("\n");
             }
          }
       }
 
-      SendMessage.sendMessage(var1, var2.toString());
+      SendMessage.sendMessage(value, builder.toString());
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      if (var1.length != 2) {
-         for (SubCommad var7 : this.subCommads) {
-            if (var1[1].equalsIgnoreCase(var7.getName())) {
-               return var7.getTabCompletion(var1);
+   public List<String> getTabCompletion(String[] values) {
+      if (values.length != 2) {
+         for (SubCommad subCommad : this.subCommads) {
+            if (values[1].equalsIgnoreCase(subCommad.getName())) {
+               return subCommad.getTabCompletion(values);
             }
          }
 
          return null;
       } else {
-         ArrayList var2 = new ArrayList();
+         ArrayList values2 = new ArrayList();
 
-         for (SubCommad var4 : this.subCommads) {
-            var2.add(var4.getName());
+         for (SubCommad subCommad : this.subCommads) {
+            values2.add(subCommad.getName());
          }
 
-         if (!var1[1].isEmpty()) {
-            ArrayList var6 = new ArrayList();
-            StringUtil.copyPartialMatches(var1[1], var2, var6);
-            Collections.sort(var6);
-            return var6;
+         if (!values[1].isEmpty()) {
+            ArrayList values3 = new ArrayList();
+            StringUtil.copyPartialMatches(values[1], values2, values3);
+            Collections.sort(values3);
+            return values3;
          } else {
-            return var2;
+            return values2;
          }
       }
    }

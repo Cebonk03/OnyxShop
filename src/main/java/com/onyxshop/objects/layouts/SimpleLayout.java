@@ -17,17 +17,17 @@ public class SimpleLayout {
    public long creation;
    public int downloads;
 
-   public SimpleLayout(String var1) throws ParseException {
-      JSONObject var2 = JsonUtil.parseJson(var1);
-      this.title = JsonUtil.getString(var2, "title");
-      this.authMethod = JsonUtil.getString(var2, "authMethod");
-      this.description = JsonUtil.getString(var2, "description");
-      this.tags = JsonUtil.getArray(var2, "tags");
-      this.files = JsonUtil.getArray(var2, "files");
-      this.plVer = JsonUtil.getString(var2, "plVer");
-      this.mcVer = JsonUtil.getString(var2, "mcVer");
-      this.requiresAuthorization = (Boolean)var2.get("requiresAuthorization");
-      this.creation = (Long)var2.get("creation");
-      this.downloads = ((Long)var2.get("downloads")).intValue();
+   public SimpleLayout(String text) throws ParseException {
+      JSONObject jsonObject = JsonUtil.parseJson(text);
+      this.title = JsonUtil.getString(jsonObject, "title");
+      this.authMethod = JsonUtil.getString(jsonObject, "authMethod");
+      this.description = JsonUtil.getString(jsonObject, "description");
+      this.tags = JsonUtil.getArray(jsonObject, "tags");
+      this.files = JsonUtil.getArray(jsonObject, "files");
+      this.plVer = JsonUtil.getString(jsonObject, "plVer");
+      this.mcVer = JsonUtil.getString(jsonObject, "mcVer");
+      this.requiresAuthorization = (Boolean)jsonObject.get("requiresAuthorization");
+      this.creation = (Long)jsonObject.get("creation");
+      this.downloads = ((Long)jsonObject.get("downloads")).intValue();
    }
 }

@@ -21,17 +21,17 @@ public class HeadDatabaseHook implements ItemProvider, Listener {
    private HeadDatabaseAPI api;
    private boolean isReady = false;
 
-   public HeadDatabaseHook(OnyxShop var1) throws ItemProviderLoadException {
+   public HeadDatabaseHook(OnyxShop plugin) throws ItemProviderLoadException {
       try {
-         var1.getServer().getPluginManager().registerEvents(this, var1);
-         this.plugin = var1;
-      } catch (IllegalStateException var3) {
+         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+         this.plugin = plugin;
+      } catch (IllegalStateException exception) {
          throw new ItemProviderLoadException("Cannot register head database load event");
       }
    }
 
    @EventHandler
-   public void onDatabaseLoad(DatabaseLoadEvent var1) {
+   public void onDatabaseLoad(DatabaseLoadEvent event) {
       this.api = new HeadDatabaseAPI();
       SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "HeadDatabase"));
       this.isReady = true;
@@ -50,20 +50,20 @@ public class HeadDatabaseHook implements ItemProvider, Listener {
    }
 
    @Override
-   public ItemStack getItem(String var1) throws ItemLoadException {
+   public ItemStack getItem(String itemId) throws ItemLoadException {
       if (this.api == null) {
          throw new ItemLoadException(Lang.HEADDATABASE_API_NOT_READY_YET.get());
       } else {
          try {
-            return this.api.getItemHead(var1);
-         } catch (NullPointerException var3) {
-            throw new ItemLoadException(Lang.INVALID_HEADDATABASE_SKULL.get().replace("%id%", var1));
+            return this.api.getItemHead(itemId);
+         } catch (NullPointerException exception) {
+            throw new ItemLoadException(Lang.INVALID_HEADDATABASE_SKULL.get().replace("%id%", itemId));
          }
       }
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      return XMaterial.PLAYER_HEAD != XMaterial.matchXMaterial(var1.getType()) ? null : this.api.getItemID(var1);
+   public String getItem(ItemStack itemStack) {
+      return XMaterial.PLAYER_HEAD != XMaterial.matchXMaterial(itemStack.getType()) ? null : this.api.getItemID(itemStack);
    }
 }

@@ -24,43 +24,43 @@ public class UltimateStackerHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      ItemMeta var4 = var2.getItemMeta();
-      if (var1 == null) {
-         BlockStateMeta var5 = (BlockStateMeta)var4;
-         CreatureSpawner var6 = (CreatureSpawner)var5.getBlockState();
-         var6.setSpawnedType(var3);
-         var5.setBlockState(var6);
-         var2 = OnyxShop.getInstance().versionHandler.setNBTInt(var2, "spawner_stack_size", 1);
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (shopItem == null) {
+         BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+         CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+         creatureSpawner.setSpawnedType(entityType);
+         blockStateMeta.setBlockState(creatureSpawner);
+         itemStack = OnyxShop.getInstance().versionHandler.setNBTInt(itemStack, "spawner_stack_size", 1);
       }
 
-      if (!var4.hasDisplayName()) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+      if (!itemMeta.hasDisplayName()) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      var2.setItemMeta(var4);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "spawner_stack_size", "display::Name");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "spawner_stack_size", "display::Name");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      Integer var4 = OnyxShop.getInstance().versionHandler.getNBTInt(var1, NBTMaps.CUSTOM_DATA.getTag() + "spawner_stack_size");
-      var4 = var4 == null ? 1 : var4;
-      return var4.intValue() * var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      Integer nbtInt = OnyxShop.getInstance().versionHandler.getNBTInt(itemStack, NBTMaps.CUSTOM_DATA.getTag() + "spawner_stack_size");
+      nbtInt = nbtInt == null ? 1 : nbtInt;
+      return nbtInt.intValue() * price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      ItemMeta var2 = var1.getItemMeta();
-      BlockStateMeta var3 = (BlockStateMeta)var2;
-      CreatureSpawner var4 = (CreatureSpawner)var3.getBlockState();
-      return var4.getSpawnedType().name();
+   public String getSpawnedType(ItemStack itemStack) {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+      CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+      return creatureSpawner.getSpawnedType().name();
    }
 }

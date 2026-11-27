@@ -24,9 +24,9 @@ public class Give extends SubCommad {
    String section;
    String itemLoc;
 
-   public Give(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public Give(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -45,58 +45,58 @@ public class Give extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.shopstands." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.shopstands." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var1 instanceof Player) {
-         if (var2.length > 2) {
+   public void perform(Object value, String[] values) {
+      if (value instanceof Player) {
+         if (values.length > 2) {
             try {
-               this.type = StandType.fromName(var2[2]);
-            } catch (StandLoadException var7) {
-               SendMessage.sendMessage(var1, Lang.INVALID_SHOP_STAND_TYPE.get().replace("%values%", String.join(",", StandType.getSupported())));
+               this.type = StandType.fromName(values[2]);
+            } catch (StandLoadException exception) {
+               SendMessage.sendMessage(value, Lang.INVALID_SHOP_STAND_TYPE.get().replace("%values%", String.join(",", StandType.getSupported())));
                return;
             }
 
             if (!this.type.getType().isSupported()) {
-               SendMessage.sendMessage(var1, Lang.STAND_TYPE_NOT_SUPPORTED.get().replace("%type%", this.type.name()));
-            } else if (var2.length > 3) {
-               this.section = this.methods.getSection(var1, var2[3]);
+               SendMessage.sendMessage(value, Lang.STAND_TYPE_NOT_SUPPORTED.get().replace("%type%", this.type.name()));
+            } else if (values.length > 3) {
+               this.section = this.methods.getSection(value, values[3]);
                if (this.section != null) {
-                  if (var2.length > 4) {
-                     this.itemLoc = this.methods.getShopItemLoc(var1, this.section, var2[4]);
+                  if (values.length > 4) {
+                     this.itemLoc = this.methods.getShopItemLoc(value, this.section, values[4]);
                      if (this.itemLoc != null) {
-                        String var3 = this.section + "." + this.itemLoc;
-                        ItemBuilder var4 = new ItemBuilder(this.type.getType().parseItem());
-                        var4.setDisplayName(Lang.DEFAULT_SHOP_STAND_ITEM_NAME.get());
-                        var4.withLore(Lang.DEFAULT_SHOP_STAND_ITEM_LORE.get().replace("%item%", var3));
-                        ItemStack var5 = this.plugin.versionHandler.setNBTString(var4.build(), "shopstand_item", var3);
-                        Player var6 = (Player)var1;
-                        if (var6.getInventory().firstEmpty() == -1) {
-                           SendMessage.chatToPlayer(var6, Lang.NOT_ENOUGH_SPACE_INSIDE_INVENTORY.get());
+                        String sectionId = this.section + "." + this.itemLoc;
+                        ItemBuilder itemBuilder = new ItemBuilder(this.type.getType().parseItem());
+                        itemBuilder.setDisplayName(Lang.DEFAULT_SHOP_STAND_ITEM_NAME.get());
+                        itemBuilder.withLore(Lang.DEFAULT_SHOP_STAND_ITEM_LORE.get().replace("%item%", sectionId));
+                        ItemStack itemStack = this.plugin.versionHandler.setNBTString(itemBuilder.build(), "shopstand_item", sectionId);
+                        Player player = (Player)value;
+                        if (player.getInventory().firstEmpty() == -1) {
+                           SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_SPACE_INSIDE_INVENTORY.get());
                         } else {
-                           var6.getInventory().addItem(new ItemStack[]{var5});
-                           SendMessage.chatToPlayer(var6, Lang.SHOP_STAND_ITEM_RECEIVED.get().replace("%amount%", String.valueOf(1)).replace("%item%", var3));
+                           player.getInventory().addItem(new ItemStack[]{itemStack});
+                           SendMessage.chatToPlayer(player, Lang.SHOP_STAND_ITEM_RECEIVED.get().replace("%amount%", String.valueOf(1)).replace("%item%", sectionId));
                         }
                      }
                   } else {
-                     SendMessage.sendMessage(var1, this.getSyntax());
+                     SendMessage.sendMessage(value, this.getSyntax());
                   }
                }
             } else {
-               SendMessage.sendMessage(var1, this.getSyntax());
+               SendMessage.sendMessage(value, this.getSyntax());
             }
          } else {
-            SendMessage.sendMessage(var1, this.getSyntax());
+            SendMessage.sendMessage(value, this.getSyntax());
          }
       }
    }
 
-   private boolean isSection(String var1) {
-      if (this.plugin.getShopSections().contains(var1)) {
-         this.section = var1;
+   private boolean isSection(String sectionId) {
+      if (this.plugin.getShopSections().contains(sectionId)) {
+         this.section = sectionId;
          return true;
       } else {
          return false;
@@ -104,38 +104,38 @@ public class Give extends SubCommad {
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               ArrayList var4 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], StandType.getSupported(), var4);
-               Collections.sort(var4);
-               return var4;
+            if (!values[2].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], StandType.getSupported(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return StandType.getSupported();
          case 4:
-            if (!var1[3].isEmpty()) {
-               ArrayList var3 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[3], this.plugin.getShopSections(), var3);
-               Collections.sort(var3);
-               return var3;
+            if (!values[3].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[3], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 5:
-            if (!this.isSection(var1[3])) {
+            if (!this.isSection(values[3])) {
                return null;
             } else {
-               if (!var1[2].isEmpty()) {
-                  ArrayList var2 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[4], this.plugin.getSection(var1[3]).getItemLocs(), var2);
-                  Collections.sort(var2);
-                  return var2;
+               if (!values[2].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[4], this.plugin.getSection(values[3]).getItemLocs(), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return this.plugin.getSection(var1[1]).getShopItemLocs();
+               return this.plugin.getSection(values[1]).getShopItemLocs();
             }
          default:
             return null;

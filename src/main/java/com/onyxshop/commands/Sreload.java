@@ -15,19 +15,19 @@ import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 public class Sreload extends PluginCommand {
-   public Sreload(OnyxShop var1, List<String> var2) {
-      super(var1, "sreload", "Reloads the plugin", "/sreload", "OnyxShop.reload", var2);
+   public Sreload(OnyxShop plugin, List<String> shopIds) {
+      super(plugin, "sreload", "Reloads the plugin", "/sreload", "OnyxShop.reload", shopIds);
    }
 
    @Override
-   public boolean execute(CommandSender var1, String var2, String[] var3) {
-      if (!PermissionsCache.hasPermission(var1, "OnyxShop.reload")) {
-         SendMessage.sendMessage(var1, Lang.NO_PERMISSIONS.get());
+   public boolean execute(CommandSender sender, String command, String[] values) {
+      if (!PermissionsCache.hasPermission(sender, "OnyxShop.reload")) {
+         SendMessage.sendMessage(sender, Lang.NO_PERMISSIONS.get());
          return true;
-      } else if (var1 instanceof Player) {
-         Player var4 = (Player)var1;
-         if (this.hasAccessInWorld(var4)) {
-            long var5 = System.currentTimeMillis();
+      } else if (sender instanceof Player) {
+         Player player = (Player)sender;
+         if (this.hasAccessInWorld(player)) {
+            long startTime = System.currentTimeMillis();
             this.plugin.getConfigManager().reload();
             Lang.CONFIGS_RELOADED.reload();
             this.plugin.getMetaUtils().update();
@@ -35,7 +35,7 @@ public class Sreload extends PluginCommand {
             if (ConfigManager.badYaml == null) {
                this.plugin.startupReload.setupPluginVersion();
                if (!this.plugin.getEcoHandler().relead()) {
-                  SendMessage.chatToPlayer(var4, Lang.ERROR_OCCURRED_WHILE_RELOADING.get(var4));
+                  SendMessage.chatToPlayer(player, Lang.ERROR_OCCURRED_WHILE_RELOADING.get(player));
                   return true;
                }
 
@@ -55,14 +55,14 @@ public class Sreload extends PluginCommand {
                this.plugin.reloadModifiers();
                this.plugin.reloadPlayerData();
                this.plugin.startupReload.updateAvailable();
-               SendMessage.infoMessage(var4, Lang.DONE.get(var4).replace("%millis%", String.valueOf(System.currentTimeMillis() - var5)));
+               SendMessage.infoMessage(player, Lang.DONE.get(player).replace("%millis%", String.valueOf(System.currentTimeMillis() - startTime)));
             } else {
-               SendMessage.chatToPlayer(var4, Lang.ERROR_OCCURRED_WHILE_RELOADING.get(var4));
+               SendMessage.chatToPlayer(player, Lang.ERROR_OCCURRED_WHILE_RELOADING.get(player));
                SendMessage.errorMessage("Skipping all settings and item loading because the configuration files could not be loaded...");
             }
          }
-      } else if (var1 instanceof ConsoleCommandSender || var1 instanceof BlockCommandSender || var1 instanceof RemoteConsoleCommandSender) {
-         long var7 = System.currentTimeMillis();
+      } else if (sender instanceof ConsoleCommandSender || sender instanceof BlockCommandSender || sender instanceof RemoteConsoleCommandSender) {
+         long startTime = System.currentTimeMillis();
          this.plugin.getConfigManager().reload();
          Lang.CONFIGS_RELOADED.reload();
          this.plugin.getMetaUtils().update();
@@ -89,7 +89,7 @@ public class Sreload extends PluginCommand {
             this.plugin.reloadModifiers();
             this.plugin.reloadPlayerData();
             this.plugin.startupReload.updateAvailable();
-            SendMessage.infoMessage(Lang.DONE.get().replace("%millis%", String.valueOf(System.currentTimeMillis() - var7)));
+            SendMessage.infoMessage(Lang.DONE.get().replace("%millis%", String.valueOf(System.currentTimeMillis() - startTime)));
          } else {
             SendMessage.errorMessage("Skipping all settings and item loading because the configuration files could not be loaded...");
          }
@@ -99,7 +99,7 @@ public class Sreload extends PluginCommand {
    }
 
    @Override
-   public List<String> tabComplete(CommandSender var1, String var2, String[] var3) {
+   public List<String> tabComplete(CommandSender sender, String command, String[] values) {
       return Collections.emptyList();
    }
 }

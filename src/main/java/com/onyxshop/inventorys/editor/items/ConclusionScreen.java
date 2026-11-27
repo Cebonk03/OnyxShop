@@ -17,47 +17,47 @@ public class ConclusionScreen extends ItemEditor {
    private final com.onyxshop.methodes.ItemEditor.Action action;
 
    public ConclusionScreen(
-      Player var1,
-      ShopItem var2,
-      com.onyxshop.methodes.ItemEditor.Option var3,
-      com.onyxshop.methodes.ItemEditor.Action var4,
-      String var5
+      Player player,
+      ShopItem shopItem,
+      com.onyxshop.methodes.ItemEditor.Option option,
+      com.onyxshop.methodes.ItemEditor.Action action,
+      String text
    ) {
-      this.item = var2;
-      this.newItem = var5;
-      this.option = var3;
-      this.action = var4;
-      this.initInventory(var1);
+      this.item = shopItem;
+      this.newItem = text;
+      this.option = option;
+      this.action = action;
+      this.initInventory(player);
       this.fillInventory();
-      this.open(var1);
+      this.open(player);
       OnyxShop.getInstance()
          .runTaskAsync(
             () -> this.itemEditor
                .loadItemChanges(
-                  this.action, this.option, this.action == com.onyxshop.methodes.ItemEditor.Action.ADD_ITEM ? var5 : this.item.getItemPath()
+                  this.action, this.option, this.action == com.onyxshop.methodes.ItemEditor.Action.ADD_ITEM ? text : this.item.getItemPath()
                )
          );
    }
 
-   private void initInventory(Player var1) {
-      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, 18, TitleManager.get(TitleManager.Menu.ITEM_EDITOR_CONCLUSION, var1));
-      String var2 = null;
+   private void initInventory(Player player) {
+      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, 18, TitleManager.get(TitleManager.Menu.ITEM_EDITOR_CONCLUSION, player));
+      String text = null;
       switch (this.action) {
          case REMOVE_ITEM:
-            var2 = Lang.ITEM_DELETED_FROM_SHOP.get().getLegacy();
+            text = Lang.ITEM_DELETED_FROM_SHOP.get().getLegacy();
             break;
          case REMOVE:
          case EDIT:
          case ADD:
-            var2 = Lang.ITEM_EDITED.get().getLegacy();
+            text = Lang.ITEM_EDITED.get().getLegacy();
             break;
          case ADD_ITEM:
-            var2 = Lang.ITEM_CREATED.get().getLegacy();
+            text = Lang.ITEM_CREATED.get().getLegacy();
       }
 
-      this.inv.setItem(9, OnyxShop.getInstance().createItem.getPlayerReminder(var1, false));
+      this.inv.setItem(9, OnyxShop.getInstance().createItem.getPlayerReminder(player, false));
       this.inv.setItem(17, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
-      this.inv.setItem(4, new ItemBuilder(XMaterial.GREEN_TERRACOTTA.parseItem()).withDisplayName(Lang.STATUS.get()).withLore(var2).build());
+      this.inv.setItem(4, new ItemBuilder(XMaterial.GREEN_TERRACOTTA.parseItem()).withDisplayName(Lang.STATUS.get()).withLore(text).build());
    }
 
    public ShopItem getItem() {

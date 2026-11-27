@@ -17,63 +17,68 @@ public class BukkitScheduler implements ServerScheduler {
       2, new ThreadFactoryBuilder().setNameFormat("ONYX_UTIL_THREAD #%d").build()
    );
 
-   public BukkitScheduler(OnyxShop var1) {
-      this.scheduler = var1.getServer().getScheduler();
+   public BukkitScheduler(OnyxShop plugin) {
+      this.scheduler = plugin.getServer().getScheduler();
    }
 
    @Override
-   public ScheduledTask runTask(OnyxShop var1, Runnable var2) {
-      return new BukkitTask(this.scheduler.runTask(var1, var2));
+   public ScheduledTask runTask(OnyxShop plugin, Runnable task) {
+      return new BukkitTask(this.scheduler.runTask(plugin, task));
    }
 
    @Override
-   public ScheduledTask runTaskFor(OnyxShop var1, Runnable var2, Player var3) {
-      return new BukkitTask(this.scheduler.runTask(var1, var2));
+   public ScheduledTask runTaskFor(OnyxShop plugin, Runnable task, Player player) {
+      return new BukkitTask(this.scheduler.runTask(plugin, task));
    }
 
    @Override
-   public ScheduledTask runTaskLater(OnyxShop var1, Runnable var2, long var3) {
-      return new BukkitTask(this.scheduler.runTaskLater(var1, var2, var3));
+   public ScheduledTask runTaskLater(OnyxShop plugin, Runnable task, long value) {
+      return new BukkitTask(this.scheduler.runTaskLater(plugin, task, value));
    }
 
    @Override
-   public ScheduledTask runTaskTimer(OnyxShop var1, Runnable var2, long var3, long var5) {
-      return new BukkitTask(this.scheduler.runTaskTimer(var1, var2, var3, var5));
+   public ScheduledTask runTaskLaterFor(OnyxShop plugin, Runnable task, Player player, long value) {
+      return new BukkitTask(this.scheduler.runTaskLater(plugin, task, value));
    }
 
    @Override
-   public ScheduledTask runTaskAsync(OnyxShop var1, Runnable var2) {
-      return new BukkitTask(this.scheduler.runTaskAsynchronously(var1, var2));
+   public ScheduledTask runTaskTimer(OnyxShop plugin, Runnable task, long time, long value) {
+      return new BukkitTask(this.scheduler.runTaskTimer(plugin, task, time, value));
    }
 
    @Override
-   public ScheduledTask runTaskLaterAsync(OnyxShop var1, Runnable var2, long var3) {
-      return new BukkitTask(this.scheduler.runTaskLaterAsynchronously(var1, var2, var3));
+   public ScheduledTask runTaskAsync(OnyxShop plugin, Runnable task) {
+      return new BukkitTask(this.scheduler.runTaskAsynchronously(plugin, task));
    }
 
    @Override
-   public ScheduledTask runTaskAsyncTimer(OnyxShop var1, Runnable var2, long var3, long var5) {
-      return new BukkitTask(this.scheduler.runTaskTimerAsynchronously(var1, var2, var3, var5));
+   public ScheduledTask runTaskLaterAsync(OnyxShop plugin, Runnable task, long value) {
+      return new BukkitTask(this.scheduler.runTaskLaterAsynchronously(plugin, task, value));
    }
 
    @Override
-   public void runKillableTask(Runnable var1) {
-      this.thread.execute(var1);
+   public ScheduledTask runTaskAsyncTimer(OnyxShop plugin, Runnable task, long time, long value) {
+      return new BukkitTask(this.scheduler.runTaskTimerAsynchronously(plugin, task, time, value));
    }
 
    @Override
-   public ScheduledTask runKillableTaskLater(Runnable var1, long var2) {
-      return new KillableTask(this.thread.schedule(var1, var2 * 50L, TimeUnit.MILLISECONDS));
+   public void runKillableTask(Runnable task) {
+      this.thread.execute(task);
    }
 
    @Override
-   public ScheduledTask runKillableTaskTimer(Runnable var1, long var2, long var4) {
-      return new KillableTask(this.thread.scheduleAtFixedRate(var1, var2 * 50L, var4 * 50L, TimeUnit.MILLISECONDS));
+   public ScheduledTask runKillableTaskLater(Runnable task, long value) {
+      return new KillableTask(this.thread.schedule(task, value * 50L, TimeUnit.MILLISECONDS));
    }
 
    @Override
-   public void cancelTasks(OnyxShop var1) {
-      this.scheduler.cancelTasks(var1);
+   public ScheduledTask runKillableTaskTimer(Runnable task, long time, long value) {
+      return new KillableTask(this.thread.scheduleAtFixedRate(task, time * 50L, value * 50L, TimeUnit.MILLISECONDS));
+   }
+
+   @Override
+   public void cancelTasks(OnyxShop plugin) {
+      this.scheduler.cancelTasks(plugin);
       this.thread.shutdownNow();
    }
 }

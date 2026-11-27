@@ -24,8 +24,8 @@ public class ProviderManager {
    private DynamicPricingProvider dynamicPricingProvider;
    private DisplayCacheProvider displayCacheProvider;
 
-   public ProviderManager(OnyxShop var1) {
-      this.plugin = var1;
+   public ProviderManager(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public Database getDatabase() {
@@ -49,38 +49,38 @@ public class ProviderManager {
    }
 
    public void reloadProviders() {
-      boolean var1 = this.usesLimitedStock();
-      boolean var2 = this.usesLimitedSell();
-      boolean var3 = ConfigManager.getConfig().getBoolean("dynamic-pricing.enabled");
+      boolean flag = this.usesLimitedStock();
+      boolean flag2 = this.usesLimitedSell();
+      boolean enabled = ConfigManager.getConfig().getBoolean("dynamic-pricing.enabled");
       if (this.db == null) {
          if (this.setupDatabase()) {
             SendMessage.infoMessage(Lang.DATABASE_CONNECTED.get().replace("%database-type%", this.db.getClass().getSimpleName()));
-            if (var1) {
+            if (flag) {
                this.limitedStockProvider = new LimitedStockProvider(this.plugin, this.db);
             }
 
-            if (var2) {
+            if (flag2) {
                this.limitedSellProvider = new LimitedSellProvider(this.plugin, this.db);
             }
 
-            if (var3) {
+            if (enabled) {
                this.dynamicPricingProvider = new DynamicPricingProvider(this.plugin, this.db);
             }
          } else {
-            if (var1) {
+            if (flag) {
                SendMessage.warnMessage(Lang.COULD_NOT_ENABLE_LIMITEDSTOCK.get());
             }
 
-            if (var2) {
+            if (flag2) {
                SendMessage.warnMessage(Lang.COULD_NOT_ENABLE_LIMITEDSELLSTOCK.get());
             }
 
-            if (var3) {
+            if (enabled) {
                SendMessage.warnMessage(Lang.COULD_NOT_ENABLE_DYNAMICPRICING.get());
             }
          }
       } else {
-         if (var1) {
+         if (flag) {
             if (this.limitedStockProvider == null) {
                this.limitedStockProvider = new LimitedStockProvider(this.plugin, this.db);
             } else {
@@ -91,7 +91,7 @@ public class ProviderManager {
             this.limitedStockProvider = null;
          }
 
-         if (var2) {
+         if (flag2) {
             if (this.limitedSellProvider == null) {
                this.limitedSellProvider = new LimitedSellProvider(this.plugin, this.db);
             } else {
@@ -102,7 +102,7 @@ public class ProviderManager {
             this.limitedSellProvider = null;
          }
 
-         if (var3) {
+         if (enabled) {
             if (this.dynamicPricingProvider == null) {
                this.dynamicPricingProvider = new DynamicPricingProvider(this.plugin, this.db);
             } else {
@@ -119,8 +119,8 @@ public class ProviderManager {
       }
 
       if (this.db instanceof MySQL || this.db instanceof PostgreSQL) {
-         String var4 = ConfigManager.getConfig().getString(this.db instanceof PostgreSQL ? "postgresql" : "mysql.display-cache", "AUTO");
-         if (var4.equals("-1") || var4.equals("DISABLED")) {
+         String text = ConfigManager.getConfig().getString(this.db instanceof PostgreSQL ? "postgresql" : "mysql.display-cache", "AUTO");
+         if (text.equals("-1") || text.equals("DISABLED")) {
             this.plugin.displayCache = false;
             if (this.displayCacheProvider != null) {
                this.displayCacheProvider.stop();
@@ -157,51 +157,51 @@ public class ProviderManager {
       }
    }
 
-   public void resetDynamicPricing(Object var1) {
+   public void resetDynamicPricing(Object value) {
       if (this.db instanceof SQLite) {
          ConfigUtil.createBackup(Paths.get(OnyxShop.getInstance().getDataFolder() + "/database.db"));
       }
 
-      SendMessage.sendMessage(var1, Lang.RESETTING_DYNAMICPRICING.get());
+      SendMessage.sendMessage(value, Lang.RESETTING_DYNAMICPRICING.get());
       if (this.db.resetDynamicPricing()) {
          if (this.dynamicPricingProvider != null) {
             this.dynamicPricingProvider.stop();
          }
 
          this.dynamicPricingProvider = new DynamicPricingProvider(this.plugin, this.db);
-         SendMessage.sendMessage(var1, Lang.DYNAMICPRICING_RESET.get());
-      } else if (var1 instanceof Player) {
-         SendMessage.errorMessage(var1, "A error occurred while trying to reset the DynamicPricing from the database, see console for error logs");
+         SendMessage.sendMessage(value, Lang.DYNAMICPRICING_RESET.get());
+      } else if (value instanceof Player) {
+         SendMessage.errorMessage(value, "A error occurred while trying to reset the DynamicPricing from the database, see console for error logs");
       }
    }
 
    private boolean setupDatabase() {
-      String var2 = ConfigManager.getConfig().getString("storage-type", "");
-      Object var1;
-      switch (var2) {
+      String text = ConfigManager.getConfig().getString("storage-type", "");
+      Object value;
+      switch (text) {
          case "MySQL":
-            var1 = new MySQL();
+            value = new MySQL();
             break;
          case "PostgreSQL":
-            var1 = new PostgreSQL();
+            value = new PostgreSQL();
             break;
          case "SQLite":
-            var1 = new SQLite();
+            value = new SQLite();
             break;
          default:
-            SendMessage.warnMessage(Lang.INVALID_STORAGE_TYPE.get().replace("%type%", var2));
-            var1 = new SQLite();
+            SendMessage.warnMessage(Lang.INVALID_STORAGE_TYPE.get().replace("%type%", text));
+            value = new SQLite();
       }
 
-      this.db = (Database)var1;
-      return ((Database)var1).connect();
+      this.db = (Database)value;
+      return ((Database)value).connect();
    }
 
    private boolean usesLimitedStock() {
-      for (String var2 : ConfigManager.getShops()) {
-         for (String var4 : this.plugin.getConfigManager().getItemsRaw(var2)) {
-            String var5 = (this.plugin.getShopType(var2) == ShopType.CATEGORY ? "pages." : "") + var4;
-            if (ConfigManager.getShop(var2).contains(var5 + ".stock-limit-player") || ConfigManager.getShop(var2).contains(var5 + ".stock-limit-global")) {
+      for (String itemId : ConfigManager.getShops()) {
+         for (String text : this.plugin.getConfigManager().getItemsRaw(itemId)) {
+            String shopId = (this.plugin.getShopType(itemId) == ShopType.CATEGORY ? "pages." : "") + text;
+            if (ConfigManager.getShop(itemId).contains(shopId + ".stock-limit-player") || ConfigManager.getShop(itemId).contains(shopId + ".stock-limit-global")) {
                return true;
             }
          }
@@ -211,10 +211,10 @@ public class ProviderManager {
    }
 
    private boolean usesLimitedSell() {
-      for (String var2 : ConfigManager.getShops()) {
-         for (String var4 : this.plugin.getConfigManager().getItemsRaw(var2)) {
-            String var5 = (this.plugin.getShopType(var2) == ShopType.CATEGORY ? "pages." : "") + var4;
-            if (ConfigManager.getShop(var2).contains(var5 + ".sell-limit-player") || ConfigManager.getShop(var2).contains(var5 + ".sell-limit-global")) {
+      for (String text : ConfigManager.getShops()) {
+         for (String text2 : this.plugin.getConfigManager().getItemsRaw(text)) {
+            String shopId = (this.plugin.getShopType(text) == ShopType.CATEGORY ? "pages." : "") + text2;
+            if (ConfigManager.getShop(text).contains(shopId + ".sell-limit-player") || ConfigManager.getShop(text).contains(shopId + ".sell-limit-global")) {
                return true;
             }
          }

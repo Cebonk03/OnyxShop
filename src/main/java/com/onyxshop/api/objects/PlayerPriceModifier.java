@@ -8,9 +8,9 @@ public class PlayerPriceModifier {
    private final Map<String, PriceModifierData> sectionModifiers;
    private final Map<String, PriceModifierData> itemModifiers;
 
-   public PlayerPriceModifier(com.onyxshop.objects.PlayerPriceModifier var1) {
-      this.sectionModifiers = Collections.unmodifiableMap(var1.getSectionModifiers());
-      this.itemModifiers = Collections.unmodifiableMap(var1.getItemModifiers());
+   public PlayerPriceModifier(com.onyxshop.objects.PlayerPriceModifier playerPriceModifier) {
+      this.sectionModifiers = Collections.unmodifiableMap(playerPriceModifier.getSectionModifiers());
+      this.itemModifiers = Collections.unmodifiableMap(playerPriceModifier.getItemModifiers());
    }
 
    public Map<String, PriceModifierData> getSectionModifiers() {

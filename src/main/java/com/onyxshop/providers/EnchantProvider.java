@@ -9,21 +9,21 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public interface EnchantProvider {
-   SimpleEnchantment getEnchant(String var1, int var2) throws ItemLoadException;
+   SimpleEnchantment getEnchant(String itemId, int value) throws ItemLoadException;
 
-   boolean canEnchantItem(ItemStack var1, SimpleEnchantment var2);
+   boolean canEnchantItem(ItemStack itemStack, SimpleEnchantment simpleEnchantment);
 
-   ItemStack addEnchantment(ItemStack var1, SimpleEnchantment var2, @Nullable DisplayItem var3);
+   ItemStack addEnchantment(ItemStack itemStack, SimpleEnchantment simpleEnchantment, @Nullable DisplayItem displayItem);
 
-   boolean isEnchant(NamespacedKey var1);
+   boolean isEnchant(NamespacedKey namespacedKey);
 
    List<String> getAvailableEnchantKeys();
 
    List<SimpleEnchantment> getAvailableEnchants();
 
-   List<Object> getAvailableEnchants(ItemStack var1);
+   List<Object> getAvailableEnchants(ItemStack itemStack);
 
-   ItemStack getBook(SimpleEnchantment var1);
+   ItemStack getBook(SimpleEnchantment simpleEnchantment);
 
-   String getName(SimpleEnchantment var1);
+   String getName(SimpleEnchantment simpleEnchantment);
 }

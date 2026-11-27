@@ -26,32 +26,32 @@ public class ExpEconomy implements EconomyProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      String var2 = ConfigManager.getPathIgnoreCase("currency-formats.exp");
-      this.formatSingular(var2);
-      this.formatPlural(var2);
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.exp");
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
       this.friendly = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var2 + ".friendly", Lang.XP_CURRENCY_NAME_PLURAL.get().getLegacy())
+            .getString(pathIgnoreCase + ".friendly", Lang.XP_CURRENCY_NAME_PLURAL.get().getLegacy())
             .replace("%translations-exp-currency-name-plural%", Lang.XP_CURRENCY_NAME_PLURAL.get().getLegacy())
       );
-      this.priceFormat = PriceFormatter.getFormatter(var2);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
       SendMessage.infoMessage("Successfully enabled EXP points economy");
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return this.getTotalExperience((Player)var1);
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return this.getTotalExperience((Player)offlinePlayer);
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      this.setTotalExperience((Player)var1, this.getTotalExperience((Player)var1) + (int)Math.round(var2));
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.setTotalExperience((Player)offlinePlayer, this.getTotalExperience((Player)offlinePlayer) + (int)Math.round(balance));
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      this.setTotalExperience((Player)var1, this.getTotalExperience((Player)var1) - (int)Math.round(var2));
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.setTotalExperience((Player)offlinePlayer, this.getTotalExperience((Player)offlinePlayer) - (int)Math.round(balance));
       return true;
    }
 
@@ -86,13 +86,13 @@ public class ExpEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -102,108 +102,108 @@ public class ExpEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".singular", Lang.XP_CURRENCY_NAME_SINGULAR.get().getLegacy())
+            .getString(text + ".singular", Lang.XP_CURRENCY_NAME_SINGULAR.get().getLegacy())
             .replace("%translations-exp-currency-name-singular%", Lang.XP_CURRENCY_NAME_SINGULAR.get().getLegacy())
       );
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+      if (!text2.isEmpty()) {
+         if (this.isSymbol(text2)) {
+            this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
          } else {
-            this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+            this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
          }
       } else {
          this.singular = Lang.CURRENCYSYMBOL.get().getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".plural", Lang.XP_CURRENCY_NAME_PLURAL.get().getLegacy())
+            .getString(text + ".plural", Lang.XP_CURRENCY_NAME_PLURAL.get().getLegacy())
             .replace("%translations-exp-currency-name-plural%", Lang.XP_CURRENCY_NAME_PLURAL.get().getLegacy())
       );
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+      if (!text2.isEmpty()) {
+         if (this.isSymbol(text2)) {
+            this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
          } else {
-            this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+            this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
          }
       } else {
          this.plural = Lang.CURRENCYSYMBOL.get().getLegacy();
       }
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 
-   private void setTotalExperience(Player var1, int var2) {
-      var1.setExp(0.0F);
-      var1.setLevel(0);
-      var1.setTotalExperience(0);
-      int var3 = var2;
+   private void setTotalExperience(Player player, int value) {
+      player.setExp(0.0F);
+      player.setLevel(0);
+      player.setTotalExperience(0);
+      int value2 = value;
 
-      while (var3 > 0) {
-         int var4 = this.getExpAtLevel(var1);
-         var3 -= var4;
-         if (var3 >= 0) {
-            var1.giveExp(var4);
+      while (value2 > 0) {
+         int expAtLevel = this.getExpAtLevel(player);
+         value2 -= expAtLevel;
+         if (value2 >= 0) {
+            player.giveExp(expAtLevel);
          } else {
-            var3 += var4;
-            var1.giveExp(var3);
-            var3 = 0;
+            value2 += expAtLevel;
+            player.giveExp(value2);
+            value2 = 0;
          }
       }
    }
 
-   private int getExpAtLevel(Player var1) {
-      return this.getExpAtLevel(var1.getLevel());
+   private int getExpAtLevel(Player player) {
+      return this.getExpAtLevel(player.getLevel());
    }
 
-   private int getExpAtLevel(int var1) {
-      if (var1 <= 15) {
-         return 2 * var1 + 7;
+   private int getExpAtLevel(int value) {
+      if (value <= 15) {
+         return 2 * value + 7;
       } else {
-         return var1 >= 16 && var1 <= 30 ? 5 * var1 - 38 : 9 * var1 - 158;
+         return value >= 16 && value <= 30 ? 5 * value - 38 : 9 * value - 158;
       }
    }
 
-   private int getExpToLevel(int var1) {
-      int var2 = 0;
+   private int getExpToLevel(int value) {
+      int value2 = 0;
 
-      int var3;
-      for (var3 = 0; var2 < var1; var2++) {
-         var3 += this.getExpAtLevel(var2);
+      int value3;
+      for (value3 = 0; value2 < value; value2++) {
+         value3 += this.getExpAtLevel(value2);
       }
 
-      if (var3 < 0) {
-         var3 = Integer.MAX_VALUE;
+      if (value3 < 0) {
+         value3 = Integer.MAX_VALUE;
       }
 
-      return var3;
+      return value3;
    }
 
-   private int getTotalExperience(Player var1) {
-      int var2 = Math.round(this.getExpAtLevel(var1) * var1.getExp());
-      int var3 = var1.getLevel();
+   private int getTotalExperience(Player player) {
+      int value = Math.round(this.getExpAtLevel(player) * player.getExp());
+      int level = player.getLevel();
 
-      while (var3 > 0) {
-         var2 += this.getExpAtLevel(--var3);
+      while (level > 0) {
+         value += this.getExpAtLevel(--level);
       }
 
-      if (var2 < 0) {
-         var2 = Integer.MAX_VALUE;
+      if (value < 0) {
+         value = Integer.MAX_VALUE;
       }
 
-      return var2;
+      return value;
    }
 
-   private int getExpUntilNextLevel(Player var1) {
-      int var2 = Math.round(this.getExpAtLevel(var1) * var1.getExp());
-      int var3 = var1.getLevel();
-      return this.getExpAtLevel(var3) - var2;
+   private int getExpUntilNextLevel(Player player) {
+      int value = Math.round(this.getExpAtLevel(player) * player.getExp());
+      int level = player.getLevel();
+      return this.getExpAtLevel(level) - value;
    }
 }

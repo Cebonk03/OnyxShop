@@ -12,11 +12,11 @@ public enum SortOrder {
    }
 
    public static SortOrder fromConfig() {
-      String var0 = ConfigManager.getConfig().getString("sort-items-by", "DESCENDING_PRICE");
+      String text = ConfigManager.getConfig().getString("sort-items-by", "DESCENDING_PRICE");
 
       try {
-         return valueOf(var0.toUpperCase(Locale.ROOT));
-      } catch (IllegalArgumentException var2) {
+         return valueOf(text.toUpperCase(Locale.ROOT));
+      } catch (IllegalArgumentException exception) {
          return SHOP_LOAD_ORDER;
       }
    }

@@ -5,12 +5,12 @@ public class CurrencyData {
       return 0.0;
    }
 
-   public void addBalance(double var1) {
+   public void addBalance(double balance) {
    }
 
-   public void removeBalance(double var1) {
+   public void removeBalance(double balance) {
    }
 
-   public void setBalance(double var1) {
+   public void setBalance(double balance) {
    }
 }

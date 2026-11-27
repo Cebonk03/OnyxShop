@@ -14,13 +14,13 @@ public class TitleManager {
    }
 
    public void load() {
-      for (TitleManager.Menu var4 : TitleManager.Menu.values()) {
-         menuTitles.put(var4, new GUITitle(var4.title, var4.title.getKey() + "-bedrock"));
+      for (TitleManager.Menu menu : TitleManager.Menu.values()) {
+         menuTitles.put(menu, new GUITitle(menu.title, menu.title.getKey() + "-bedrock"));
       }
    }
 
-   public static Translatable get(TitleManager.Menu var0, Player var1) {
-      return menuTitles.get(var0).getTitle(var1);
+   public static Translatable get(TitleManager.Menu menu, Player player) {
+      return menuTitles.get(menu).getTitle(player);
    }
 
    public static enum Menu {
@@ -49,8 +49,8 @@ public class TitleManager {
 
       private final Lang title;
 
-      private Menu(Lang nullxx) {
-         this.title = nullxx;
+      private Menu(Lang lang) {
+         this.title = lang;
       }
    }
 }

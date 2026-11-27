@@ -19,65 +19,65 @@ import org.bukkit.inventory.ItemStack;
 public class FireworkOptions extends ItemEditor {
    private final ShopItem item;
 
-   public FireworkOptions(Player var1, ShopItem var2) {
-      this.item = var2;
-      this.initInventory(var1);
+   public FireworkOptions(Player player, ShopItem shopItem) {
+      this.item = shopItem;
+      this.initInventory(player);
       this.fillInventory();
-      this.open(var1);
+      this.open(player);
    }
 
-   private void initInventory(Player var1) {
-      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, 18, TitleManager.get(TitleManager.Menu.ITEM_EDITOR_FIREWORK, var1));
-      int var2 = ConfigManager.getShop(this.item.section).getInt("pages." + this.item.itemLoc + ".duration", 1);
-      ItemBuilder var3 = new ItemBuilder(XMaterial.GUNPOWDER.parseItem())
+   private void initInventory(Player player) {
+      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, 18, TitleManager.get(TitleManager.Menu.ITEM_EDITOR_FIREWORK, player));
+      int value = ConfigManager.getShop(this.item.section).getInt("pages." + this.item.itemLoc + ".duration", 1);
+      ItemBuilder itemBuilder = new ItemBuilder(XMaterial.GUNPOWDER.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_FIREWORK_DURATION.get()))
-         .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_DURATION.get().getLegacy()) + ChatColor.GREEN + var2)
-         .setAmount(var2);
+         .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_DURATION.get().getLegacy()) + ChatColor.GREEN + value)
+         .setAmount(value);
       this.inv
          .setItem(
             0,
             this.setEditOption(
-               this.setNBTString(var3.build(), "value", String.valueOf(var2)), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_DURATION
+               this.setNBTString(itemBuilder.build(), "value", String.valueOf(value)), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_DURATION
             )
          );
-      ItemBuilder var4 = new ItemBuilder(XMaterial.BLUE_DYE.parseItem())
+      ItemBuilder itemBuilder2 = new ItemBuilder(XMaterial.BLUE_DYE.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_FIREWORK_COLORS.get()));
       if (!ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + ".colors").isEmpty()) {
-         ArrayList var5 = new ArrayList();
-         var5.add(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_COLORS.get().getLegacy()));
-         ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + ".colors").forEach(var1x -> {
-            if (FireworkUtil.FireworkColor.matchColor(var1x) != null) {
+         ArrayList values = new ArrayList();
+         values.add(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_COLORS.get().getLegacy()));
+         ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + ".colors").forEach(entry -> {
+            if (FireworkUtil.FireworkColor.matchColor(entry) != null) {
                if (OnyxShop.getInstance().version >= 116) {
-                  var5.add("- " + net.md_5.bungee.api.ChatColor.of(FireworkUtil.FireworkColor.matchColor(var1x).getColor()) + var1x);
+                  values.add("- " + net.md_5.bungee.api.ChatColor.of(FireworkUtil.FireworkColor.matchColor(entry).getColor()) + entry);
                } else {
-                  var5.add("- " + var1x);
+                  values.add("- " + entry);
                }
             }
          });
-         var4.setLore(var5);
+         itemBuilder2.setLore(values);
       }
 
-      this.inv.setItem(1, this.setEditOption(var4.build(), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_COLORS));
-      ItemBuilder var12 = new ItemBuilder(XMaterial.GREEN_DYE.parseItem())
+      this.inv.setItem(1, this.setEditOption(itemBuilder2.build(), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_COLORS));
+      ItemBuilder itemBuilder3 = new ItemBuilder(XMaterial.GREEN_DYE.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_FIREWORK_FADE_COLORS.get()));
       if (!ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + ".fade-colors").isEmpty()) {
-         ArrayList var6 = new ArrayList();
-         var6.add(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_FADE_COLORS.get().getLegacy()));
-         ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + ".fade-colors").forEach(var1x -> {
-            if (FireworkUtil.FireworkColor.matchColor(var1x) != null) {
+         ArrayList values = new ArrayList();
+         values.add(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_FADE_COLORS.get().getLegacy()));
+         ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + ".fade-colors").forEach(entry -> {
+            if (FireworkUtil.FireworkColor.matchColor(entry) != null) {
                if (OnyxShop.getInstance().version >= 116) {
-                  var6.add("- " + net.md_5.bungee.api.ChatColor.of(FireworkUtil.FireworkColor.matchColor(var1x).getColor()) + var1x);
+                  values.add("- " + net.md_5.bungee.api.ChatColor.of(FireworkUtil.FireworkColor.matchColor(entry).getColor()) + entry);
                } else {
-                  var6.add("- " + var1x);
+                  values.add("- " + entry);
                }
             }
          });
-         var12.setLore(var6);
+         itemBuilder3.setLore(values);
       }
 
-      this.inv.setItem(2, this.setEditOption(var12.build(), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_FADE_COLORS));
-      boolean var13 = ConfigManager.getShop(this.item.section).getBoolean("pages." + this.item.itemLoc + ".flicker", false);
-      ItemBuilder var7 = new ItemBuilder(var13 ? XMaterial.GLOWSTONE_DUST.parseItem() : XMaterial.GUNPOWDER.parseItem())
+      this.inv.setItem(2, this.setEditOption(itemBuilder3.build(), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_FADE_COLORS));
+      boolean flag = ConfigManager.getShop(this.item.section).getBoolean("pages." + this.item.itemLoc + ".flicker", false);
+      ItemBuilder itemBuilder4 = new ItemBuilder(flag ? XMaterial.GLOWSTONE_DUST.parseItem() : XMaterial.GUNPOWDER.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_FIREWORK_FLICKER.get()))
          .withCLore(
             Collections.singletonList(
@@ -85,8 +85,8 @@ public class FireworkOptions extends ItemEditor {
                   .get()
                   .replace("%option%", Lang.OPTION_FIREWORK_FLICKER.get())
                   .builder()
-                  .color((char)(var13 ? 'a' : 'c'))
-                  .append(var13 ? "true" : "false")
+                  .color((char)(flag ? 'a' : 'c'))
+                  .append(flag ? "true" : "false")
                   .build()
             )
          );
@@ -94,11 +94,11 @@ public class FireworkOptions extends ItemEditor {
          .setItem(
             3,
             this.setEditOption(
-               this.setNBTString(var7.build(), "value", String.valueOf(var13)), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_FLICKER
+               this.setNBTString(itemBuilder4.build(), "value", String.valueOf(flag)), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_FLICKER
             )
          );
-      boolean var8 = ConfigManager.getShop(this.item.section).getBoolean("pages." + this.item.itemLoc + ".trail");
-      ItemBuilder var9 = new ItemBuilder(var8 ? XMaterial.DIAMOND_BLOCK.parseItem() : XMaterial.DIAMOND.parseItem())
+      boolean flag2 = ConfigManager.getShop(this.item.section).getBoolean("pages." + this.item.itemLoc + ".trail");
+      ItemBuilder itemBuilder5 = new ItemBuilder(flag2 ? XMaterial.DIAMOND_BLOCK.parseItem() : XMaterial.DIAMOND.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_FIREWORK_TRAIL.get()))
          .withCLore(
             Collections.singletonList(
@@ -106,8 +106,8 @@ public class FireworkOptions extends ItemEditor {
                   .get()
                   .replace("%option%", Lang.OPTION_FIREWORK_TRAIL.get())
                   .builder()
-                  .color((char)(var8 ? 'a' : 'c'))
-                  .append(var8 ? "true" : "false")
+                  .color((char)(flag2 ? 'a' : 'c'))
+                  .append(flag2 ? "true" : "false")
                   .build()
             )
          );
@@ -115,37 +115,37 @@ public class FireworkOptions extends ItemEditor {
          .setItem(
             4,
             this.setEditOption(
-               this.setNBTString(var9.build(), "value", String.valueOf(var8)), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_TRAIL
+               this.setNBTString(itemBuilder5.build(), "value", String.valueOf(flag2)), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_TRAIL
             )
          );
-      String var10 = ConfigManager.getShop(this.item.section).getString("pages." + this.item.itemLoc + ".shape", "BALL");
-      ItemBuilder var11 = new ItemBuilder(
-            var10.equalsIgnoreCase("BALL_LARGE")
+      String text = ConfigManager.getShop(this.item.section).getString("pages." + this.item.itemLoc + ".shape", "BALL");
+      ItemBuilder itemBuilder6 = new ItemBuilder(
+            text.equalsIgnoreCase("BALL_LARGE")
                ? XMaterial.FIRE_CHARGE.parseItem()
                : (
-                  var10.equalsIgnoreCase("STAR")
+                  text.equalsIgnoreCase("STAR")
                      ? XMaterial.GOLD_NUGGET.parseItem()
                      : (
-                        var10.equalsIgnoreCase("BURST")
+                        text.equalsIgnoreCase("BURST")
                            ? XMaterial.FEATHER.parseItem()
-                           : (var10.equalsIgnoreCase("CREEPER") ? XMaterial.CREEPER_HEAD.parseItem() : XMaterial.FIREWORK_STAR.parseItem())
+                           : (text.equalsIgnoreCase("CREEPER") ? XMaterial.CREEPER_HEAD.parseItem() : XMaterial.FIREWORK_STAR.parseItem())
                      )
                )
          )
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_FIREWORK_SHAPE.get()))
-         .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_SHAPE.get().getLegacy()) + ChatColor.GREEN + var10);
+         .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_FIREWORK_SHAPE.get().getLegacy()) + ChatColor.GREEN + text);
       this.inv
-         .setItem(5, this.setEditOption(this.setNBTString(var11.build(), "value", var10), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_SHAPE));
-      this.inv.setItem(9, OnyxShop.getInstance().createItem.getPlayerReminder(var1, false));
+         .setItem(5, this.setEditOption(this.setNBTString(itemBuilder6.build(), "value", text), com.onyxshop.methodes.ItemEditor.Option.FIREWORK_SHAPE));
+      this.inv.setItem(9, OnyxShop.getInstance().createItem.getPlayerReminder(player, false));
       this.inv.setItem(17, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
    }
 
-   private ItemStack setNBTString(ItemStack var1, String var2, String var3) {
-      return OnyxShop.getInstance().versionHandler.setOnyxNbtString(var1, var2, var3);
+   private ItemStack setNBTString(ItemStack itemStack, String itemId, String text) {
+      return OnyxShop.getInstance().versionHandler.setOnyxNbtString(itemStack, itemId, text);
    }
 
-   private ItemStack setEditOption(ItemStack var1, com.onyxshop.methodes.ItemEditor.Option var2) {
-      return OnyxShop.getInstance().versionHandler.setEditOption(var1, var2.getKey());
+   private ItemStack setEditOption(ItemStack itemStack, com.onyxshop.methodes.ItemEditor.Option option) {
+      return OnyxShop.getInstance().versionHandler.setEditOption(itemStack, option.getKey());
    }
 
    public ShopItem getItem() {

@@ -33,14 +33,14 @@ public class SendMessage {
    public static final Translatable EMPTY = new TranslatableRaw("");
    private static String RESET;
 
-   public SendMessage(OnyxShop var1) {
-      plugin = var1;
+   public SendMessage(OnyxShop plugin2) {
+      plugin = plugin2;
    }
 
-   public static Translatable fromConfig(String var0) {
+   public static Translatable fromConfig(String text) {
       return (Translatable)(plugin.getMetaUtils() instanceof BukkitMeta
-         ? new TranslatableRaw(var0)
-         : (Translatable)ReflectUtil.getPaperFeature("files.lang.TranslatableComponent", var0));
+         ? new TranslatableRaw(text)
+         : (Translatable)ReflectUtil.getPaperFeature("files.lang.TranslatableComponent", text));
    }
 
    public static void init() {
@@ -81,299 +81,299 @@ public class SendMessage {
       plugin.getTransactionLog().setup();
    }
 
-   public static void sendTransactionMessage(Player var0, int var1, double var2, ShopItem var4, Transaction.Mode var5, Transaction.Type var6, boolean var7) {
-      sendTransactionMessage(var0, var1, Collections.singletonMap(var4.getEcoType(), var2), var4, var5, var6, var7);
+   public static void sendTransactionMessage(Player player, int value, double amount, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag) {
+      sendTransactionMessage(player, value, Collections.singletonMap(shopItem.getEcoType(), amount), shopItem, mode, type, flag);
    }
 
    public static void sendTransactionMessage(
-      Player var0, int var1, Map<EcoType, Double> var2, ShopItem var3, Transaction.Mode var4, Transaction.Type var5, boolean var6
+      Player player, int value, Map<EcoType, Double> map, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag
    ) {
-      if (var3.transactionMessage()) {
-         plugin.getMetaUtils().sendTransactionMessage(var0, var1, var2, var3, var4, var5, var6);
+      if (shopItem.transactionMessage()) {
+         plugin.getMetaUtils().sendTransactionMessage(player, value, map, shopItem, mode, type, flag);
       }
 
-      Translatable var7 = Lang.PLAYER_MADE_TRANSACTION.get();
-      String var8 = ChatUtil.getLastColors(var7.toString().split("%material%")[0]);
-      if (var8.isEmpty()) {
-         var8 = RESET;
+      Translatable text = Lang.PLAYER_MADE_TRANSACTION.get();
+      String lastColors = ChatUtil.getLastColors(text.toString().split("%material%")[0]);
+      if (lastColors.isEmpty()) {
+         lastColors = RESET;
       }
 
-      String var9 = var8;
+      String message = lastColors;
       logPlayerTransaction(
-         var7.replace("%playername%", var0.getName())
-            .replace("%player_displayname%", plugin.getDisplayName(var0))
-            .replace("%bought/sold%", var4.getName())
-            .replace("%amount%", String.valueOf(var1))
+         text.replace("%playername%", player.getName())
+            .replace("%player_displayname%", plugin.getDisplayName(player))
+            .replace("%bought/sold%", mode.getName())
+            .replace("%amount%", String.valueOf(value))
             .replace(
                "%material%",
-               var3 instanceof ShopItem.Shulker
-                  ? var3.getDisplayname()
-                     + var9
+               shopItem instanceof ShopItem.Shulker
+                  ? shopItem.getDisplayname()
+                     + message
                      + "("
-                     + var3.getItemPath()
+                     + shopItem.getItemPath()
                      + ")"
-                     + ((ShopItem.Shulker)var3)
+                     + ((ShopItem.Shulker)shopItem)
                         .getContents()
                         .entrySet()
                         .stream()
-                        .map(var1x -> var1x.getValue() + "x " + var1x.getKey().getDisplayname() + var9 + "(" + var1x.getKey().getItemPath() + ")")
+                        .map(entry -> entry.getValue() + "x " + entry.getKey().getDisplayname() + message + "(" + entry.getKey().getItemPath() + ")")
                         .collect(Collectors.toList())
-                  : var3.getDisplayname() + var9 + "(" + var3.getItemPath() + ")"
+                  : shopItem.getDisplayname() + message + "(" + shopItem.getItemPath() + ")"
             )
-            .replace("%amountofmoney%", getCurrencyDisplay(var9, var2, true))
-            .replace("%buy/sell-method%", var5.getName())
+            .replace("%amountofmoney%", getCurrencyDisplay(message, map, true))
+            .replace("%buy/sell-method%", type.getName())
       );
-      if (discordSRV != null && discordSRV.enabled && var3.transactionMessage()) {
-         plugin.runTaskAsync(() -> discordSRV.logTransaction(var0, var1, var4.getName(), var3.getDisplayname(), getCurrencyDisplay(var9, var2, false)));
+      if (discordSRV != null && discordSRV.enabled && shopItem.transactionMessage()) {
+         plugin.runTaskAsync(() -> discordSRV.logTransaction(player, value, mode.getName(), shopItem.getDisplayname(), getCurrencyDisplay(message, map, false)));
       }
 
-      if (onScreenTitle && (var5 == Transaction.Type.SELL_ALL_COMMAND || var5 == Transaction.Type.SELL_GUI_SCREEN || var3.isCloseMenu())) {
-         sendTitle(var0, var4, var2);
+      if (onScreenTitle && (type == Transaction.Type.SELL_ALL_COMMAND || type == Transaction.Type.SELL_GUI_SCREEN || shopItem.isCloseMenu())) {
+         sendTitle(player, mode, map);
       }
 
       if (advancedTransactionStore) {
-         plugin.getTransactionLog().log(var0.getUniqueId(), var3, var2, var1, var4, var5);
+         plugin.getTransactionLog().log(player.getUniqueId(), shopItem, map, value, mode, type);
       }
 
-      plugin.getSoundEffects().completeTransaction(var0, var4);
+      plugin.getSoundEffects().completeTransaction(player, mode);
    }
 
-   public static void sendTransactionMessage(Player var0, int var1, Map<EcoType, Double> var2, Map<ShopItem, Integer> var3, Transaction.Type var4) {
-      plugin.getMetaUtils().sendTransactionMessage(var0, var1, var2, var3, var4);
-      Translatable var5 = Lang.PLAYER_MADE_TRANSACTION_MULTIPLE_ITEMS.get();
-      String var6 = ChatUtil.getLastColors(var5.toString().split("%items%")[0]);
-      if (var6.isEmpty()) {
-         var6 = RESET;
+   public static void sendTransactionMessage(Player player, int value, Map<EcoType, Double> map, Map<ShopItem, Integer> map2, Transaction.Type type) {
+      plugin.getMetaUtils().sendTransactionMessage(player, value, map, map2, type);
+      Translatable text = Lang.PLAYER_MADE_TRANSACTION_MULTIPLE_ITEMS.get();
+      String lastColors = ChatUtil.getLastColors(text.toString().split("%items%")[0]);
+      if (lastColors.isEmpty()) {
+         lastColors = RESET;
       }
 
-      String var7 = var6;
+      String message = lastColors;
       logPlayerTransaction(
-         var5.replace("%playername%", var0.getName())
-            .replace("%player_displayname%", plugin.getDisplayName(var0))
+         text.replace("%playername%", player.getName())
+            .replace("%player_displayname%", plugin.getDisplayName(player))
             .replace("%bought/sold%", Lang.SOLD.get().toString())
-            .replace("%items%", getItemDisplay(var7, var3, true))
-            .replace("%amountofmoney%", getCurrencyDisplay(var7, var2, true))
-            .replace("%buy/sell-method%", var4.getName())
+            .replace("%items%", getItemDisplay(message, map2, true))
+            .replace("%amountofmoney%", getCurrencyDisplay(message, map, true))
+            .replace("%buy/sell-method%", type.getName())
       );
       if (discordSRV != null && discordSRV.enabled) {
          plugin.runTaskAsync(
-            () -> discordSRV.logTransaction(var0, var1, Lang.SOLD.get().getLegacy(), getItemDisplay(var7, var3, false), getCurrencyDisplay(var7, var2, false))
+            () -> discordSRV.logTransaction(player, value, Lang.SOLD.get().getLegacy(), getItemDisplay(message, map2, false), getCurrencyDisplay(message, map, false))
          );
       }
 
       if (onScreenTitle) {
-         sendTitle(var0, var2);
+         sendTitle(player, map);
       }
 
       if (advancedTransactionStore) {
-         plugin.getTransactionLog().log(var0.getUniqueId(), var3, var2, var1, Transaction.Mode.SELL, var4);
+         plugin.getTransactionLog().log(player.getUniqueId(), map2, map, value, Transaction.Mode.SELL, type);
       }
 
-      plugin.getSoundEffects().completeTransaction(var0, Transaction.Mode.getFromType(var4));
+      plugin.getSoundEffects().completeTransaction(player, Transaction.Mode.getFromType(type));
    }
 
-   private static String getItemDisplay(String var0, Map<ShopItem, Integer> var1, boolean var2) {
-      StringBuilder var3 = new StringBuilder();
-      int var4 = 0;
+   private static String getItemDisplay(String itemId, Map<ShopItem, Integer> map, boolean flag) {
+      StringBuilder builder = new StringBuilder();
+      int value = 0;
 
-      for (Entry<ShopItem, Integer> var6 : var1.entrySet()) {
-         if (var6.getKey() instanceof ShopItem.Shulker) {
-            Map<ShopItem, Integer> var7 = ((ShopItem.Shulker)var6.getKey()).getContents();
-            var3.append(var6.getValue()).append("x ").append(((ShopItem)var6.getKey()).getDisplayname());
-            var3.append(
-               var7.entrySet().stream().map(var0x -> var0x.getValue() + "x " + ((ShopItem)var0x.getKey()).getDisplayname()).collect(Collectors.toList())
+      for (Entry<ShopItem, Integer> entry : map.entrySet()) {
+         if (entry.getKey() instanceof ShopItem.Shulker) {
+            Map<ShopItem, Integer> contents = ((ShopItem.Shulker)entry.getKey()).getContents();
+            builder.append(entry.getValue()).append("x ").append(((ShopItem)entry.getKey()).getDisplayname());
+            builder.append(
+               contents.entrySet().stream().map(entry2 -> entry2.getValue() + "x " + ((ShopItem)entry2.getKey()).getDisplayname()).collect(Collectors.toList())
             );
          } else {
-            var3.append(var6.getValue()).append("x ").append(((ShopItem)var6.getKey()).getDisplayname());
+            builder.append(entry.getValue()).append("x ").append(((ShopItem)entry.getKey()).getDisplayname());
          }
 
-         if (var2) {
-            if (var0 != null) {
-               var3.append(var0);
+         if (flag) {
+            if (itemId != null) {
+               builder.append(itemId);
             }
 
-            var3.append("(").append(((ShopItem)var6.getKey()).getItemPath()).append(")");
+            builder.append("(").append(((ShopItem)entry.getKey()).getItemPath()).append(")");
          }
 
-         if (var4 != var1.size() - 1) {
-            var3.append(", ");
+         if (value != map.size() - 1) {
+            builder.append(", ");
          }
 
-         var4++;
+         value++;
       }
 
-      return var3.toString();
+      return builder.toString();
    }
 
-   private static String getCurrencyDisplay(String var0, Map<EcoType, Double> var1, boolean var2) {
-      StringBuilder var3 = new StringBuilder();
-      int var4 = 0;
+   private static String getCurrencyDisplay(String type, Map<EcoType, Double> map, boolean flag) {
+      StringBuilder builder = new StringBuilder();
+      int value = 0;
 
-      for (Entry var6 : var1.entrySet()) {
-         var3.append(plugin.formatPrice((EcoType)var6.getKey(), (Double)var6.getValue()));
-         if (var2) {
-            var3.append(var0);
+      for (Entry entry : map.entrySet()) {
+         builder.append(plugin.formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
+         if (flag) {
+            builder.append(type);
          }
 
-         if (var4 != var1.size() - 1) {
-            var3.append(", ");
+         if (value != map.size() - 1) {
+            builder.append(", ");
          }
 
-         var4++;
+         value++;
       }
 
-      return var3.toString();
+      return builder.toString();
    }
 
-   private static void sendTitle(Player var0, Map<EcoType, Double> var1) {
-      sendTitle(var0, null, var1);
+   private static void sendTitle(Player player, Map<EcoType, Double> map) {
+      sendTitle(player, null, map);
    }
 
-   private static void sendTitle(Player var0, Transaction.Mode var1, Map<EcoType, Double> var2) {
-      String var3 = var1 != null && var1 != Transaction.Mode.SELL
-         ? Lang.ON_SCREEN_TITLE_BOUGHT.get(var0).getLegacy()
-         : Lang.ON_SCREEN_TITLE_SOLD.get(var0).getLegacy();
-      String var4 = ChatColor.getLastColors(var3.split("%price%")[0]);
-      if (var4.isEmpty()) {
-         var4 = "§r";
+   private static void sendTitle(Player player, Transaction.Mode mode, Map<EcoType, Double> map) {
+      String title = mode != null && mode != Transaction.Mode.SELL
+         ? Lang.ON_SCREEN_TITLE_BOUGHT.get(player).getLegacy()
+         : Lang.ON_SCREEN_TITLE_SOLD.get(player).getLegacy();
+      String lastColors = ChatColor.getLastColors(title.split("%price%")[0]);
+      if (lastColors.isEmpty()) {
+         lastColors = "§r";
       }
 
-      var0.sendTitle(var3.replace("%price%", getCurrencyDisplay(var4, var2, true)), "");
+      player.sendTitle(title.replace("%price%", getCurrencyDisplay(lastColors, map, true)), "");
    }
 
-   public static void sendMessage(Object var0, Translatable var1) {
-      plugin.getMetaUtils().send(var0, var1);
+   public static void sendMessage(Object value, Translatable text) {
+      plugin.getMetaUtils().send(value, text);
    }
 
-   public static void sendMessage(Object var0, String var1) {
-      plugin.getMetaUtils().sendLegacy(var0, var1);
+   public static void sendMessage(Object value, String message) {
+      plugin.getMetaUtils().sendLegacy(value, message);
    }
 
-   public static void chatToPlayer(Player var0, Translatable var1) {
-      plugin.getMetaUtils().send(var0, var1.get(var0));
+   public static void chatToPlayer(Player player, Translatable text) {
+      plugin.getMetaUtils().send(player, text.get(player));
    }
 
-   public static void chatToPlayer(Player var0, String var1) {
-      plugin.getMetaUtils().sendLegacy(var0, var1);
+   public static void chatToPlayer(Player player, String playerName) {
+      plugin.getMetaUtils().sendLegacy(player, playerName);
    }
 
-   public static void chatToPlayer(Player var0, TextComponent var1) {
-      TextComponent var2 = new TextComponent(TextComponent.fromLegacyText(Lang.SHOP_PREFIX.get(var0).getLegacy()));
-      var2.addExtra(var1);
-      var0.spigot().sendMessage(var2);
+   public static void chatToPlayer(Player player, TextComponent textComponent) {
+      TextComponent textComponent2 = new TextComponent(TextComponent.fromLegacyText(Lang.SHOP_PREFIX.get(player).getLegacy()));
+      textComponent2.addExtra(textComponent);
+      player.spigot().sendMessage(textComponent2);
    }
 
-   public static void broadcastMessage(Translatable var0) {
-      plugin.getMetaUtils().broadcast(var0);
+   public static void broadcastMessage(Translatable text) {
+      plugin.getMetaUtils().broadcast(text);
    }
 
-   public static void logDebugMessage(String var0) {
+   public static void logDebugMessage(String message) {
       if (debug) {
-         plugin.getMetaUtils().logLegacyDebugMessage(var0);
+         plugin.getMetaUtils().logLegacyDebugMessage(message);
       }
    }
 
-   public static void logDebugMessage(Translatable var0) {
+   public static void logDebugMessage(Translatable text) {
       if (debug) {
-         plugin.getMetaUtils().logDebugMessage(var0);
+         plugin.getMetaUtils().logDebugMessage(text);
       }
    }
 
-   public static void logDevDebugMessage(String var0) {
+   public static void logDevDebugMessage(String message) {
       if (devDebug) {
-         plugin.getMetaUtils().logLegacyDebugMessage(var0);
+         plugin.getMetaUtils().logLegacyDebugMessage(message);
       }
    }
 
-   public static void logDevDebugMessage(Translatable var0) {
+   public static void logDevDebugMessage(Translatable text) {
       if (devDebug) {
-         plugin.getMetaUtils().logDevDebugMessage(var0);
+         plugin.getMetaUtils().logDevDebugMessage(text);
       }
    }
 
-   public static void logPlayerTransaction(Translatable var0) {
+   public static void logPlayerTransaction(Translatable text) {
       if (logPlayerTransactions) {
-         plugin.getMetaUtils().logPlayerTransaction(var0);
+         plugin.getMetaUtils().logPlayerTransaction(text);
       }
 
       if (logTransactions) {
-         plugin.getTransactionLog().log(ChatUtil.stripColor(var0.toString()));
+         plugin.getTransactionLog().log(ChatUtil.stripColor(text.toString()));
       }
    }
 
-   public static void infoMessage(String var0) {
-      plugin.getMetaUtils().infoLegacyMessage(var0);
+   public static void infoMessage(String message) {
+      plugin.getMetaUtils().infoLegacyMessage(message);
    }
 
-   public static void infoMessage(Translatable var0) {
-      plugin.getMetaUtils().infoMessage(var0);
+   public static void infoMessage(Translatable text) {
+      plugin.getMetaUtils().infoMessage(text);
    }
 
-   public static void infoMessage(Object var0, String var1) {
-      plugin.getMetaUtils().infoLegacyMessage(var0, var1);
+   public static void infoMessage(Object value, String message) {
+      plugin.getMetaUtils().infoLegacyMessage(value, message);
    }
 
-   public static void infoMessageWithoutPrefix(Object var0, String var1) {
-      plugin.getMetaUtils().infoLegacyMessageWithoutPrefix(var0, var1);
+   public static void infoMessageWithoutPrefix(Object value, String message) {
+      plugin.getMetaUtils().infoLegacyMessageWithoutPrefix(value, message);
    }
 
-   public static void infoMessage(Object var0, Translatable var1) {
-      plugin.getMetaUtils().infoMessage(var0, var1);
+   public static void infoMessage(Object value, Translatable text) {
+      plugin.getMetaUtils().infoMessage(value, text);
    }
 
-   public static void warnMessage(String var0) {
-      plugin.getMetaUtils().warnLegacyMessage(var0);
+   public static void warnMessage(String message) {
+      plugin.getMetaUtils().warnLegacyMessage(message);
    }
 
-   public static void warnMessage(Translatable var0) {
-      plugin.getMetaUtils().warnMessage(var0);
+   public static void warnMessage(Translatable text) {
+      plugin.getMetaUtils().warnMessage(text);
    }
 
-   public static void warnMessage(Object var0, String var1) {
-      plugin.getMetaUtils().warnLegacyMessage(var0, var1);
+   public static void warnMessage(Object value, String message) {
+      plugin.getMetaUtils().warnLegacyMessage(value, message);
    }
 
-   public static void warnMessage(Object var0, Translatable var1) {
-      plugin.getMetaUtils().warnMessage(var0, var1);
+   public static void warnMessage(Object value, Translatable text) {
+      plugin.getMetaUtils().warnMessage(value, text);
    }
 
-   public static void errorMessage(String var0) {
-      plugin.getMetaUtils().errorLegacyMessage(var0);
+   public static void errorMessage(String message) {
+      plugin.getMetaUtils().errorLegacyMessage(message);
    }
 
-   public static void errorMessage(Translatable var0) {
-      plugin.getMetaUtils().errorMessage(var0);
+   public static void errorMessage(Translatable text) {
+      plugin.getMetaUtils().errorMessage(text);
    }
 
-   public static void errorMessage(Object var0, String var1) {
-      plugin.getMetaUtils().errorLegacyMessage(var0, var1);
+   public static void errorMessage(Object value, String message) {
+      plugin.getMetaUtils().errorLegacyMessage(value, message);
    }
 
-   public static void errorMessage(Object var0, Translatable var1) {
-      plugin.getMetaUtils().errorMessage(var0, var1);
+   public static void errorMessage(Object value, Translatable text) {
+      plugin.getMetaUtils().errorMessage(value, text);
    }
 
-   public static void errorItemShops(String var0) {
+   public static void errorItemShops(String itemId) {
       if (debug) {
-         warnMessage(Lang.ITEMS_PATH_IN_SHOPS_CONFIG.get().replace("%location%", var0));
+         warnMessage(Lang.ITEMS_PATH_IN_SHOPS_CONFIG.get().replace("%location%", itemId));
       }
    }
 
-   public static void errorShops(String var0, String var1) {
-      warnMessage(Lang.ITEMS_LOCATION_IN_SHOPS.get().replace("%section%", var0).replace("%location%", var1));
+   public static void errorShops(String text, String text2) {
+      warnMessage(Lang.ITEMS_LOCATION_IN_SHOPS.get().replace("%section%", text).replace("%location%", text2));
    }
 
-   public static void errorItemConfig(String var0) {
-      warnMessage(Lang.ITEMS_PATH_IN_CONFIG.get().replace("%location%", var0));
+   public static void errorItemConfig(String itemId) {
+      warnMessage(Lang.ITEMS_PATH_IN_CONFIG.get().replace("%location%", itemId));
    }
 
-   public static void errorItemSections(String var0) {
+   public static void errorItemSections(String itemId) {
       if (debug) {
-         warnMessage(Lang.ITEMS_PATH_IN_SECTIONS_CONFIG.get().replace("%location%", var0));
+         warnMessage(Lang.ITEMS_PATH_IN_SECTIONS_CONFIG.get().replace("%location%", itemId));
       }
    }
 
-   public static void errorSections(String var0, String var1) {
-      warnMessage(Lang.ITEMS_LOCATION_IN_SECTIONS.get().replace("%section%", var0).replace("%location%", var1));
+   public static void errorSections(String text, String text2) {
+      warnMessage(Lang.ITEMS_LOCATION_IN_SECTIONS.get().replace("%section%", text).replace("%location%", text2));
    }
 }

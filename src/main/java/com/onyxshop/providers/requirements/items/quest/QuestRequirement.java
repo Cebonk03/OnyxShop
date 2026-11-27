@@ -15,14 +15,14 @@ public class QuestRequirement implements ItemRequirement {
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public QuestRequirement(QuestProvider var1, String var2, List<String> var3, String var4) throws ItemRequirementLoadException {
-      this.questID = var2;
-      this.questProvider = var1;
-      this.lore = RequirementManager.getLore(var3, Lang.QUEST_REQUIREMENT_LORE.get().toString());
-      this.customMSG = var4;
+   public QuestRequirement(QuestProvider questProvider, String itemId, List<String> values, String text) throws ItemRequirementLoadException {
+      this.questID = itemId;
+      this.questProvider = questProvider;
+      this.lore = RequirementManager.getLore(values, Lang.QUEST_REQUIREMENT_LORE.get().toString());
+      this.customMSG = text;
       if (this.questProvider.isReady()) {
-         if (!this.questProvider.isLoaded(var2)) {
-            throw new ItemRequirementLoadException("Quest using ID '" + var2 + "' isn't found");
+         if (!this.questProvider.isLoaded(itemId)) {
+            throw new ItemRequirementLoadException("Quest using ID '" + itemId + "' isn't found");
          }
 
          this.onLoad();
@@ -38,22 +38,22 @@ public class QuestRequirement implements ItemRequirement {
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      return this.questProvider.hasCompleted(var1, this.questID);
+   public boolean isMet(Player player) {
+      return this.questProvider.hasCompleted(player, this.questID);
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
       return this.lore.isReplaced()
-         ? this.lore.get(var1, var2, var3)
-         : this.lore.get(var1, var2, var3, "%questName%", this.questProvider.getQuestName(this.questID));
+         ? this.lore.get(player, flag, flag2)
+         : this.lore.get(player, flag, flag2, "%questName%", this.questProvider.getQuestName(this.questID));
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.QUEST_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
-         SendMessage.chatToPlayer(var1, var2.replace("%questName%", this.questProvider.getQuestName(this.questID)));
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.QUEST_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
+         SendMessage.chatToPlayer(player, text.replace("%questName%", this.questProvider.getQuestName(this.questID)));
       }
    }
 }

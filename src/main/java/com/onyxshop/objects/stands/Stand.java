@@ -36,42 +36,42 @@ public class Stand {
    private UUID stand;
    private boolean loaded;
 
-   public Stand(int var1, SimpleLocation var2, String var3, StandType var4, StandSettings var5) {
-      this.loc = var2;
-      this.item = var3;
-      this.type = var4;
-      this.id = var1;
-      this.settings = var5;
+   public Stand(int value, SimpleLocation simpleLocation, String type, StandType standType, StandSettings standSettings) {
+      this.loc = simpleLocation;
+      this.item = type;
+      this.type = standType;
+      this.id = value;
+      this.settings = standSettings;
    }
 
    public UUID load() throws StandLoadException {
       if (this.loaded) {
          return this.stand;
       } else {
-         Location var1 = this.loc.toBukkit();
-         if (!this.isStillValid(var1)) {
+         Location location = this.loc.toBukkit();
+         if (!this.isStillValid(location)) {
             throw new StandLoadException(
                Lang.BLOCK_FROM_SHOP_STAND_NOT_FOUND.get().replace("%location%", this.loc.toString()).replace("%type%", this.type.name())
             );
          } else {
-            ShopItem var2;
+            ShopItem shopItem;
             try {
-               var2 = OnyxShop.getInstance().getShopItem(this.item);
-               if (var2 == null) {
+               shopItem = OnyxShop.getInstance().getShopItem(this.item);
+               if (shopItem == null) {
                   throw new StandLoadException(Lang.ITEM_FROM_SHOP_STAND_NOT_FOUND.get().replace("%item%", this.item));
                }
-            } catch (NullPointerException var4) {
+            } catch (NullPointerException exception) {
                throw new StandLoadException(Lang.ITEM_FROM_SHOP_STAND_NOT_FOUND.get().replace("%item%", this.item));
             }
 
             this.displayItem = this.getDisplayItem(this.loc.toBukkit());
             if (this.displayItem == null) {
-               this.loadDisplayItem(var2, this.loc.toBukkit());
+               this.loadDisplayItem(shopItem, this.loc.toBukkit());
             }
 
             this.stand = this.getStand(this.loc.toBukkit());
             if (this.stand == null) {
-               this.loadStand(var2, this.loc.toBukkit());
+               this.loadStand(shopItem, this.loc.toBukkit());
             }
 
             this.loaded = true;
@@ -82,8 +82,8 @@ public class Stand {
 
    public void unload() throws StandUnloadException {
       if (this.loaded) {
-         Location var1 = this.loc.toBukkit();
-         if (!this.isStillValid(var1)) {
+         Location location = this.loc.toBukkit();
+         if (!this.isStillValid(location)) {
             throw new StandUnloadException(
                Lang.BLOCK_FROM_SHOP_STAND_NOT_FOUND.get().replace("%location%", this.loc.toString()).replace("%type%", this.type.name())
             );
@@ -129,45 +129,45 @@ public class Stand {
       return this.settings;
    }
 
-   public boolean isStillValid(Location var1) {
-      Block var2 = var1.getWorld().getBlockAt(var1);
-      return this.type.getType() == XMaterial.matchXMaterial(var2);
+   public boolean isStillValid(Location location) {
+      Block block = location.getWorld().getBlockAt(location);
+      return this.type.getType() == XMaterial.matchXMaterial(block);
    }
 
-   private void loadDisplayItem(ShopItem var1, Location var2) {
-      var2.add(0.5, 0.5, 0.5);
-      Item var3 = var2.getWorld().dropItem(var2, new ItemStack(var1.getShopItem()));
-      var3.setPickupDelay(Integer.MAX_VALUE);
-      var3.setVelocity(new Vector(0, 0, 0));
-      var3.setMetadata("SHOP_STAND", new FixedMetadataValue(OnyxShop.getInstance(), this.id));
-      var3.setCustomName(var1.getDisplayname());
+   private void loadDisplayItem(ShopItem shopItem, Location location) {
+      location.add(0.5, 0.5, 0.5);
+      Item item = location.getWorld().dropItem(location, new ItemStack(shopItem.getShopItem()));
+      item.setPickupDelay(Integer.MAX_VALUE);
+      item.setVelocity(new Vector(0, 0, 0));
+      item.setMetadata("SHOP_STAND", new FixedMetadataValue(OnyxShop.getInstance(), this.id));
+      item.setCustomName(shopItem.getDisplayname());
       if (this.settings.isHologram() && ConfigManager.getConfig().getBoolean("shop-stands.holograms")) {
-         var3.setCustomNameVisible(true);
+         item.setCustomNameVisible(true);
       }
 
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R2)) {
-         var3.setUnlimitedLifetime(true);
+         item.setUnlimitedLifetime(true);
       } else {
-         this.setLived(var3, -32768);
+         this.setLived(item, -32768);
       }
 
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_10_R1)) {
-         var3.setGravity(false);
+         item.setGravity(false);
       }
 
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_13_R1)) {
-         var3.setPersistent(false);
+         item.setPersistent(false);
       }
 
-      this.displayItem = var3.getUniqueId();
+      this.displayItem = item.getUniqueId();
    }
 
-   private void setLived(Item var1, int var2) {
+   private void setLived(Item item, int value) {
       try {
-         Class var3 = !ServerInfo.isNMS()
+         Class type = !ServerInfo.isNMS()
             ? Class.forName("net.minecraft.server." + ServerInfo.getVersion().name() + ".EntityItem")
             : Class.forName("net.minecraft.world.entity.item.EntityItem");
-         Field var4 = var3.getDeclaredField(
+         Field field = type.getDeclaredField(
             ServerInfo.supportsComponents()
                ? "i"
                : (
@@ -176,56 +176,56 @@ public class Stand {
                      : (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_17_R1) ? "ao" : "age")
                )
          );
-         var4.setAccessible(true);
-         Class var5 = Class.forName("org.bukkit.craftbukkit." + ServerInfo.getVersion().name() + ".entity.CraftEntity");
-         Field var6 = ServerInfo.getVersion().getSimple() >= ServerInfo.Version.v1_20_R1.getSimple()
-            ? var5.getDeclaredField("entity")
-            : var1.getClass().getDeclaredField("item");
-         var6.setAccessible(true);
-         Object var7 = var6.get(var1);
-         var4.set(var7, var2);
-      } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException var8) {
+         field.setAccessible(true);
+         Class type2 = Class.forName("org.bukkit.craftbukkit." + ServerInfo.getVersion().name() + ".entity.CraftEntity");
+         Field field2 = ServerInfo.getVersion().getSimple() >= ServerInfo.Version.v1_20_R1.getSimple()
+            ? type2.getDeclaredField("entity")
+            : item.getClass().getDeclaredField("item");
+         field2.setAccessible(true);
+         Object value2 = field2.get(item);
+         field.set(value2, value);
+      } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException exception) {
          SendMessage.errorMessage("Failed to create display item for shop stand");
-         var8.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private UUID getDisplayItem(Location var1) {
-      var1.add(0.5, 0.5, 0.5);
+   private UUID getDisplayItem(Location location) {
+      location.add(0.5, 0.5, 0.5);
 
-      for (Entity var4 : var1.getWorld().getNearbyEntities(var1, 1.0, 1.0, 1.0)) {
-         if (var4 instanceof Item && this.matchesLoc(var4.getLocation(), var1) && this.matchTag(var4)) {
-            return var4.getUniqueId();
+      for (Entity entity : location.getWorld().getNearbyEntities(location, 1.0, 1.0, 1.0)) {
+         if (entity instanceof Item && this.matchesLoc(entity.getLocation(), location) && this.matchTag(entity)) {
+            return entity.getUniqueId();
          }
       }
 
       return null;
    }
 
-   private void loadStand(ShopItem var1, Location var2) {
-      var2.add(0.5, 0.0, 0.5);
-      ArmorStand var3 = (ArmorStand)var2.getWorld().spawnEntity(var2, EntityType.ARMOR_STAND);
-      var3.setVisible(false);
-      var3.setArms(false);
-      var3.setBasePlate(false);
-      var3.setMetadata("SHOP_STAND", new FixedMetadataValue(OnyxShop.getInstance(), this.id));
+   private void loadStand(ShopItem shopItem, Location location) {
+      location.add(0.5, 0.0, 0.5);
+      ArmorStand armorStand = (ArmorStand)location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
+      armorStand.setVisible(false);
+      armorStand.setArms(false);
+      armorStand.setBasePlate(false);
+      armorStand.setMetadata("SHOP_STAND", new FixedMetadataValue(OnyxShop.getInstance(), this.id));
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_10_R1)) {
-         var3.setGravity(false);
+         armorStand.setGravity(false);
       }
 
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_13_R1)) {
-         var3.setPersistent(false);
+         armorStand.setPersistent(false);
       }
 
-      this.stand = var3.getUniqueId();
+      this.stand = armorStand.getUniqueId();
    }
 
-   private UUID getStand(Location var1) {
-      var1.add(0.5, 0.0, 0.5);
+   private UUID getStand(Location location) {
+      location.add(0.5, 0.0, 0.5);
 
-      for (Entity var4 : var1.getWorld().getNearbyEntities(var1, 1.0, 1.0, 1.0)) {
-         if (var4 instanceof ArmorStand && var4.getLocation().equals(var1) && this.matchTag(var4)) {
-            return var4.getUniqueId();
+      for (Entity entity : location.getWorld().getNearbyEntities(location, 1.0, 1.0, 1.0)) {
+         if (entity instanceof ArmorStand && entity.getLocation().equals(location) && this.matchTag(entity)) {
+            return entity.getUniqueId();
          }
       }
 
@@ -233,31 +233,31 @@ public class Stand {
    }
 
    private void unloadDisplayItem() {
-      for (Entity var2 : Bukkit.getWorld(this.loc.world).getNearbyEntities(this.loc.toBukkit(), 1.0, 1.0, 1.0)) {
-         if (var2.getUniqueId().equals(this.displayItem)) {
-            var2.remove();
+      for (Entity entity : Bukkit.getWorld(this.loc.world).getNearbyEntities(this.loc.toBukkit(), 1.0, 1.0, 1.0)) {
+         if (entity.getUniqueId().equals(this.displayItem)) {
+            entity.remove();
          }
       }
    }
 
    private void unloadStand() {
-      for (Entity var2 : Bukkit.getWorld(this.loc.world).getNearbyEntities(this.loc.toBukkit(), 1.0, 1.0, 1.0)) {
-         if (var2.getUniqueId().equals(this.stand)) {
-            var2.remove();
+      for (Entity entity : Bukkit.getWorld(this.loc.world).getNearbyEntities(this.loc.toBukkit(), 1.0, 1.0, 1.0)) {
+         if (entity.getUniqueId().equals(this.stand)) {
+            entity.remove();
          }
       }
    }
 
-   private boolean matchesLoc(Location var1, Location var2) {
-      return var1.getX() == var2.getX() && var1.getY() == var2.getY() && var1.getZ() == var2.getZ();
+   private boolean matchesLoc(Location location, Location location2) {
+      return location.getX() == location2.getX() && location.getY() == location2.getY() && location.getZ() == location2.getZ();
    }
 
-   private boolean matchTag(Entity var1) {
+   private boolean matchTag(Entity entity) {
       if (ServerInfo.getVersion().olderOrEqualAs(ServerInfo.Version.v1_12_R1)) {
          return true;
       } else {
-         for (MetadataValue var3 : var1.getMetadata("SHOP_STAND")) {
-            if (var3.asInt() == this.id) {
+         for (MetadataValue metadataValue : entity.getMetadata("SHOP_STAND")) {
+            if (metadataValue.asInt() == this.id) {
                return true;
             }
          }
@@ -267,12 +267,12 @@ public class Stand {
    }
 
    public JSONObject serialize() {
-      HashMap var1 = new HashMap();
-      var1.put("stand_id", this.id);
-      var1.put("location", this.loc.getSimple());
-      var1.put("item", this.item);
-      var1.put("type", this.type.name());
-      var1.put("settings", this.settings.toString());
-      return new JSONObject(var1);
+      HashMap map = new HashMap();
+      map.put("stand_id", this.id);
+      map.put("location", this.loc.getSimple());
+      map.put("item", this.item);
+      map.put("type", this.type.name());
+      map.put("settings", this.settings.toString());
+      return new JSONObject(map);
    }
 }

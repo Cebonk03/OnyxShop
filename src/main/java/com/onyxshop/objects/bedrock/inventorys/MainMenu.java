@@ -19,184 +19,184 @@ import org.geysermc.floodgate.api.player.FloodgatePlayer;
 public class MainMenu extends BedrockInventory {
    private static final Set<String> SECTIONS = getSections();
 
-   public MainMenu(OnyxShop var1, boolean var2) {
-      super(var2 ? var1.mainMenuSize : SECTIONS.size() + (var1.navBar.isEnableMainNav() ? 9 : 0));
+   public MainMenu(OnyxShop plugin, boolean flag) {
+      super(flag ? plugin.mainMenuSize : SECTIONS.size() + (plugin.navBar.isEnableMainNav() ? 9 : 0));
    }
 
    @Override
-   public void openForm(OnyxShop var1, Player var2, FloodgatePlayer var3) {
-      this.p = var2;
-      Builder var4 = (Builder)SimpleForm.builder().title(TitleManager.get(TitleManager.Menu.MAIN_MENU, var2).getBedrockLegacy());
-      String[] var5 = new String[this.items.length];
-      int var6 = 0;
+   public void openForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer) {
+      this.p = player;
+      Builder builder = (Builder)SimpleForm.builder().title(TitleManager.get(TitleManager.Menu.MAIN_MENU, player).getBedrockLegacy());
+      String[] text = new String[this.items.length];
+      int value = 0;
 
-      for (String var8 : SECTIONS) {
-         SectionItem var9 = var1.getSectionItem(var8);
-         if (var9 != null && (!var9.isHideIfNoPerms() || PermissionsCache.hasPermission(var2, "OnyxShop.shop." + var8.toLowerCase()))) {
-            var5[var6] = var8;
-            this.addItem(var4, var9.getItem(var2), var6++, var9.getBedrockTexture());
+      for (String text2 : SECTIONS) {
+         SectionItem sectionItem = plugin.getSectionItem(text2);
+         if (sectionItem != null && (!sectionItem.isHideIfNoPerms() || PermissionsCache.hasPermission(player, "OnyxShop.shop." + text2.toLowerCase()))) {
+            text[value] = text2;
+            this.addItem(builder, sectionItem.getItem(player), value++, sectionItem.getBedrockTexture());
          }
       }
 
-      int var11 = var6;
-      if (var1.navBar.isEnableMainNav()) {
-         ItemStack[] var12 = var1.navBar.getMainMenuNavBar(var2);
-         String[] var13 = var1.navBar.getMainMenuNavTextures();
+      int value2 = value;
+      if (plugin.navBar.isEnableMainNav()) {
+         ItemStack[] mainMenuNavBar = plugin.navBar.getMainMenuNavBar(player);
+         String[] mainMenuNavTextures = plugin.navBar.getMainMenuNavTextures();
 
-         for (int var10 = 0; var10 < var12.length; var10++) {
-            if (var12[var10] != null) {
-               this.addItem(var4, var12[var10], var6++, var13[var10]);
+         for (int index = 0; index < mainMenuNavBar.length; index++) {
+            if (mainMenuNavBar[index] != null) {
+               this.addItem(builder, mainMenuNavBar[index], value++, mainMenuNavTextures[index]);
             }
          }
       }
 
-      var4.validResultHandler(var6x -> {
-         int var7 = var6x.clickedButtonId();
-         if (this.items[var7] != null) {
-            if (!var1.navBar.isEnableMainNav() || var7 < var11) {
-               String var8x = var5[var7];
-               if (var8x != null && var1.getSections().containsKey(var8x)) {
-                  if (PermissionsCache.hasPermission(var2, "OnyxShop.shop." + var8x.toLowerCase())) {
-                     com.onyxshop.objects.shops.ShopSection var9x = var1.getSection(var8x);
-                     if (!var9x.isCommandItem()) {
-                        var9x.openShopSection(var2, false);
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            if (!plugin.navBar.isEnableMainNav() || id < value2) {
+               String text2 = text[id];
+               if (text2 != null && plugin.getSections().containsKey(text2)) {
+                  if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + text2.toLowerCase())) {
+                     com.onyxshop.objects.shops.ShopSection section = plugin.getSection(text2);
+                     if (!section.isCommandItem()) {
+                        section.openShopSection(player, false);
                      } else {
-                        var9x.getClickCommands().forEach(var1xx -> CommandHelper.executeCommand(null, var2, var1xx));
-                        if (!var9x.isCloseMenu()) {
-                           this.openForm(var1, var2, var3);
+                        section.getClickCommands().forEach(entry -> CommandHelper.executeCommand(null, player, entry));
+                        if (!section.isCloseMenu()) {
+                           this.openForm(plugin, player, floodgatePlayer);
                         }
                      }
 
-                     var1.getSoundEffects().openShop(var2);
-                  } else if (!var1.getSectionItem(var8x).isHideIfNoPerms()) {
-                     SendMessage.chatToPlayer(var2, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(var2));
+                     plugin.getSoundEffects().openShop(player);
+                  } else if (!plugin.getSectionItem(text2).isHideIfNoPerms()) {
+                     SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(player));
                   }
                }
-            } else if (!var1.navBar.execute(this, var2, var7 - var11)) {
-               this.openForm(var1, var2, var3);
+            } else if (!plugin.navBar.execute(this, player, id - value2)) {
+               this.openForm(plugin, player, floodgatePlayer);
             }
          }
       });
-      var3.sendForm(var4);
+      floodgatePlayer.sendForm(builder);
    }
 
    @Override
-   public void openGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4) {
-      this.p = var2;
-      this.buildGridForm(var1, var2, var3, var4);
+   public void openGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag) {
+      this.p = player;
+      this.buildGridForm(plugin, player, floodgatePlayer, flag);
    }
 
-   private void buildGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4) {
-      Builder var5 = (Builder)SimpleForm.builder().title(this.getTitle(TitleManager.get(TitleManager.Menu.MAIN_MENU, var2), this.items.length, 99, var4));
+   private void buildGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag) {
+      Builder builder = (Builder)SimpleForm.builder().title(this.getTitle(TitleManager.get(TitleManager.Menu.MAIN_MENU, player), this.items.length, 99, flag));
 
-      for (int var6 = 0; var6 < (var1.navBar.isEnableMainNav() ? this.items.length - 9 : this.items.length); var6++) {
-         String var7 = var1.getMainMenuSectionForSlot(var6);
-         SectionItem var8 = var7 == null ? null : var1.getSectionItem(var7);
-         if (var7 == null || var8 == null || var8.isHideIfNoPerms() && !PermissionsCache.hasPermission(var2, "OnyxShop.shop." + var7.toLowerCase())) {
-            if (var1.createItem.fillItem != null && var6 < (var1.navBar.isEnableMainNav() ? this.items.length - 9 : this.items.length)) {
-               this.addGridItem(var5, var1.createItem.fillItem, true, var6, false);
+      for (int index = 0; index < (plugin.navBar.isEnableMainNav() ? this.items.length - 9 : this.items.length); index++) {
+         String mainMenuSectionForSlot = plugin.getMainMenuSectionForSlot(index);
+         SectionItem sectionItem = mainMenuSectionForSlot == null ? null : plugin.getSectionItem(mainMenuSectionForSlot);
+         if (mainMenuSectionForSlot == null || sectionItem == null || sectionItem.isHideIfNoPerms() && !PermissionsCache.hasPermission(player, "OnyxShop.shop." + mainMenuSectionForSlot.toLowerCase())) {
+            if (plugin.createItem.fillItem != null && index < (plugin.navBar.isEnableMainNav() ? this.items.length - 9 : this.items.length)) {
+               this.addGridItem(builder, plugin.createItem.fillItem, true, index, false);
             } else {
-               var5.button("null");
+               builder.button("null");
             }
          } else {
-            this.addGridItem(var5, var8.getItem(var2), false, var6, false, var8.getBedrockTexture());
+            this.addGridItem(builder, sectionItem.getItem(player), false, index, false, sectionItem.getBedrockTexture());
          }
       }
 
-      if (var1.navBar.isEnableMainNav()) {
-         int var10 = this.items.length - 9;
-         ItemStack[] var11 = var1.navBar.getMainMenuNavBar(var2);
-         String[] var12 = var1.navBar.getMainMenuNavTextures();
+      if (plugin.navBar.isEnableMainNav()) {
+         int value = this.items.length - 9;
+         ItemStack[] mainMenuNavBar = plugin.navBar.getMainMenuNavBar(player);
+         String[] mainMenuNavTextures = plugin.navBar.getMainMenuNavTextures();
 
-         for (int var9 = 0; var9 < var11.length; var9++) {
-            if (var11[var9] != null) {
-               this.addGridItem(var5, var11[var9], false, var10, false, var12[var9]);
+         for (int index = 0; index < mainMenuNavBar.length; index++) {
+            if (mainMenuNavBar[index] != null) {
+               this.addGridItem(builder, mainMenuNavBar[index], false, value, false, mainMenuNavTextures[index]);
             } else {
-               var5.button("null");
+               builder.button("null");
             }
 
-            var10++;
+            value++;
          }
       }
 
-      var5.validResultHandler(var6x -> {
-         int var7x = var6x.clickedButtonId();
-         if (this.items[var7x] != null) {
-            this.handleClick(var5, var1, var2, var3, var7x, -1, var4);
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            this.handleClick(builder, plugin, player, floodgatePlayer, id, -1, flag);
          }
       });
-      var3.sendForm(var5);
+      floodgatePlayer.sendForm(builder);
    }
 
-   private void reopenGridForm(Builder var1, OnyxShop var2, Player var3, FloodgatePlayer var4, boolean var5, int var6, int var7) {
-      if (var5 && var6 != var7) {
-         var1 = (Builder)SimpleForm.builder().title(this.getTitle(TitleManager.get(TitleManager.Menu.MAIN_MENU, var3), this.items.length, var6, var5));
+   private void reopenGridForm(Builder builder, OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag, int value, int value2) {
+      if (flag && value != value2) {
+         builder = (Builder)SimpleForm.builder().title(this.getTitle(TitleManager.get(TitleManager.Menu.MAIN_MENU, player), this.items.length, value, flag));
 
-         for (int var8 = 0; var8 < this.items.length; var8++) {
-            if (this.items[var8] != null) {
-               this.readdGridItem(var1, var8, var6 == var8);
+         for (int index = 0; index < this.items.length; index++) {
+            if (this.items[index] != null) {
+               this.readdGridItem(builder, index, value == index);
             } else {
-               var1.button("null");
+               builder.button("null");
             }
          }
 
-         var7 = var6;
+         value2 = value;
       }
 
-      int var10 = var7;
-      Builder var9 = var1;
-      var1.validResultHandler(var7x -> {
-         int var8x = var7x.clickedButtonId();
-         if (this.items[var8x] != null) {
-            this.handleClick(var9, var2, var3, var4, var8x, var10, var5);
+      int value3 = value2;
+      Builder builder2 = builder;
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            this.handleClick(builder2, plugin, player, floodgatePlayer, id, value3, flag);
          }
       });
-      var4.sendForm(var1);
+      floodgatePlayer.sendForm(builder);
    }
 
-   private void handleClick(Builder var1, OnyxShop var2, Player var3, FloodgatePlayer var4, int var5, int var6, boolean var7) {
-      if (var7 && var6 != var5) {
-         this.reopenGridForm(var1, var2, var3, var4, var7, var5, var6);
+   private void handleClick(Builder builder, OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, int value, int value2, boolean flag) {
+      if (flag && value2 != value) {
+         this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, value, value2);
       } else {
-         if (this.items[var5].isFillItem()) {
-            this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
+         if (this.items[value].isFillItem()) {
+            this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
          }
 
-         if (!var2.navBar.isEnableMainNav() || var5 < this.items.length - 9 || var5 > this.items.length - 1) {
-            String var8 = var2.getMainMenuSectionForSlot(var5);
-            if (var8 != null && var2.getSections().containsKey(var8)) {
-               if (PermissionsCache.hasPermission(var3, "OnyxShop.shop." + var8.toLowerCase())) {
-                  com.onyxshop.objects.shops.ShopSection var9 = var2.getSection(var8);
-                  if (!var9.isCommandItem()) {
-                     var9.openShopSection(var3, false);
+         if (!plugin.navBar.isEnableMainNav() || value < this.items.length - 9 || value > this.items.length - 1) {
+            String mainMenuSectionForSlot = plugin.getMainMenuSectionForSlot(value);
+            if (mainMenuSectionForSlot != null && plugin.getSections().containsKey(mainMenuSectionForSlot)) {
+               if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + mainMenuSectionForSlot.toLowerCase())) {
+                  com.onyxshop.objects.shops.ShopSection section = plugin.getSection(mainMenuSectionForSlot);
+                  if (!section.isCommandItem()) {
+                     section.openShopSection(player, false);
                   } else {
-                     var9.getClickCommands().forEach(var1x -> CommandHelper.executeCommand(null, var3, var1x));
-                     if (!var9.isCloseMenu()) {
-                        this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
+                     section.getClickCommands().forEach(entry -> CommandHelper.executeCommand(null, player, entry));
+                     if (!section.isCloseMenu()) {
+                        this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
                      }
                   }
 
-                  var2.getSoundEffects().openShop(var3);
-               } else if (!var2.getSectionItem(var8).isHideIfNoPerms()) {
-                  SendMessage.chatToPlayer(var3, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(var3));
+                  plugin.getSoundEffects().openShop(player);
+               } else if (!plugin.getSectionItem(mainMenuSectionForSlot).isHideIfNoPerms()) {
+                  SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(player));
                }
             }
-         } else if (!var2.navBar.execute(this, var3, var5 - (this.items.length - 9))) {
-            this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
+         } else if (!plugin.navBar.execute(this, player, value - (this.items.length - 9))) {
+            this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
          }
       }
    }
 
    private static Set<String> getSections() {
-      LinkedHashSet var0 = new LinkedHashSet();
+      LinkedHashSet values = new LinkedHashSet();
 
-      for (int var1 = 0; var1 < OnyxShop.getInstance().mainMenuSize; var1++) {
-         String var2 = OnyxShop.getInstance().getMainMenuSectionForSlot(var1);
-         if (var2 != null) {
-            var0.add(var2);
+      for (int size = 0; size < OnyxShop.getInstance().mainMenuSize; size++) {
+         String mainMenuSectionForSlot = OnyxShop.getInstance().getMainMenuSectionForSlot(size);
+         if (mainMenuSectionForSlot != null) {
+            values.add(mainMenuSectionForSlot);
          }
       }
 
-      return var0;
+      return values;
    }
 }

@@ -7,23 +7,23 @@ public class RemovePlayerStockQuery implements Query {
    private final String playerUUID;
    private final String section;
 
-   public RemovePlayerStockQuery(String var1, String var2) {
-      this.playerUUID = var1;
-      this.section = var2 == null ? "%" : "%" + var2 + "%";
+   public RemovePlayerStockQuery(String playerName, String itemId) {
+      this.playerUUID = playerName;
+      this.section = itemId == null ? "%" : "%" + itemId + "%";
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.REMOVE_PLAYER_STOCK.init(var1, this.section, this.playerUUID);
+   public String format(String text) {
+      return SQLQueries.REMOVE_PLAYER_STOCK.init(text, this.section, this.playerUUID);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         RemovePlayerStockQuery var2 = (RemovePlayerStockQuery)var1;
-         return this.section.equals(var2.section) && this.playerUUID.equals(var2.playerUUID);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         RemovePlayerStockQuery removePlayerStockQuery = (RemovePlayerStockQuery)value;
+         return this.section.equals(removePlayerStockQuery.section) && this.playerUUID.equals(removePlayerStockQuery.playerUUID);
       } else {
          return false;
       }

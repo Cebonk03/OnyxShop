@@ -16,11 +16,11 @@ public class LuckPerms implements PermissionsProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws PermissionsHookException {
-      this.plugin = var1;
-      RegisteredServiceProvider var2 = Bukkit.getServicesManager().getRegistration(net.luckperms.api.LuckPerms.class);
-      if (var2 != null) {
-         this.api = (net.luckperms.api.LuckPerms)var2.getProvider();
+   public void setup(OnyxShop plugin) throws PermissionsHookException {
+      this.plugin = plugin;
+      RegisteredServiceProvider registeredServiceProvider = Bukkit.getServicesManager().getRegistration(net.luckperms.api.LuckPerms.class);
+      if (registeredServiceProvider != null) {
+         this.api = (net.luckperms.api.LuckPerms)registeredServiceProvider.getProvider();
       } else {
          throw new PermissionsHookException("Failed to find LuckPerms provider from bukkit API");
       }
@@ -32,10 +32,10 @@ public class LuckPerms implements PermissionsProvider {
    }
 
    @Override
-   public String getGroupName(String var1) {
-      for (Group var3 : this.api.getGroupManager().getLoadedGroups()) {
-         if (!var3.getNodes().stream().noneMatch(var1x -> var1x.getKey().equalsIgnoreCase(var1) && var1x.getValue())) {
-            return var3.getDisplayName() == null ? var3.getName() : ChatUtil.formatColors(var3.getDisplayName());
+   public String getGroupName(String name) {
+      for (Group group : this.api.getGroupManager().getLoadedGroups()) {
+         if (!group.getNodes().stream().noneMatch(entry -> entry.getKey().equalsIgnoreCase(name) && entry.getValue())) {
+            return group.getDisplayName() == null ? group.getName() : ChatUtil.formatColors(group.getDisplayName());
          }
       }
 

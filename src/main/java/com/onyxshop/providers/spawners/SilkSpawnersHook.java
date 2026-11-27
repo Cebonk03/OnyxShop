@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
 public class SilkSpawnersHook implements SpawnerProvider {
    private final SilkUtil su;
 
-   public SilkSpawnersHook(SilkUtil var1) {
-      this.su = var1 == null ? SilkUtil.hookIntoSilkSpanwers() : var1;
+   public SilkSpawnersHook(SilkUtil silkUtil) {
+      this.su = silkUtil == null ? SilkUtil.hookIntoSilkSpanwers() : silkUtil;
    }
 
    @Override
@@ -28,46 +28,46 @@ public class SilkSpawnersHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      String var4 = var3.name();
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      String type = entityType.name();
 
-      String var5;
+      String text;
       try {
-         var5 = (String)this.su.getDisplayNameToMobID().get(var4);
-      } catch (NullPointerException var7) {
-         var5 = var4;
+         text = (String)this.su.getDisplayNameToMobID().get(type);
+      } catch (NullPointerException exception) {
+         text = type;
       }
 
-      if (var5 == null) {
-         var5 = var4;
+      if (text == null) {
+         text = type;
       }
 
-      ItemMeta var6 = var2.getItemMeta();
-      if (!var6.hasDisplayName()) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var6, SpawnerManager.getDefaultName(var3));
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (!itemMeta.hasDisplayName()) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      var2.setItemMeta(var6);
-      return this.su.nmsProvider.setNBTEntityID(var2, var5);
+      itemStack.setItemMeta(itemMeta);
+      return this.su.nmsProvider.setNBTEntityID(itemStack, text);
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "display::Name");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "display::Name");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      ItemMeta var2 = var1.getItemMeta();
-      BlockStateMeta var3 = (BlockStateMeta)var2;
-      CreatureSpawner var4 = (CreatureSpawner)var3.getBlockState();
-      return var4.getSpawnedType().name();
+   public String getSpawnedType(ItemStack itemStack) {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+      CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+      return creatureSpawner.getSpawnedType().name();
    }
 }

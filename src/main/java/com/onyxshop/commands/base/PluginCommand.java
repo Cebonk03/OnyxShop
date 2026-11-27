@@ -14,38 +14,38 @@ public abstract class PluginCommand extends BukkitCommand {
    public final OnyxShop plugin;
    private final List<String> disabledWorlds;
 
-   public PluginCommand(OnyxShop var1, String var2, String var3, String var4, String var5, List<String> var6) {
-      super(var2);
-      this.description = var3;
-      this.usageMessage = var4;
-      if (var5 != null) {
-         this.setPermission(var5);
+   public PluginCommand(OnyxShop plugin, String command, String shopId, String text, String text2, List<String> values) {
+      super(command);
+      this.description = shopId;
+      this.usageMessage = text;
+      if (text2 != null) {
+         this.setPermission(text2);
       }
 
-      this.plugin = var1;
-      this.disabledWorlds = var6;
+      this.plugin = plugin;
+      this.disabledWorlds = values;
    }
 
-   public abstract boolean execute(@NotNull CommandSender var1, @NotNull String var2, @NotNull String[] var3);
+   public abstract boolean execute(@NotNull CommandSender sender, @NotNull String command, @NotNull String[] values);
 
-   public abstract List<String> tabComplete(CommandSender var1, String var2, String[] var3);
+   public abstract List<String> tabComplete(CommandSender sender, String command, String[] values);
 
-   public boolean canUse(Player var1) {
-      return this.hasAccessInWorld(var1) && this.isAllowedGamemode(var1);
+   public boolean canUse(Player player) {
+      return this.hasAccessInWorld(player) && this.isAllowedGamemode(player);
    }
 
-   public boolean hasAccessInWorld(Player var1) {
-      if (!this.disabledWorlds.contains(var1.getWorld().getName())) {
+   public boolean hasAccessInWorld(Player player) {
+      if (!this.disabledWorlds.contains(player.getWorld().getName())) {
          return true;
       } else {
-         SendMessage.chatToPlayer(var1, Lang.COMMAND_DISABLED_IN_WORLD.get());
+         SendMessage.chatToPlayer(player, Lang.COMMAND_DISABLED_IN_WORLD.get());
          return false;
       }
    }
 
-   private boolean isAllowedGamemode(Player var1) {
-      if (this.plugin.bannedGamemodes.contains(var1.getGameMode()) && !PermissionsCache.hasPermission(var1, "OnyxShop.bypassgamemode")) {
-         SendMessage.chatToPlayer(var1, Lang.CANNOT_USE_COMMAND_BANNED_GAMEMODE.get().replace("%gamemode%", var1.getGameMode().name().toLowerCase()));
+   private boolean isAllowedGamemode(Player player) {
+      if (this.plugin.bannedGamemodes.contains(player.getGameMode()) && !PermissionsCache.hasPermission(player, "OnyxShop.bypassgamemode")) {
+         SendMessage.chatToPlayer(player, Lang.CANNOT_USE_COMMAND_BANNED_GAMEMODE.get().replace("%gamemode%", player.getGameMode().name().toLowerCase()));
          return false;
       } else {
          return true;

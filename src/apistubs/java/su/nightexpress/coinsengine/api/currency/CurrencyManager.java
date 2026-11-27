@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public interface CurrencyManager {
-   default Currency getCurrency(String var1) {
+   default Currency getCurrency(String text) {
       return null;
    }
 

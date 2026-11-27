@@ -23,13 +23,13 @@ public class VanillaEnchant extends BukkitEnch implements EnchantProvider {
    }
 
    @Override
-   public SimpleEnchantment getEnchant(String var1, int var2) throws ItemLoadException {
-      Optional var3 = XEnchantment.matchXEnchantment(var1);
-      if (var3.isPresent()) {
-         if (XEnchantment.matchXEnchantment(var1).get().isSupported()) {
-            Enchantment var4 = XEnchantment.matchXEnchantment(var1).get().parseEnchantment();
-            var2 = OnyxShop.getInstance().allowUnsafeEnchants ? var2 : (var2 > var4.getMaxLevel() ? var4.getMaxLevel() : var2);
-            return new SimpleEnchantment(EnchantsProvider.Provider.VANILLA, var4, var1, var2);
+   public SimpleEnchantment getEnchant(String itemId, int value) throws ItemLoadException {
+      Optional optional = XEnchantment.matchXEnchantment(itemId);
+      if (optional.isPresent()) {
+         if (XEnchantment.matchXEnchantment(itemId).get().isSupported()) {
+            Enchantment enchantment = XEnchantment.matchXEnchantment(itemId).get().parseEnchantment();
+            value = OnyxShop.getInstance().allowUnsafeEnchants ? value : (value > enchantment.getMaxLevel() ? enchantment.getMaxLevel() : value);
+            return new SimpleEnchantment(EnchantsProvider.Provider.VANILLA, enchantment, itemId, value);
          } else {
             throw new ItemLoadException(Lang.ITEM_ENCHANTMENT_NOT_SUPPORTED.get());
          }
@@ -39,20 +39,20 @@ public class VanillaEnchant extends BukkitEnch implements EnchantProvider {
    }
 
    @Override
-   public boolean canEnchantItem(ItemStack var1, SimpleEnchantment var2) {
-      return super.canEnchantItem(var1, (Enchantment)var2.getEnchant());
+   public boolean canEnchantItem(ItemStack itemStack, SimpleEnchantment simpleEnchantment) {
+      return super.canEnchantItem(itemStack, (Enchantment)simpleEnchantment.getEnchant());
    }
 
    @Override
-   public ItemStack addEnchantment(ItemStack var1, SimpleEnchantment var2, @Nullable DisplayItem var3) {
-      return super.addEnchantment(var1, (Enchantment)var2.getEnchant(), var2.getLvl(), var3);
+   public ItemStack addEnchantment(ItemStack itemStack, SimpleEnchantment simpleEnchantment, @Nullable DisplayItem displayItem) {
+      return super.addEnchantment(itemStack, (Enchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl(), displayItem);
    }
 
    @Override
-   public boolean isEnchant(NamespacedKey var1) {
+   public boolean isEnchant(NamespacedKey namespacedKey) {
       try {
-         return XEnchantment.matchXEnchantment(var1.getKey()).get().parseEnchantment() != null;
-      } catch (NullPointerException | NoSuchElementException var3) {
+         return XEnchantment.matchXEnchantment(namespacedKey.getKey()).get().parseEnchantment() != null;
+      } catch (NullPointerException | NoSuchElementException exception) {
          return false;
       }
    }
@@ -67,17 +67,17 @@ public class VanillaEnchant extends BukkitEnch implements EnchantProvider {
       return OnyxShop.getInstance()
          .supportedEnchants
          .stream()
-         .map(var0 -> new SimpleEnchantment(EnchantsProvider.Provider.VANILLA, var0, var0.getKey().getKey(), 1))
+         .map(entry -> new SimpleEnchantment(EnchantsProvider.Provider.VANILLA, entry, entry.getKey().getKey(), 1))
          .collect(Collectors.toList());
    }
 
    @Override
-   public List<Object> getAvailableEnchants(ItemStack var1) {
-      return OnyxShop.getInstance().supportedEnchants.stream().filter(var1x -> var1x.canEnchantItem(var1)).collect(Collectors.toList());
+   public List<Object> getAvailableEnchants(ItemStack itemStack) {
+      return OnyxShop.getInstance().supportedEnchants.stream().filter(element -> element.canEnchantItem(itemStack)).collect(Collectors.toList());
    }
 
    @Override
-   public ItemStack getBook(SimpleEnchantment var1) {
-      return super.getBook((Enchantment)var1.getEnchant(), var1.getLvl());
+   public ItemStack getBook(SimpleEnchantment simpleEnchantment) {
+      return super.getBook((Enchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl());
    }
 }

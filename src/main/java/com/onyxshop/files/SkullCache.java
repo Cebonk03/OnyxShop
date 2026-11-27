@@ -15,8 +15,8 @@ public class SkullCache {
    private final File file;
    private JSONObject skullCache;
 
-   public SkullCache(OnyxShop var1) {
-      this.file = new File(var1.getDataFolder() + File.separator + "cache" + File.separator + "skullcache.json");
+   public SkullCache(OnyxShop plugin) {
+      this.file = new File(plugin.getDataFolder() + File.separator + "cache" + File.separator + "skullcache.json");
 
       try {
          if (!this.file.getParentFile().exists()) {
@@ -28,85 +28,85 @@ public class SkullCache {
          }
 
          if (this.file.length() == 0L) {
-            FileOutputStream var2 = new FileOutputStream(this.file);
-            var2.write("{}".getBytes());
-            var2.close();
+            FileOutputStream fileOutputStream = new FileOutputStream(this.file);
+            fileOutputStream.write("{}".getBytes());
+            fileOutputStream.close();
          }
-      } catch (IOException var8) {
+      } catch (IOException exception) {
          SendMessage.warnMessage("Failed to create 'skullcache.json' cache file");
-         var8.printStackTrace();
+         exception.printStackTrace();
       }
 
       try {
-         FileReader var9 = new FileReader(this.file);
+         FileReader fileReader = new FileReader(this.file);
 
          try {
-            this.skullCache = JsonUtil.parseJson(var9);
-         } catch (Throwable var6) {
+            this.skullCache = JsonUtil.parseJson(fileReader);
+         } catch (Throwable exception) {
             try {
-               var9.close();
-            } catch (Throwable var5) {
-               var6.addSuppressed(var5);
+               fileReader.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
 
-            throw var6;
+            throw exception;
          }
 
-         var9.close();
-      } catch (Exception var7) {
+         fileReader.close();
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to load skullcache from 'skullcache.json'");
-         var7.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   public String getSkull(String var1) {
-      return (String)this.skullCache.get(var1);
+   public synchronized String getSkull(String text) {
+      return (String)this.skullCache.get(text);
    }
 
-   public SkullCache.PlayerTexture getTexture(String var1) {
-      Object var2 = this.skullCache.get(var1);
-      return var2 == null ? null : new SkullCache.PlayerTexture((String)var2);
+   public synchronized SkullCache.PlayerTexture getTexture(String playerName) {
+      Object value = this.skullCache.get(playerName);
+      return value == null ? null : new SkullCache.PlayerTexture((String)value);
    }
 
-   public SkullCache.PlayerTexture cacheSkull(String var1, SkullCache.PlayerTexture var2) {
-      this.skullCache.put(var1, new Gson().toJson(var2.getTexture()));
-      return var2;
+   public synchronized SkullCache.PlayerTexture cacheSkull(String playerName, SkullCache.PlayerTexture playerTexture) {
+      this.skullCache.put(playerName, new Gson().toJson(playerTexture.getTexture()));
+      return playerTexture;
    }
 
-   public String cacheSkull(String var1, String var2) {
-      this.skullCache.put(var1, var2);
-      return var2;
+   public synchronized String cacheSkull(String text, String text2) {
+      this.skullCache.put(text, text2);
+      return text2;
    }
 
-   public void write() {
+   public synchronized void write() {
       try {
-         FileWriter var1 = new FileWriter(this.file);
+         FileWriter fileWriter = new FileWriter(this.file);
 
          try {
-            var1.write(this.skullCache.toJSONString());
-            var1.flush();
-         } catch (Throwable var5) {
+            fileWriter.write(this.skullCache.toJSONString());
+            fileWriter.flush();
+         } catch (Throwable exception) {
             try {
-               var1.close();
-            } catch (Throwable var4) {
-               var5.addSuppressed(var4);
+               fileWriter.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
 
-            throw var5;
+            throw exception;
          }
 
-         var1.close();
-      } catch (IOException var6) {
+         fileWriter.close();
+      } catch (IOException exception) {
          SendMessage.warnMessage("Failed to save skull cache to 'skullcache.json'");
-         var6.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    public static class PlayerTexture {
       private final String texture;
 
-      public PlayerTexture(String var1) {
-         this.texture = var1;
+      public PlayerTexture(String playerName) {
+         this.texture = playerName;
       }
 
       public String getTexture() {

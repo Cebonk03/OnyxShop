@@ -18,13 +18,13 @@ public class MMOItemsHook implements ItemProvider, Listener {
    private final OnyxShop plugin;
    private boolean isReady = false;
 
-   public MMOItemsHook(OnyxShop var1) {
-      this.plugin = var1;
-      if (var1.getServer().getPluginManager().isPluginEnabled("MMOItems")) {
+   public MMOItemsHook(OnyxShop plugin) {
+      this.plugin = plugin;
+      if (plugin.getServer().getPluginManager().isPluginEnabled("MMOItems")) {
          this.enable();
       } else {
-         var1.runTaskLater(() -> {
-            if (!var1.getServer().getPluginManager().isPluginEnabled("MMOItems")) {
+         plugin.runTaskLater(() -> {
+            if (!plugin.getServer().getPluginManager().isPluginEnabled("MMOItems")) {
                SendMessage.errorMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", "MMOItems"));
             }
 
@@ -50,53 +50,53 @@ public class MMOItemsHook implements ItemProvider, Listener {
    }
 
    @Override
-   public ItemStack getItem(String var1) throws ItemLoadException {
+   public ItemStack getItem(String itemId) throws ItemLoadException {
       if (!this.isReady) {
          return null;
       } else {
-         String[] var2 = var1.split("\\.");
+         String[] values = itemId.split("\\.");
 
          try {
-            Type var3 = MMOItems.plugin.getTypes().get(var2[0]);
-            if (var3 == null) {
-               throw new ItemLoadException("Invalid MMOItems item type for '" + var2[0] + "." + var2[1] + "'");
+            Type type = MMOItems.plugin.getTypes().get(values[0]);
+            if (type == null) {
+               throw new ItemLoadException("Invalid MMOItems item type for '" + values[0] + "." + values[1] + "'");
             } else {
-               MMOItem var6 = MMOItems.plugin.getMMOItem(var3, var2[1]);
-               if (var6 == null) {
-                  throw new ItemLoadException(Lang.UNKNOWN_THIRD_PARTY_ITEM.get().replace("%id%", var1).replace("%plugin%", "MMOItems"));
+               MMOItem mmoItem = MMOItems.plugin.getMMOItem(type, values[1]);
+               if (mmoItem == null) {
+                  throw new ItemLoadException(Lang.UNKNOWN_THIRD_PARTY_ITEM.get().replace("%id%", itemId).replace("%plugin%", "MMOItems"));
                } else {
-                  return var6.newBuilder().build();
+                  return mmoItem.newBuilder().build();
                }
             }
-         } catch (Exception var5) {
-            String var4;
-            if (var5 instanceof ArrayIndexOutOfBoundsException) {
-               var4 = "Invalid syntax for MMOItem, should be '<itemType>.<itemID>'. But got '" + var1 + "'";
-            } else if (!(var5 instanceof ItemLoadException)) {
-               var4 = Lang.ERROR_CREATING_THIRD_PARTY_ITEM.get().replace("%id%", var1).getLegacy().replace("%plugin%", "MMOItems");
-               var5.printStackTrace();
+         } catch (Exception exception) {
+            String text;
+            if (exception instanceof ArrayIndexOutOfBoundsException) {
+               text = "Invalid syntax for MMOItem, should be '<itemType>.<itemID>'. But got '" + itemId + "'";
+            } else if (!(exception instanceof ItemLoadException)) {
+               text = Lang.ERROR_CREATING_THIRD_PARTY_ITEM.get().replace("%id%", itemId).getLegacy().replace("%plugin%", "MMOItems");
+               exception.printStackTrace();
             } else {
-               var4 = var5.getMessage();
+               text = exception.getMessage();
             }
 
-            throw new ItemLoadException("Failed to load MMOItem with reason: " + var4);
+            throw new ItemLoadException("Failed to load MMOItem with reason: " + text);
          }
       }
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      String var2 = MMOItems.getTypeName(var1);
-      if (var2 == null) {
+   public String getItem(ItemStack itemStack) {
+      String typeName = MMOItems.getTypeName(itemStack);
+      if (typeName == null) {
          return null;
       } else {
-         String var3 = MMOItems.getID(var1);
-         return var3 == null ? null : var2 + "." + var3;
+         String itemId = MMOItems.getID(itemStack);
+         return itemId == null ? null : typeName + "." + itemId;
       }
    }
 
    @Override
-   public String getID(String var1) {
-      return var1.contains(":") ? var1.split(":")[1] : var1;
+   public String getID(String text) {
+      return text.contains(":") ? text.split(":")[1] : text;
    }
 }

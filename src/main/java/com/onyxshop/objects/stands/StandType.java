@@ -79,39 +79,39 @@ public enum StandType {
    private StandType() {
    }
 
-   public boolean isOfType(Material var1) {
+   public boolean isOfType(Material material) {
       try {
-         return this.type == XMaterial.matchXMaterial(var1.name()).get();
-      } catch (IllegalArgumentException var3) {
+         return this.type == XMaterial.matchXMaterial(material.name()).get();
+      } catch (IllegalArgumentException exception) {
          return false;
       }
    }
 
    public static List<String> getSupported() {
-      return Arrays.stream(values()).filter(var0 -> var0.type.isSupported()).map(Enum::name).collect(Collectors.toList());
+      return Arrays.stream(values()).filter(element -> element.type.isSupported()).map(Enum::name).collect(Collectors.toList());
    }
 
    public XMaterial getType() {
       return this.type;
    }
 
-   public static boolean isValidType(Material var0) {
-      return var0 == Material.CHEST || var0 == Material.ENDER_CHEST || var0.name().endsWith("_SLAB");
+   public static boolean isValidType(Material material) {
+      return material == Material.CHEST || material == Material.ENDER_CHEST || material.name().endsWith("_SLAB");
    }
 
-   public static StandType fromType(Block var0) {
+   public static StandType fromType(Block block) {
       try {
-         return valueOf(XMaterial.matchXMaterial(var0).name());
-      } catch (IllegalArgumentException var2) {
+         return valueOf(XMaterial.matchXMaterial(block).name());
+      } catch (IllegalArgumentException exception) {
          return null;
       }
    }
 
-   public static StandType fromName(String var0) throws StandLoadException {
+   public static StandType fromName(String name) throws StandLoadException {
       try {
-         return valueOf(var0);
-      } catch (IllegalArgumentException var2) {
-         throw new StandLoadException(Lang.INVALID_STAND_TYPE.get().replace("%type%", var0));
+         return valueOf(name);
+      } catch (IllegalArgumentException exception) {
+         throw new StandLoadException(Lang.INVALID_STAND_TYPE.get().replace("%type%", name));
       }
    }
 }

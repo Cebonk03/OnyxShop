@@ -19,100 +19,100 @@ public enum EconomyType {
 
    final String name;
 
-   private EconomyType(String nullxx) {
-      this.name = nullxx;
+   private EconomyType(String type) {
+      this.name = type;
    }
 
    public String getName() {
       return this.name;
    }
 
-   public static EcoType getFromString(String var0) {
-      if (var0 == null) {
+   public static EcoType getFromString(String type) {
+      if (type == null) {
          return null;
       } else {
-         String var2 = var0.split(":")[0].toUpperCase();
-         EcoType var1;
-         switch (var2) {
+         String text = type.split(":")[0].toUpperCase();
+         EcoType ecoType;
+         switch (text) {
             case "EXP":
-               var1 = new EcoType(EXP);
+               ecoType = new EcoType(EXP);
                break;
             case "ITEM":
                try {
-                  var1 = new EcoType(ITEM, var0.replaceFirst("ITEM:", ""));
-               } catch (ArrayIndexOutOfBoundsException var5) {
+                  ecoType = new EcoType(ITEM, type.replaceFirst("ITEM:", ""));
+               } catch (ArrayIndexOutOfBoundsException exception) {
                   SendMessage.warnMessage(
-                     "Invalid format for item economy '" + var0 + "', should be 'ITEM:material:<item>'. Using default item: GOLD_NUGGET..."
+                     "Invalid format for item economy '" + type + "', should be 'ITEM:material:<item>'. Using default item: GOLD_NUGGET..."
                   );
-                  var1 = new EcoType(ITEM, "GOLD_INGOT");
+                  ecoType = new EcoType(ITEM, "GOLD_INGOT");
                }
                break;
             case "PLAYER_POINTS":
-               var1 = new EcoType(PLAYER_POINTS);
+               ecoType = new EcoType(PLAYER_POINTS);
                break;
             case "LEVELS":
-               var1 = new EcoType(LEVELS);
+               ecoType = new EcoType(LEVELS);
                break;
             case "VAULT":
-               var1 = new EcoType(VAULT);
+               ecoType = new EcoType(VAULT);
                break;
             case "VAULTUNLOCKED":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(VAULTUNLOCKED, var0.split(":")[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(VAULTUNLOCKED, type.split(":")[1]);
                } else {
-                  var1 = new EcoType(VAULTUNLOCKED);
+                  ecoType = new EcoType(VAULTUNLOCKED);
                }
                break;
             case "ECOBITS":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(ECOBITS, var0.split(":")[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(ECOBITS, type.split(":")[1]);
                } else {
-                  var1 = new EcoType(ECOBITS);
+                  ecoType = new EcoType(ECOBITS);
                }
                break;
             case "EXCELLENT_ECONOMY":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(EXCELLENT_ECONOMY, var0.split(":")[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(EXCELLENT_ECONOMY, type.split(":")[1]);
                } else {
-                  var1 = new EcoType(EXCELLENT_ECONOMY);
+                  ecoType = new EcoType(EXCELLENT_ECONOMY);
                }
                break;
             case "GEMS_ECONOMY":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(GEMS_ECONOMY, var0.split(":")[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(GEMS_ECONOMY, type.split(":")[1]);
                } else {
-                  var1 = new EcoType(GEMS_ECONOMY);
+                  ecoType = new EcoType(GEMS_ECONOMY);
                }
                break;
             case "ULTRA_ECONOMY":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(ULTRA_ECONOMY, var0.split(":")[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(ULTRA_ECONOMY, type.split(":")[1]);
                } else {
-                  var1 = new EcoType(ULTRA_ECONOMY);
+                  ecoType = new EcoType(ULTRA_ECONOMY);
                }
                break;
             case "VOTING_PLUGIN":
-               var1 = new EcoType(VOTING_PLUGIN);
+               ecoType = new EcoType(VOTING_PLUGIN);
                break;
             case "ZESSENTIALS":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(ZESSENTIALS, var0.split(":")[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(ZESSENTIALS, type.split(":")[1]);
                } else {
-                  var1 = new EcoType(ZESSENTIALS);
+                  ecoType = new EcoType(ZESSENTIALS);
                }
                break;
             case "EXTERNAL":
-               if (var0.contains(":")) {
-                  var1 = new EcoType(EXTERNAL, var0.split(":", 2)[1]);
+               if (type.contains(":")) {
+                  ecoType = new EcoType(EXTERNAL, type.split(":", 2)[1]);
                } else {
-                  var1 = null;
+                  ecoType = null;
                }
                break;
             default:
-               var1 = null;
+               ecoType = null;
          }
 
-         return var1;
+         return ecoType;
       }
    }
 }

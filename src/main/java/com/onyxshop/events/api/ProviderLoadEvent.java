@@ -6,8 +6,8 @@ import com.onyxshop.events.delayed.DelayedLoadListener;
 public class ProviderLoadEvent extends CustomEvent {
    private final DelayedLoadListener.Type providerType;
 
-   public ProviderLoadEvent(DelayedLoadListener.Type var1) {
-      this.providerType = var1;
+   public ProviderLoadEvent(DelayedLoadListener.Type type) {
+      this.providerType = type;
    }
 
    public DelayedLoadListener.Type getProviderType() {

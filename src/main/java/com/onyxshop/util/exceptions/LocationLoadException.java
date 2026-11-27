@@ -1,7 +1,7 @@
 package com.onyxshop.util.exceptions;
 
 public class LocationLoadException extends Exception {
-   public LocationLoadException(String var1) {
-      super(var1);
+   public LocationLoadException(String text) {
+      super(text);
    }
 }

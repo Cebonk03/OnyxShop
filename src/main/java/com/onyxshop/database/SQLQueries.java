@@ -24,11 +24,11 @@ public enum SQLQueries {
 
    private final String query;
 
-   private SQLQueries(String nullxx) {
-      this.query = nullxx;
+   private SQLQueries(String text) {
+      this.query = text;
    }
 
-   public String init(Object... var1) {
-      return String.format(this.query, var1);
+   public String init(Object... values) {
+      return String.format(this.query, values);
    }
 }

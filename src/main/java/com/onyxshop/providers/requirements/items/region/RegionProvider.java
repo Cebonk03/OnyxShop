@@ -4,15 +4,15 @@ import com.onyxshop.OnyxShop;
 import org.bukkit.entity.Player;
 
 public interface RegionProvider {
-   void init(OnyxShop var1, RegionManager var2);
+   void init(OnyxShop plugin, RegionManager regionManager);
 
    boolean isReady();
 
    String getName();
 
-   boolean isLoaded(String var1);
+   boolean isLoaded(String text);
 
-   String getRegionName(String var1);
+   String getRegionName(String name);
 
-   boolean isInsideRegion(Player var1, String var2);
+   boolean isInsideRegion(Player player, String playerName);
 }

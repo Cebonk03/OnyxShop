@@ -69,18 +69,18 @@ public class ShopCategory implements ShopSection {
       && Bukkit.getPluginManager().getPlugin("EcoEnchants") == null;
    public final List<String> itemLocs = new ArrayList<>();
 
-   public ShopCategory(OnyxShop var1, String var2) {
-      this.plugin = var1;
-      this.section = var2;
-      this.title = new ShopTitle(this.plugin.getSectionTitle(var2), this.plugin.getBedrockSectionTitle(var2));
+   public ShopCategory(OnyxShop plugin, String shopId) {
+      this.plugin = plugin;
+      this.section = shopId;
+      this.title = new ShopTitle(this.plugin.getSectionTitle(shopId), this.plugin.getBedrockSectionTitle(shopId));
       this.subSection = ConfigManager.getSection(this.section).getBoolean("sub-section");
       this.hidden = ConfigManager.getSection(this.section).getBoolean("hidden");
-      this.dynamicLore = var1.dynamicPricing;
+      this.dynamicLore = plugin.dynamicPricing;
       this.pages = this.plugin.getConfigManager().getPages(this.section, false);
       this.navBar = this.plugin.navBar.isEnabled(this.section);
       this.updateInterval = this.loadUpdateInterval();
       this.itemLocs.addAll(this.plugin.getConfigManager().getItemsRaw(this.section));
-      this.mappings = ConfigManager.getSection(this.section).contains("click-mappings") ? new ClickMappings(var2) : var1.getClickMappings();
+      this.mappings = ConfigManager.getSection(this.section).contains("click-mappings") ? new ClickMappings(shopId) : plugin.getClickMappings();
       if (!(this.clickCommands = ConfigManager.getSection(this.section).getStringList("click-commands")).isEmpty()) {
          this.closeMenu = ConfigManager.getSection(this.section).getBoolean("close-menu");
       } else {
@@ -95,13 +95,13 @@ public class ShopCategory implements ShopSection {
    }
 
    @Override
-   public DisplayItem getDisplayItem(String var1) {
-      return this.displayItems.get(var1);
+   public DisplayItem getDisplayItem(String itemId) {
+      return this.displayItems.get(itemId);
    }
 
    @Override
-   public boolean isActionItem(String var1, String var2) {
-      return this.displayItems.get(var1 + "." + var2) instanceof ActionItem;
+   public boolean isActionItem(String itemId, String text) {
+      return this.displayItems.get(itemId + "." + text) instanceof ActionItem;
    }
 
    @Override
@@ -109,15 +109,15 @@ public class ShopCategory implements ShopSection {
       return this.displayItems
          .values()
          .stream()
-         .filter(var0 -> ShopItem.class.equals(var0.getClass()))
+         .filter(element -> ShopItem.class.equals(element.getClass()))
          .map(ShopItem.class::cast)
          .collect(Collectors.toCollection(ArrayList::new));
    }
 
    @Override
-   public ShopItem getShopItem(String var1) {
-      DisplayItem var2 = this.displayItems.get(var1);
-      return var2 instanceof ShopItem ? (ShopItem)var2 : null;
+   public ShopItem getShopItem(String shopId) {
+      DisplayItem displayItem = this.displayItems.get(shopId);
+      return displayItem instanceof ShopItem ? (ShopItem)displayItem : null;
    }
 
    @Override
@@ -126,8 +126,8 @@ public class ShopCategory implements ShopSection {
    }
 
    @Override
-   public ShopPageItems getShopPageItems(int var1) {
-      return this.shopPages.get(var1);
+   public ShopPageItems getShopPageItems(int page) {
+      return this.shopPages.get(page);
    }
 
    @Override
@@ -172,7 +172,7 @@ public class ShopCategory implements ShopSection {
 
    @Override
    public List<String> getShopItemLocs() {
-      return this.displayItems.values().stream().filter(var0 -> ShopItem.class.equals(var0.getClass())).map(DisplayItem::itemLoc).collect(Collectors.toList());
+      return this.displayItems.values().stream().filter(element -> ShopItem.class.equals(element.getClass())).map(DisplayItem::itemLoc).collect(Collectors.toList());
    }
 
    @Override
@@ -181,37 +181,37 @@ public class ShopCategory implements ShopSection {
    }
 
    @Override
-   public ClickAction getClickAction(ClickType var1) {
-      return this.mappings.getAction(var1);
+   public ClickAction getClickAction(ClickType clickType) {
+      return this.mappings.getAction(clickType);
    }
 
    @Override
-   public int getPageForShopItem(String var1) {
-      return this.pages.indexOf(var1.split("\\.")[0]) + 1;
+   public int getPageForShopItem(String shopId) {
+      return this.pages.indexOf(shopId.split("\\.")[0]) + 1;
    }
 
    @Override
-   public List<ShopItem> getPageItems(int var1) {
+   public List<ShopItem> getPageItems(int page) {
       return this.shopPages
-         .get(var1)
+         .get(page)
          .getItemOrder()
          .stream()
          .filter(Objects::nonNull)
-         .map(var1x -> this.displayItems.get(this.section + "." + var1x))
-         .filter(var0 -> var0 instanceof ShopItem)
-         .map(var0 -> (ShopItem)var0)
+         .map(element -> this.displayItems.get(this.section + "." + element))
+         .filter(element -> element instanceof ShopItem)
+         .map(element -> (ShopItem)element)
          .collect(Collectors.toList());
    }
 
    private void loadShopItems() {
       try {
-         for (String var2 : this.itemLocs) {
+         for (String shopId : this.itemLocs) {
             this.displayItems
                .put(
-                  this.section + "." + var2,
-                  (DisplayItem)(ConfigManager.getShop(this.section).contains("pages." + var2 + ".action")
-                     ? new ActionItem(this.plugin, this, var2)
-                     : new ShopItem(this.plugin, this, var2))
+                  this.section + "." + shopId,
+                  (DisplayItem)(ConfigManager.getShop(this.section).contains("pages." + shopId + ".action")
+                     ? new ActionItem(this.plugin, this, shopId)
+                     : new ShopItem(this.plugin, this, shopId))
                );
          }
 
@@ -222,8 +222,8 @@ public class ShopCategory implements ShopSection {
             this.shopPages.put(1, new ShopPageItems(this.section));
             this.pageTitles.put(1, this.title);
          }
-      } catch (NullPointerException var3) {
-         var3.printStackTrace();
+      } catch (NullPointerException exception) {
+         exception.printStackTrace();
       }
 
       if (ConfigManager.getSection(this.section).get("fill-item") != null) {
@@ -234,159 +234,159 @@ public class ShopCategory implements ShopSection {
    private void loadFillItem() {
       try {
          this.fillItem = this.plugin.createItem.loadSectionItem(this.section, "fill-item");
-      } catch (ItemLoadException var2) {
+      } catch (ItemLoadException exception) {
          SendMessage.errorMessage(Lang.EXCEPTION_LOADING_FILL_ITEM.get().replace("%section%", this.section));
-         SendMessage.warnMessage(var2.getMessage());
+         SendMessage.warnMessage(exception.getMessage());
       }
    }
 
    private void loadPages() {
       try {
-         int var1 = 1;
+         int value = 1;
 
-         for (String var3 : this.pages) {
-            Integer var4 = this.getPageSize(var3);
-            int var5 = this.plugin.navBar.isEnabled(this.section) ? (var4 == null ? 45 : var4) : (var4 == null ? 54 : var4);
-            ItemLayout var6 = this.getItemLayout(var3, var5);
-            List var7 = this.plugin
+         for (String text : this.pages) {
+            Integer pageSize = this.getPageSize(text);
+            int value2 = this.plugin.navBar.isEnabled(this.section) ? (pageSize == null ? 45 : pageSize) : (pageSize == null ? 54 : pageSize);
+            ItemLayout itemLayout = this.getItemLayout(text, value2);
+            List values = this.plugin
                .calculateAmount
-               .loadItemsInOrder((ItemLayout)(var6 == null ? new PageLayout(this.section) : var6), this.section, var3, var4, var5);
-            if (var4 == null) {
-               var4 = var7.size() <= 45 && !var7.isEmpty() ? CalculateAmount.getSlots(var7.size()) : 54;
+               .loadItemsInOrder((ItemLayout)(itemLayout == null ? new PageLayout(this.section) : itemLayout), this.section, text, pageSize, value2);
+            if (pageSize == null) {
+               pageSize = values.size() <= 45 && !values.isEmpty() ? CalculateAmount.getSlots(values.size()) : 54;
             }
 
-            ArrayList var8 = new ArrayList();
-            LinkedHashMap var9 = new LinkedHashMap();
+            ArrayList values2 = new ArrayList();
+            LinkedHashMap map = new LinkedHashMap();
 
-            for (int var10 = 0; var10 < var7.size(); var10++) {
-               String var11 = (String)var7.get(var10);
-               if (var11 != null) {
-                  var9.put(var10, this.displayItems.get(this.section + "." + var11).getShopItem());
+            for (int size = 0; size < values.size(); size++) {
+               String text2 = (String)values.get(size);
+               if (text2 != null) {
+                  map.put(size, this.displayItems.get(this.section + "." + text2).getShopItem());
                }
 
-               var8.add(var11);
+               values2.add(text2);
             }
 
-            this.shopPages.put(var1, new ShopPageItems(var9, var8, this.section, var4));
-            this.pageTitles.put(var1, this.getPageTitle(var3));
-            var1++;
+            this.shopPages.put(value, new ShopPageItems(map, values2, this.section, pageSize));
+            this.pageTitles.put(value, this.getPageTitle(text));
+            value++;
          }
-      } catch (Exception var12) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Error occurred while loading shop items for section " + this.section);
-         var12.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private ItemLayout getItemLayout(String var1, int var2) {
-      List var3 = ConfigManager.getSection(this.section).getStringList("item-layout");
-      if (var3.isEmpty()) {
+   private ItemLayout getItemLayout(String itemId, int value) {
+      List stringList = ConfigManager.getSection(this.section).getStringList("item-layout");
+      if (stringList.isEmpty()) {
          return null;
-      } else if (var3.size() < var2 / 9) {
+      } else if (stringList.size() < value / 9) {
          SendMessage.errorMessage(
-            "Invalid item layout for " + this.section + " page '" + var1 + "': Expected " + var2 / 9 + " rows of values, but got " + var3.size() + " instead"
+            "Invalid item layout for " + this.section + " page '" + itemId + "': Expected " + value / 9 + " rows of values, but got " + stringList.size() + " instead"
          );
          return null;
       } else {
          try {
-            ArrayList var4 = new ArrayList();
+            ArrayList values = new ArrayList();
 
-            for (int var5 = 0; var5 < var2 / 9; var5++) {
-               String[] var6 = ((String)var3.get(var5)).split(" ");
-               if (var6.length != 9) {
+            for (int index = 0; index < value / 9; index++) {
+               String[] values2 = ((String)stringList.get(index)).split(" ");
+               if (values2.length != 9) {
                   SendMessage.errorMessage(
-                     "Invalid item layout for " + this.section + " page '" + var1 + "': Row " + (var5 + 1) + " contains less or more symbols, expected 9"
+                     "Invalid item layout for " + this.section + " page '" + itemId + "': Row " + (index + 1) + " contains less or more symbols, expected 9"
                   );
                   return null;
                }
 
-               if (Arrays.stream(var6).anyMatch(var0 -> !var0.equals("0") && !var0.equals("1"))) {
+               if (Arrays.stream(values2).anyMatch(element -> !element.equals("0") && !element.equals("1"))) {
                   SendMessage.errorMessage(
                      "Invalid item layout for "
                         + this.section
                         + " page '"
-                        + var1
+                        + itemId
                         + "': Items from row "
-                        + (var5 + 1)
+                        + (index + 1)
                         + " does not match expected values, expected 0 or 1"
                   );
                   return null;
                }
 
-               Arrays.stream(var6).forEach(var1x -> var4.add(var1x.equals("1")));
+               Arrays.stream(values2).forEach(entry -> values.add(entry.equals("1")));
             }
 
-            ReservedLayout var10 = new ReservedLayout(this.section);
+            ReservedLayout reservedLayout = new ReservedLayout(this.section);
 
-            for (int var11 = 0; var11 < var2 / 9; var11++) {
-               for (int var7 = 0; var7 < 9; var7++) {
-                  int var8 = var11 * 9 + var7;
-                  if ((Boolean)var4.get(var8)) {
-                     var10.reserve(var8);
+            for (int index = 0; index < value / 9; index++) {
+               for (int index2 = 0; index2 < 9; index2++) {
+                  int value4 = index * 9 + index2;
+                  if ((Boolean)values.get(value4)) {
+                     reservedLayout.reserve(value4);
                   }
                }
             }
 
-            return var10;
-         } catch (IndexOutOfBoundsException var9) {
-            SendMessage.errorMessage("Unexpected error occurred while loading item layout for " + this.section + " page '" + var1 + "'");
-            var9.printStackTrace();
+            return reservedLayout;
+         } catch (IndexOutOfBoundsException exception) {
+            SendMessage.errorMessage("Unexpected error occurred while loading item layout for " + this.section + " page '" + itemId + "'");
+            exception.printStackTrace();
             return null;
          }
       }
    }
 
    private long loadUpdateInterval() {
-      String var1 = ConfigManager.getSection(this.section).getString("update-interval");
-      if (var1 == null) {
+      String text = ConfigManager.getSection(this.section).getString("update-interval");
+      if (text == null) {
          return 0L;
       } else {
          try {
-            return TimeUtils.getTime(var1) / 1000L * 20L;
-         } catch (ParseException var3) {
+            return TimeUtils.getTime(text) / 1000L * 20L;
+         } catch (ParseException exception) {
             SendMessage.warnMessage("Invalid update-interval for shop '" + this.section + "', disabling periodic item updates...");
             return 0L;
          }
       }
    }
 
-   private Integer getPageSize(String var1) {
-      if (!ConfigManager.getShop(this.section).contains("pages." + var1 + ".gui-rows")) {
+   private Integer getPageSize(String text) {
+      if (!ConfigManager.getShop(this.section).contains("pages." + text + ".gui-rows")) {
          return null;
       } else {
          try {
-            int var2 = Integer.parseInt(ConfigManager.getShop(this.section).getString("pages." + var1 + ".gui-rows"));
-            if (var2 >= 1 && var2 <= 6) {
-               return var2 * 9;
+            int page = Integer.parseInt(ConfigManager.getShop(this.section).getString("pages." + text + ".gui-rows"));
+            if (page >= 1 && page <= 6) {
+               return page * 9;
             }
 
-            SendMessage.warnMessage("Inventory size for page '" + var1 + "' from shop '" + this.section + "' has to be in range from 1-6, using default...");
-         } catch (NumberFormatException var3) {
-            SendMessage.warnMessage("Invalid inventory size for page '" + var1 + "' from shop '" + this.section + "', using default...");
+            SendMessage.warnMessage("Inventory size for page '" + text + "' from shop '" + this.section + "' has to be in range from 1-6, using default...");
+         } catch (NumberFormatException exception) {
+            SendMessage.warnMessage("Invalid inventory size for page '" + text + "' from shop '" + this.section + "', using default...");
          }
 
          return null;
       }
    }
 
-   private ShopTitle getPageTitle(String var1) {
-      Translatable var2 = null;
-      if (ConfigManager.getShop(this.section).contains("pages." + var1 + ".bedrock-title")) {
-         var2 = SendMessage.fromConfig(this.plugin.getInvTitle(ConfigManager.getShop(this.section).getString("pages." + var1 + ".bedrock-title")));
+   private ShopTitle getPageTitle(String title) {
+      Translatable text = null;
+      if (ConfigManager.getShop(this.section).contains("pages." + title + ".bedrock-title")) {
+         text = SendMessage.fromConfig(this.plugin.getInvTitle(ConfigManager.getShop(this.section).getString("pages." + title + ".bedrock-title")));
       }
 
-      if (ConfigManager.getShop(this.section).contains("pages." + var1 + ".title")) {
-         String var3 = ConfigManager.getShop(this.section).getString("pages." + var1 + ".title");
-         return new ShopTitle(SendMessage.fromConfig(this.plugin.getInvTitle(var3)), var2);
+      if (ConfigManager.getShop(this.section).contains("pages." + title + ".title")) {
+         String text2 = ConfigManager.getShop(this.section).getString("pages." + title + ".title");
+         return new ShopTitle(SendMessage.fromConfig(this.plugin.getInvTitle(text2)), text);
       } else {
-         return var2 != null ? new ShopTitle(this.title.getTitle(), var2) : this.title;
+         return text != null ? new ShopTitle(this.title.getTitle(), text) : this.title;
       }
    }
 
    private boolean isStaticTitle() {
-      String var1 = this.title.getRaw();
+      String raw = this.title.getRaw();
 
-      for (ShopTitle var3 : this.pageTitles.values()) {
-         if (!var3.getRaw().equals(var1) || !var3.isStatic()) {
+      for (ShopTitle shopTitle : this.pageTitles.values()) {
+         if (!shopTitle.getRaw().equals(raw) || !shopTitle.isStatic()) {
             return false;
          }
       }
@@ -395,79 +395,79 @@ public class ShopCategory implements ShopSection {
    }
 
    @Override
-   public void openShopSection(Player var1, boolean var2) {
-      this.openShopSection(var1, 1, var2);
+   public void openShopSection(Player player, boolean flag) {
+      this.openShopSection(player, 1, flag);
    }
 
    @Override
-   public void openShopSection(Player var1, boolean var2, String var3) {
-      this.openShopSection(var1, 1, var2, var3);
+   public void openShopSection(Player player, boolean flag, String shopId) {
+      this.openShopSection(player, 1, flag, shopId);
    }
 
    @Override
-   public void openShopSection(Player var1, int var2, boolean var3) {
-      this.openShopSection(var1, var2, var3, null);
+   public void openShopSection(Player player, int value, boolean flag) {
+      this.openShopSection(player, value, flag, null);
    }
 
    @Override
-   public void openShopSection(Player var1, int var2, boolean var3, @Nullable String var4) {
-      ShopPageItems var5 = this.shopPages.get(var2);
-      Map var6 = var5.getItems();
-      User var7 = UserManager.getUser(var1);
-      boolean var8 = PermissionsCache.hasPermission(var1, "OnyxShop.itemindexes");
-      boolean var9 = PermissionsCache.hasPermission(var1, "OnyxShop.editshop.editor");
-      boolean var10 = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
-      boolean var11 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
+   public void openShopSection(Player player, int value, boolean flag, @Nullable String shopId) {
+      ShopPageItems shopPageItems = this.shopPages.get(value);
+      Map items = shopPageItems.getItems();
+      User user = UserManager.getUser(player);
+      boolean permission = PermissionsCache.hasPermission(player, "OnyxShop.itemindexes");
+      boolean permission2 = PermissionsCache.hasPermission(player, "OnyxShop.editshop.editor");
+      boolean flag2 = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
+      boolean flag3 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
       this.updateLore(
-         var6, var1, var7.isPr(), var7.isBedrock(), var10, var11, this.plugin.itemStockLore, this.plugin.sellLimits, var9, var8, this.plugin.seasonalLore, var2
+         items, player, user.isPr(), user.isBedrock(), flag2, flag3, this.plugin.itemStockLore, this.plugin.sellLimits, permission2, permission, this.plugin.seasonalLore, value
       );
-      if (this.plugin.bedrock && this.plugin.bedrockMenus && var7.isBedrock() && this.plugin.getBedrockInventorys().isEnabledFor(var1)) {
+      if (this.plugin.bedrock && this.plugin.bedrockMenus && user.isBedrock() && this.plugin.getBedrockInventorys().isEnabledFor(player)) {
          this.plugin
             .getBedrockInventorys()
             .openShopSection(
-               var1,
+               player,
                this,
-               var2,
-               var3,
-               var4,
-               var6,
-               var5.getItemOrder(),
+               value,
+               flag,
+               shopId,
+               items,
+               shopPageItems.getItemOrder(),
                this.fillItem,
-               this.pageTitles.get(var2).getTitle(var1, var2, this.pages.size()),
-               var5.getSize(),
+               this.pageTitles.get(value).getTitle(player, value, this.pages.size()),
+               shopPageItems.getSize(),
                this.navBar
             );
       } else {
-         int var12 = this.plugin.resizeGUI && var7.isBedrock() ? 54 : var5.getSize();
-         InventoryHolder var13 = InventoryUtil.getTopHolder(var1);
-         if (var13 instanceof ShopPage) {
-            ShopPage var14 = (ShopPage)var13;
-            if (this.section.equals(var14.getSection()) && var12 == var14.getSize()) {
-               var14.updateContents(this.plugin, var1, var6, var5.getItemOrder(), this.fillItem, var2, this.navBar);
+         int size = this.plugin.resizeGUI && user.isBedrock() ? 54 : shopPageItems.getSize();
+         InventoryHolder holder = InventoryUtil.getTopHolder(player);
+         if (holder instanceof ShopPage) {
+            ShopPage shopPage = (ShopPage)holder;
+            if (this.section.equals(shopPage.getSection()) && size == shopPage.getSize()) {
+               shopPage.updateContents(this.plugin, player, items, shopPageItems.getItemOrder(), this.fillItem, value, this.navBar);
                if (!this.staticTitle) {
-                  this.plugin.versionHandler.updateInventoryTitle(var1, this.pageTitles.get(var2).getTitle(var1, var2, this.pages.size()));
+                  this.plugin.versionHandler.updateInventoryTitle(player, this.pageTitles.get(value).getTitle(player, value, this.pages.size()));
                }
 
                return;
             }
          }
 
-         var7.setOpenNewGUI(true);
-         var1.openInventory(
+         user.setOpenNewGUI(true);
+         player.openInventory(
             new ShopPage(
                   this.plugin,
-                  var6,
-                  var5.getItemOrder(),
+                  items,
+                  shopPageItems.getItemOrder(),
                   this.fillItem,
-                  var1,
-                  this.pageTitles.get(var2).getTitle(var1, var2, this.pages.size()),
+                  player,
+                  this.pageTitles.get(value).getTitle(player, value, this.pages.size()),
                   this.section,
-                  var2,
+                  value,
                   this.pages.size(),
-                  var3,
+                  flag,
                   this.navBar,
-                  var12,
-                  var4
+                  size,
+                  shopId
                )
                .getInventory()
          );
@@ -475,164 +475,164 @@ public class ShopCategory implements ShopSection {
    }
 
    private void updateLore(
-      Map<Integer, ItemStack> var1,
-      Player var2,
-      boolean var3,
-      boolean var4,
-      boolean var5,
-      boolean var6,
-      boolean var7,
-      boolean var8,
-      boolean var9,
-      boolean var10,
-      boolean var11,
-      int var12
+      Map<Integer, ItemStack> map,
+      Player player,
+      boolean flag,
+      boolean flag2,
+      boolean flag3,
+      boolean flag4,
+      boolean flag5,
+      boolean flag6,
+      boolean flag7,
+      boolean flag8,
+      boolean flag9,
+      int value
    ) {
-      LoreFormatter.PageIndex var13 = new LoreFormatter.PageIndex(this.section, var12);
-      var1.replaceAll((var13x, var14) -> {
-         if (var14.getType().equals(Material.AIR)) {
-            return (ItemStack)var14;
+      LoreFormatter.PageIndex pageIndex = new LoreFormatter.PageIndex(this.section, value);
+      map.replaceAll((key, value2) -> {
+         if (value2.getType().equals(Material.AIR)) {
+            return (ItemStack)value2;
          } else {
-            DisplayItem var15 = this.displayItems.get(this.section + "." + this.shopPages.get(var12).getItemOrder().get(var13x));
-            if (var15 instanceof ShopItem) {
-               return this.updateLore(var13, (ShopItem)var15, var14, var2, var3, var4, var5, var6, var7, var8, var9, var10, var11, var12);
-            } else if (!(var15 instanceof ActionItem)) {
-               System.out.println(var14.getType() + " - " + var13x);
-               return (ItemStack)var14;
+            DisplayItem displayItem = this.displayItems.get(this.section + "." + this.shopPages.get(value).getItemOrder().get(key));
+            if (displayItem instanceof ShopItem) {
+               return this.updateLore(pageIndex, (ShopItem)displayItem, value2, player, flag, flag2, flag3, flag4, flag5, flag6, flag7, flag8, flag9, value);
+            } else if (!(displayItem instanceof ActionItem)) {
+               System.out.println(value2.getType() + " - " + key);
+               return (ItemStack)value2;
             } else {
-               return this.updateLore((ActionItem)var15, var14, var2, var3 || var4, false, var10, var12);
+               return this.updateLore((ActionItem)displayItem, value2, player, flag || flag2, false, flag8, value);
             }
          }
       });
    }
 
    private ItemStack updateLore(
-      LoreFormatter.PageIndex var1,
-      ShopItem var2,
-      ItemStack var3,
-      Player var4,
-      boolean var5,
-      boolean var6,
-      boolean var7,
-      boolean var8,
-      boolean var9,
-      boolean var10,
-      boolean var11,
-      boolean var12,
-      boolean var13,
-      int var14
+      LoreFormatter.PageIndex pageIndex,
+      ShopItem shopItem,
+      ItemStack itemStack,
+      Player player,
+      boolean flag,
+      boolean flag2,
+      boolean flag3,
+      boolean flag4,
+      boolean flag5,
+      boolean flag6,
+      boolean flag7,
+      boolean flag8,
+      boolean flag9,
+      int value
    ) {
-      if (var2.isHideIfUnmet() && var2.getRequirements().stream().anyMatch(var1x -> !var1x.isMet(var4))) {
-         return var2.getIfUnmet() != null ? var2.getIfUnmet().getItem(var4) : this.fillItem;
+      if (shopItem.isHideIfUnmet() && shopItem.getRequirements().stream().anyMatch(element -> !element.isMet(player))) {
+         return shopItem.getIfUnmet() != null ? shopItem.getIfUnmet().getItem(player) : this.fillItem;
       } else {
          try {
             return this.plugin
                .getLoreFormatter()
                .format(
-                  var1,
-                  var2,
-                  var3,
-                  var4,
+                  pageIndex,
+                  shopItem,
+                  itemStack,
+                  player,
                   this.section,
-                  this.nms && !var2.rgb,
-                  var5,
-                  var6,
-                  var7,
-                  var8,
-                  var9,
-                  var10,
-                  var11,
-                  var12,
-                  var2.hasPermission(var4, "shop", true),
+                  this.nms && !shopItem.rgb,
+                  flag,
+                  flag2,
+                  flag3,
+                  flag4,
+                  flag5,
+                  flag6,
+                  flag7,
+                  flag8,
+                  shopItem.hasPermission(player, "shop", true),
                   this.dynamicLore,
-                  var13 && var2.hasSeasonModifier(var4.getWorld().getName()),
-                  var14,
+                  flag9 && shopItem.hasSeasonModifier(player.getWorld().getName()),
+                  value,
                   this.getPages()
                );
-         } catch (Exception var16) {
-            SendMessage.logDebugMessage("Error occurred while updating shop lore of shop item '" + var2.getItemPath() + "'");
-            var16.printStackTrace();
-            return var3;
+         } catch (Exception exception) {
+            SendMessage.logDebugMessage("Error occurred while updating shop lore of shop item '" + shopItem.getItemPath() + "'");
+            exception.printStackTrace();
+            return itemStack;
          }
       }
    }
 
-   private ItemStack updateLore(ActionItem var1, ItemStack var2, Player var3, boolean var4, boolean var5, boolean var6, int var7) {
-      if (var1.isHideIfUnmet() && var1.getRequirements().stream().anyMatch(var1x -> !var1x.isMet(var3))) {
-         return var1.getIfUnmet() != null ? var1.getIfUnmet().getItem(var3) : this.fillItem;
+   private ItemStack updateLore(ActionItem actionItem, ItemStack itemStack, Player player, boolean flag, boolean flag2, boolean flag3, int value) {
+      if (actionItem.isHideIfUnmet() && actionItem.getRequirements().stream().anyMatch(element -> !element.isMet(player))) {
+         return actionItem.getIfUnmet() != null ? actionItem.getIfUnmet().getItem(player) : this.fillItem;
       } else {
          try {
             return this.plugin
                .getLoreFormatter()
                .format(
-                  var1,
-                  var2,
-                  var3,
+                  actionItem,
+                  itemStack,
+                  player,
                   this.plugin.getEcoHandler().getEcon(this.section).getType(),
                   this.section,
                   this.nms,
-                  var4,
-                  var5,
-                  var6,
-                  var7,
+                  flag,
+                  flag2,
+                  flag3,
+                  value,
                   this.getPages()
                );
-         } catch (Exception var9) {
-            SendMessage.logDebugMessage("Error occurred while updating shop lore of action item '" + var1.getItemPath() + "'");
-            var9.printStackTrace();
-            return var2;
+         } catch (Exception exception) {
+            SendMessage.logDebugMessage("Error occurred while updating shop lore of action item '" + actionItem.getItemPath() + "'");
+            exception.printStackTrace();
+            return itemStack;
          }
       }
    }
 
    @Override
-   public ItemStack updateItem(Player var1, ShopItem var2) {
-      ItemStack var3 = new ItemStack(var2.getShopItem());
-      boolean var4 = PermissionsCache.hasPermission(var1, "OnyxShop.itemindexes");
-      boolean var5 = PermissionsCache.hasPermission(var1, "OnyxShop.editshop.editor");
-      boolean var6 = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
-      boolean var7 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
+   public ItemStack updateItem(Player player, ShopItem shopItem) {
+      ItemStack itemStack = new ItemStack(shopItem.getShopItem());
+      boolean permission = PermissionsCache.hasPermission(player, "OnyxShop.itemindexes");
+      boolean permission2 = PermissionsCache.hasPermission(player, "OnyxShop.editshop.editor");
+      boolean flag = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
+      boolean flag2 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
       return this.updateLore(
          (LoreFormatter.PageIndex)null,
-         var2,
-         var3,
-         var1,
-         UserManager.getUser(var1).isPr(),
-         UserManager.getUser(var1).isBedrock(),
-         var6,
-         var7,
+         shopItem,
+         itemStack,
+         player,
+         UserManager.getUser(player).isPr(),
+         UserManager.getUser(player).isBedrock(),
+         flag,
+         flag2,
          this.plugin.itemStockLore,
          this.plugin.sellLimits,
-         var5,
-         var4,
+         permission2,
+         permission,
          this.plugin.seasonalLore,
-         this.getPageForShopItem(var2.itemLoc())
+         this.getPageForShopItem(shopItem.itemLoc())
       );
    }
 
    @Override
-   public void reloadItem(String var1) {
-      ShopItem var2 = new ShopItem(this.plugin, this, var1.split("\\.", 2)[1]);
-      this.displayItems.put(var1, var2);
-      this.shopPages.get(this.getPageForShopItem(var2.itemLoc)).setItem(var2.itemLoc, var2.getShopItem());
+   public void reloadItem(String itemId) {
+      ShopItem shopItem = new ShopItem(this.plugin, this, itemId.split("\\.", 2)[1]);
+      this.displayItems.put(itemId, shopItem);
+      this.shopPages.get(this.getPageForShopItem(shopItem.itemLoc)).setItem(shopItem.itemLoc, shopItem.getShopItem());
    }
 
    @Override
-   public void addNewItem(String var1) {
-      ShopItem var2 = new ShopItem(this.plugin, this, var1.split("\\.", 2)[1]);
-      this.displayItems.put(var1, var2);
-      this.itemLocs.add(var2.itemLoc);
-      String var3 = this.pages.get(this.pages.size() - 1);
-      int var4 = this.getPageSize(var3);
-      ShopPageItems var5 = this.shopPages.get(this.shopPages.size());
-      int var6 = new TreeSet<>(var5.getItems().keySet()).last() + 1;
-      if (var6 <= var4) {
-         var5.addItem(var2.itemLoc);
-         var5.setItem(var2.itemLoc, var2.getShopItem());
+   public void addNewItem(String itemId) {
+      ShopItem shopItem = new ShopItem(this.plugin, this, itemId.split("\\.", 2)[1]);
+      this.displayItems.put(itemId, shopItem);
+      this.itemLocs.add(shopItem.itemLoc);
+      String text = this.pages.get(this.pages.size() - 1);
+      int pageSize = this.getPageSize(text);
+      ShopPageItems shopPageItems = this.shopPages.get(this.shopPages.size());
+      int value = new TreeSet<>(shopPageItems.getItems().keySet()).last() + 1;
+      if (value <= pageSize) {
+         shopPageItems.addItem(shopItem.itemLoc);
+         shopPageItems.setItem(shopItem.itemLoc, shopItem.getShopItem());
       } else {
-         LinkedHashMap var7 = new LinkedHashMap();
-         var7.put(1, var2.getShopItem());
-         new ShopPageItems(var7, Collections.singletonList(var2.itemLoc), this.section, 18);
+         LinkedHashMap map = new LinkedHashMap();
+         map.put(1, shopItem.getShopItem());
+         new ShopPageItems(map, Collections.singletonList(shopItem.itemLoc), this.section, 18);
       }
 
       if (this.plugin.dynamicPricing) {

@@ -21,64 +21,64 @@ public class AdvancedEnchantmentsHook implements EnchantProvider {
    }
 
    @Override
-   public SimpleEnchantment getEnchant(String var1, int var2) throws ItemLoadException {
-      if (AEAPI.isAnEnchantment(var1)) {
-         AdvancedEnchantment var3 = AEAPI.getEnchantmentInstance(var1);
-         if (var3.isEnabled()) {
-            var2 = OnyxShop.getInstance().allowUnsafeEnchants
-               ? var2
-               : (var2 > AEAPI.getHighestEnchantmentLevel(var1) ? AEAPI.getHighestEnchantmentLevel(var1) : var2);
-            return new SimpleEnchantment(EnchantsProvider.Provider.ADVANCED_ENCHANTS, var3, var1, var2);
+   public SimpleEnchantment getEnchant(String itemId, int value) throws ItemLoadException {
+      if (AEAPI.isAnEnchantment(itemId)) {
+         AdvancedEnchantment advancedEnchantment = AEAPI.getEnchantmentInstance(itemId);
+         if (advancedEnchantment.isEnabled()) {
+            value = OnyxShop.getInstance().allowUnsafeEnchants
+               ? value
+               : (value > AEAPI.getHighestEnchantmentLevel(itemId) ? AEAPI.getHighestEnchantmentLevel(itemId) : value);
+            return new SimpleEnchantment(EnchantsProvider.Provider.ADVANCED_ENCHANTS, advancedEnchantment, itemId, value);
          } else {
-            throw new ItemLoadException("Enchantment '" + var1 + "' is disabled inside AdvancedEnchantments");
+            throw new ItemLoadException("Enchantment '" + itemId + "' is disabled inside AdvancedEnchantments");
          }
       } else {
-         throw new ItemLoadException("AdvancedEnchantments could not find a enchantment with name '" + var1 + "'");
+         throw new ItemLoadException("AdvancedEnchantments could not find a enchantment with name '" + itemId + "'");
       }
    }
 
    @Override
-   public boolean canEnchantItem(ItemStack var1, SimpleEnchantment var2) {
+   public boolean canEnchantItem(ItemStack itemStack, SimpleEnchantment simpleEnchantment) {
       if (OnyxShop.getInstance().allowUnsafeEnchants) {
          return true;
-      } else if (((AdvancedEnchantment)var2.getEnchant()).canBeApplied(var1.getType())) {
+      } else if (((AdvancedEnchantment)simpleEnchantment.getEnchant()).canBeApplied(itemStack.getType())) {
          return true;
       } else {
          SendMessage.errorMessage(
-            "Could not apply enchantment '" + var2.getKey() + "' to item " + OnyxShop.getInstance().getMaterialName(var1.getType().name())
+            "Could not apply enchantment '" + simpleEnchantment.getKey() + "' to item " + OnyxShop.getInstance().getMaterialName(itemStack.getType().name())
          );
          return false;
       }
    }
 
    @Override
-   public ItemStack addEnchantment(ItemStack var1, SimpleEnchantment var2, @Nullable DisplayItem var3) {
-      return AEAPI.applyEnchant(var2.getKey(), var2.getLvl(), var1);
+   public ItemStack addEnchantment(ItemStack itemStack, SimpleEnchantment simpleEnchantment, @Nullable DisplayItem displayItem) {
+      return AEAPI.applyEnchant(simpleEnchantment.getKey(), simpleEnchantment.getLvl(), itemStack);
    }
 
    @Override
-   public boolean isEnchant(NamespacedKey var1) {
-      return AEAPI.isAnEnchantment(var1.getKey());
+   public boolean isEnchant(NamespacedKey namespacedKey) {
+      return AEAPI.isAnEnchantment(namespacedKey.getKey());
    }
 
-   public List<String> getAppliedEnchants(ItemStack var1) {
-      return AEAPI.getEnchantmentsOnItem(var1)
+   public List<String> getAppliedEnchants(ItemStack itemStack) {
+      return AEAPI.getEnchantmentsOnItem(itemStack)
          .entrySet()
          .stream()
-         .map(var0 -> "advancedenchantments:" + (String)var0.getKey() + ":" + var0.getValue())
+         .map(entry -> "advancedenchantments:" + (String)entry.getKey() + ":" + entry.getValue())
          .collect(Collectors.toList());
    }
 
-   public List<SimpleEnchantment> getEnchantsOfItem(ItemStack var1) {
-      return AEAPI.getEnchantmentsOnItem(var1)
+   public List<SimpleEnchantment> getEnchantsOfItem(ItemStack itemStack) {
+      return AEAPI.getEnchantmentsOnItem(itemStack)
          .entrySet()
          .stream()
          .map(
-            var0 -> new SimpleEnchantment(
+            entry -> new SimpleEnchantment(
                EnchantsProvider.Provider.ADVANCED_ENCHANTS,
-               AEAPI.getEnchantmentInstance((String)var0.getKey()),
-               (String)var0.getKey(),
-               (Integer)var0.getValue()
+               AEAPI.getEnchantmentInstance((String)entry.getKey()),
+               (String)entry.getKey(),
+               (Integer)entry.getValue()
             )
          )
          .collect(Collectors.toList());
@@ -86,34 +86,34 @@ public class AdvancedEnchantmentsHook implements EnchantProvider {
 
    @Override
    public List<String> getAvailableEnchantKeys() {
-      return AEAPI.getAllEnchantments().stream().map(var0 -> "advancedenchantments:" + var0 + ":1").collect(Collectors.toList());
+      return AEAPI.getAllEnchantments().stream().map(element -> "advancedenchantments:" + element + ":1").collect(Collectors.toList());
    }
 
    @Override
    public List<SimpleEnchantment> getAvailableEnchants() {
       return AEAPI.getAllEnchantments()
          .stream()
-         .map(var0 -> new SimpleEnchantment(EnchantsProvider.Provider.ADVANCED_ENCHANTS, AEAPI.getEnchantmentInstance(var0), var0, 1))
+         .map(element -> new SimpleEnchantment(EnchantsProvider.Provider.ADVANCED_ENCHANTS, AEAPI.getEnchantmentInstance(element), element, 1))
          .collect(Collectors.toList());
    }
 
    @Override
-   public List<Object> getAvailableEnchants(ItemStack var1) {
+   public List<Object> getAvailableEnchants(ItemStack itemStack) {
       return AEAPI.getAllEnchantments()
          .stream()
          .map(AEAPI::getEnchantmentInstance)
-         .filter(var1x -> var1x.isEnabled() && var1x.canBeApplied(var1.getType()))
+         .filter(element -> element.isEnabled() && element.canBeApplied(itemStack.getType()))
          .collect(Collectors.toList());
    }
 
    @Override
-   public ItemStack getBook(SimpleEnchantment var1) {
-      ItemStack var2 = new ItemStack(Material.ENCHANTED_BOOK);
-      return AEAPI.applyEnchant(var1.getKey(), var1.getLvl(), var2);
+   public ItemStack getBook(SimpleEnchantment simpleEnchantment) {
+      ItemStack itemStack = new ItemStack(Material.ENCHANTED_BOOK);
+      return AEAPI.applyEnchant(simpleEnchantment.getKey(), simpleEnchantment.getLvl(), itemStack);
    }
 
    @Override
-   public String getName(SimpleEnchantment var1) {
-      return ((AdvancedEnchantment)var1.getEnchant()).getName();
+   public String getName(SimpleEnchantment simpleEnchantment) {
+      return ((AdvancedEnchantment)simpleEnchantment.getEnchant()).getName();
    }
 }

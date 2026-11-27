@@ -15,8 +15,8 @@ import org.bukkit.OfflinePlayer;
 public class PAPIExpansion extends PlaceholderExpansion {
    private final PlaceholderProvider provider;
 
-   public PAPIExpansion(PlaceholderProvider var1) {
-      this.provider = var1;
+   public PAPIExpansion(PlaceholderProvider placeholderProvider) {
+      this.provider = placeholderProvider;
    }
 
    public String getAuthor() {
@@ -39,145 +39,145 @@ public class PAPIExpansion extends PlaceholderExpansion {
       return true;
    }
 
-   public String onRequest(OfflinePlayer var1, String var2) {
-      if (var2.startsWith("buyprice_")) {
-         String var14 = var2.replace("buyprice_", "").replace(">", ".");
-         return !var14.contains(".") ? "§cInvalid item path for '" + var14 + "'" : this.provider.getItemBuyPrice(var14.split("\\.", 2));
-      } else if (var2.startsWith("sellprice_")) {
-         String var13 = var2.replace("sellprice_", "").replace(">", ".");
-         return !var13.contains(".") ? "§cInvalid item path for '" + var13 + "'" : this.provider.getItemSellPrice(var13.split("\\.", 2));
-      } else if (var2.startsWith("discount_")) {
+   public String onRequest(OfflinePlayer offlinePlayer, String playerName) {
+      if (playerName.startsWith("buyprice_")) {
+         String text = playerName.replace("buyprice_", "").replace(">", ".");
+         return !text.contains(".") ? "§cInvalid item path for '" + text + "'" : this.provider.getItemBuyPrice(text.split("\\.", 2));
+      } else if (playerName.startsWith("sellprice_")) {
+         String text = playerName.replace("sellprice_", "").replace(">", ".");
+         return !text.contains(".") ? "§cInvalid item path for '" + text + "'" : this.provider.getItemSellPrice(text.split("\\.", 2));
+      } else if (playerName.startsWith("discount_")) {
          if (!OnyxShop.getInstance().discountsActive) {
             return "§cDiscounts not enabled";
          } else {
-            String var12 = var2.replace("discount_", "");
-            return var1 != null && var1.isOnline() ? this.provider.getDiscount(var1.getPlayer(), var12) : "§cInvalid player";
+            String text = playerName.replace("discount_", "");
+            return offlinePlayer != null && offlinePlayer.isOnline() ? this.provider.getDiscount(offlinePlayer.getPlayer(), text) : "§cInvalid player";
          }
-      } else if (var2.startsWith("sell-multiplier_")) {
+      } else if (playerName.startsWith("sell-multiplier_")) {
          if (!OnyxShop.getInstance().multipliers) {
             return "§cSell multipliers not enabled";
          } else {
-            String var11 = var2.replace("sell-multiplier_", "");
-            return var1 != null && var1.isOnline() ? this.provider.getMultiplier(var1.getPlayer(), var11) : "§cInvalid player";
+            String text = playerName.replace("sell-multiplier_", "");
+            return offlinePlayer != null && offlinePlayer.isOnline() ? this.provider.getMultiplier(offlinePlayer.getPlayer(), text) : "§cInvalid player";
          }
-      } else if (var2.startsWith("shop_rotation_")) {
-         String var10 = var2.replace("shop_rotation_", "");
-         return this.provider.getShopRotation(var10);
-      } else if (var2.startsWith("item_purchases_")) {
-         SimplePair var9 = this.getData(var2.replace("item_purchases_", ""));
-         if (var9 == null) {
+      } else if (playerName.startsWith("shop_rotation_")) {
+         String shopId = playerName.replace("shop_rotation_", "");
+         return this.provider.getShopRotation(shopId);
+      } else if (playerName.startsWith("item_purchases_")) {
+         SimplePair simplePair = this.getData(playerName.replace("item_purchases_", ""));
+         if (simplePair == null) {
             return "§cInvalid/missing timeframe, use day/week/month";
          } else {
-            return var9.value == null
+            return simplePair.value == null
                ? "§cInvalid/missing item path"
-               : this.provider.getTotalTransactions(Transaction.Mode.BUY, (TransactionLog.TimeFrame)var9.key, (String)var9.value);
+               : this.provider.getTotalTransactions(Transaction.Mode.BUY, (TransactionLog.TimeFrame)simplePair.key, (String)simplePair.value);
          }
-      } else if (var2.startsWith("item_sales_")) {
-         SimplePair var8 = this.getData(var2.replace("item_sales_", ""));
-         if (var8 == null) {
+      } else if (playerName.startsWith("item_sales_")) {
+         SimplePair simplePair = this.getData(playerName.replace("item_sales_", ""));
+         if (simplePair == null) {
             return "§cInvalid/missing timeframe, use day/week/month";
          } else {
-            return var8.value == null
+            return simplePair.value == null
                ? "§cInvalid/missing item path"
-               : this.provider.getTotalTransactions(Transaction.Mode.SELL, (TransactionLog.TimeFrame)var8.key, (String)var8.value);
+               : this.provider.getTotalTransactions(Transaction.Mode.SELL, (TransactionLog.TimeFrame)simplePair.key, (String)simplePair.value);
          }
-      } else if (var2.startsWith("player_purchases_")) {
-         PAPIExpansion.PlayerData var7 = this.getPlayerData(var2.substring("player_purchases_".length()));
-         return var7 == null
+      } else if (playerName.startsWith("player_purchases_")) {
+         PAPIExpansion.PlayerData playerData = this.getPlayerData(playerName.substring("player_purchases_".length()));
+         return playerData == null
             ? "§cInvalid/missing player, timeframe (day/week/month) or item path"
-            : this.provider.getTotalTransactions(Transaction.Mode.BUY, var7.timeFrame, var7.path == null ? "" : var7.path, var7.uuid);
-      } else if (var2.startsWith("player_sales_")) {
-         PAPIExpansion.PlayerData var6 = this.getPlayerData(var2.substring("player_sales_".length()));
-         return var6 == null
+            : this.provider.getTotalTransactions(Transaction.Mode.BUY, playerData.timeFrame, playerData.path == null ? "" : playerData.path, playerData.uuid);
+      } else if (playerName.startsWith("player_sales_")) {
+         PAPIExpansion.PlayerData playerData = this.getPlayerData(playerName.substring("player_sales_".length()));
+         return playerData == null
             ? "§cInvalid/missing player, timeframe (day/week/month) or item path"
-            : this.provider.getTotalTransactions(Transaction.Mode.SELL, var6.timeFrame, var6.path == null ? "" : var6.path, var6.uuid);
+            : this.provider.getTotalTransactions(Transaction.Mode.SELL, playerData.timeFrame, playerData.path == null ? "" : playerData.path, playerData.uuid);
       } else {
-         PlaceholderProvider.PlaceholderCache var3 = this.provider.getPlaceholderCache();
-         if (var3 == null) {
+         PlaceholderProvider.PlaceholderCache placeholderCache = this.provider.getPlaceholderCache();
+         if (placeholderCache == null) {
             return "§cLoading cache...";
          } else {
             try {
-               SimplePair var4 = this.getPlaceholder(var2.toUpperCase().split("_", 2));
-               if (var4 == null) {
+               SimplePair simplePair = this.getPlaceholder(playerName.toUpperCase().split("_", 2));
+               if (simplePair == null) {
                   return "Unknown placeholder";
                } else {
-                  switch ((PAPIExpansion.PlaceholderType)var4.key) {
+                  switch ((PAPIExpansion.PlaceholderType)simplePair.key) {
                      case PLAYER_MOST_BOUGHT_ITEMS_CURRENT_MONTH:
-                        return var3.getTopPlayerBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).player.name;
+                        return placeholderCache.getTopPlayerBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).player.name;
                      case PLAYER_MOST_BOUGHT_ITEMS_CURRENT_MONTH_AMOUNT:
-                        return String.valueOf(var3.getTopPlayerBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopPlayerBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case PLAYER_MOST_BOUGHT_ITEMS_CURRENT_WEEK:
-                        return var3.getTopPlayerBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).player.name;
+                        return placeholderCache.getTopPlayerBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).player.name;
                      case PLAYER_MOST_BOUGHT_ITEMS_CURRENT_WEEK_AMOUNT:
-                        return String.valueOf(var3.getTopPlayerBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopPlayerBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case PLAYER_MOST_BOUGHT_ITEMS_CURRENT_DAY:
-                        return var3.getTopPlayerBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).player.name;
+                        return placeholderCache.getTopPlayerBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).player.name;
                      case PLAYER_MOST_BOUGHT_ITEMS_CURRENT_DAY_AMOUNT:
-                        return String.valueOf(var3.getTopPlayerBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopPlayerBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case PLAYER_MOST_SOLD_ITEMS_CURRENT_MONTH:
-                        return var3.getTopPlayerSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).player.name;
+                        return placeholderCache.getTopPlayerSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).player.name;
                      case PLAYER_MOST_SOLD_ITEMS_CURRENT_MONTH_AMOUNT:
-                        return String.valueOf(var3.getTopPlayerSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopPlayerSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case PLAYER_MOST_SOLD_ITEMS_CURRENT_WEEK:
-                        return var3.getTopPlayerSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).player.name;
+                        return placeholderCache.getTopPlayerSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).player.name;
                      case PLAYER_MOST_SOLD_ITEMS_CURRENT_WEEK_AMOUNT:
-                        return String.valueOf(var3.getTopPlayerSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopPlayerSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case PLAYER_MOST_SOLD_ITEMS_CURRENT_DAY:
-                        return var3.getTopPlayerSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).player.name;
+                        return placeholderCache.getTopPlayerSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).player.name;
                      case PLAYER_MOST_SOLD_ITEMS_CURRENT_DAY_AMOUNT:
-                        return String.valueOf(var3.getTopPlayerSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopPlayerSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case MOST_BOUGHT_ITEM_CURRENT_MONTH:
-                        return var3.getTopBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).item.name;
+                        return placeholderCache.getTopBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).item.name;
                      case MOST_BOUGHT_ITEM_CURRENT_MONTH_AMOUNT:
-                        return String.valueOf(var3.getTopBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopBoughtItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case MOST_BOUGHT_ITEM_CURRENT_WEEK:
-                        return var3.getTopBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).item.name;
+                        return placeholderCache.getTopBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).item.name;
                      case MOST_BOUGHT_ITEM_CURRENT_WEEK_AMOUNT:
-                        return String.valueOf(var3.getTopBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopBoughtItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case MOST_BOUGHT_ITEM_CURRENT_DAY:
-                        return var3.getTopBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).item.name;
+                        return placeholderCache.getTopBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).item.name;
                      case MOST_BOUGHT_ITEM_CURRENT_DAY_AMOUNT:
-                        return String.valueOf(var3.getTopBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopBoughtItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case MOST_SOLD_ITEM_CURRENT_MONTH:
-                        return var3.getTopSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).item.name;
+                        return placeholderCache.getTopSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).item.name;
                      case MOST_SOLD_ITEM_CURRENT_MONTH_AMOUNT:
-                        return String.valueOf(var3.getTopSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopSoldItemsCurrentMonth().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case MOST_SOLD_ITEM_CURRENT_WEEK:
-                        return var3.getTopSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).item.name;
+                        return placeholderCache.getTopSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).item.name;
                      case MOST_SOLD_ITEM_CURRENT_WEEK_AMOUNT:
-                        return String.valueOf(var3.getTopSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopSoldItemsCurrentWeek().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      case MOST_SOLD_ITEM_CURRENT_DAY:
-                        return var3.getTopSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).item.name;
+                        return placeholderCache.getTopSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).item.name;
                      case MOST_SOLD_ITEM_CURRENT_DAY_AMOUNT:
-                        return String.valueOf(var3.getTopSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)var4.value).index).amount);
+                        return String.valueOf(placeholderCache.getTopSoldItemsCurrentDay().get(((PAPIExpansion.SimpleIndex)simplePair.value).index).amount);
                      default:
                         return "Unknown placeholder";
                   }
                }
-            } catch (IndexOutOfBoundsException var5) {
+            } catch (IndexOutOfBoundsException exception) {
                return "null";
             }
          }
       }
    }
 
-   private PAPIExpansion.PlayerData getPlayerData(String var1) {
-      String[] var2 = var1.split("_");
-      if (var2.length < 2) {
+   private PAPIExpansion.PlayerData getPlayerData(String playerName) {
+      String[] values = playerName.split("_");
+      if (values.length < 2) {
          return null;
       } else {
-         for (int var3 = 1; var3 < var2.length; var3++) {
-            TransactionLog.TimeFrame var4;
+         for (int index = 1; index < values.length; index++) {
+            TransactionLog.TimeFrame timeFrame;
             try {
-               var4 = TransactionLog.TimeFrame.valueOf(var2[var3].toUpperCase(Locale.ENGLISH));
-            } catch (IllegalArgumentException var7) {
+               timeFrame = TransactionLog.TimeFrame.valueOf(values[index].toUpperCase(Locale.ENGLISH));
+            } catch (IllegalArgumentException exception) {
                continue;
             }
 
-            UUID var5 = this.getPlayerUUID(String.join("_", Arrays.copyOfRange(var2, 0, var3)));
-            if (var5 != null) {
-               String var6 = var3 + 1 < var2.length ? String.join("_", Arrays.copyOfRange(var2, var3 + 1, var2.length)).replace(">", ".") : null;
-               return new PAPIExpansion.PlayerData(var5, var4, var6);
+            UUID playerUUID = this.getPlayerUUID(String.join("_", Arrays.copyOfRange(values, 0, index)));
+            if (playerUUID != null) {
+               String text = index + 1 < values.length ? String.join("_", Arrays.copyOfRange(values, index + 1, values.length)).replace(">", ".") : null;
+               return new PAPIExpansion.PlayerData(playerUUID, timeFrame, text);
             }
          }
 
@@ -185,31 +185,31 @@ public class PAPIExpansion extends PlaceholderExpansion {
       }
    }
 
-   private UUID getPlayerUUID(String var1) {
+   private UUID getPlayerUUID(String playerName) {
       try {
-         return UUID.fromString(var1);
-      } catch (IllegalArgumentException var3) {
-         return Bukkit.getOfflinePlayer(var1).getUniqueId();
+         return UUID.fromString(playerName);
+      } catch (IllegalArgumentException exception) {
+         return Bukkit.getOfflinePlayer(playerName).getUniqueId();
       }
    }
 
-   private SimplePair<TransactionLog.TimeFrame, String> getData(String var1) {
-      String[] var2 = var1.split("_", 2);
+   private SimplePair<TransactionLog.TimeFrame, String> getData(String text) {
+      String[] values = text.split("_", 2);
 
       try {
-         TransactionLog.TimeFrame var3 = TransactionLog.TimeFrame.valueOf(var2[0].toUpperCase(Locale.ENGLISH));
-         return new SimplePair<>(var3, var2.length > 1 ? var2[1].replace(">", ".") : null);
-      } catch (IllegalArgumentException var4) {
+         TransactionLog.TimeFrame timeFrame = TransactionLog.TimeFrame.valueOf(values[0].toUpperCase(Locale.ENGLISH));
+         return new SimplePair<>(timeFrame, values.length > 1 ? values[1].replace(">", ".") : null);
+      } catch (IllegalArgumentException exception) {
          return null;
       }
    }
 
-   private SimplePair<PAPIExpansion.PlaceholderType, PAPIExpansion.SimpleIndex> getPlaceholder(String... var1) {
+   private SimplePair<PAPIExpansion.PlaceholderType, PAPIExpansion.SimpleIndex> getPlaceholder(String... types) {
       try {
-         PAPIExpansion.SimpleIndex var2 = PAPIExpansion.SimpleIndex.get(var1[0]);
-         PAPIExpansion.PlaceholderType var3 = PAPIExpansion.PlaceholderType.valueOf(var2 == null ? String.join("_", var1) : var1[1]);
-         return new SimplePair<>(var3, var2 == null ? PAPIExpansion.SimpleIndex.FIRST : var2);
-      } catch (IllegalArgumentException var4) {
+         PAPIExpansion.SimpleIndex simpleIndex = PAPIExpansion.SimpleIndex.get(types[0]);
+         PAPIExpansion.PlaceholderType placeholderType = PAPIExpansion.PlaceholderType.valueOf(simpleIndex == null ? String.join("_", types) : types[1]);
+         return new SimplePair<>(placeholderType, simpleIndex == null ? PAPIExpansion.SimpleIndex.FIRST : simpleIndex);
+      } catch (IllegalArgumentException exception) {
          return null;
       }
    }
@@ -249,10 +249,10 @@ public class PAPIExpansion extends PlaceholderExpansion {
       final TransactionLog.TimeFrame timeFrame;
       final String path;
 
-      PlayerData(UUID var1, TransactionLog.TimeFrame var2, String var3) {
-         this.uuid = var1;
-         this.timeFrame = var2;
-         this.path = var3;
+      PlayerData(UUID playerId, TransactionLog.TimeFrame timeFrame, String text) {
+         this.uuid = playerId;
+         this.timeFrame = timeFrame;
+         this.path = text;
       }
    }
 
@@ -270,14 +270,14 @@ public class PAPIExpansion extends PlaceholderExpansion {
 
       public final int index;
 
-      private SimpleIndex(int nullxx) {
-         this.index = nullxx;
+      private SimpleIndex(int index) {
+         this.index = index;
       }
 
-      public static PAPIExpansion.SimpleIndex get(String var0) {
+      public static PAPIExpansion.SimpleIndex get(String text) {
          try {
-            return valueOf(var0);
-         } catch (IllegalArgumentException var2) {
+            return valueOf(text);
+         } catch (IllegalArgumentException exception) {
             return null;
          }
       }

@@ -28,9 +28,9 @@ public class BukkitMeta implements MetaUtils {
    private final ConsoleCommandSender logger;
    private final OnyxShop plugin;
 
-   public BukkitMeta(OnyxShop var1) {
-      this.plugin = var1;
-      this.logger = var1.getServer().getConsoleSender();
+   public BukkitMeta(OnyxShop plugin) {
+      this.plugin = plugin;
+      this.logger = plugin.getServer().getConsoleSender();
    }
 
    @Override
@@ -39,334 +39,334 @@ public class BukkitMeta implements MetaUtils {
    }
 
    @Override
-   public void send(Player var1, Translatable var2) {
-      var1.sendMessage(config.prefix + var2.get());
+   public void send(Player player, Translatable text) {
+      player.sendMessage(config.prefix + text.get());
    }
 
    @Override
-   public void send(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         this.send((Player)var1, var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage((String)var2.get());
+   public void send(Object value, Translatable text) {
+      if (value instanceof Player) {
+         this.send((Player)value, text);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage((String)text.get());
       }
    }
 
    @Override
-   public void send(Translatable var1) {
-      this.logger.sendMessage((String)var1.get());
+   public void send(Translatable text) {
+      this.logger.sendMessage((String)text.get());
    }
 
    @Override
-   public void sendLegacy(Player var1, String var2) {
-      var1.sendMessage(config.prefix + var2);
+   public void sendLegacy(Player player, String playerName) {
+      player.sendMessage(config.prefix + playerName);
    }
 
    @Override
-   public void sendLegacy(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, config.prefix + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage(var2);
+   public void sendLegacy(Object value, String text) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, config.prefix + text);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage(text);
       }
    }
 
    @Override
-   public void sendLegacy(String var1) {
-      this.logger.sendMessage(var1);
+   public void sendLegacy(String text) {
+      this.logger.sendMessage(text);
    }
 
-   private void send(Player var1, TextComponent var2) {
-      TextComponent var3 = new TextComponent(TextComponent.fromLegacyText((String)Lang.SHOP_PREFIX.get().get()));
-      var3.addExtra(var2);
-      var1.spigot().sendMessage(var3);
+   private void send(Player player, TextComponent textComponent) {
+      TextComponent textComponent2 = new TextComponent(TextComponent.fromLegacyText((String)Lang.SHOP_PREFIX.get().get()));
+      textComponent2.addExtra(textComponent);
+      player.spigot().sendMessage(textComponent2);
    }
 
    @Override
-   public void sendTransactionMessage(Player var1, int var2, double var3, ShopItem var5, Transaction.Mode var6, Transaction.Type var7, boolean var8) {
-      this.sendTransactionMessage(var1, var2, Collections.singletonMap(var5.getEcoType(), var3), var5, var6, var7, var8);
+   public void sendTransactionMessage(Player player, int value, double amount, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag) {
+      this.sendTransactionMessage(player, value, Collections.singletonMap(shopItem.getEcoType(), amount), shopItem, mode, type, flag);
    }
 
    @Override
    public void sendTransactionMessage(
-      Player var1, int var2, Map<EcoType, Double> var3, ShopItem var4, Transaction.Mode var5, Transaction.Type var6, boolean var7
+      Player player, int value, Map<EcoType, Double> map, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag
    ) {
-      String var8 = (String)(
-         var5 == Transaction.Mode.BUY
-            ? (var7 ? Lang.PAY_CONFIRMATION_COMMAND.get(var1).get() : Lang.PAY_CONFIRMATION.get(var1).get())
-            : (var7 ? Lang.SELL_CONFIRMATION_COMMAND.get(var1).get() : Lang.SELL_CONFIRMATION.get(var1).get())
+      String message = (String)(
+         mode == Transaction.Mode.BUY
+            ? (flag ? Lang.PAY_CONFIRMATION_COMMAND.get(player).get() : Lang.PAY_CONFIRMATION.get(player).get())
+            : (flag ? Lang.SELL_CONFIRMATION_COMMAND.get(player).get() : Lang.SELL_CONFIRMATION.get(player).get())
       );
       this.sendLegacy(
-         var1,
-         var8.replace("%amount%", String.valueOf(var2))
+         player,
+         message.replace("%amount%", String.valueOf(value))
             .replace(
                "%material%",
-               var4 instanceof ShopItem.Shulker
-                  ? var4.getDisplayname()
+               shopItem instanceof ShopItem.Shulker
+                  ? shopItem.getDisplayname()
                      + ChatColor.GRAY
-                     + ((ShopItem.Shulker)var4)
+                     + ((ShopItem.Shulker)shopItem)
                         .getContents()
                         .entrySet()
                         .stream()
-                        .map(var0 -> var0.getValue() + "x " + var0.getKey().getDisplayname() + ChatColor.GRAY)
+                        .map(entry -> entry.getValue() + "x " + entry.getKey().getDisplayname() + ChatColor.GRAY)
                         .collect(Collectors.toList())
-                  : var4.getDisplayname()
+                  : shopItem.getDisplayname()
             )
-            .replace("%amounttopay%", this.getCurrencyDisplay(var8.split("%amounttopay%")[0], var3, false))
+            .replace("%amounttopay%", this.getCurrencyDisplay(message.split("%amounttopay%")[0], map, false))
       );
    }
 
    @Override
-   public void sendTransactionMessage(Player var1, int var2, Map<EcoType, Double> var3, Map<ShopItem, Integer> var4, Transaction.Type var5) {
-      String var6 = this.getItemDisplay(var4, false);
-      String var7 = (String)Lang.SELL_CONFIRMATION_MULTIPLE_ITEMS.get(var1).get();
-      String var8 = var7.replace("%items%", (CharSequence)var6)
-         .replace("%amount%", String.valueOf(var2))
-         .replace("%amounttopay%", this.getCurrencyDisplay(var7.split("%amountofmoney%")[0], var3, false));
-      TextComponent var9 = new TextComponent(TextComponent.fromLegacyText(var8));
-      var9.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.GRAY + var6)));
+   public void sendTransactionMessage(Player player, int value, Map<EcoType, Double> map, Map<ShopItem, Integer> map2, Transaction.Type type) {
+      String itemDisplay = this.getItemDisplay(map2, false);
+      String text = (String)Lang.SELL_CONFIRMATION_MULTIPLE_ITEMS.get(player).get();
+      String message = text.replace("%items%", (CharSequence)itemDisplay)
+         .replace("%amount%", String.valueOf(value))
+         .replace("%amounttopay%", this.getCurrencyDisplay(text.split("%amountofmoney%")[0], map, false));
+      TextComponent textComponent = new TextComponent(TextComponent.fromLegacyText(message));
+      textComponent.setHoverEvent(new HoverEvent(Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.GRAY + itemDisplay)));
       if (this.plugin.spigot) {
-         this.send(var1, var9);
+         this.send(player, textComponent);
       } else {
-         this.sendLegacy(var1, var8);
+         this.sendLegacy(player, message);
       }
    }
 
-   private String getItemDisplay(Map<ShopItem, Integer> var1, boolean var2) {
-      return this.getItemDisplay(var1, var2, false);
+   private String getItemDisplay(Map<ShopItem, Integer> map, boolean flag) {
+      return this.getItemDisplay(map, flag, false);
    }
 
-   private String getItemDisplay(Map<ShopItem, Integer> var1, boolean var2, boolean var3) {
-      StringBuilder var4 = new StringBuilder();
-      int var5 = 0;
+   private String getItemDisplay(Map<ShopItem, Integer> map, boolean flag, boolean flag2) {
+      StringBuilder builder = new StringBuilder();
+      int value = 0;
 
-      for (Entry<ShopItem, Integer> var7 : var1.entrySet()) {
-         if (var7.getKey() instanceof ShopItem.Shulker) {
-            Map<ShopItem, Integer> var8 = ((ShopItem.Shulker)var7.getKey()).getContents();
-            var4.append(var7.getValue()).append("x ").append(((ShopItem)var7.getKey()).getDisplayname());
-            var4.append(var8.entrySet().stream().map(var0 -> var0.getValue() + "x " + ((ShopItem)var0.getKey()).getDisplayname()).collect(Collectors.toList()));
+      for (Entry<ShopItem, Integer> entry : map.entrySet()) {
+         if (entry.getKey() instanceof ShopItem.Shulker) {
+            Map<ShopItem, Integer> contents = ((ShopItem.Shulker)entry.getKey()).getContents();
+            builder.append(entry.getValue()).append("x ").append(((ShopItem)entry.getKey()).getDisplayname());
+            builder.append(contents.entrySet().stream().map(entry2 -> entry2.getValue() + "x " + ((ShopItem)entry2.getKey()).getDisplayname()).collect(Collectors.toList()));
          } else {
-            var4.append(var7.getValue()).append("x ").append(((ShopItem)var7.getKey()).getDisplayname());
+            builder.append(entry.getValue()).append("x ").append(((ShopItem)entry.getKey()).getDisplayname());
          }
 
-         var4.append("§r");
-         if (var3) {
-            var4.append("(").append(((ShopItem)var7.getKey()).getItemPath()).append(")");
+         builder.append("§r");
+         if (flag2) {
+            builder.append("(").append(((ShopItem)entry.getKey()).getItemPath()).append(")");
          }
 
-         if (!var2) {
-            var4.append("§7");
+         if (!flag) {
+            builder.append("§7");
          }
 
-         if (var5 != var1.size() - 1) {
-            var4.append(", ");
+         if (value != map.size() - 1) {
+            builder.append(", ");
          }
 
-         var5++;
+         value++;
       }
 
-      return var4.toString();
+      return builder.toString();
    }
 
-   private String getCurrencyDisplay(String var1, Map<EcoType, Double> var2, boolean var3) {
-      String var4 = ChatColor.getLastColors(var1);
-      StringBuilder var5 = new StringBuilder();
-      int var6 = 0;
+   private String getCurrencyDisplay(String type, Map<EcoType, Double> map, boolean flag) {
+      String lastColors = ChatColor.getLastColors(type);
+      StringBuilder builder = new StringBuilder();
+      int value = 0;
 
-      for (Entry<EcoType, Double> var8 : var2.entrySet()) {
-         var5.append(this.plugin.formatPrice((EcoType)var8.getKey(), (Double)var8.getValue()));
-         var5.append("§r");
-         if (!var3) {
-            var5.append(var4);
+      for (Entry<EcoType, Double> entry : map.entrySet()) {
+         builder.append(this.plugin.formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
+         builder.append("§r");
+         if (!flag) {
+            builder.append(lastColors);
          }
 
-         if (var6 != var2.size() - 1) {
-            var5.append(", ");
+         if (value != map.size() - 1) {
+            builder.append(", ");
          }
 
-         var6++;
+         value++;
       }
 
-      return var5.toString();
+      return builder.toString();
    }
 
    @Override
-   public Inventory createInventory(InventoryHolder var1, int var2, Translatable var3) {
-      return Bukkit.createInventory(var1, var2, (String)var3.get());
+   public Inventory createInventory(InventoryHolder holder, int value, Translatable text) {
+      return Bukkit.createInventory(holder, value, (String)text.get());
    }
 
    @Override
-   public void setRawDisplayName(ItemMeta var1, String var2) {
-      var1.setDisplayName(var2);
+   public void setRawDisplayName(ItemMeta itemMeta, String name) {
+      itemMeta.setDisplayName(name);
    }
 
    @Override
-   public void setDisplayName(ItemMeta var1, Translatable var2) {
-      var1.setDisplayName((String)var2.get());
+   public void setDisplayName(ItemMeta itemMeta, Translatable text) {
+      itemMeta.setDisplayName((String)text.get());
    }
 
    @Override
-   public String getRawDisplayName(ItemMeta var1) {
-      return var1.getDisplayName();
+   public String getRawDisplayName(ItemMeta itemMeta) {
+      return itemMeta.getDisplayName();
    }
 
    @Override
-   public Translatable getDisplayName(ItemMeta var1) {
-      return new TranslatableRaw(var1.getDisplayName());
+   public Translatable getDisplayName(ItemMeta itemMeta) {
+      return new TranslatableRaw(itemMeta.getDisplayName());
    }
 
    @Override
-   public String getRawItemName(ItemMeta var1) {
-      return var1.getItemName();
+   public String getRawItemName(ItemMeta itemMeta) {
+      return itemMeta.getItemName();
    }
 
    @Override
-   public void setRawLore(ItemMeta var1, List<String> var2) {
-      var1.setLore(var2);
+   public void setRawLore(ItemMeta itemMeta, List<String> lores) {
+      itemMeta.setLore(lores);
    }
 
    @Override
-   public void setLore(ItemMeta var1, List<Translatable> var2) {
-      var1.setLore(var2.stream().map(var0 -> (String)var0.get()).collect(Collectors.toList()));
+   public void setLore(ItemMeta itemMeta, List<Translatable> values) {
+      itemMeta.setLore(values.stream().map(element -> (String)element.get()).collect(Collectors.toList()));
    }
 
    @Override
-   public void addLore(ItemMeta var1, Translatable var2) {
-      List<String> var3 = var1.hasLore() ? var1.getLore() : new ArrayList<>();
-      var3.add(var2.getLegacy());
-      var1.setLore((List)var3);
+   public void addLore(ItemMeta itemMeta, Translatable text) {
+      List<String> lores = itemMeta.hasLore() ? itemMeta.getLore() : new ArrayList<>();
+      lores.add(text.getLegacy());
+      itemMeta.setLore((List)lores);
    }
 
    @Override
-   public List<String> getRawLore(ItemMeta var1) {
-      return var1.getLore();
+   public List<String> getRawLore(ItemMeta itemMeta) {
+      return itemMeta.getLore();
    }
 
    @Override
-   public List<Translatable> getLore(ItemMeta var1) {
-      return var1.getLore().stream().map(TranslatableRaw::new).collect(Collectors.toList());
+   public List<Translatable> getLore(ItemMeta itemMeta) {
+      return itemMeta.getLore().stream().map(TranslatableRaw::new).collect(Collectors.toList());
    }
 
    @Override
-   public void broadcast(Translatable var1) {
-      this.plugin.getServer().broadcastMessage(config.prefix + var1.get());
+   public void broadcast(Translatable text) {
+      this.plugin.getServer().broadcastMessage(config.prefix + text.get());
    }
 
    @Override
-   public void logDevDebugMessage(Translatable var1) {
-      this.logger.sendMessage("§8[§6DEBUG§8]§r: " + var1.get());
+   public void logDevDebugMessage(Translatable text) {
+      this.logger.sendMessage("§8[§6DEBUG§8]§r: " + text.get());
    }
 
    @Override
-   public void logPlayerTransaction(Translatable var1) {
-      this.logger.sendMessage(config.prefix + var1.get());
+   public void logPlayerTransaction(Translatable text) {
+      this.logger.sendMessage(config.prefix + text.get());
    }
 
    @Override
-   public void logPlayerTransaction(String var1) {
-      this.logger.sendMessage(config.prefix + var1);
+   public void logPlayerTransaction(String playerName) {
+      this.logger.sendMessage(config.prefix + playerName);
    }
 
    @Override
-   public void infoMessage(Translatable var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + var1.get());
+   public void infoMessage(Translatable text) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + text.get());
    }
 
    @Override
-   public void logDebugMessage(Translatable var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§6DEBUG§8]§r: " + var1.get());
+   public void logDebugMessage(Translatable text) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§6DEBUG§8]§r: " + text.get());
    }
 
    @Override
-   public void warnMessage(Translatable var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + var1.get());
+   public void warnMessage(Translatable text) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + text.get());
    }
 
    @Override
-   public void errorMessage(Translatable var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + var1.get());
+   public void errorMessage(Translatable text) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + text.get());
    }
 
    @Override
-   public void infoLegacyMessage(String var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + var1);
+   public void infoLegacyMessage(String message) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + message);
    }
 
    @Override
-   public void logLegacyDebugMessage(String var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§6DEBUG§8]§r: " + var1);
+   public void logLegacyDebugMessage(String message) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§6DEBUG§8]§r: " + message);
    }
 
    @Override
-   public void warnLegacyMessage(String var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + var1);
+   public void warnLegacyMessage(String message) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + message);
    }
 
    @Override
-   public void errorLegacyMessage(String var1) {
-      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + var1);
+   public void errorLegacyMessage(String message) {
+      this.logger.sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + message);
    }
 
    @Override
-   public void infoMessage(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, ChatColor.GREEN.toString() + var2.get());
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + var2.get());
-      }
-   }
-
-   @Override
-   public void warnMessage(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, ChatColor.RED.toString() + var2.get());
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + var2.get());
+   public void infoMessage(Object value, Translatable text) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, ChatColor.GREEN.toString() + text.get());
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + text.get());
       }
    }
 
    @Override
-   public void errorMessage(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, ChatColor.RED.toString() + var2.get());
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + var2.get());
+   public void warnMessage(Object value, Translatable text) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, ChatColor.RED.toString() + text.get());
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + text.get());
       }
    }
 
    @Override
-   public void infoLegacyMessage(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, ChatColor.GREEN + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + var2);
+   public void errorMessage(Object value, Translatable text) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, ChatColor.RED.toString() + text.get());
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + text.get());
       }
    }
 
    @Override
-   public void infoLegacyMessageWithoutPrefix(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(ChatColor.GREEN + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage((String)var2);
+   public void infoLegacyMessage(Object value, String message) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, ChatColor.GREEN + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§7INFO§8]§r: " + message);
       }
    }
 
    @Override
-   public void warnLegacyMessage(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, ChatColor.RED + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + var2);
+   public void infoLegacyMessageWithoutPrefix(Object value, String message) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(ChatColor.GREEN + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage((String)message);
       }
    }
 
    @Override
-   public void errorLegacyMessage(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         this.sendLegacy((Player)var1, ChatColor.RED + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + var2);
+   public void warnLegacyMessage(Object value, String message) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, ChatColor.RED + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§cWARN§8]§r: " + message);
+      }
+   }
+
+   @Override
+   public void errorLegacyMessage(Object value, String message) {
+      if (value instanceof Player) {
+         this.sendLegacy((Player)value, ChatColor.RED + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage("§8[§3OnyxShop§8]§r " + "§8[§4ERROR§8]§r: " + message);
       }
    }
 

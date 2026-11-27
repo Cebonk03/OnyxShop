@@ -8,9 +8,9 @@ public class SeasonModifier extends PriceModifier {
    private final int modifier;
    private final String world;
 
-   public SeasonModifier(String var1, int var2) {
-      this.world = var1;
-      this.modifier = var2;
+   public SeasonModifier(String text, int value) {
+      this.world = text;
+      this.modifier = value;
    }
 
    public String getWorld() {
@@ -18,17 +18,17 @@ public class SeasonModifier extends PriceModifier {
    }
 
    @Override
-   public double modify(Player var1, double var2) {
-      return !var1.getWorld().getName().equals(this.world) ? var2 : var2 + var2 / 100.0 * this.modifier;
+   public double modify(Player player, double amount) {
+      return !player.getWorld().getName().equals(this.world) ? amount : amount + amount / 100.0 * this.modifier;
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         SeasonModifier var2 = (SeasonModifier)var1;
-         return this.modifier == var2.modifier && this.world.equals(var2.world);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         SeasonModifier seasonModifier = (SeasonModifier)value;
+         return this.modifier == seasonModifier.modifier && this.world.equals(seasonModifier.world);
       } else {
          return false;
       }

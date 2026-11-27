@@ -36,155 +36,155 @@ public class DiscordSRVProvider {
    private ArrayList<DiscordSRVProvider.Field> fields;
    private int color;
 
-   public DiscordSRVProvider(OnyxShop var1) {
-      this.plugin = var1;
+   public DiscordSRVProvider(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
-   public DiscordSRVProvider(OnyxShop var1, ConfigurationSection var2) {
-      this.plugin = var1;
-      this.enabled = this.init(var2);
+   public DiscordSRVProvider(OnyxShop plugin, ConfigurationSection section) {
+      this.plugin = plugin;
+      this.enabled = this.init(section);
    }
 
-   public boolean init(ConfigurationSection var1) {
-      TextChannel var2 = null;
-      String var3 = var1.getString("channel");
-      if (var3 != null && !var3.isEmpty()) {
-         if (!var3.chars().allMatch(Character::isDigit)) {
-            var2 = DiscordSRV.getPlugin().getDestinationTextChannelForGameChannelName(var3);
+   public boolean init(ConfigurationSection section) {
+      TextChannel textChannel = null;
+      String text = section.getString("channel");
+      if (text != null && !text.isEmpty()) {
+         if (!text.chars().allMatch(Character::isDigit)) {
+            textChannel = DiscordSRV.getPlugin().getDestinationTextChannelForGameChannelName(text);
          } else {
-            var2 = DiscordUtil.getTextChannelById(var3);
+            textChannel = DiscordUtil.getTextChannelById(text);
          }
       }
 
-      if (var2 != null) {
-         this.transactionChannel = var2;
-         if (var1.contains("embed.color")) {
+      if (textChannel != null) {
+         this.transactionChannel = textChannel;
+         if (section.contains("embed.color")) {
             this.color = this.getRGBColor();
          }
 
-         if (var1.contains("embed.title")) {
-            this.title = var1.getString("embed.title");
+         if (section.contains("embed.title")) {
+            this.title = section.getString("embed.title");
          }
 
-         if (var1.contains("embed.description")) {
-            this.description = var1.getString("embed.description");
+         if (section.contains("embed.description")) {
+            this.description = section.getString("embed.description");
          }
 
-         if (var1.contains("embed.author.title")) {
-            this.authorTitle = var1.getString("embed.author.title");
+         if (section.contains("embed.author.title")) {
+            this.authorTitle = section.getString("embed.author.title");
          }
 
-         if (var1.contains("embed.author.imageURL")) {
-            this.authorImage = var1.getString("embed.author.imageURL");
+         if (section.contains("embed.author.imageURL")) {
+            this.authorImage = section.getString("embed.author.imageURL");
          }
 
-         if (var1.contains("embed.footer.title")) {
-            this.footerTitle = var1.getString("embed.footer.title");
+         if (section.contains("embed.footer.title")) {
+            this.footerTitle = section.getString("embed.footer.title");
          }
 
-         if (var1.contains("embed.footer.imageURL")) {
-            this.footerImage = var1.getString("embed.footer.imageURL");
+         if (section.contains("embed.footer.imageURL")) {
+            this.footerImage = section.getString("embed.footer.imageURL");
          }
 
-         ArrayList var4 = new ArrayList();
-         ConfigurationSection var5 = ConfigManager.getConfig().getConfigurationSection("discordsrv-transactions.embed.fields");
-         if (var5 != null) {
-            for (String var7 : var5.getKeys(false)) {
-               ConfigurationSection var8 = ConfigManager.getConfig().getConfigurationSection("discordsrv-transactions.embed.fields." + var7);
-               var4.add(new DiscordSRVProvider.Field(var8.getString("title"), var8.getString("message")));
+         ArrayList values = new ArrayList();
+         ConfigurationSection section2 = ConfigManager.getConfig().getConfigurationSection("discordsrv-transactions.embed.fields");
+         if (section2 != null) {
+            for (String text2 : section2.getKeys(false)) {
+               ConfigurationSection section3 = ConfigManager.getConfig().getConfigurationSection("discordsrv-transactions.embed.fields." + text2);
+               values.add(new DiscordSRVProvider.Field(section3.getString("title"), section3.getString("message")));
             }
          }
 
-         this.fields = var4;
-         if (var1.contains("raw")) {
-            this.raw = var1.getString("raw");
+         this.fields = values;
+         if (section.contains("raw")) {
+            this.raw = section.getString("raw");
          }
 
          SendMessage.infoMessage("Successfully enabled discordSRV hook, transactions will be logged to #" + this.transactionChannel);
          return true;
       } else {
          SendMessage.warnMessage(
-            "Failed to hook into DiscordSRV because no game channel with name '" + var1.getString("channel") + "' was found inside the DiscordSRV config."
+            "Failed to hook into DiscordSRV because no game channel with name '" + section.getString("channel") + "' was found inside the DiscordSRV config."
          );
          return false;
       }
    }
 
    @Subscribe
-   public void discordReadyEvent(DiscordReadyEvent var1) {
+   public void discordReadyEvent(DiscordReadyEvent event) {
       this.enabled = this.init(ConfigManager.getConfig().getConfigurationSection("discordsrv-transactions"));
    }
 
    private int getRGBColor() {
-      String var1 = ConfigManager.getConfig().getString("discordsrv-transactions.embed.color");
-      var1 = var1.replace("#", "");
-      if (!var1.startsWith("0x")) {
-         var1 = "0x" + var1;
+      String text = ConfigManager.getConfig().getString("discordsrv-transactions.embed.color");
+      text = text.replace("#", "");
+      if (!text.startsWith("0x")) {
+         text = "0x" + text;
       }
 
       try {
-         return Color.decode(var1).getRGB();
-      } catch (NumberFormatException var3) {
+         return Color.decode(text).getRGB();
+      } catch (NumberFormatException exception) {
          SendMessage.logDebugMessage(Lang.RGB_COLOR_FORMATTED_WRONG.get().replace("%path%", "discordsrv-transactions.embed.color"));
          SendMessage.errorItemConfig("discordsrv-transactions.embed.color");
          return 255;
       }
    }
 
-   private String translateMessage(String var1, Player var2, int var3, String var4, String var5, String var6) {
+   private String translateMessage(String message, Player player, int value, String playerName, String text, String text2) {
       return PlaceholderAPIHook.translate(
-         var2,
-         var1.replace("%translations-discord-srv-transaction%", Lang.DISCORD_SRV_PLAYER_TRANSACTION.get().getLegacy())
-            .replace("%player_name%", var2.getName())
-            .replace("%player_displayname%", ChatColor.stripColor(this.plugin.getDisplayName(var2)))
-            .replace("%amount%", String.valueOf(var3))
-            .replace("%bought/sold%", var4)
-            .replace("%items%", ChatUtil.stripColor(var5))
-            .replace("%price%", ChatColor.stripColor(var6))
+         player,
+         message.replace("%translations-discord-srv-transaction%", Lang.DISCORD_SRV_PLAYER_TRANSACTION.get().getLegacy())
+            .replace("%player_name%", player.getName())
+            .replace("%player_displayname%", ChatColor.stripColor(this.plugin.getDisplayName(player)))
+            .replace("%amount%", String.valueOf(value))
+            .replace("%bought/sold%", playerName)
+            .replace("%items%", ChatUtil.stripColor(text))
+            .replace("%price%", ChatColor.stripColor(text2))
       );
    }
 
    private List<github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed.Field> getFields(
-      Player var1, int var2, String var3, String var4, String var5
+      Player player, int value, String playerName, String text, String text2
    ) {
-      ArrayList var6 = new ArrayList();
+      ArrayList values = new ArrayList();
       if (this.fields == null) {
-         return var6;
+         return values;
       } else {
-         for (DiscordSRVProvider.Field var8 : this.fields) {
-            String var9 = this.translateMessage(var8.title, var1, var2, var3, var4, var5);
-            String var10 = this.translateMessage(var8.message, var1, var2, var3, var4, var5);
-            var6.add(new github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed.Field(var9, var10, false));
+         for (DiscordSRVProvider.Field field : this.fields) {
+            String message = this.translateMessage(field.title, player, value, playerName, text, text2);
+            String text3 = this.translateMessage(field.message, player, value, playerName, text, text2);
+            values.add(new github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed.Field(message, text3, false));
          }
 
-         return var6;
+         return values;
       }
    }
 
-   public void logTransaction(Player var1, int var2, String var3, String var4, String var5) {
+   public void logTransaction(Player player, int value, String playerName, String text, String text2) {
       if (this.raw != null && !this.raw.isEmpty()) {
-         this.transactionChannel.sendMessage(this.translateMessage(this.raw, var1, var2, var3, var4, var5)).queue();
+         this.transactionChannel.sendMessage(this.translateMessage(this.raw, player, value, playerName, text, text2)).queue();
       } else {
          this.transactionChannel
             .sendMessageEmbeds(
                new MessageEmbed(
                   null,
-                  this.title != null ? this.translateMessage(this.title, var1, var2, var3, var4, var5) : null,
-                  this.description != null && !this.description.isEmpty() ? this.translateMessage(this.description, var1, var2, var3, var4, var5) : null,
+                  this.title != null ? this.translateMessage(this.title, player, value, playerName, text, text2) : null,
+                  this.description != null && !this.description.isEmpty() ? this.translateMessage(this.description, player, value, playerName, text, text2) : null,
                   EmbedType.RICH,
                   null,
                   this.color,
                   null,
                   null,
                   this.authorTitle != null && !this.authorTitle.isEmpty()
-                     ? new AuthorInfo(this.translateMessage(this.authorTitle, var1, var2, var3, var4, var5), null, this.getAuthorImage(var1), null)
+                     ? new AuthorInfo(this.translateMessage(this.authorTitle, player, value, playerName, text, text2), null, this.getAuthorImage(player), null)
                      : null,
                   null,
                   this.footerTitle != null && !this.footerTitle.isEmpty()
-                     ? new Footer(this.translateMessage(this.footerTitle, var1, var2, var3, var4, var5), this.getFooterImage(var1), null)
+                     ? new Footer(this.translateMessage(this.footerTitle, player, value, playerName, text, text2), this.getFooterImage(player), null)
                      : null,
                   null,
-                  this.getFields(var1, var2, var3, var4, var5)
+                  this.getFields(player, value, playerName, text, text2)
                ),
                new MessageEmbed[0]
             )
@@ -192,21 +192,21 @@ public class DiscordSRVProvider {
       }
    }
 
-   private String getFooterImage(Player var1) {
-      return this.footerImage.replace("%player_name%", var1.getName());
+   private String getFooterImage(Player player) {
+      return this.footerImage.replace("%player_name%", player.getName());
    }
 
-   private String getAuthorImage(Player var1) {
-      return this.authorImage.replace("%player_name%", var1.getName());
+   private String getAuthorImage(Player player) {
+      return this.authorImage.replace("%player_name%", player.getName());
    }
 
    private class Field {
       final String title;
       final String message;
 
-      public Field(String nullx, String nullxx) {
-         this.title = nullx;
-         this.message = nullxx;
+      public Field(String text, String text2) {
+         this.title = text;
+         this.message = text2;
       }
    }
 }

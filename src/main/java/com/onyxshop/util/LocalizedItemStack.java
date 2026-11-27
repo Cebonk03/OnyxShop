@@ -12,22 +12,22 @@ public class LocalizedItemStack {
    private final ItemStack single;
    private final Map<Locale, ItemStack> variants;
 
-   public LocalizedItemStack(ItemStack var1) {
-      this.single = var1;
+   public LocalizedItemStack(ItemStack itemStack) {
+      this.single = itemStack;
       this.variants = null;
    }
 
-   public LocalizedItemStack(Map<Locale, ItemStack> var1) {
+   public LocalizedItemStack(Map<Locale, ItemStack> map) {
       this.single = null;
-      this.variants = var1;
+      this.variants = map;
    }
 
-   public ItemStack getItem(Player var1) {
+   public ItemStack getItem(Player player) {
       if (this.single != null) {
          return this.single;
       } else {
-         ItemStack var2 = this.variants.get(UserManager.getUser(var1).getLocale());
-         return var2 != null ? var2 : this.variants.get(Lang.getDefaultLocale());
+         ItemStack itemStack = this.variants.get(UserManager.getUser(player).getLocale());
+         return itemStack != null ? itemStack : this.variants.get(Lang.getDefaultLocale());
       }
    }
 

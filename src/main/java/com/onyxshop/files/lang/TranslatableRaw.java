@@ -11,18 +11,18 @@ import org.bukkit.entity.Player;
 public class TranslatableRaw implements Translatable {
    private final String s;
 
-   public TranslatableRaw(String var1) {
-      this.s = ChatUtil.formatColors(var1);
+   public TranslatableRaw(String text) {
+      this.s = ChatUtil.formatColors(text);
    }
 
    @Override
-   public Translatable replace(String var1, String var2) {
-      return new TranslatableRaw(this.s.replace(var1, var2));
+   public Translatable replace(String text, String text2) {
+      return new TranslatableRaw(this.s.replace(text, text2));
    }
 
    @Override
-   public Translatable replace(String var1, Translatable var2) {
-      return new TranslatableRaw(this.s.replace(var1, (String)var2.get()));
+   public Translatable replace(String text, Translatable text2) {
+      return new TranslatableRaw(this.s.replace(text, (String)text2.get()));
    }
 
    @Override
@@ -51,13 +51,13 @@ public class TranslatableRaw implements Translatable {
    }
 
    @Override
-   public Translatable translate(Player var1) {
-      return new TranslatableRaw(PlaceholderAPIHook.translate(var1, this.s));
+   public Translatable translate(Player player) {
+      return new TranslatableRaw(PlaceholderAPIHook.translate(player, this.s));
    }
 
    @Override
-   public Translatable get(Player var1) {
-      return PlaceholderAPIHook.hasPlaceholders(this.s) ? new TranslatableRaw(PlaceholderAPIHook.translate(var1, this.s)) : this;
+   public Translatable get(Player player) {
+      return PlaceholderAPIHook.hasPlaceholders(this.s) ? new TranslatableRaw(PlaceholderAPIHook.translate(player, this.s)) : this;
    }
 
    @Override
@@ -73,25 +73,25 @@ public class TranslatableRaw implements Translatable {
    public class StringBuilder implements Translatable.Builder {
       private final java.lang.StringBuilder builder = new java.lang.StringBuilder();
 
-      public StringBuilder(String nullx) {
-         this.builder.append(nullx);
+      public StringBuilder(String text) {
+         this.builder.append(text);
       }
 
       @Override
-      public Translatable.Builder append(Translatable var1) {
-         this.builder.append(var1.get());
+      public Translatable.Builder append(Translatable text) {
+         this.builder.append(text.get());
          return this;
       }
 
       @Override
-      public Translatable.Builder append(String var1) {
-         this.builder.append(var1);
+      public Translatable.Builder append(String text) {
+         this.builder.append(text);
          return this;
       }
 
       @Override
-      public Translatable.Builder color(char var1) {
-         this.builder.append("§").append(var1);
+      public Translatable.Builder color(char character) {
+         this.builder.append("§").append(character);
          return this;
       }
 

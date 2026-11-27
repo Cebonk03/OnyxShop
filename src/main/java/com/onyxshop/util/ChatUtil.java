@@ -21,74 +21,74 @@ public class ChatUtil {
       return adventureUtils;
    }
 
-   public static String getLastColor(String var0) {
-      String var1 = "";
-      int var2 = var0.length();
+   public static String getLastColor(String text) {
+      String text2 = "";
+      int value = text.length();
 
-      for (int var3 = var2 - 1; var3 > -1; var3--) {
-         char var4 = var0.charAt(var3);
-         if ((var4 == 167 || var4 == '&') && var3 < var2 - 1) {
-            char var8 = var0.charAt(var3 + 1);
-            ChatColor var6 = ChatColor.getByChar(var8);
-            if (var6 != null) {
-               if (var6.isColor() || var6.equals(ChatColor.RESET)) {
-                  var1 = var6.toString() + var1;
+      for (int index = value - 1; index > -1; index--) {
+         char character = text.charAt(index);
+         if ((character == 167 || character == '&') && index < value - 1) {
+            char character2 = text.charAt(index + 1);
+            ChatColor chatColor = ChatColor.getByChar(character2);
+            if (chatColor != null) {
+               if (chatColor.isColor() || chatColor.equals(ChatColor.RESET)) {
+                  text2 = chatColor.toString() + text2;
                   break;
                }
 
-               if (var6.isFormat()) {
-                  var1 = var6.toString() + var1;
+               if (chatColor.isFormat()) {
+                  text2 = chatColor.toString() + text2;
                }
             }
-         } else if (var4 == '#' && var3 < var2 - 6 && supportsRGB && ServerInfo.supportsSpigot()) {
-            String var5 = var0.substring(var3, var3 + 6);
+         } else if (character == '#' && index < value - 6 && supportsRGB && ServerInfo.supportsSpigot()) {
+            String text3 = text.substring(index, index + 6);
 
             try {
-               Color.decode(var5);
-               return var4 + var5;
-            } catch (NumberFormatException var7) {
+               Color.decode(text3);
+               return character + text3;
+            } catch (NumberFormatException exception) {
             }
          }
       }
 
-      return var1;
+      return text2;
    }
 
-   private static String formatLegacy(String var0) {
+   private static String formatLegacy(String text) {
       if (supportsRGB) {
-         Gradient var1 = findGradient(var0);
-         if (var1 != null) {
-            var0 = var1.get();
+         Gradient gradient = findGradient(text);
+         if (gradient != null) {
+            text = gradient.get();
          }
 
-         for (Matcher var2 = rgbPattern.matcher(var0); var2.find(); var2 = rgbPattern.matcher(var0)) {
-            String var3 = var0.substring(var2.start(), var2.end());
-            net.md_5.bungee.api.ChatColor var4 = net.md_5.bungee.api.ChatColor.of(var3);
-            if (var2.start() != 0 && var2.end() != var0.length()) {
-               if (var0.charAt(var2.start() - 1) == '&') {
-                  var3 = "&" + var3;
+         for (Matcher matcher = rgbPattern.matcher(text); matcher.find(); matcher = rgbPattern.matcher(text)) {
+            String text2 = text.substring(matcher.start(), matcher.end());
+            net.md_5.bungee.api.ChatColor chatColor = net.md_5.bungee.api.ChatColor.of(text2);
+            if (matcher.start() != 0 && matcher.end() != text.length()) {
+               if (text.charAt(matcher.start() - 1) == '&') {
+                  text2 = "&" + text2;
                }
 
-               if (var0.charAt(var2.start() - 1) == '{' && var0.charAt(var2.end()) == '}') {
-                  var3 = "{" + var3 + "}";
+               if (text.charAt(matcher.start() - 1) == '{' && text.charAt(matcher.end()) == '}') {
+                  text2 = "{" + text2 + "}";
                }
             }
 
-            var0 = var0.replace(var3, String.valueOf(var4));
+            text = text.replace(text2, String.valueOf(chatColor));
          }
       }
 
-      return ChatColor.translateAlternateColorCodes('&', var0).replace("\\n", "\n");
+      return ChatColor.translateAlternateColorCodes('&', text).replace("\\n", "\n");
    }
 
-   private static Gradient findGradient(String var0) {
-      Matcher var1 = startGradientPattern.matcher(var0);
-      if (var1.find()) {
-         String var2 = var0.substring(var1.start(), var1.end());
-         var1 = endGradientPattern.matcher(var0);
-         if (var1.find()) {
-            String var3 = var0.substring(var1.start(), var1.end());
-            return new Gradient(var2, var3, var0);
+   private static Gradient findGradient(String text) {
+      Matcher matcher = startGradientPattern.matcher(text);
+      if (matcher.find()) {
+         String text2 = text.substring(matcher.start(), matcher.end());
+         matcher = endGradientPattern.matcher(text);
+         if (matcher.find()) {
+            String text3 = text.substring(matcher.start(), matcher.end());
+            return new Gradient(text2, text3, text);
          } else {
             return null;
          }
@@ -97,70 +97,70 @@ public class ChatUtil {
       }
    }
 
-   private static String formatVanilla(String var0) {
+   private static String formatVanilla(String text) {
       if (supportsRGB) {
-         for (Matcher var1 = rgbPattern.matcher(var0); var1.find(); var1 = rgbPattern.matcher(var0)) {
-            String var2 = var0.substring(var1.start(), var1.end());
-            net.md_5.bungee.api.ChatColor var3 = net.md_5.bungee.api.ChatColor.of(var2);
-            if (var1.start() != 0 && var1.end() != var0.length()) {
-               if (var0.charAt(var1.start() - 1) == '&') {
-                  var2 = "&" + var2;
+         for (Matcher matcher = rgbPattern.matcher(text); matcher.find(); matcher = rgbPattern.matcher(text)) {
+            String text2 = text.substring(matcher.start(), matcher.end());
+            net.md_5.bungee.api.ChatColor chatColor = net.md_5.bungee.api.ChatColor.of(text2);
+            if (matcher.start() != 0 && matcher.end() != text.length()) {
+               if (text.charAt(matcher.start() - 1) == '&') {
+                  text2 = "&" + text2;
                }
 
-               if (var0.charAt(var1.start() - 1) == '{' && var0.charAt(var1.end()) == '}') {
-                  var2 = "{" + var2 + "}";
+               if (text.charAt(matcher.start() - 1) == '{' && text.charAt(matcher.end()) == '}') {
+                  text2 = "{" + text2 + "}";
                }
             }
 
-            var0 = var0.replace(var2, String.valueOf(var3));
+            text = text.replace(text2, String.valueOf(chatColor));
          }
       }
 
-      return ChatColor.translateAlternateColorCodes('&', var0).replace("\\n", "\n");
+      return ChatColor.translateAlternateColorCodes('&', text).replace("\\n", "\n");
    }
 
-   public static boolean hasRGB(String var0) {
+   public static boolean hasRGB(String text) {
       if (ServerInfo.getVersion().olderOrEqualAs(ServerInfo.Version.v1_15_R1)) {
          return false;
       } else {
          if (adventureUtils != null) {
-            var0 = adventureUtils.formatMiniToLegacy(var0);
+            text = adventureUtils.formatMiniToLegacy(text);
          }
 
-         String var1 = formatLegacy(var0).replace("§x", "#").replaceAll("§", "");
-         return rgbPattern.matcher(var1).find();
+         String text2 = formatLegacy(text).replace("§x", "#").replaceAll("§", "");
+         return rgbPattern.matcher(text2).find();
       }
    }
 
-   public static String formatColors(String var0) {
+   public static String formatColors(String text) {
       if (adventureUtils != null) {
-         var0 = adventureUtils.formatMiniToLegacy(var0);
+         text = adventureUtils.formatMiniToLegacy(text);
       }
 
-      return formatLegacy(var0);
+      return formatLegacy(text);
    }
 
-   public static String stripColor(String var0) {
-      return adventureUtils != null ? adventureUtils.stripColor(var0) : ChatColor.stripColor(var0);
+   public static String stripColor(String text) {
+      return adventureUtils != null ? adventureUtils.stripColor(text) : ChatColor.stripColor(text);
    }
 
-   public static String getLastColors(String var0) {
-      return adventureUtils != null ? adventureUtils.getLastColors(var0) : getLastColor(var0);
+   public static String getLastColors(String text) {
+      return adventureUtils != null ? adventureUtils.getLastColors(text) : getLastColor(text);
    }
 
-   public static String toMini(String var0) {
-      return adventureUtils.formatLegacyToMini(var0);
+   public static String toMini(String text) {
+      return adventureUtils.formatLegacyToMini(text);
    }
 
-   public static String getGsonComponent(String var0) {
-      return adventureUtils.getGsonComponent(var0);
+   public static String getGsonComponent(String text) {
+      return adventureUtils.getGsonComponent(text);
    }
 
    private static boolean isMiniLibAvailable() {
       try {
          Class.forName("net.kyori.adventure.text.minimessage.MiniMessage");
          return true;
-      } catch (ClassNotFoundException var1) {
+      } catch (ClassNotFoundException exception) {
          return false;
       }
    }

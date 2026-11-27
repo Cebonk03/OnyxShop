@@ -9,8 +9,8 @@ import org.bukkit.plugin.Plugin;
 public class ExternalItemsProvider implements ItemProvider {
    private final ItemType TYPE;
 
-   public ExternalItemsProvider(Plugin var1, String var2) {
-      this.TYPE = new ExternalItemType(var1, var2);
+   public ExternalItemsProvider(Plugin plugin, String text) {
+      this.TYPE = new ExternalItemType(plugin, text);
    }
 
    @Override
@@ -24,12 +24,12 @@ public class ExternalItemsProvider implements ItemProvider {
    }
 
    @Override
-   public ItemStack getItem(String var1) {
+   public ItemStack getItem(String itemId) {
       return null;
    }
 
    @Override
-   public String getItem(ItemStack var1) {
+   public String getItem(ItemStack itemStack) {
       return "";
    }
 }

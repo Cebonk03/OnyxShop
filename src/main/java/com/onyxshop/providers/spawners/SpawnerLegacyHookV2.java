@@ -26,57 +26,57 @@ public class SpawnerLegacyHookV2 implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      SpawnerType var4 = SpawnerType.of(var3);
-      String var5 = null;
-      List var6 = null;
-      if (var2.hasItemMeta()) {
-         ItemMeta var7 = var2.getItemMeta();
-         if (var7.hasDisplayName()) {
-            var5 = var7.getDisplayName();
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      SpawnerType spawnerType = SpawnerType.of(entityType);
+      String type = null;
+      List values = null;
+      if (itemStack.hasItemMeta()) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (itemMeta.hasDisplayName()) {
+            type = itemMeta.getDisplayName();
          }
 
-         if (var7.hasLore()) {
-            var6 = var7.getLore();
+         if (itemMeta.hasLore()) {
+            values = itemMeta.getLore();
          }
       }
 
-      var2 = SpawnerRegistry.asItem(var4, 1);
-      if (var2.hasItemMeta()) {
-         ItemMeta var9 = var2.getItemMeta();
-         if (var5 != null) {
-            var9.setDisplayName(var5);
+      itemStack = SpawnerRegistry.asItem(spawnerType, 1);
+      if (itemStack.hasItemMeta()) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (type != null) {
+            itemMeta.setDisplayName(type);
          }
 
-         if (!var9.hasDisplayName()) {
-            OnyxShop.getInstance().getMetaUtils().setDisplayName(var9, SpawnerManager.getDefaultName(var3));
+         if (!itemMeta.hasDisplayName()) {
+            OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
          }
 
-         if (var6 != null) {
-            var9.setLore(var6);
+         if (values != null) {
+            itemMeta.setLore(values);
          }
 
-         var2.setItemMeta(var9);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      return var2;
+      return itemStack;
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "display::Lore", "display::Name", "HideFlags");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "display::Lore", "display::Name", "HideFlags");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      IVirtual var2 = SLAPI.spawners().of(var1);
-      return var2 == null ? null : var2.type().entity().name();
+   public String getSpawnedType(ItemStack itemStack) {
+      IVirtual iVirtual = SLAPI.spawners().of(itemStack);
+      return iVirtual == null ? null : iVirtual.type().entity().name();
    }
 }

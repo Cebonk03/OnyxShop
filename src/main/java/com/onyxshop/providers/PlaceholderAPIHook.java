@@ -56,17 +56,17 @@ public class PlaceholderAPIHook implements Listener {
    }
 
    @EventHandler
-   public void onExpansionsLoad(ExpansionsLoadedEvent var1) {
+   public void onExpansionsLoad(ExpansionsLoadedEvent event) {
       this.enable(true, false);
       ExpansionsLoadedEvent.getHandlerList().unregister(this);
    }
 
    @EventHandler
-   public void onExpansionLoad(ExpansionRegisterEvent var1) {
+   public void onExpansionLoad(ExpansionRegisterEvent event) {
       if (requiredExpansions.isEmpty()) {
          ExpansionRegisterEvent.getHandlerList().unregister(this);
       } else {
-         requiredExpansions.remove(var1.getExpansion().getIdentifier());
+         requiredExpansions.remove(event.getExpansion().getIdentifier());
          if (requiredExpansions.isEmpty()) {
             plugin.runTaskLater(() -> this.enable(true, false), 1L);
          }
@@ -83,10 +83,10 @@ public class PlaceholderAPIHook implements Listener {
       }
    }
 
-   private void enable(boolean var1, boolean var2) {
-      if (var2 || requiredExpansions.isEmpty()) {
-         enabled = var1;
-         if (var1) {
+   private void enable(boolean flag, boolean flag2) {
+      if (flag2 || requiredExpansions.isEmpty()) {
+         enabled = flag;
+         if (flag) {
             SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "PlaceholderAPI"));
          } else {
             SendMessage.warnMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", "PlaceholderAPI"));
@@ -96,24 +96,24 @@ public class PlaceholderAPIHook implements Listener {
       }
    }
 
-   public static boolean hasPlaceholders(String var0) {
+   public static boolean hasPlaceholders(String text) {
       if (!enabled) {
          return false;
       } else {
-         Matcher var1 = placeholderPattern.matcher(var0);
-         return var1.find();
+         Matcher matcher = placeholderPattern.matcher(text);
+         return matcher.find();
       }
    }
 
-   public static boolean hasPlaceholders(List<String> var0) {
+   public static boolean hasPlaceholders(List<String> values) {
       if (!enabled) {
          return false;
       } else {
          new ArrayList();
 
-         for (String var4 : var0) {
-            Matcher var1 = placeholderPattern.matcher(var4);
-            if (var1.find()) {
+         for (String text : values) {
+            Matcher matcher = placeholderPattern.matcher(text);
+            if (matcher.find()) {
                return true;
             }
          }
@@ -122,154 +122,154 @@ public class PlaceholderAPIHook implements Listener {
       }
    }
 
-   public static Map<Integer, String> getPlaceholders(ItemStack var0) {
-      if (enabled && var0.hasItemMeta() && (var0.getItemMeta().hasDisplayName() || var0.getItemMeta().hasLore())) {
-         ItemMeta var1 = var0.getItemMeta();
-         HashMap var2 = new HashMap();
-         if (var1.hasDisplayName() && hasPlaceholders(var1.getDisplayName())) {
-            var2.put(-1, var1.getDisplayName());
+   public static Map<Integer, String> getPlaceholders(ItemStack itemStack) {
+      if (enabled && itemStack.hasItemMeta() && (itemStack.getItemMeta().hasDisplayName() || itemStack.getItemMeta().hasLore())) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         HashMap map = new HashMap();
+         if (itemMeta.hasDisplayName() && hasPlaceholders(itemMeta.getDisplayName())) {
+            map.put(-1, itemMeta.getDisplayName());
          }
 
-         if (var1.hasLore()) {
-            int var3 = 0;
+         if (itemMeta.hasLore()) {
+            int value = 0;
 
-            for (String var5 : var1.getLore()) {
-               if (hasPlaceholders(var5)) {
-                  var2.put(var3, var5);
+            for (String lore : itemMeta.getLore()) {
+               if (hasPlaceholders(lore)) {
+                  map.put(value, lore);
                }
 
-               var3++;
+               value++;
             }
          }
 
-         return var2;
+         return map;
       } else {
          return Collections.EMPTY_MAP;
       }
    }
 
-   public static Map<Integer, String> getPlaceholders(ItemMeta var0) {
+   public static Map<Integer, String> getPlaceholders(ItemMeta itemMeta) {
       if (!enabled) {
          return Collections.EMPTY_MAP;
       } else {
-         HashMap var1 = new HashMap();
-         if (var0.hasDisplayName() && hasPlaceholders(var0.getDisplayName())) {
-            var1.put(-1, var0.getDisplayName());
+         HashMap map = new HashMap();
+         if (itemMeta.hasDisplayName() && hasPlaceholders(itemMeta.getDisplayName())) {
+            map.put(-1, itemMeta.getDisplayName());
          }
 
-         if (var0.hasLore()) {
-            int var2 = 0;
+         if (itemMeta.hasLore()) {
+            int value = 0;
 
-            for (String var4 : var0.getLore()) {
-               if (hasPlaceholders(var4)) {
-                  var1.put(var2, var4);
+            for (String lore : itemMeta.getLore()) {
+               if (hasPlaceholders(lore)) {
+                  map.put(value, lore);
                }
 
-               var2++;
+               value++;
             }
          }
 
-         return var1;
+         return map;
       }
    }
 
-   public static Map<Integer, Placeholder> getPlaceholders(ItemStack var0, String[] var1) {
-      if (var0.hasItemMeta() && (var0.getItemMeta().hasDisplayName() || var0.getItemMeta().hasLore())) {
-         ItemMeta var2 = var0.getItemMeta();
-         HashMap var3 = new HashMap();
-         if (var2.hasDisplayName()) {
-            String var4 = plugin.getMetaUtils().getRawDisplayName(var2);
-            if (Placeholder.isPlaceholder(var4, var1)) {
-               var3.put(-1, new Placeholder(var4, var1));
+   public static Map<Integer, Placeholder> getPlaceholders(ItemStack itemStack, String[] itemIds) {
+      if (itemStack.hasItemMeta() && (itemStack.getItemMeta().hasDisplayName() || itemStack.getItemMeta().hasLore())) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         HashMap map = new HashMap();
+         if (itemMeta.hasDisplayName()) {
+            String rawDisplayName = plugin.getMetaUtils().getRawDisplayName(itemMeta);
+            if (Placeholder.isPlaceholder(rawDisplayName, itemIds)) {
+               map.put(-1, new Placeholder(rawDisplayName, itemIds));
             }
          }
 
-         if (var2.hasLore()) {
-            int var7 = 0;
+         if (itemMeta.hasLore()) {
+            int value = 0;
 
-            for (String var6 : plugin.getMetaUtils().getRawLore(var2)) {
-               if (Placeholder.isPlaceholder(var6, var1)) {
-                  var3.put(var7, new Placeholder(var6, var1));
+            for (String lore : plugin.getMetaUtils().getRawLore(itemMeta)) {
+               if (Placeholder.isPlaceholder(lore, itemIds)) {
+                  map.put(value, new Placeholder(lore, itemIds));
                }
 
-               var7++;
+               value++;
             }
          }
 
-         return var3;
+         return map;
       } else {
          return Collections.EMPTY_MAP;
       }
    }
 
-   public static void parsePlaceholders(ShopItem var0, ItemStack var1, Player var2) {
+   public static void parsePlaceholders(ShopItem shopItem, ItemStack itemStack, Player player) {
       if (enabled && plugin.placeholders) {
          try {
-            ItemMeta var3 = var1.getItemMeta();
-            if (var0.getItgPlaceholders().containsKey(-1)) {
-               plugin.getMetaUtils().setRawDisplayName(var3, var0.getItgPlaceholders().get(-1).translate(var2, new String[0]));
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (shopItem.getItgPlaceholders().containsKey(-1)) {
+               plugin.getMetaUtils().setRawDisplayName(itemMeta, shopItem.getItgPlaceholders().get(-1).translate(player, new String[0]));
             }
 
-            if (var3.hasLore()) {
-               List var4 = plugin.getMetaUtils().getRawLore(var3);
+            if (itemMeta.hasLore()) {
+               List rawLore = plugin.getMetaUtils().getRawLore(itemMeta);
 
-               for (Entry var6 : var0.getItgPlaceholders().entrySet()) {
-                  if ((Integer)var6.getKey() != -1) {
-                     var4.set((Integer)var6.getKey(), ((Placeholder)var6.getValue()).translate(var2, new String[0]));
+               for (Entry entry : shopItem.getItgPlaceholders().entrySet()) {
+                  if ((Integer)entry.getKey() != -1) {
+                     rawLore.set((Integer)entry.getKey(), ((Placeholder)entry.getValue()).translate(player, new String[0]));
                   }
                }
 
-               plugin.getMetaUtils().setRawLore(var3, var4);
+               plugin.getMetaUtils().setRawLore(itemMeta, rawLore);
             }
 
-            var1.setItemMeta(var3);
-            if (var0.needsUpdate()) {
-               StringSerializer.updateItem(var0, var1);
+            itemStack.setItemMeta(itemMeta);
+            if (shopItem.needsUpdate()) {
+               StringSerializer.updateItem(shopItem, itemStack);
             }
-         } catch (Exception var7) {
-            SendMessage.warnMessage("Failed to parse placeholders for item with reason: " + var7.getMessage());
-            var7.printStackTrace();
+         } catch (Exception exception) {
+            SendMessage.warnMessage("Failed to parse placeholders for item with reason: " + exception.getMessage());
+            exception.printStackTrace();
          }
       }
    }
 
-   public static void parsePlaceholders(ItemStack var0, Player var1) {
-      if (enabled && plugin.placeholders && var0.hasItemMeta() && (var0.getItemMeta().hasDisplayName() || var0.getItemMeta().hasLore())) {
-         ItemMeta var2 = var0.getItemMeta();
-         if (var2.hasDisplayName()) {
-            var2.setDisplayName(translate(var1, var2.getDisplayName()));
+   public static void parsePlaceholders(ItemStack itemStack, Player player) {
+      if (enabled && plugin.placeholders && itemStack.hasItemMeta() && (itemStack.getItemMeta().hasDisplayName() || itemStack.getItemMeta().hasLore())) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (itemMeta.hasDisplayName()) {
+            itemMeta.setDisplayName(translate(player, itemMeta.getDisplayName()));
          }
 
-         if (var2.hasLore()) {
-            List var3 = var2.getLore();
+         if (itemMeta.hasLore()) {
+            List lore = itemMeta.getLore();
 
-            for (int var4 = 0; var4 < var3.size(); var4++) {
-               String var5 = (String)var3.get(var4);
-               if (hasPlaceholders(var5)) {
-                  var3.set(var4, translate(var1, var5));
+            for (int size = 0; size < lore.size(); size++) {
+               String text = (String)lore.get(size);
+               if (hasPlaceholders(text)) {
+                  lore.set(size, translate(player, text));
                }
             }
 
-            var2.setLore(var3);
+            itemMeta.setLore(lore);
          }
 
-         var0.setItemMeta(var2);
+         itemStack.setItemMeta(itemMeta);
       }
    }
 
-   public static String translate(OfflinePlayer var0, String var1) {
-      return enabled && plugin.placeholders ? PlaceholderAPI.setPlaceholders(var0, var1) : var1;
+   public static String translate(OfflinePlayer offlinePlayer, String playerName) {
+      return enabled && plugin.placeholders ? PlaceholderAPI.setPlaceholders(offlinePlayer, playerName) : playerName;
    }
 
-   public static List<String> translate(Player var0, List<String> var1, int[] var2) {
+   public static List<String> translate(Player player, List<String> playerNames, int[] values) {
       if (enabled && plugin.placeholders) {
-         for (int var6 : var2) {
-            var1.set(var6, PlaceholderAPI.setPlaceholders(var0, (String)var1.get(var6)));
+         for (int value : values) {
+            playerNames.set(value, PlaceholderAPI.setPlaceholders(player, (String)playerNames.get(value)));
          }
 
-         return var1;
+         return playerNames;
       } else {
-         return var1;
+         return playerNames;
       }
    }
 }

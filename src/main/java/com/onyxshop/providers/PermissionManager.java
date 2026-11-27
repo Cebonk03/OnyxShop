@@ -15,9 +15,9 @@ public class PermissionManager {
    private final List<String> supported = Arrays.asList("LuckPerms", "UltraPermissions", "Vault");
    private PermissionsProvider provider;
 
-   public PermissionManager(OnyxShop var1) {
-      this.plugin = var1;
-      var1.runTaskLater(this::init, 1L);
+   public PermissionManager(OnyxShop plugin) {
+      this.plugin = plugin;
+      plugin.runTaskLater(this::init, 1L);
    }
 
    public PermissionsProvider getProvider() {
@@ -25,14 +25,14 @@ public class PermissionManager {
    }
 
    private void init() {
-      for (String var2 : this.supported) {
-         if (this.isEnabled(var2)) {
+      for (String text : this.supported) {
+         if (this.isEnabled(text)) {
             try {
-               PermissionsProvider var3 = this.getProvider(var2);
-               var3.setup(this.plugin);
-               this.provider = var3;
+               PermissionsProvider permissionsProvider = this.getProvider(text);
+               permissionsProvider.setup(this.plugin);
+               this.provider = permissionsProvider;
                break;
-            } catch (PermissionsHookException var4) {
+            } catch (PermissionsHookException exception) {
             }
          }
       }
@@ -42,8 +42,8 @@ public class PermissionManager {
       }
    }
 
-   private PermissionsProvider getProvider(String var1) {
-      switch (var1) {
+   private PermissionsProvider getProvider(String text) {
+      switch (text) {
          case "LuckPerms":
             return new LuckPerms();
          case "UltraPermissions":
@@ -55,7 +55,7 @@ public class PermissionManager {
       }
    }
 
-   private boolean isEnabled(String var1) {
-      return this.plugin.getServer().getPluginManager().isPluginEnabled(var1);
+   private boolean isEnabled(String text) {
+      return this.plugin.getServer().getPluginManager().isPluginEnabled(text);
    }
 }

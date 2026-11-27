@@ -14,33 +14,33 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ConfirmRequest {
-   public ConfirmRequest(OnyxShop var1, String var2, Player var3, Consumer<Boolean> var4) {
-      ConversationFactory var5 = new ConversationFactory(var1);
-      Conversation var6 = var5.withFirstPrompt(this.getPrompt(var2, var4))
+   public ConfirmRequest(OnyxShop plugin, String shopId, Player player, Consumer<Boolean> task) {
+      ConversationFactory conversationFactory = new ConversationFactory(plugin);
+      Conversation conversation = conversationFactory.withFirstPrompt(this.getPrompt(shopId, task))
          .withLocalEcho(false)
          .withTimeout(60)
-         .withPrefix(var0 -> Lang.SHOP_PREFIX.get().getLegacy() + ChatColor.RESET + " ")
-         .addConversationAbandonedListener(var1x -> {
-            if (var1x.gracefulExit()) {
-               var4.accept((Boolean)var1x.getContext().getSessionData("input"));
+         .withPrefix(element -> Lang.SHOP_PREFIX.get().getLegacy() + ChatColor.RESET + " ")
+         .addConversationAbandonedListener(element -> {
+            if (element.gracefulExit()) {
+               task.accept((Boolean)element.getContext().getSessionData("input"));
             } else {
-               var4.accept(false);
+               task.accept(false);
             }
          })
-         .buildConversation(var3);
-      var6.begin();
+         .buildConversation(player);
+      conversation.begin();
    }
 
-   private Prompt getPrompt(final String var1, Consumer<Boolean> var2) {
+   private Prompt getPrompt(final String text, Consumer<Boolean> task) {
       return new BooleanPrompt() {
          @Nullable
-         protected Prompt acceptValidatedInput(@NotNull ConversationContext var1x, boolean var2x) {
-            var1x.setSessionData("input", var2x);
+         protected Prompt acceptValidatedInput(@NotNull ConversationContext conversationContext, boolean flag) {
+            conversationContext.setSessionData("input", flag);
             return Prompt.END_OF_CONVERSATION;
          }
 
-         public String getPromptText(ConversationContext var1x) {
-            return var1;
+         public String getPromptText(ConversationContext conversationContext) {
+            return text;
          }
       };
    }

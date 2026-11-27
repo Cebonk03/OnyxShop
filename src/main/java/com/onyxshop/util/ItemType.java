@@ -5,8 +5,8 @@ import com.onyxshop.util.serializer.SerializerType;
 public class ItemType {
    public final ItemProviderType providerType;
 
-   public ItemType(ItemProviderType var1) {
-      this.providerType = var1;
+   public ItemType(ItemProviderType itemProviderType) {
+      this.providerType = itemProviderType;
    }
 
    public String getName() {
@@ -22,14 +22,14 @@ public class ItemType {
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 instanceof ItemProviderType) {
-         return var1 == this.providerType;
-      } else if (var1 instanceof ItemType) {
-         ItemType var2 = (ItemType)var1;
-         return var2.providerType == this.providerType;
+      } else if (value instanceof ItemProviderType) {
+         return value == this.providerType;
+      } else if (value instanceof ItemType) {
+         ItemType itemType = (ItemType)value;
+         return itemType.providerType == this.providerType;
       } else {
          return false;
       }

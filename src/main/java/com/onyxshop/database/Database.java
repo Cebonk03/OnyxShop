@@ -16,53 +16,53 @@ public interface Database {
 
    void closeConnection();
 
-   PlayerPriceModifier loadPlayerPriceModifiers(UUID var1) throws SQLException;
+   PlayerPriceModifier loadPlayerPriceModifiers(UUID playerId) throws SQLException;
 
-   void savePlayerPriceModifiers(UUID var1, PlayerPriceModifier var2) throws SQLException;
+   void savePlayerPriceModifiers(UUID playerId, PlayerPriceModifier playerPriceModifier) throws SQLException;
 
-   int removeExpiredPlayerData(long var1) throws SQLException;
+   int removeExpiredPlayerData(long value) throws SQLException;
 
    Map<String, Map<String, Set<String>>> getExpiredItemData() throws SQLException;
 
-   void removeExpiredItemData(Map<String, Map<String, Set<String>>> var1) throws SQLException;
+   void removeExpiredItemData(Map<String, Map<String, Set<String>>> map) throws SQLException;
 
-   int getOriginalStock(String var1);
+   int getOriginalStock(String itemId);
 
-   void setOriginalStock(String var1, int var2);
+   void setOriginalStock(String itemId, int value);
 
-   void setItemStock(String var1, int var2);
+   void setItemStock(String itemId, int stock);
 
-   void setItemStock(Map<String, Integer> var1) throws SQLException;
+   void setItemStock(Map<String, Integer> stocks) throws SQLException;
 
-   void setItemRestockTimes(Map<String, Long> var1) throws SQLException;
+   void setItemRestockTimes(Map<String, Long> restockTimes) throws SQLException;
 
-   int getItemStock(String var1) throws SQLException;
+   int getItemStock(String itemId) throws SQLException;
 
    Map<String, Long> getItemRestockTime() throws SQLException;
 
-   void setPlayerStockAmount(UUID var1, String var2, Integer var3);
+   void setPlayerStockAmount(UUID playerId, String itemId, Integer amount);
 
-   void setPlayerStockAmount(String var1, Integer var2);
+   void setPlayerStockAmount(String playerName, Integer stock);
 
-   void setPlayerStock(Map<String, Map<UUID, Integer>> var1) throws SQLException;
+   void setPlayerStock(Map<String, Map<UUID, Integer>> map) throws SQLException;
 
-   void setPlayerRestockTimes(Map<String, Map<UUID, Long>> var1) throws SQLException;
+   void setPlayerRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException;
 
-   int getPlayerStockAmount(UUID var1, String var2) throws SQLException;
+   int getPlayerStockAmount(UUID playerId, String itemId) throws SQLException;
 
    Map<String, Map<UUID, Long>> getPlayerRestockTimes() throws SQLException;
 
-   Map<String, Integer> getPlayersStock(String var1) throws SQLException;
+   Map<String, Integer> getPlayersStock(String itemId) throws SQLException;
 
-   void setItemStockSchedulers(Map<ScheduleManager.Item, Long> var1) throws SQLException;
+   void setItemStockSchedulers(Map<ScheduleManager.Item, Long> stocks) throws SQLException;
 
    Map<ScheduleManager.Item, Long> getItemStockSchedulers() throws SQLException;
 
    Map<String, Integer> getOriginalStocks() throws SQLException;
 
-   Map<String, Integer> getItemStocks(Collection<String> var1) throws SQLException;
+   Map<String, Integer> getItemStocks(Collection<String> itemIds) throws SQLException;
 
-   Map<String, Integer> getPlayerStockAmounts(Collection<String> var1, UUID var2) throws SQLException;
+   Map<String, Integer> getPlayerStockAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException;
 
    Map<String, Integer> getAllItemStocks() throws SQLException;
 
@@ -70,67 +70,67 @@ public interface Database {
 
    Map<String, Integer> loadDynamicPricingStock() throws SQLException;
 
-   Integer getDynamicStock(String var1);
+   Integer getDynamicStock(String itemId);
 
    Map<String, Integer> loadDynamicMaxStocks() throws SQLException;
 
-   void setDynamicMaxStock(String var1, int var2);
+   void setDynamicMaxStock(String itemId, int value);
 
-   void setDynamicStock(String var1, int var2);
+   void setDynamicStock(String itemId, int value);
 
-   void saveDynamicStock(Map<String, Integer> var1);
+   void saveDynamicStock(Map<String, Integer> stocks);
 
    boolean resetDynamicPricing();
 
-   Map<String, Integer> getDynamicStocks(Collection<String> var1) throws SQLException;
+   Map<String, Integer> getDynamicStocks(Collection<String> values) throws SQLException;
 
-   int getOriginalLimit(String var1);
+   int getOriginalLimit(String text);
 
-   void setOriginalLimit(String var1, int var2);
+   void setOriginalLimit(String text, int limit);
 
-   void setSellLimit(String var1, int var2);
+   void setSellLimit(String text, int limit);
 
-   void setSellLimit(Map<String, Integer> var1) throws SQLException;
+   void setSellLimit(Map<String, Integer> limits) throws SQLException;
 
-   void setSellLimitRestockTimes(Map<String, Long> var1) throws SQLException;
+   void setSellLimitRestockTimes(Map<String, Long> limits) throws SQLException;
 
-   int getSellLimit(String var1) throws SQLException;
+   int getSellLimit(String text) throws SQLException;
 
    Map<String, Long> getSellLimitRestockTimes() throws SQLException;
 
-   void setPlayerSellLimit(UUID var1, String var2, Integer var3);
+   void setPlayerSellLimit(UUID playerId, String text, Integer limit);
 
-   void setPlayerSellLimit(String var1, Integer var2);
+   void setPlayerSellLimit(String playerName, Integer limit);
 
-   void setPlayerSellLimit(Map<String, Map<UUID, Integer>> var1) throws SQLException;
+   void setPlayerSellLimit(Map<String, Map<UUID, Integer>> map) throws SQLException;
 
-   void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> var1) throws SQLException;
+   void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException;
 
-   int getPlayerSellLimit(UUID var1, String var2) throws SQLException;
+   int getPlayerSellLimit(UUID playerId, String text) throws SQLException;
 
    Map<String, Map<UUID, Long>> getPlayerSellLimitRestockTimes() throws SQLException;
 
-   Map<String, Integer> getPlayerSellLimits(String var1) throws SQLException;
+   Map<String, Integer> getPlayerSellLimits(String playerName) throws SQLException;
 
-   void setSellLimitSchedulers(Map<ScheduleManager.Item, Long> var1) throws SQLException;
+   void setSellLimitSchedulers(Map<ScheduleManager.Item, Long> limits) throws SQLException;
 
    Map<ScheduleManager.Item, Long> getSellLimitSchedulers() throws SQLException;
 
    Map<String, Integer> getOriginalLimits() throws SQLException;
 
-   Map<String, Integer> getSellLimits(Collection<String> var1) throws SQLException;
+   Map<String, Integer> getSellLimits(Collection<String> values) throws SQLException;
 
-   Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> var1, UUID var2) throws SQLException;
+   Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException;
 
    Map<String, Integer> getAllSellLimits() throws SQLException;
 
    Map<String, Map<UUID, Integer>> getAllPlayerSellLimits() throws SQLException;
 
-   void executeBatch(SQLBatch.Type var1, Set<Query> var2);
+   void executeBatch(SQLBatch.Type type, Set<Query> values);
 
-   void executeQuery(SQLBatch.Type var1, Query... var2);
+   void executeQuery(SQLBatch.Type type, Query... types);
 
-   void setRotatingShopItems(String var1, List<String> var2, long var3);
+   void setRotatingShopItems(String shopId, List<String> values, long value);
 
-   SimplePair<List<String>, Long> getRotatingShopItems(String var1) throws SQLException;
+   SimplePair<List<String>, Long> getRotatingShopItems(String shopId) throws SQLException;
 }

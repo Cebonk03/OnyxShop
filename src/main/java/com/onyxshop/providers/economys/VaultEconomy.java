@@ -29,18 +29,18 @@ public class VaultEconomy implements EconomyProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().getPlugin("Vault") == null) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
          throw new EconomyLoadException("Vault is not installed");
       } else {
-         RegisteredServiceProvider var2 = var1.getServer().getServicesManager().getRegistration(Economy.class);
-         if (var2 == null) {
+         RegisteredServiceProvider registeredServiceProvider = plugin.getServer().getServicesManager().getRegistration(Economy.class);
+         if (registeredServiceProvider == null) {
             throw new EconomyLoadException("No supported economy provider for Vault detected, please install a plugin such as Essentials");
          } else {
-            this.economy = (Economy)var2.getProvider();
+            this.economy = (Economy)registeredServiceProvider.getProvider();
             if (!Bukkit.getPluginManager().isPluginEnabled(this.economy.getName()) && "TheNewEconomy".equals(this.economy.getName())) {
                this.wait = true;
-               var1.runTaskLater(this::init, 20L);
+               plugin.runTaskLater(this::init, 20L);
             } else {
                this.init();
             }
@@ -56,12 +56,12 @@ public class VaultEconomy implements EconomyProvider {
          );
          OnyxShop.getInstance().getEcoHandler().mayContinue();
       } else {
-         String var1 = ConfigManager.getPathIgnoreCase("currency-formats.vault");
-         this.formatSingular(var1);
-         this.formatPlural(var1);
+         String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.vault");
+         this.formatSingular(pathIgnoreCase);
+         this.formatPlural(pathIgnoreCase);
          this.decimal = this.economy.fractionalDigits() == -1 || this.economy.fractionalDigits() > 0;
-         this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".friendly", "money"));
-         this.priceFormat = PriceFormatter.getFormatter(var1);
+         this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(pathIgnoreCase + ".friendly", "money"));
+         this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
          SendMessage.infoMessage("Successfully hooked into Vault and using " + this.economy.getName() + " as economy provider");
          if (this.wait) {
             this.wait = false;
@@ -71,18 +71,18 @@ public class VaultEconomy implements EconomyProvider {
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return this.economy.getBalance(var1);
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return this.economy.getBalance(offlinePlayer);
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      this.economy.depositPlayer(var1, var2);
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.economy.depositPlayer(offlinePlayer, balance);
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      return this.economy.withdrawPlayer(var1, var2).transactionSuccess();
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      return this.economy.withdrawPlayer(offlinePlayer, balance).transactionSuccess();
    }
 
    @Override
@@ -116,13 +116,13 @@ public class VaultEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -132,14 +132,14 @@ public class VaultEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", this.economy.currencyNameSingular()));
-      if (!var2.isEmpty()) {
-         if (!var2.contains("%currency-symbol%")) {
-            if (this.isSymbol(var2)) {
-               this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatSingular(String text) {
+      String name = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", this.economy.currencyNameSingular()));
+      if (!name.isEmpty()) {
+         if (!name.contains("%currency-symbol%")) {
+            if (this.isSymbol(name)) {
+               this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", name).getLegacy();
             } else {
-               this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+               this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", name).getLegacy();
             }
          } else {
             this.singular = Lang.CURRENCYSYMBOL.get().getLegacy();
@@ -149,14 +149,14 @@ public class VaultEconomy implements EconomyProvider {
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", this.economy.currencyNamePlural()));
-      if (!var2.isEmpty()) {
-         if (!var2.contains("%currency-symbol%")) {
-            if (this.isSymbol(var2)) {
-               this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatPlural(String text) {
+      String name = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", this.economy.currencyNamePlural()));
+      if (!name.isEmpty()) {
+         if (!name.contains("%currency-symbol%")) {
+            if (this.isSymbol(name)) {
+               this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", name).getLegacy();
             } else {
-               this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+               this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", name).getLegacy();
             }
          } else {
             this.plural = Lang.CURRENCYSYMBOL.get().getLegacy();
@@ -166,7 +166,7 @@ public class VaultEconomy implements EconomyProvider {
       }
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

@@ -30,31 +30,31 @@ public class UpdateLayout extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var1 instanceof Player) {
-         if (var2.length > 1) {
-            UUID var3;
+   public void perform(Object value, String[] values) {
+      if (value instanceof Player) {
+         if (values.length > 1) {
+            UUID uniqueId;
             try {
-               var3 = UUID.fromString(var2[1]);
-            } catch (IllegalArgumentException var5) {
-               SendMessage.sendMessage(var1, ChatColor.RED + "Invalid layout ID for " + var2[1]);
+               uniqueId = UUID.fromString(values[1]);
+            } catch (IllegalArgumentException exception) {
+               SendMessage.sendMessage(value, ChatColor.RED + "Invalid layout ID for " + values[1]);
                return;
             }
 
-            new MarketplaceIntegration().startUpdate((Player)var1, var3.toString());
+            new MarketplaceIntegration().startUpdate((Player)value, uniqueId.toString());
          } else {
-            SendMessage.sendMessage(var1, this.getSyntax());
+            SendMessage.sendMessage(value, this.getSyntax());
          }
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
+   public List<String> getTabCompletion(String[] values) {
       return null;
    }
 }

@@ -14,19 +14,19 @@ public class User {
    private Locale locale;
    private boolean openNewGUI;
 
-   public User(Player var1) {
-      this.uuid = var1.getUniqueId();
-      this.pr = UserManager.isPrPlayer(var1);
-      this.bedrock = UserManager.isFloodgatePlayer(var1);
-      this.locale = UserManager.getLocale(var1, this.bedrock);
+   public User(Player player) {
+      this.uuid = player.getUniqueId();
+      this.pr = UserManager.isPrPlayer(player);
+      this.bedrock = UserManager.isFloodgatePlayer(player);
+      this.locale = UserManager.getLocale(player, this.bedrock);
    }
 
    public UUID getUuid() {
       return this.uuid;
    }
 
-   public void setLocale(Locale var1) {
-      this.locale = var1;
+   public void setLocale(Locale locale) {
+      this.locale = locale;
    }
 
    public Locale getLocale() {
@@ -41,9 +41,9 @@ public class User {
       return this.pr;
    }
 
-   public void setOpenNewGUI(boolean var1) {
-      this.openNewGUI = var1;
-      if (MenuHandler.backOnClose && var1) {
+   public void setOpenNewGUI(boolean flag) {
+      this.openNewGUI = flag;
+      if (MenuHandler.backOnClose && flag) {
          OnyxShop.getInstance().runTaskLater(() -> this.setOpenNewGUI(false), 1L);
       }
    }

@@ -12,32 +12,32 @@ public class EnchantCost {
    private final boolean percentBased;
    private final boolean staticLevelCost;
 
-   private EnchantCost(double var1, double var3, double var5, double var7, double var9, boolean var11, boolean var12) {
-      this.cost = var1;
-      this.percent = var3;
-      this.additionalCost = var5;
-      this.levelMultiplier = var7;
-      this.levelCost = var9;
-      this.percentBased = var11;
-      this.staticLevelCost = var12;
+   private EnchantCost(double amount, double amount2, double amount3, double amount4, double amount5, boolean flag, boolean flag2) {
+      this.cost = amount;
+      this.percent = amount2;
+      this.additionalCost = amount3;
+      this.levelMultiplier = amount4;
+      this.levelCost = amount5;
+      this.percentBased = flag;
+      this.staticLevelCost = flag2;
    }
 
-   public static EnchantCost load(ConfigurationSection var0) throws EnchantCostLoadException {
-      if (var0 == null) {
+   public static EnchantCost load(ConfigurationSection section) throws EnchantCostLoadException {
+      if (section == null) {
          return null;
       } else {
-         boolean var1 = var0.contains("percent");
-         if (!var1 && !var0.contains("cost")) {
+         boolean flag = section.contains("percent");
+         if (!flag && !section.contains("cost")) {
             throw new EnchantCostLoadException("Failed to load cost, needs either the 'cost' or 'percent' option");
          } else {
-            double var2 = var0.getDouble("percent", -1.0);
-            double var4 = var0.getDouble("cost", -1.0);
-            if (var1 ? !(var2 < 0.0) : !(var4 < 0.0)) {
-               double var6 = Math.max(0.0, var0.getDouble("additional-cost-percent", 0.0));
-               boolean var8 = var0.contains("level-cost");
-               double var9 = Math.max(0.0, var0.getDouble("level-cost", 0.0));
-               double var11 = Math.max(0.0, var0.getDouble("level-multiplier", 1.0));
-               return new EnchantCost(var4, var2, var6, var11, var9, var1, var8);
+            double amount = section.getDouble("percent", -1.0);
+            double amount2 = section.getDouble("cost", -1.0);
+            if (flag ? !(amount < 0.0) : !(amount2 < 0.0)) {
+               double amount3 = Math.max(0.0, section.getDouble("additional-cost-percent", 0.0));
+               boolean flag2 = section.contains("level-cost");
+               double amount4 = Math.max(0.0, section.getDouble("level-cost", 0.0));
+               double amount5 = Math.max(0.0, section.getDouble("level-multiplier", 1.0));
+               return new EnchantCost(amount2, amount, amount3, amount5, amount4, flag, flag2);
             } else {
                throw new EnchantCostLoadException("Cost/percent for enchantment needs to be a positive number");
             }
@@ -45,31 +45,31 @@ public class EnchantCost {
       }
    }
 
-   public double getCost(double var1, int var3) {
-      double var4;
+   public double getCost(double amount, int value) {
+      double amount2;
       if (this.percentBased) {
-         var4 = var1 * (this.percent / 100.0);
+         amount2 = amount * (this.percent / 100.0);
       } else {
-         var4 = this.cost + (this.additionalCost > 0.0 ? var1 * (this.additionalCost / 100.0) : 0.0);
+         amount2 = this.cost + (this.additionalCost > 0.0 ? amount * (this.additionalCost / 100.0) : 0.0);
       }
 
-      if (var3 <= 1) {
-         return var4;
+      if (value <= 1) {
+         return amount2;
       } else {
-         return this.staticLevelCost ? var4 + this.levelCost * (var3 - 1) : var4 * (1.0 + (var3 - 1) * this.levelMultiplier);
+         return this.staticLevelCost ? amount2 + this.levelCost * (value - 1) : amount2 * (1.0 + (value - 1) * this.levelMultiplier);
       }
    }
 
-   public double getCost(double var1, int var3, int var4) {
-      if (var4 >= var3) {
+   public double getCost(double amount, int value, int value2) {
+      if (value2 >= value) {
          return 0.0;
       } else {
-         double var5 = this.getCost(var1, var3);
-         if (var4 >= 1) {
-            var5 -= this.getCost(var1, var4);
+         double cost = this.getCost(amount, value);
+         if (value2 >= 1) {
+            cost -= this.getCost(amount, value2);
          }
 
-         return Math.max(0.0, var5);
+         return Math.max(0.0, cost);
       }
    }
 }

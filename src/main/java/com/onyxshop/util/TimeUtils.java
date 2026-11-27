@@ -15,64 +15,64 @@ public class TimeUtils {
    public TimeUtils() {
    }
 
-   public static long getTime(String var0) throws ParseException {
-      long var1 = 0L;
+   public static long getTime(String text) throws ParseException {
+      long time = 0L;
 
-      for (String var6 : var0.split(" ")) {
-         TimeUtils.TimeUnit var7 = TimeUtils.TimeUnit.fromFormat(var6.replaceAll("\\d", ""));
-         if (var7 == null) {
-            throw new ParseException("Invalid date object for '" + var6.replaceAll("\\d", "") + "'", 1);
+      for (String text2 : text.split(" ")) {
+         TimeUtils.TimeUnit timeUnit = TimeUtils.TimeUnit.fromFormat(text2.replaceAll("\\d", ""));
+         if (timeUnit == null) {
+            throw new ParseException("Invalid date object for '" + text2.replaceAll("\\d", "") + "'", 1);
          }
 
          try {
-            var1 += var7.toMillis(Integer.parseInt(var6.replaceAll("[a-zA-Z]", "")));
-         } catch (NumberFormatException var9) {
+            time += timeUnit.toMillis(Integer.parseInt(text2.replaceAll("[a-zA-Z]", "")));
+         } catch (NumberFormatException exception) {
             throw new ParseException("Could not parse the given date object", 1);
          }
       }
 
-      return var1;
+      return time;
    }
 
-   public static String getReadableTime(long var0) {
-      StringBuilder var2 = new StringBuilder();
+   public static String getReadableTime(long time) {
+      StringBuilder builder = new StringBuilder();
 
-      for (TimeUtils.TimeUnit var6 : TimeUtils.TimeUnit.VALUES) {
-         long var7 = var0 / var6.millis;
-         if (var7 != 0L) {
-            if (!var2.toString().isEmpty()) {
-               var2.append(" ");
+      for (TimeUtils.TimeUnit timeUnit : TimeUtils.TimeUnit.VALUES) {
+         long time2 = time / timeUnit.millis;
+         if (time2 != 0L) {
+            if (!builder.toString().isEmpty()) {
+               builder.append(" ");
             }
 
-            var2.append(var7).append(var6.translated);
-            var0 -= var7 * var6.millis;
+            builder.append(time2).append(timeUnit.translated);
+            time -= time2 * timeUnit.millis;
          }
       }
 
-      return var2.toString();
+      return builder.toString();
    }
 
-   private static String parseTime(long... var0) {
-      StringBuilder var1 = new StringBuilder();
+   private static String parseTime(long... values) {
+      StringBuilder builder = new StringBuilder();
 
-      for (int var2 = var0.length - 1; var2 > -1; var2--) {
-         var1.append(var0[var2]).append(timeFormats[var2]);
-         if (var2 != 0) {
-            var1.append(" ");
+      for (int time = values.length - 1; time > -1; time--) {
+         builder.append(values[time]).append(timeFormats[time]);
+         if (time != 0) {
+            builder.append(" ");
          }
       }
 
-      return var1.toString();
+      return builder.toString();
    }
 
-   public static String getDate(long var0) {
-      SimpleDateFormat var2 = new SimpleDateFormat("E, dd MMM yyyy");
-      return var2.format(var0);
+   public static String getDate(long value) {
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("E, dd MMM yyyy");
+      return simpleDateFormat.format(value);
    }
 
-   public static String getDateTime(long var0) {
-      SimpleDateFormat var2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      return var2.format(var0);
+   public static String getDateTime(long time) {
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      return simpleDateFormat.format(time);
    }
 
    private static enum TimeUnit {
@@ -88,24 +88,24 @@ public class TimeUtils {
       public final String translated;
       public static final TimeUtils.TimeUnit[] VALUES = new TimeUtils.TimeUnit[]{MONTHS, WEEKS, DAYS, HOURS, MINUTES, SECONDS};
 
-      private TimeUnit(long nullxx, String nullxxx, String nullxxxx) {
-         this.millis = nullxx;
-         this.format = nullxxx;
-         this.translated = nullxxxx;
+      private TimeUnit(long time, String text, String text2) {
+         this.millis = time;
+         this.format = text;
+         this.translated = text2;
       }
 
-      public static TimeUtils.TimeUnit fromFormat(String var0) {
-         for (TimeUtils.TimeUnit var4 : VALUES) {
-            if (var4.format.equals(var0)) {
-               return var4;
+      public static TimeUtils.TimeUnit fromFormat(String text) {
+         for (TimeUtils.TimeUnit timeUnit : VALUES) {
+            if (timeUnit.format.equals(text)) {
+               return timeUnit;
             }
          }
 
          return null;
       }
 
-      public long toMillis(long var1) {
-         return this.millis * var1;
+      public long toMillis(long time) {
+         return this.millis * time;
       }
    }
 }

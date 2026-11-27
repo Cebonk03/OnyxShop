@@ -25,12 +25,12 @@ import su.nightexpress.excellentenchants.api.enchantment.CustomEnchantment;
 public class ExcellentEnchantsHook extends BukkitEnch implements EnchantProvider {
    private final Class<?> registry;
 
-   public ExcellentEnchantsHook(UpdateChecker.Version var1) throws EnchantHookLoadException {
-      String var2 = !var1.isGreater(new UpdateChecker.Version("5.3.0")) && !var1.isSame(new UpdateChecker.Version("5.3.0")) ? "api" : "enchantment";
+   public ExcellentEnchantsHook(UpdateChecker.Version version) throws EnchantHookLoadException {
+      String text = !version.isGreater(new UpdateChecker.Version("5.3.0")) && !version.isSame(new UpdateChecker.Version("5.3.0")) ? "api" : "enchantment";
 
       try {
-         this.registry = Class.forName("su.nightexpress.excellentenchants." + var2 + ".EnchantRegistry");
-      } catch (ClassNotFoundException var4) {
+         this.registry = Class.forName("su.nightexpress.excellentenchants." + text + ".EnchantRegistry");
+      } catch (ClassNotFoundException exception) {
          throw new EnchantHookLoadException("Failed to locate enchantment registry class for ExcellentEnchantments, this is a bug.");
       }
    }
@@ -38,58 +38,58 @@ public class ExcellentEnchantsHook extends BukkitEnch implements EnchantProvider
    private Set<CustomEnchantment> getRegistered() {
       try {
          return (Set<CustomEnchantment>)ReflectUtil.invokeStaticLegacyMethod("getRegistered", this.registry, null, null);
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to retrieve registered enchantments from ExcellentEnchants");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return new HashSet<>();
       }
    }
 
-   private CustomEnchantment getByKey(NamespacedKey var1) {
+   private CustomEnchantment getByKey(NamespacedKey namespacedKey) {
       try {
-         return (CustomEnchantment)ReflectUtil.invokeStaticLegacyMethod("getByKey", this.registry, new Class[]{NamespacedKey.class}, var1);
-      } catch (Exception var3) {
+         return (CustomEnchantment)ReflectUtil.invokeStaticLegacyMethod("getByKey", this.registry, new Class[]{NamespacedKey.class}, namespacedKey);
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to retrieve registered enchantments from ExcellentEnchants");
-         var3.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
    @Override
-   public SimpleEnchantment getEnchant(String var1, int var2) throws ItemLoadException {
-      Enchantment var3 = Enchantment.getByKey(new NamespacedKey("excellentenchants", var1));
-      if (var3 != null) {
-         var2 = OnyxShop.getInstance().allowUnsafeEnchants ? var2 : (var2 > var3.getMaxLevel() ? var3.getMaxLevel() : var2);
-         return new SimpleEnchantment(EnchantsProvider.Provider.EXCELLENT_ENCHANTS, var3, var1, var2);
+   public SimpleEnchantment getEnchant(String itemId, int value) throws ItemLoadException {
+      Enchantment enchantment = Enchantment.getByKey(new NamespacedKey("excellentenchants", itemId));
+      if (enchantment != null) {
+         value = OnyxShop.getInstance().allowUnsafeEnchants ? value : (value > enchantment.getMaxLevel() ? enchantment.getMaxLevel() : value);
+         return new SimpleEnchantment(EnchantsProvider.Provider.EXCELLENT_ENCHANTS, enchantment, itemId, value);
       } else {
-         throw new ItemLoadException("ExcelentEnchants could not find a enchantment with name '" + var1 + "'");
+         throw new ItemLoadException("ExcelentEnchants could not find a enchantment with name '" + itemId + "'");
       }
    }
 
    @Override
-   public boolean canEnchantItem(ItemStack var1, SimpleEnchantment var2) {
-      return super.canEnchantItem(var1, (Enchantment)var2.getEnchant());
+   public boolean canEnchantItem(ItemStack itemStack, SimpleEnchantment simpleEnchantment) {
+      return super.canEnchantItem(itemStack, (Enchantment)simpleEnchantment.getEnchant());
    }
 
    @Override
-   public ItemStack addEnchantment(ItemStack var1, SimpleEnchantment var2, @Nullable DisplayItem var3) {
-      return super.addEnchantment(var1, (Enchantment)var2.getEnchant(), var2.getLvl(), var3);
+   public ItemStack addEnchantment(ItemStack itemStack, SimpleEnchantment simpleEnchantment, @Nullable DisplayItem displayItem) {
+      return super.addEnchantment(itemStack, (Enchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl(), displayItem);
    }
 
    @Override
-   public boolean isEnchant(NamespacedKey var1) {
+   public boolean isEnchant(NamespacedKey namespacedKey) {
       return Registry.ENCHANTMENT
          .stream()
-         .filter(var0 -> var0.getKey().getNamespace().equals("excellentenchants"))
-         .anyMatch(var1x -> var1x.getKey().equals(var1));
+         .filter(entry -> entry.getKey().getNamespace().equals("excellentenchants"))
+         .anyMatch(entry -> entry.getKey().equals(namespacedKey));
    }
 
    @Override
    public List<String> getAvailableEnchantKeys() {
       return Registry.ENCHANTMENT
          .stream()
-         .filter(var0 -> var0.getKey().getNamespace().equals("excellentenchants"))
-         .map(var0 -> "excellentenchants:" + var0.getKey().getKey() + ":1")
+         .filter(entry -> entry.getKey().getNamespace().equals("excellentenchants"))
+         .map(entry -> "excellentenchants:" + entry.getKey().getKey() + ":1")
          .collect(Collectors.toList());
    }
 
@@ -97,21 +97,21 @@ public class ExcellentEnchantsHook extends BukkitEnch implements EnchantProvider
    public List<SimpleEnchantment> getAvailableEnchants() {
       return Registry.ENCHANTMENT
          .stream()
-         .filter(var0 -> var0.getKey().getNamespace().equals("excellentenchants"))
-         .map(var0 -> new SimpleEnchantment(EnchantsProvider.Provider.EXCELLENT_ENCHANTS, var0, var0.getKey().getKey(), 1))
+         .filter(entry -> entry.getKey().getNamespace().equals("excellentenchants"))
+         .map(entry -> new SimpleEnchantment(EnchantsProvider.Provider.EXCELLENT_ENCHANTS, entry, entry.getKey().getKey(), 1))
          .collect(Collectors.toList());
    }
 
    @Override
-   public List<Object> getAvailableEnchants(ItemStack var1) {
+   public List<Object> getAvailableEnchants(ItemStack itemStack) {
       return Registry.ENCHANTMENT
          .stream()
-         .filter(var1x -> var1x.getKey().getNamespace().equals("excellentenchants") && var1x.canEnchantItem(var1))
+         .filter(entry -> entry.getKey().getNamespace().equals("excellentenchants") && entry.canEnchantItem(itemStack))
          .collect(Collectors.toList());
    }
 
    @Override
-   public ItemStack getBook(SimpleEnchantment var1) {
-      return super.getBook((Enchantment)var1.getEnchant(), var1.getLvl());
+   public ItemStack getBook(SimpleEnchantment simpleEnchantment) {
+      return super.getBook((Enchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl());
    }
 }

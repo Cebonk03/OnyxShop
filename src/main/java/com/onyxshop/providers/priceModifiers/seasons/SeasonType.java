@@ -12,18 +12,18 @@ public enum SeasonType {
    private SeasonType() {
    }
 
-   public static SeasonType getFromString(String var0) {
+   public static SeasonType getFromString(String type) {
       try {
-         return valueOf(var0.toUpperCase(Locale.ENGLISH));
-      } catch (IllegalArgumentException var2) {
+         return valueOf(type.toUpperCase(Locale.ENGLISH));
+      } catch (IllegalArgumentException exception) {
          return null;
       }
    }
 
-   public static SeasonType get(me.casperge.realisticseasons.season.Season var0) {
+   public static SeasonType get(me.casperge.realisticseasons.season.Season season) {
       try {
-         return valueOf(var0.name());
-      } catch (IllegalArgumentException var2) {
+         return valueOf(season.name());
+      } catch (IllegalArgumentException exception) {
          return null;
       }
    }

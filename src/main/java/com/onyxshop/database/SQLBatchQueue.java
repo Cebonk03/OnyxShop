@@ -13,26 +13,26 @@ public class SQLBatchQueue {
    private final ConcurrentLinkedQueue<SQLBatchQueue.Batch> queue = new ConcurrentLinkedQueue<>();
    private final AtomicBoolean running = new AtomicBoolean(false);
 
-   public SQLBatchQueue(OnyxShop var1, Database var2) {
-      this.plugin = var1;
-      this.database = var2;
+   public SQLBatchQueue(OnyxShop plugin, Database database) {
+      this.plugin = plugin;
+      this.database = database;
    }
 
-   public void addToQueue(SQLBatch.Type var1, Set<Query> var2) {
-      this.queue.add(new SQLBatchQueue.Batch(var1, var2));
+   public void addToQueue(SQLBatch.Type type, Set<Query> values) {
+      this.queue.add(new SQLBatchQueue.Batch(type, values));
       if (this.running.compareAndSet(false, true)) {
          this.plugin.runTaskAsync(this::execute);
       }
    }
 
    public void drain() {
-      SQLBatchQueue.Batch var1;
-      while ((var1 = this.queue.poll()) != null) {
+      SQLBatchQueue.Batch batch;
+      while ((batch = this.queue.poll()) != null) {
          try {
-            this.database.executeBatch(var1.type, var1.batch);
-         } catch (Exception var3) {
+            this.database.executeBatch(batch.type, batch.batch);
+         } catch (Exception exception) {
             SendMessage.warnMessage("Failed to drain a queued SQL batch:");
-            var3.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
@@ -41,13 +41,13 @@ public class SQLBatchQueue {
 
    private void execute() {
       while (true) {
-         SQLBatchQueue.Batch var1;
-         if ((var1 = this.queue.poll()) != null) {
+         SQLBatchQueue.Batch batch;
+         if ((batch = this.queue.poll()) != null) {
             try {
-               this.database.executeBatch(var1.type, var1.batch);
-            } catch (Exception var3) {
+               this.database.executeBatch(batch.type, batch.batch);
+            } catch (Exception exception) {
                SendMessage.warnMessage("Failed to execute a queued SQL batch:");
-               var3.printStackTrace();
+               exception.printStackTrace();
             }
          } else {
             this.running.set(false);
@@ -62,9 +62,9 @@ public class SQLBatchQueue {
       private final SQLBatch.Type type;
       private final Set<Query> batch;
 
-      private Batch(SQLBatch.Type var1, Set<Query> var2) {
-         this.type = var1;
-         this.batch = var2;
+      private Batch(SQLBatch.Type type, Set<Query> values) {
+         this.type = type;
+         this.batch = values;
       }
    }
 }

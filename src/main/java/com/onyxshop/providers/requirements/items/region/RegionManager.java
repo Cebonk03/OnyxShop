@@ -12,21 +12,21 @@ public class RegionManager {
    private final RegionProvider provider;
    private final Map<RegionRequirement, String> requirements = new HashMap<>();
 
-   public RegionManager(OnyxShop var1) {
-      PluginManager var2 = var1.getServer().getPluginManager();
-      this.provider = this.getProvider(var1, var2);
+   public RegionManager(OnyxShop plugin) {
+      PluginManager pluginManager = plugin.getServer().getPluginManager();
+      this.provider = this.getProvider(plugin, pluginManager);
       if (this.provider != null) {
-         this.provider.init(var1, this);
+         this.provider.init(plugin, this);
       }
    }
 
-   private RegionProvider getProvider(OnyxShop var1, PluginManager var2) {
-      return var2.getPlugin("WorldGuard") != null ? new WorldGuardIntegration(var1) : null;
+   private RegionProvider getProvider(OnyxShop plugin, PluginManager pluginManager) {
+      return pluginManager.getPlugin("WorldGuard") != null ? new WorldGuardIntegration(plugin) : null;
    }
 
-   public RegionRequirement addRequirement(RegionRequirement var1, String var2) {
-      this.requirements.put(var1, var2);
-      return var1;
+   public RegionRequirement addRequirement(RegionRequirement regionRequirement, String text) {
+      this.requirements.put(regionRequirement, text);
+      return regionRequirement;
    }
 
    public RegionProvider getProvider() throws ItemRequirementLoadException {
@@ -42,24 +42,24 @@ public class RegionManager {
          SendMessage.errorMessage("Failed to enable region integration with '" + this.provider.getName() + "'");
       }
 
-      for (RegionRequirement var2 : this.requirements.keySet()) {
-         String var3 = this.requirements.get(var2);
+      for (RegionRequirement regionRequirement : this.requirements.keySet()) {
+         String text = this.requirements.get(regionRequirement);
          if (!this.provider.isReady()) {
             SendMessage.warnMessage("Failed to load region item requirement: " + this.provider.getName() + " integration failed to load");
-            SendMessage.errorShops(var3.split("\\.")[0], var3.split("\\.", 2)[1]);
+            SendMessage.errorShops(text.split("\\.")[0], text.split("\\.", 2)[1]);
          } else {
-            if (!this.provider.isLoaded(var2.getRegionID())) {
+            if (!this.provider.isLoaded(regionRequirement.getRegionID())) {
                SendMessage.warnMessage(
                   "Issue while loading region item requirement: Region using ID '"
-                     + var2.getRegionID()
+                     + regionRequirement.getRegionID()
                      + "' was not found in "
                      + this.provider.getName()
                      + ", is this supposed to be a region which hasn't been created yet? Else the name of the region is incorrect, continuing anyway..."
                );
-               SendMessage.errorShops(var3.split("\\.")[0], var3.split("\\.", 2)[1]);
+               SendMessage.errorShops(text.split("\\.")[0], text.split("\\.", 2)[1]);
             }
 
-            var2.onLoad();
+            regionRequirement.onLoad();
          }
       }
    }

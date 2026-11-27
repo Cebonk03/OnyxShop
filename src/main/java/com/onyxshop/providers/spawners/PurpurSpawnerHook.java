@@ -25,16 +25,16 @@ public class PurpurSpawnerHook implements SpawnerProvider {
    private List<String> itemLore = new ArrayList<>();
    private boolean customName = true;
 
-   public PurpurSpawnerHook(FileConfiguration var1) {
+   public PurpurSpawnerHook(FileConfiguration fileConfiguration) {
       try {
-         this.itemName = ChatUtil.formatColors(var1.getString("world-settings.default.gameplay-mechanics.silk-touch.spawner-name"));
-         this.itemLore = var1.getStringList("world-settings.default.gameplay-mechanics.silk-touch.spawner-lore")
+         this.itemName = ChatUtil.formatColors(fileConfiguration.getString("world-settings.default.gameplay-mechanics.silk-touch.spawner-name"));
+         this.itemLore = fileConfiguration.getStringList("world-settings.default.gameplay-mechanics.silk-touch.spawner-lore")
             .stream()
             .map(ChatUtil::formatColors)
             .collect(Collectors.toList());
-      } catch (Exception var3) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to load spawner data from purpur.yml...");
-         var3.printStackTrace();
+         exception.printStackTrace();
          this.customName = false;
       }
    }
@@ -45,72 +45,72 @@ public class PurpurSpawnerHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      String var4 = null;
-      List var5 = null;
-      if (var1 != null) {
-         ItemMeta var6 = var2.getItemMeta();
-         if (var6.hasDisplayName()) {
-            var4 = var6.getDisplayName();
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      String type = null;
+      List values = null;
+      if (shopItem != null) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (itemMeta.hasDisplayName()) {
+            type = itemMeta.getDisplayName();
          }
 
-         if (var6.hasLore()) {
-            var5 = var6.getLore();
+         if (itemMeta.hasLore()) {
+            values = itemMeta.getLore();
          }
       }
 
       if (this.customName) {
-         ItemMeta var9 = var2.getItemMeta();
-         var9.setDisplayName(this.itemName);
-         List<String> var7 = var9.hasLore() ? var9.getLore() : new ArrayList<>();
-         var7.addAll(this.itemLore);
-         var7.replaceAll(var2x -> var2x.replace("<mob>", this.serializedName(var3)));
-         var9.setLore((List)var7);
-         var2.setItemMeta(var9);
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         itemMeta.setDisplayName(this.itemName);
+         List<String> lores = itemMeta.hasLore() ? itemMeta.getLore() : new ArrayList<>();
+         lores.addAll(this.itemLore);
+         lores.replaceAll(entry -> entry.replace("<mob>", this.serializedName(entityType)));
+         itemMeta.setLore((List)lores);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      if (var1 != null) {
-         ItemMeta var10 = var2.getItemMeta();
-         if (var4 != null) {
-            var10.setDisplayName(var4);
+      if (shopItem != null) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         if (type != null) {
+            itemMeta.setDisplayName(type);
          }
 
          if (this.itemName == null || this.itemName.isEmpty()) {
-            OnyxShop.getInstance().getMetaUtils().setDisplayName(var10, SpawnerManager.getDefaultName(var3));
+            OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
          }
 
-         if (var5 != null) {
-            var10.setLore(var5);
+         if (values != null) {
+            itemMeta.setLore(values);
          }
 
-         var2.setItemMeta(var10);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      var2 = new ItemBuilder(var2).hideEntityData().build();
-      return OnyxShop.getInstance().versionHandler.setNBTString(var2, "Purpur.SpawnData::SpawnData::entity::id", var3.getKey().toString());
+      itemStack = new ItemBuilder(itemStack).hideEntityData().build();
+      return OnyxShop.getInstance().versionHandler.setNBTString(itemStack, "Purpur.SpawnData::SpawnData::entity::id", entityType.getKey().toString());
    }
 
-   private String serializedName(EntityType var1) {
-      return OnyxShop.getInstance().getMaterialName(var1.name());
-   }
-
-   @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "display::Name", "display::Lore", "HideFlags");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   private String serializedName(EntityType entityType) {
+      return OnyxShop.getInstance().getMaterialName(entityType.name());
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "display::Name", "display::Lore", "HideFlags");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
+   }
+
+   @Override
+   public String getSpawnedType(ItemStack itemStack) {
       return OnyxShop.getInstance()
          .versionHandler
-         .getNBTString(var1, "Purpur.SpawnData::SpawnData::entity::id")
+         .getNBTString(itemStack, "Purpur.SpawnData::SpawnData::entity::id")
          .replace("minecraft:", "")
          .toLowerCase(Locale.ROOT);
    }

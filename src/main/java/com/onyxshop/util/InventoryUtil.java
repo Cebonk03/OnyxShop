@@ -13,48 +13,48 @@ public class InventoryUtil {
    public InventoryUtil() {
    }
 
-   public static InventoryHolder getHolder(Inventory var0) {
-      return holderFunction.apply(var0);
+   public static InventoryHolder getHolder(Inventory inventory) {
+      return holderFunction.apply(inventory);
    }
 
-   public static Inventory getTopInventory(Player var0) {
-      return topFunction.apply(var0);
+   public static Inventory getTopInventory(Player player) {
+      return topFunction.apply(player);
    }
 
-   public static InventoryHolder getTopHolder(Player var0) {
-      return holderFunction.apply(topFunction.apply(var0));
+   public static InventoryHolder getTopHolder(Player player) {
+      return holderFunction.apply(topFunction.apply(player));
    }
 
    private static Function<Inventory, InventoryHolder> getHolderFunction() {
       try {
-         Method var0 = Inventory.class.getMethod("getHolder", boolean.class);
-         return var1x -> {
+         Method method = Inventory.class.getMethod("getHolder", boolean.class);
+         return element -> {
             try {
-               return (InventoryHolder)var0.invoke(var1x, false);
-            } catch (Exception var3) {
-               throw new RuntimeException(var3);
+               return (InventoryHolder)method.invoke(element, false);
+            } catch (Exception exception) {
+               throw new RuntimeException(exception);
             }
          };
-      } catch (NoSuchMethodException var1) {
+      } catch (NoSuchMethodException exception) {
          return Inventory::getHolder;
       }
    }
 
    private static Function<Player, Inventory> getTopFunction() {
       try {
-         Method var0 = Player.class.getMethod("getOpenInventory");
-         Method var1 = var0.getReturnType().getDeclaredMethod("getTopInventory");
-         var1.setAccessible(true);
-         return var2x -> {
+         Method method = Player.class.getMethod("getOpenInventory");
+         Method method2 = method.getReturnType().getDeclaredMethod("getTopInventory");
+         method2.setAccessible(true);
+         return element -> {
             try {
-               Object var3 = var0.invoke(var2x);
-               return (Inventory)var1.invoke(var3);
-            } catch (Exception var4) {
-               throw new RuntimeException(var4);
+               Object value = method.invoke(element);
+               return (Inventory)method2.invoke(value);
+            } catch (Exception exception) {
+               throw new RuntimeException(exception);
             }
          };
-      } catch (NoSuchMethodException var2) {
-         return var0x -> var0x.getOpenInventory().getTopInventory();
+      } catch (NoSuchMethodException exception) {
+         return element -> element.getOpenInventory().getTopInventory();
       }
    }
 }

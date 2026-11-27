@@ -24,38 +24,38 @@ public class MineableSpawnersHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      ItemMeta var4 = var2.getItemMeta();
-      if (var1 == null) {
-         BlockStateMeta var5 = (BlockStateMeta)var4;
-         CreatureSpawner var6 = (CreatureSpawner)var5.getBlockState();
-         var6.setSpawnedType(var3);
-         var5.setBlockState(var6);
-         var2 = OnyxShop.getInstance().versionHandler.setNBTString(var2, "ms_mob", var3.name());
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (shopItem == null) {
+         BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+         CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+         creatureSpawner.setSpawnedType(entityType);
+         blockStateMeta.setBlockState(creatureSpawner);
+         itemStack = OnyxShop.getInstance().versionHandler.setNBTString(itemStack, "ms_mob", entityType.name());
       }
 
-      if (!var4.hasDisplayName()) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+      if (!itemMeta.hasDisplayName()) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      var2.setItemMeta(var4);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "ms_mob", "display::Lore", "display::Name");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "ms_mob", "display::Lore", "display::Name");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      return OnyxShop.getInstance().versionHandler.getSpawnerType(var1);
+   public String getSpawnedType(ItemStack itemStack) {
+      return OnyxShop.getInstance().versionHandler.getSpawnerType(itemStack);
    }
 }

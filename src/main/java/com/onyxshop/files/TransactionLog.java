@@ -65,8 +65,8 @@ public class TransactionLog {
    private final OnyxShop plugin;
    private List<TransactionLog.SimpleTransaction> TRANSACTION_CACHE;
 
-   public TransactionLog(OnyxShop var1) {
-      this.plugin = var1;
+   public TransactionLog(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public boolean setup() {
@@ -78,7 +78,7 @@ public class TransactionLog {
       if (!this.file.exists()) {
          try {
             this.file.createNewFile();
-         } catch (IOException var3) {
+         } catch (IOException exception) {
             SendMessage.errorMessage("Failed to create the transactions log file");
             return false;
          }
@@ -87,66 +87,66 @@ public class TransactionLog {
       try {
          this.db = new TransactionLog.Database();
          return true;
-      } catch (IOException var2) {
+      } catch (IOException exception) {
          SendMessage.warnMessage("Failed to create transaction directory...");
          return false;
       }
    }
 
-   public void log(String var1) {
-      this.cache.add("[" + this.dateFormatter.format(new Date().getTime()) + "] - " + var1);
+   public void log(String text) {
+      this.cache.add("[" + this.dateFormatter.format(new Date().getTime()) + "] - " + text);
    }
 
-   public void log(UUID var1, ShopItem var2, Map<EcoType, Double> var3, int var4, Transaction.Mode var5, Transaction.Type var6) {
-      this.db.cacheSingle(var1.toString(), var2.getItemPath(), new Gson().toJson(var3), var4, var6, var5);
+   public void log(UUID uniqueId, ShopItem shopItem, Map<EcoType, Double> map, int value, Transaction.Mode mode, Transaction.Type type) {
+      this.db.cacheSingle(uniqueId.toString(), shopItem.getItemPath(), new Gson().toJson(map), value, type, mode);
       if (this.TRANSACTION_CACHE != null) {
-         this.TRANSACTION_CACHE.add(new TransactionLog.SimpleTransaction(Instant.now().toEpochMilli(), var1.toString(), var2.getItemPath(), var4, var5.name()));
+         this.TRANSACTION_CACHE.add(new TransactionLog.SimpleTransaction(Instant.now().toEpochMilli(), uniqueId.toString(), shopItem.getItemPath(), value, mode.name()));
       }
    }
 
-   public void log(UUID var1, Map<ShopItem, Integer> var2, Map<EcoType, Double> var3, int var4, Transaction.Mode var5, Transaction.Type var6) {
-      String var7 = new Gson()
-         .toJson(var2.entrySet().stream().map(var1x -> new TransactionLog.Item((Entry<ShopItem, Integer>)var1x)).collect(Collectors.toList()));
-      String var8 = new Gson().toJson(var3);
-      this.db.cacheMultiple(var1.toString(), var7, var8, var4, var6, var5);
+   public void log(UUID uniqueId, Map<ShopItem, Integer> map, Map<EcoType, Double> map2, int value, Transaction.Mode mode, Transaction.Type type) {
+      String text = new Gson()
+         .toJson(map.entrySet().stream().map(element -> new TransactionLog.Item((Entry<ShopItem, Integer>)element)).collect(Collectors.toList()));
+      String text2 = new Gson().toJson(map2);
+      this.db.cacheMultiple(uniqueId.toString(), text, text2, value, type, mode);
       if (this.TRANSACTION_CACHE != null) {
-         long var9 = Instant.now().toEpochMilli();
+         long value2 = Instant.now().toEpochMilli();
 
-         for (Entry var12 : var2.entrySet()) {
+         for (Entry entry : map.entrySet()) {
             this.TRANSACTION_CACHE
                .add(
-                  new TransactionLog.SimpleTransaction(var9, var1.toString(), ((ShopItem)var12.getKey()).getItemPath(), (Integer)var12.getValue(), var5.name())
+                  new TransactionLog.SimpleTransaction(value2, uniqueId.toString(), ((ShopItem)entry.getKey()).getItemPath(), (Integer)entry.getValue(), mode.name())
                );
          }
       }
    }
 
-   public Collection<TransactionLog.SimpleTransaction> getTransactions(TransactionLog.TimeFrame var1, Transaction.Mode var2) {
-      long[] var3 = this.getTimeFrameRange(var1);
+   public Collection<TransactionLog.SimpleTransaction> getTransactions(TransactionLog.TimeFrame timeFrame, Transaction.Mode mode) {
+      long[] timeFrameRange = this.getTimeFrameRange(timeFrame);
       return this.TRANSACTION_CACHE
          .stream()
-         .filter(var2x -> var2x.action == var2 && var2x.date >= var3[0] && var2x.date <= var3[1])
+         .filter(element -> element.action == mode && element.date >= timeFrameRange[0] && element.date <= timeFrameRange[1])
          .collect(Collectors.toList());
    }
 
-   private long[] getTimeFrameRange(TransactionLog.TimeFrame var1) {
-      long var2 = Instant.now().toEpochMilli();
-      if (var1 == TransactionLog.TimeFrame.MONTH) {
-         return new long[]{var2 - TimeUnit.DAYS.toMillis(30L), var2};
-      } else if (var1 == TransactionLog.TimeFrame.WEEK) {
-         return new long[]{var2 - TimeUnit.DAYS.toMillis(7L), var2};
+   private long[] getTimeFrameRange(TransactionLog.TimeFrame timeFrame) {
+      long time = Instant.now().toEpochMilli();
+      if (timeFrame == TransactionLog.TimeFrame.MONTH) {
+         return new long[]{time - TimeUnit.DAYS.toMillis(30L), time};
+      } else if (timeFrame == TransactionLog.TimeFrame.WEEK) {
+         return new long[]{time - TimeUnit.DAYS.toMillis(7L), time};
       } else {
-         long var4 = TimeUnit.DAYS.toMillis(1L);
-         long var6 = this.getStartOfDay();
-         return new long[]{var6, var6 + var4};
+         long time2 = TimeUnit.DAYS.toMillis(1L);
+         long startOfDay = this.getStartOfDay();
+         return new long[]{startOfDay, startOfDay + time2};
       }
    }
 
    private long getStartOfDay() {
-      LocalDateTime var1 = LocalDateTime.now();
-      LocalDateTime var2 = var1.toLocalDate().atTime(LocalTime.MIN);
-      Instant var3 = var2.atZone(ZoneId.systemDefault()).toInstant();
-      return var3.toEpochMilli();
+      LocalDateTime localDateTime = LocalDateTime.now();
+      LocalDateTime localDateTime2 = localDateTime.toLocalDate().atTime(LocalTime.MIN);
+      Instant instant = localDateTime2.atZone(ZoneId.systemDefault()).toInstant();
+      return instant.toEpochMilli();
    }
 
    private void save() {
@@ -154,7 +154,7 @@ public class TransactionLog {
          try {
             Files.write(this.file.toPath(), this.cache, StandardOpenOption.APPEND);
             this.cache.clear();
-         } catch (IOException var2) {
+         } catch (IOException exception) {
             SendMessage.errorMessage("Failed to create the transactions log file");
          }
       }
@@ -174,265 +174,265 @@ public class TransactionLog {
 
          try {
             this.TRANSACTION_CACHE = this.db.getAllSimple();
-         } catch (Exception var2) {
-            SendMessage.warnMessage("A unknown error occurred while loading transaction cache from database:\n" + this.stackTraceToString(var2));
+         } catch (Exception exception) {
+            SendMessage.warnMessage("A unknown error occurred while loading transaction cache from database:\n" + this.stackTraceToString(exception));
          }
       }
    }
 
    public String exportLogs() {
       this.loadCache();
-      ArrayList var1 = this.plugin.getTransactionLog().retrieveAllTransactions();
-      Gson var2 = new Gson();
-      StringBuilder var3 = new StringBuilder();
-      var3.append("{\"generalStats\":" + var2.toJson(new TransactionLog.GeneralStats(var1)) + "},");
-      StringBuilder var4 = new StringBuilder();
-      var4.append("{\"topPlayers\":[{\"PBM\":" + var2.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.MONTH, Transaction.Mode.BUY)) + "},");
-      var4.append("{\"PBW\":" + var2.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.WEEK, Transaction.Mode.BUY)) + "},");
-      var4.append("{\"PBD\":" + var2.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.DAY, Transaction.Mode.BUY)) + "},");
-      var4.append("{\"PSM\":" + var2.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.MONTH, Transaction.Mode.SELL)) + "},");
-      var4.append("{\"PSW\":" + var2.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.WEEK, Transaction.Mode.SELL)) + "},");
-      var4.append("{\"PSD\":" + var2.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.DAY, Transaction.Mode.SELL)) + "}]},");
-      StringBuilder var5 = new StringBuilder();
-      var5.append("{\"topItems\":[{\"IBM\":" + var2.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.MONTH, Transaction.Mode.BUY, true)) + "},");
-      var5.append("{\"IBW\":" + var2.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.WEEK, Transaction.Mode.BUY, true)) + "},");
-      var5.append("{\"IBD\":" + var2.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.DAY, Transaction.Mode.BUY, true)) + "},");
-      var5.append("{\"ISM\":" + var2.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.MONTH, Transaction.Mode.SELL, true)) + "},");
-      var5.append("{\"ISW\":" + var2.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.WEEK, Transaction.Mode.SELL, true)) + "},");
-      var5.append("{\"ISD\":" + var2.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.DAY, Transaction.Mode.SELL, true)) + "}]}");
-      String var6 = var2.toJson(var1, ArrayList.class);
+      ArrayList values = this.plugin.getTransactionLog().retrieveAllTransactions();
+      Gson gson = new Gson();
+      StringBuilder builder = new StringBuilder();
+      builder.append("{\"generalStats\":" + gson.toJson(new TransactionLog.GeneralStats(values)) + "},");
+      StringBuilder builder2 = new StringBuilder();
+      builder2.append("{\"topPlayers\":[{\"PBM\":" + gson.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.MONTH, Transaction.Mode.BUY)) + "},");
+      builder2.append("{\"PBW\":" + gson.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.WEEK, Transaction.Mode.BUY)) + "},");
+      builder2.append("{\"PBD\":" + gson.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.DAY, Transaction.Mode.BUY)) + "},");
+      builder2.append("{\"PSM\":" + gson.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.MONTH, Transaction.Mode.SELL)) + "},");
+      builder2.append("{\"PSW\":" + gson.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.WEEK, Transaction.Mode.SELL)) + "},");
+      builder2.append("{\"PSD\":" + gson.toJson(this.getTopThreePlayers(TransactionLog.TimeFrame.DAY, Transaction.Mode.SELL)) + "}]},");
+      StringBuilder builder3 = new StringBuilder();
+      builder3.append("{\"topItems\":[{\"IBM\":" + gson.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.MONTH, Transaction.Mode.BUY, true)) + "},");
+      builder3.append("{\"IBW\":" + gson.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.WEEK, Transaction.Mode.BUY, true)) + "},");
+      builder3.append("{\"IBD\":" + gson.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.DAY, Transaction.Mode.BUY, true)) + "},");
+      builder3.append("{\"ISM\":" + gson.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.MONTH, Transaction.Mode.SELL, true)) + "},");
+      builder3.append("{\"ISW\":" + gson.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.WEEK, Transaction.Mode.SELL, true)) + "},");
+      builder3.append("{\"ISD\":" + gson.toJson(this.getTopThreeItems(TransactionLog.TimeFrame.DAY, Transaction.Mode.SELL, true)) + "}]}");
+      String text = gson.toJson(values, ArrayList.class);
       return "{\"stats\":["
-         + var3
-         + var4
-         + var5
+         + builder
+         + builder2
+         + builder3
          + "],\"dates\":"
-         + Arrays.toString(this.db.getAllLoaded().stream().map(var0 -> "\"" + var0.toString() + "\"").toArray())
+         + Arrays.toString(this.db.getAllLoaded().stream().map(element -> "\"" + element.toString() + "\"").toArray())
          + ",\"logs\":"
-         + var6
+         + text
          + "}";
    }
 
-   private List<TransactionLog.SimplePrice> getCashFlow(ArrayList<TransactionLog.AdvancedTransaction> var1, Transaction.Mode var2) {
-      Map<String, Double> var3 = var1.stream()
-         .filter(var1x -> var1x.action == var2)
-         .flatMap(var0 -> var0.prices.stream())
+   private List<TransactionLog.SimplePrice> getCashFlow(ArrayList<TransactionLog.AdvancedTransaction> advancedTransactions, Transaction.Mode mode) {
+      Map<String, Double> map = advancedTransactions.stream()
+         .filter(element -> element.action == mode)
+         .flatMap(element -> element.prices.stream())
          .collect(Collectors.groupingBy(TransactionLog.Price::getEcoType, Collectors.summingDouble(TransactionLog.Price::getAmount)));
-      ArrayList var4 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (String var6 : var3.keySet()) {
-         String var7 = this.plugin.formatNullablePrice(var6, (Double)var3.get(var6));
-         if (var7 != null) {
-            var4.add(new TransactionLog.SimplePrice(this.formatHTMLColors(var7)));
+      for (String key : map.keySet()) {
+         String price = this.plugin.formatNullablePrice(key, (Double)map.get(key));
+         if (price != null) {
+            values.add(new TransactionLog.SimplePrice(this.formatHTMLColors(price)));
          }
       }
 
-      return var4;
+      return values;
    }
 
-   public ArrayList<TransactionLog.TopPlayer> getTopThreePlayers(TransactionLog.TimeFrame var1, Transaction.Mode var2) {
-      HashMap<UUID, Integer> var3 = new HashMap<>();
+   public ArrayList<TransactionLog.TopPlayer> getTopThreePlayers(TransactionLog.TimeFrame timeFrame, Transaction.Mode mode) {
+      HashMap<UUID, Integer> map = new HashMap<>();
 
-      for (TransactionLog.SimpleTransaction var5 : this.getTransactions(var1, var2)) {
-         UUID var6 = var5.uuid;
-         int var7 = var5.amount;
-         var3.put(var6, var3.getOrDefault(var6, 0) + var7);
+      for (TransactionLog.SimpleTransaction simpleTransaction : this.getTransactions(timeFrame, mode)) {
+         UUID uniqueId = simpleTransaction.uuid;
+         int amount = simpleTransaction.amount;
+         map.put(uniqueId, map.getOrDefault(uniqueId, 0) + amount);
       }
 
-      ArrayList var9 = new ArrayList(var3.entrySet());
-      var9.sort(Entry.comparingByValue().reversed());
-      ArrayList var10 = new ArrayList();
+      ArrayList values = new ArrayList(map.entrySet());
+      values.sort(Entry.comparingByValue().reversed());
+      ArrayList values2 = new ArrayList();
 
-      for (int var11 = 0; var11 < 10; var11++) {
+      for (int index = 0; index < 10; index++) {
          try {
-            Entry var12 = (Entry)var9.get(var11);
-            var10.add(new TransactionLog.TopPlayer((UUID)var12.getKey(), (Integer)var12.getValue()));
-         } catch (IndexOutOfBoundsException var8) {
+            Entry entry = (Entry)values.get(index);
+            values2.add(new TransactionLog.TopPlayer((UUID)entry.getKey(), (Integer)entry.getValue()));
+         } catch (IndexOutOfBoundsException exception) {
             break;
          }
       }
 
-      return var10;
+      return values2;
    }
 
-   public ArrayList<TransactionLog.TopItem> getTopThreeItems(TransactionLog.TimeFrame var1, Transaction.Mode var2) {
-      return this.getTopThreeItems(var1, var2, false);
+   public ArrayList<TransactionLog.TopItem> getTopThreeItems(TransactionLog.TimeFrame timeFrame, Transaction.Mode mode) {
+      return this.getTopThreeItems(timeFrame, mode, false);
    }
 
-   private ArrayList<TransactionLog.TopItem> getTopThreeItems(TransactionLog.TimeFrame var1, Transaction.Mode var2, boolean var3) {
-      HashMap<String, Integer> var4 = new HashMap<>();
+   private ArrayList<TransactionLog.TopItem> getTopThreeItems(TransactionLog.TimeFrame timeFrame, Transaction.Mode mode, boolean flag) {
+      HashMap<String, Integer> map = new HashMap<>();
 
-      for (TransactionLog.SimpleTransaction var6 : this.getTransactions(var1, var2)) {
-         String var7 = var6.itemPath;
-         int var8 = var6.amount;
-         var4.put(var7, var4.getOrDefault(var7, 0) + var8);
+      for (TransactionLog.SimpleTransaction simpleTransaction : this.getTransactions(timeFrame, mode)) {
+         String itemId = simpleTransaction.itemPath;
+         int amount = simpleTransaction.amount;
+         map.put(itemId, map.getOrDefault(itemId, 0) + amount);
       }
 
-      ArrayList var10 = new ArrayList(var4.entrySet());
-      var10.sort(Entry.comparingByValue().reversed());
-      ArrayList var11 = new ArrayList();
+      ArrayList values = new ArrayList(map.entrySet());
+      values.sort(Entry.comparingByValue().reversed());
+      ArrayList values2 = new ArrayList();
 
-      for (int var12 = 0; var12 < 10; var12++) {
+      for (int index = 0; index < 10; index++) {
          try {
-            Entry var13 = (Entry)var10.get(var12);
-            var11.add(new TransactionLog.TopItem((String)var13.getKey(), (Integer)var13.getValue(), var3));
-         } catch (IndexOutOfBoundsException var9) {
+            Entry entry = (Entry)values.get(index);
+            values2.add(new TransactionLog.TopItem((String)entry.getKey(), (Integer)entry.getValue(), flag));
+         } catch (IndexOutOfBoundsException exception) {
             break;
          }
       }
 
-      return var11;
+      return values2;
    }
 
-   public int getItemTransactions(Transaction.Mode var1, TransactionLog.TimeFrame var2, String var3, String var4, UUID var5) {
-      long[] var6 = this.getTimeFrameRange(var2);
-      int var7 = 0;
+   public int getItemTransactions(Transaction.Mode mode, TransactionLog.TimeFrame timeFrame, String itemId, String text, UUID uniqueId) {
+      long[] timeFrameRange = this.getTimeFrameRange(timeFrame);
+      int value = 0;
 
-      for (TransactionLog.SimpleTransaction var9 : this.TRANSACTION_CACHE) {
-         if (var9.action == var1
-            && var9.date >= var6[0]
-            && var9.date <= var6[1]
-            && (var5 == null || var9.uuid.equals(var5))
-            && (var3 == null || (var4 == null ? var9.itemPath.startsWith(var3 + ".") : var9.itemPath.equals(var3 + "." + var4)))) {
-            var7 += var9.amount;
+      for (TransactionLog.SimpleTransaction simpleTransaction : this.TRANSACTION_CACHE) {
+         if (simpleTransaction.action == mode
+            && simpleTransaction.date >= timeFrameRange[0]
+            && simpleTransaction.date <= timeFrameRange[1]
+            && (uniqueId == null || simpleTransaction.uuid.equals(uniqueId))
+            && (itemId == null || (text == null ? simpleTransaction.itemPath.startsWith(itemId + ".") : simpleTransaction.itemPath.equals(itemId + "." + text)))) {
+            value += simpleTransaction.amount;
          }
       }
 
-      return var7;
+      return value;
    }
 
    public ArrayList<TransactionLog.AdvancedTransaction> retrieveAllTransactions() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (TransactionLog.SimpleMonth var3 : this.db.getAllLoaded()) {
+      for (TransactionLog.SimpleMonth simpleMonth : this.db.getAllLoaded()) {
          try {
-            var1.addAll(this.db.getAllAdvanced(var3));
-         } catch (Exception var5) {
-            SendMessage.warnMessage("Failed to retrieve logged transactions from " + var3.month + "/" + var3.year);
-            var5.printStackTrace();
+            values.addAll(this.db.getAllAdvanced(simpleMonth));
+         } catch (Exception exception) {
+            SendMessage.warnMessage("Failed to retrieve logged transactions from " + simpleMonth.month + "/" + simpleMonth.year);
+            exception.printStackTrace();
          }
       }
 
-      Collections.sort(var1, new Comparator<TransactionLog.AdvancedTransaction>() {
-         public int compare(TransactionLog.AdvancedTransaction var1, TransactionLog.AdvancedTransaction var2) {
-            return Long.compare(var2.date, var1.date);
+      Collections.sort(values, new Comparator<TransactionLog.AdvancedTransaction>() {
+         public int compare(TransactionLog.AdvancedTransaction advancedTransaction, TransactionLog.AdvancedTransaction advancedTransaction2) {
+            return Long.compare(advancedTransaction2.date, advancedTransaction.date);
          }
       });
-      return var1;
+      return values;
    }
 
-   private String stackTraceToString(Exception var1) {
-      StringWriter var2 = new StringWriter();
-      PrintWriter var3 = new PrintWriter(var2);
-      var1.printStackTrace(var3);
-      return var2.toString();
+   private String stackTraceToString(Exception exception) {
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter printWriter = new PrintWriter(stringWriter);
+      exception.printStackTrace(printWriter);
+      return stringWriter.toString();
    }
 
-   private String formatHTMLColors(String var1) {
-      StringBuilder var2 = new StringBuilder();
-      TransactionLog.Line var3 = new TransactionLog.Line();
-      TransactionLog.Color var4 = new TransactionLog.Color();
-      TransactionLog.Format var5 = new TransactionLog.Format();
-      boolean var6 = false;
+   private String formatHTMLColors(String text) {
+      StringBuilder builder = new StringBuilder();
+      TransactionLog.Line line = new TransactionLog.Line();
+      TransactionLog.Color color = new TransactionLog.Color();
+      TransactionLog.Format format = new TransactionLog.Format();
+      boolean flag = false;
 
       try {
-         for (int var7 = 0; var7 < var1.length(); var7++) {
-            char var8 = var1.charAt(var7);
-            if (var8 == 167) {
-               char var9 = var1.charAt(var7 + 1);
-               if (var9 == 'x' && var1.charAt(var7 + 8) == 167) {
-                  if (!var4.c.isEmpty()) {
-                     if (!var5.start.isEmpty()) {
-                        var2.append(var5.complete(var3.get()));
+         for (int index = 0; index < text.length(); index++) {
+            char character = text.charAt(index);
+            if (character == 167) {
+               char character2 = text.charAt(index + 1);
+               if (character2 == 'x' && text.charAt(index + 8) == 167) {
+                  if (!color.c.isEmpty()) {
+                     if (!format.start.isEmpty()) {
+                        builder.append(format.complete(line.get()));
                      } else {
-                        var2.append(var3.get());
+                        builder.append(line.get());
                      }
 
-                     var2.append(var4.get());
+                     builder.append(color.get());
                   }
 
-                  var2.append("<a style=\"color:" + this.getRGB(var1, var7) + "\">");
-                  var4.c = "</a>";
-                  var7 += 13;
+                  builder.append("<a style=\"color:" + this.getRGB(text, index) + "\">");
+                  color.c = "</a>";
+                  index += 13;
                } else {
-                  ChatColor var10 = ChatColor.getByChar(var9);
-                  if (var10 != null) {
-                     if (var10.isColor()) {
-                        if (!var4.c.isEmpty()) {
-                           if (!var5.start.isEmpty()) {
-                              var2.append(var5.complete(var3.get()));
+                  ChatColor chatColor = ChatColor.getByChar(character2);
+                  if (chatColor != null) {
+                     if (chatColor.isColor()) {
+                        if (!color.c.isEmpty()) {
+                           if (!format.start.isEmpty()) {
+                              builder.append(format.complete(line.get()));
                            } else {
-                              var2.append(var3.get());
+                              builder.append(line.get());
                            }
 
-                           var2.append(var4.get());
+                           builder.append(color.get());
                         }
 
-                        var2.append("<a style=\"color:" + var10.name().toLowerCase(Locale.ROOT).replace("_", "") + "\">");
-                        var4.c = "</a>";
-                        var7++;
-                     } else if (var10.isFormat()) {
-                        String var11 = this.getFormat(var10);
-                        if (var11 != null) {
-                           if (!var5.start.isEmpty()) {
-                              var2.append(var5.complete(var3.get()));
+                        builder.append("<a style=\"color:" + chatColor.name().toLowerCase(Locale.ROOT).replace("_", "") + "\">");
+                        color.c = "</a>";
+                        index++;
+                     } else if (chatColor.isFormat()) {
+                        String text2 = this.getFormat(chatColor);
+                        if (text2 != null) {
+                           if (!format.start.isEmpty()) {
+                              builder.append(format.complete(line.get()));
                            } else {
-                              var2.append(var3.get());
+                              builder.append(line.get());
                            }
 
-                           var5.start = var5.start + "<" + var11 + ">";
-                           var5.ending = "</" + var11 + ">" + var5.ending;
-                           var7++;
+                           format.start = format.start + "<" + text2 + ">";
+                           format.ending = "</" + text2 + ">" + format.ending;
+                           index++;
                         } else {
-                           var3.text = var3.text + var8;
+                           line.text = line.text + character;
                         }
-                     } else if (var10 == ChatColor.RESET) {
-                        this.closeElement(var2, var4, var5, var3);
-                        var7++;
+                     } else if (chatColor == ChatColor.RESET) {
+                        this.closeElement(builder, color, format, line);
+                        index++;
                      }
                   }
                }
             } else {
-               var3.text = var3.text + var8;
+               line.text = line.text + character;
             }
          }
 
-         if (!var5.start.isEmpty()) {
-            var2.append(var5.complete(var3.get()));
+         if (!format.start.isEmpty()) {
+            builder.append(format.complete(line.get()));
          } else {
-            var2.append(var3.get());
+            builder.append(line.get());
          }
 
-         if (!var4.c.isEmpty()) {
-            var2.append(var4.get());
+         if (!color.c.isEmpty()) {
+            builder.append(color.get());
          }
-      } catch (IndexOutOfBoundsException var12) {
+      } catch (IndexOutOfBoundsException exception) {
       }
 
-      return var2.toString();
+      return builder.toString();
    }
 
-   private void closeElement(StringBuilder var1, TransactionLog.Color var2, TransactionLog.Format var3, TransactionLog.Line var4) {
-      if (!var2.c.isEmpty()) {
-         if (!var3.start.isEmpty()) {
-            var1.append(var3.complete(var4.get()));
+   private void closeElement(StringBuilder builder, TransactionLog.Color color, TransactionLog.Format format, TransactionLog.Line line) {
+      if (!color.c.isEmpty()) {
+         if (!format.start.isEmpty()) {
+            builder.append(format.complete(line.get()));
          } else {
-            var1.append(var4.get());
+            builder.append(line.get());
          }
 
-         var1.append(var2.get());
+         builder.append(color.get());
       } else {
-         if (!var3.start.isEmpty()) {
-            var1.append(var3.complete(var4.get()));
+         if (!format.start.isEmpty()) {
+            builder.append(format.complete(line.get()));
          } else {
-            var1.append(var4.get());
+            builder.append(line.get());
          }
 
-         var1.append(var4.get());
+         builder.append(line.get());
       }
    }
 
-   private String getFormat(ChatColor var1) {
-      switch (var1) {
+   private String getFormat(ChatColor chatColor) {
+      switch (chatColor) {
          case ITALIC:
             return "i";
          case BOLD:
@@ -446,34 +446,34 @@ public class TransactionLog {
       }
    }
 
-   private String getRGB(String var1, int var2) {
-      return var1.substring(var2, var2 + 14).replace("§", "").replace("x", "#");
+   private String getRGB(String text, int value) {
+      return text.substring(value, value + 14).replace("§", "").replace("x", "#");
    }
 
-   private ArrayList<TransactionLog.Price> deserializePrices(String var1) {
-      JsonObject var2 = (JsonObject)new Gson().fromJson(var1, JsonObject.class);
-      return var2.entrySet()
+   private ArrayList<TransactionLog.Price> deserializePrices(String price) {
+      JsonObject jsonObject = (JsonObject)new Gson().fromJson(price, JsonObject.class);
+      return jsonObject.entrySet()
          .stream()
-         .map(var1x -> new TransactionLog.Price((String)var1x.getKey(), Double.parseDouble(((JsonElement)var1x.getValue()).getAsString())))
+         .map(entry -> new TransactionLog.Price((String)entry.getKey(), Double.parseDouble(((JsonElement)entry.getValue()).getAsString())))
          .collect(Collectors.toCollection(ArrayList::new));
    }
 
-   private List<TransactionLog.MultipleItem> deserializeItems(String var1) {
+   private List<TransactionLog.MultipleItem> deserializeItems(String itemId) {
       try {
-         JSONArray var2 = JsonUtil.parseArray(var1);
-         return ((Stream<Object>)var2.stream()).map(var2x -> {
+         JSONArray jsonArray = JsonUtil.parseArray(itemId);
+         return ((Stream<Object>)jsonArray.stream()).map(element -> {
             try {
-               JSONObject var3x = JsonUtil.parseJson(var2x.toString());
-               return new TransactionLog.MultipleItem(Integer.valueOf(var3x.get("amount").toString()), var3x.get("itemPath").toString());
-            } catch (ParseException var4) {
-               SendMessage.warnMessage("Failed to parse item '" + var1 + "' for transaction, skipping...");
-               var4.printStackTrace();
+               JSONObject jsonObject = JsonUtil.parseJson(element.toString());
+               return new TransactionLog.MultipleItem(Integer.valueOf(jsonObject.get("amount").toString()), jsonObject.get("itemPath").toString());
+            } catch (ParseException exception) {
+               SendMessage.warnMessage("Failed to parse item '" + itemId + "' for transaction, skipping...");
+               exception.printStackTrace();
                return new TransactionLog.MultipleItem(0, "unknown");
             }
          }).collect(Collectors.toList());
-      } catch (ParseException var3) {
-         SendMessage.errorMessage("Failed to parse item(s) '" + var1 + "' for transaction, skipping...");
-         var3.printStackTrace();
+      } catch (ParseException exception) {
+         SendMessage.errorMessage("Failed to parse item(s) '" + itemId + "' for transaction, skipping...");
+         exception.printStackTrace();
          return null;
       }
    }
@@ -488,15 +488,15 @@ public class TransactionLog {
       public final String type;
 
       public AdvancedTransaction(
-         long nullx, String nullxx, Object nullxxx, ArrayList<TransactionLog.Price> nullxxxx, int nullxxxxx, String nullxxxxxx, String nullxxxxxxx
+         long price, String text, Object value, ArrayList<TransactionLog.Price> prices, int value2, String text2, String text3
       ) {
-         this.date = nullx;
-         this.player = TransactionLog.this.new Player(UUID.fromString(nullxx));
-         this.items = nullxxx;
-         this.prices = nullxxxx;
-         this.amount = nullxxxxx;
-         this.action = Transaction.Mode.valueOf(nullxxxxxx);
-         this.type = nullxxxxxxx;
+         this.date = price;
+         this.player = TransactionLog.this.new Player(UUID.fromString(text));
+         this.items = value;
+         this.prices = prices;
+         this.amount = value2;
+         this.action = Transaction.Mode.valueOf(text2);
+         this.type = text3;
       }
    }
 
@@ -507,13 +507,13 @@ public class TransactionLog {
       }
 
       public String get() {
-         String var1 = this.c;
+         String c = this.c;
          this.c = "";
-         return var1;
+         return c;
       }
 
-      public void addColor(String var1) {
-         this.c = var1 + this.c;
+      public void addColor(String text) {
+         this.c = text + this.c;
       }
    }
 
@@ -525,20 +525,20 @@ public class TransactionLog {
       private final ArrayList<TransactionLog.PendingEntry> single_item_transactions = new ArrayList<>();
 
       public List<TransactionLog.SimpleMonth> getAllLoaded() {
-         return this.tables.stream().map(var0 -> var0.date).collect(Collectors.toList());
+         return this.tables.stream().map(element -> element.date).collect(Collectors.toList());
       }
 
-      public List<TransactionLog.SimpleMonth> getAllSince(TransactionLog.SimpleMonth var1) {
-         return this.getAllLoaded().stream().filter(var1x -> var1x.equals(var1) || var1x.isLaterThen(var1)).collect(Collectors.toList());
+      public List<TransactionLog.SimpleMonth> getAllSince(TransactionLog.SimpleMonth simpleMonth) {
+         return this.getAllLoaded().stream().filter(element -> element.equals(simpleMonth) || element.isLaterThen(simpleMonth)).collect(Collectors.toList());
       }
 
       public Database() throws IOException {
-         Calendar var2 = Calendar.getInstance();
-         this.table = "TRANSACTIONS_" + (var2.get(2) + 1) + "_" + var2.get(1);
+         Calendar calendar = Calendar.getInstance();
+         this.table = "TRANSACTIONS_" + (calendar.get(2) + 1) + "_" + calendar.get(1);
 
          try {
             Files.createDirectory(Paths.get(TransactionLog.this.plugin.getDataFolder() + File.separator + "transactions"));
-         } catch (FileAlreadyExistsException var4) {
+         } catch (FileAlreadyExistsException exception) {
          }
 
          this.connect();
@@ -554,326 +554,326 @@ public class TransactionLog {
             this.loadTables();
             this.checkTableConstraints();
             return true;
-         } catch (Exception var2) {
+         } catch (Exception exception) {
             SendMessage.errorMessage(Lang.ERROR_OCCURRED_WHILE_CONNECTING_TO_DATABASE.get());
-            var2.printStackTrace();
+            exception.printStackTrace();
             return false;
          }
       }
 
       private void checkTableConstraints() {
          try {
-            boolean var1 = false;
-            Statement var2 = this.conn.createStatement();
-            ResultSet var3 = var2.executeQuery("PRAGMA index_list('MULTIPLE_ITEM_" + this.table + "');");
-            if (var3.next()) {
-               var2.executeUpdate(
+            boolean flag = false;
+            Statement statement = this.conn.createStatement();
+            ResultSet resultSet = statement.executeQuery("PRAGMA index_list('MULTIPLE_ITEM_" + this.table + "');");
+            if (resultSet.next()) {
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS MULTIPLE_ITEM_"
                      + this.table
                      + "_NEW (date REAL NOT NULL,uuid TEXT NOT NULL,items TEXT NOT NULL,prices TEXT NOT NULL,amount INTEGER NOT NULL,action TEXT NOT NULL,method TEXT NOT NULL);"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "INSERT INTO MULTIPLE_ITEM_"
                      + this.table
                      + "_NEW (date, uuid, items, prices, amount, action, method) SELECT date, uuid, items, prices, amount, action, method FROM MULTIPLE_ITEM_"
                      + this.table
                      + ";"
                );
-               var2.executeUpdate("DROP TABLE MULTIPLE_ITEM_" + this.table + ";");
-               var2.executeUpdate("ALTER TABLE MULTIPLE_ITEM_" + this.table + "_NEW RENAME TO MULTIPLE_ITEM_" + this.table + ";");
-               var1 = true;
+               statement.executeUpdate("DROP TABLE MULTIPLE_ITEM_" + this.table + ";");
+               statement.executeUpdate("ALTER TABLE MULTIPLE_ITEM_" + this.table + "_NEW RENAME TO MULTIPLE_ITEM_" + this.table + ";");
+               flag = true;
             }
 
-            ResultSet var4 = var2.executeQuery("PRAGMA index_list('SINGLE_ITEM_" + this.table + "');");
-            if (var4.next()) {
-               var2.executeUpdate(
+            ResultSet resultSet2 = statement.executeQuery("PRAGMA index_list('SINGLE_ITEM_" + this.table + "');");
+            if (resultSet2.next()) {
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS SINGLE_ITEM_"
                      + this.table
                      + "_NEW (date REAL NOT NULL,uuid TEXT NOT NULL,item TEXT NOT NULL,prices TEXT NOT NULL,amount INTEGER NOT NULL,action TEXT NOT NULL,method TEXT NOT NULL);"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "INSERT INTO SINGLE_ITEM_"
                      + this.table
                      + "_NEW (date, uuid, item, prices, amount, action, method) SELECT date, uuid, item, prices, amount, action, method FROM SINGLE_ITEM_"
                      + this.table
                      + ";"
                );
-               var2.executeUpdate("DROP TABLE SINGLE_ITEM_" + this.table + ";");
-               var2.executeUpdate("ALTER TABLE SINGLE_ITEM_" + this.table + "_NEW RENAME TO SINGLE_ITEM_" + this.table + ";");
-               var1 = true;
+               statement.executeUpdate("DROP TABLE SINGLE_ITEM_" + this.table + ";");
+               statement.executeUpdate("ALTER TABLE SINGLE_ITEM_" + this.table + "_NEW RENAME TO SINGLE_ITEM_" + this.table + ";");
+               flag = true;
             }
 
-            if (var1) {
+            if (flag) {
                SendMessage.infoMessage("Successfully removed unique constraint from transaction db tables");
             }
-         } catch (SQLException var5) {
+         } catch (SQLException exception) {
             SendMessage.warnMessage("Failed to migrate database to new format for " + this.table);
-            var5.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
       private void createTable() {
          try {
-            Statement var1 = this.conn.createStatement();
-            var1.executeUpdate(
+            Statement statement = this.conn.createStatement();
+            statement.executeUpdate(
                "CREATE TABLE IF NOT EXISTS MULTIPLE_ITEM_"
                   + this.table
                   + " (date REAL NOT NULL,uuid TEXT NOT NULL,items TEXT NOT NULL,prices TEXT NOT NULL,amount INTEGER NOT NULL,action TEXT NOT NULL,method TEXT NOT NULL);"
             );
-            var1.executeUpdate(
+            statement.executeUpdate(
                "CREATE TABLE IF NOT EXISTS SINGLE_ITEM_"
                   + this.table
                   + " (date REAL NOT NULL,uuid TEXT NOT NULL,item TEXT NOT NULL,prices TEXT NOT NULL,amount INTEGER NOT NULL,action TEXT NOT NULL,method TEXT NOT NULL);"
             );
-            var1.close();
-         } catch (SQLException var2) {
-            var2.printStackTrace();
+            statement.close();
+         } catch (SQLException exception) {
+            exception.printStackTrace();
          }
       }
 
       private void loadTables() {
-         HashSet<String> var1 = new HashSet<>();
+         HashSet<String> values = new HashSet<>();
 
          try {
-            Statement var2 = this.conn.createStatement();
+            Statement statement = this.conn.createStatement();
 
             try {
-               ResultSet var3 = var2.executeQuery("SELECT name FROM sqlite_master WHERE type = 'table';");
+               ResultSet resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type = 'table';");
 
                try {
-                  while (var3.next()) {
-                     var1.add(var3.getString(1));
+                  while (resultSet.next()) {
+                     values.add(resultSet.getString(1));
                   }
-               } catch (Throwable var9) {
-                  if (var3 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var3.close();
-                     } catch (Throwable var8) {
-                        var9.addSuppressed(var8);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var9;
+                  throw exception;
                }
 
-               if (var3 != null) {
-                  var3.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
-            } catch (Throwable var10) {
-               if (var2 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var2.close();
-                  } catch (Throwable var7) {
-                     var10.addSuppressed(var7);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var2 != null) {
-               var2.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (SQLException var11) {
+         } catch (SQLException exception) {
             SendMessage.errorMessage("Failed to load transaction tables");
-            var11.printStackTrace();
+            exception.printStackTrace();
          }
 
-         for (String var13 : var1) {
+         for (String text : values) {
             try {
-               TransactionLog.SimpleMonth var4 = TransactionLog.this.new SimpleMonth(var13);
-               TransactionLog.Table var5 = this.tables
+               TransactionLog.SimpleMonth simpleMonth = TransactionLog.this.new SimpleMonth(text);
+               TransactionLog.Table table = this.tables
                   .stream()
-                  .filter(var1x -> var1x.date.equals(var4))
+                  .filter(element -> element.date.equals(simpleMonth))
                   .findFirst()
-                  .orElse(TransactionLog.this.new Table(var4));
-               if (var13.contains("MULTIPLE")) {
-                  var5.multiple_items = var13;
-               } else if (var13.contains("SINGLE")) {
-                  var5.single_items = var13;
+                  .orElse(TransactionLog.this.new Table(simpleMonth));
+               if (text.contains("MULTIPLE")) {
+                  table.multiple_items = text;
+               } else if (text.contains("SINGLE")) {
+                  table.single_items = text;
                }
 
-               this.tables.remove(var5);
-               this.tables.add(var5);
-            } catch (ArrayIndexOutOfBoundsException | NumberFormatException var6) {
+               this.tables.remove(table);
+               this.tables.add(table);
+            } catch (ArrayIndexOutOfBoundsException | NumberFormatException exception) {
             }
          }
 
          Collections.sort(this.tables, new Comparator<TransactionLog.Table>() {
-            public int compare(TransactionLog.Table var1, TransactionLog.Table var2) {
-               return var1.date.compareTo(var2.date);
+            public int compare(TransactionLog.Table table, TransactionLog.Table table2) {
+               return table.date.compareTo(table2.date);
             }
          });
       }
 
-      private synchronized void executeBatch(List<TransactionLog.PendingEntry> var1) {
-         if (var1.isEmpty()) {
+      private synchronized void executeBatch(List<TransactionLog.PendingEntry> values) {
+         if (values.isEmpty()) {
             return;
          }
 
          try {
-            for (TransactionLog.PendingEntry var4 : var1) {
-               PreparedStatement var5 = this.conn
-                  .prepareStatement("INSERT INTO " + var4.table + " (date, uuid, " + var4.column + ", prices, amount, action, method) VALUES(?,?,?,?,?,?,?);");
+            for (TransactionLog.PendingEntry pendingEntry : values) {
+               PreparedStatement statement = this.conn
+                  .prepareStatement("INSERT INTO " + pendingEntry.table + " (date, uuid, " + pendingEntry.column + ", prices, amount, action, method) VALUES(?,?,?,?,?,?,?);");
 
                try {
-                  var5.setLong(1, var4.date);
-                  var5.setString(2, var4.uuid);
-                  var5.setString(3, var4.payload);
-                  var5.setString(4, var4.prices);
-                  var5.setInt(5, var4.amount);
-                  var5.setString(6, var4.action);
-                  var5.setString(7, var4.method);
-                  var5.executeUpdate();
+                  statement.setLong(1, pendingEntry.date);
+                  statement.setString(2, pendingEntry.uuid);
+                  statement.setString(3, pendingEntry.payload);
+                  statement.setString(4, pendingEntry.prices);
+                  statement.setInt(5, pendingEntry.amount);
+                  statement.setString(6, pendingEntry.action);
+                  statement.setString(7, pendingEntry.method);
+                  statement.executeUpdate();
                } finally {
-                  var5.close();
+                  statement.close();
                }
             }
-         } catch (SQLException var6) {
-            SendMessage.errorMessage("Failed to write " + var1.size() + " transaction log entries: " + var6.getMessage());
-            var6.printStackTrace();
+         } catch (SQLException exception) {
+            SendMessage.errorMessage("Failed to write " + values.size() + " transaction log entries: " + exception.getMessage());
+            exception.printStackTrace();
          }
       }
 
-      private void cacheMultiple(String var1, String var2, String var3, int var4, Transaction.Type var5, Transaction.Mode var6) {
+      private void cacheMultiple(String type, String text, String text2, int value, Transaction.Type type2, Transaction.Mode mode) {
          this.multiple_item_transactions
-            .add(new TransactionLog.PendingEntry("MULTIPLE_ITEM_" + this.table, "items", var1, var2, var3, var4, var6.name(), var5.enumName()));
+            .add(new TransactionLog.PendingEntry("MULTIPLE_ITEM_" + this.table, "items", type, text, text2, value, mode.name(), type2.enumName()));
          if (this.multiple_item_transactions.size() >= 10) {
-            List<TransactionLog.PendingEntry> var7 = new ArrayList<>(this.multiple_item_transactions);
+            List<TransactionLog.PendingEntry> values = new ArrayList<>(this.multiple_item_transactions);
             this.multiple_item_transactions.clear();
-            TransactionLog.this.plugin.runTaskAsync(() -> this.executeBatch(var7));
+            TransactionLog.this.plugin.runTaskAsync(() -> this.executeBatch(values));
          }
       }
 
-      private void cacheSingle(String var1, String var2, String var3, int var4, Transaction.Type var5, Transaction.Mode var6) {
+      private void cacheSingle(String type, String text, String text2, int value, Transaction.Type type2, Transaction.Mode mode) {
          this.single_item_transactions
-            .add(new TransactionLog.PendingEntry("SINGLE_ITEM_" + this.table, "item", var1, var2, var3, var4, var6.name(), var5.enumName()));
+            .add(new TransactionLog.PendingEntry("SINGLE_ITEM_" + this.table, "item", type, text, text2, value, mode.name(), type2.enumName()));
          if (this.single_item_transactions.size() >= 10) {
-            List<TransactionLog.PendingEntry> var7 = new ArrayList<>(this.single_item_transactions);
+            List<TransactionLog.PendingEntry> values = new ArrayList<>(this.single_item_transactions);
             this.single_item_transactions.clear();
-            TransactionLog.this.plugin.runTaskAsync(() -> this.executeBatch(var7));
+            TransactionLog.this.plugin.runTaskAsync(() -> this.executeBatch(values));
          }
       }
 
       private ArrayList<TransactionLog.SimpleTransaction> getAllSimple() throws SQLException {
-         ArrayList var1 = new ArrayList();
-         LocalDate var2 = LocalDate.now().minusDays(30L);
-         TransactionLog.SimpleMonth var3 = TransactionLog.this.new SimpleMonth(var2.getMonthValue(), var2.getYear());
+         ArrayList values = new ArrayList();
+         LocalDate localDate = LocalDate.now().minusDays(30L);
+         TransactionLog.SimpleMonth simpleMonth = TransactionLog.this.new SimpleMonth(localDate.getMonthValue(), localDate.getYear());
 
-         for (TransactionLog.Table var5 : this.tables) {
-            if (!var5.date.isOlderThen(var3)) {
-               this.appendSimpleTransactions(var1, var5);
+         for (TransactionLog.Table table : this.tables) {
+            if (!table.date.isOlderThen(simpleMonth)) {
+               this.appendSimpleTransactions(values, table);
             }
          }
 
-         return var1;
+         return values;
       }
 
-      private void appendSimpleTransactions(ArrayList<TransactionLog.SimpleTransaction> var1, TransactionLog.Table var2) throws SQLException {
-         Statement var3 = null;
-         ResultSet var4 = null;
+      private void appendSimpleTransactions(ArrayList<TransactionLog.SimpleTransaction> simpleTransactions, TransactionLog.Table table) throws SQLException {
+         Statement statement = null;
+         ResultSet resultSet = null;
 
          try {
-            var3 = this.conn.createStatement();
-            if (var2.single_items != null) {
-               var4 = var3.executeQuery("SELECT * FROM " + var2.single_items + ";");
+            statement = this.conn.createStatement();
+            if (table.single_items != null) {
+               resultSet = statement.executeQuery("SELECT * FROM " + table.single_items + ";");
 
-               while (var4.next()) {
-                  var1.add(TransactionLog.this.new SimpleTransaction(var4.getLong(1), var4.getString(2), var4.getString(3), var4.getInt(5), var4.getString(6)));
+               while (resultSet.next()) {
+                  simpleTransactions.add(TransactionLog.this.new SimpleTransaction(resultSet.getLong(1), resultSet.getString(2), resultSet.getString(3), resultSet.getInt(5), resultSet.getString(6)));
                }
             }
 
-            if (var2.multiple_items != null) {
-               var4 = var3.executeQuery("SELECT * FROM " + var2.multiple_items + ";");
+            if (table.multiple_items != null) {
+               resultSet = statement.executeQuery("SELECT * FROM " + table.multiple_items + ";");
 
-               while (var4.next()) {
-                  long var5 = var4.getLong(1);
-                  String var7 = var4.getString(2);
-                  String var8 = var4.getString(6);
+               while (resultSet.next()) {
+                  long value = resultSet.getLong(1);
+                  String text = resultSet.getString(2);
+                  String text2 = resultSet.getString(6);
 
-                  for (TransactionLog.Item var12 : (TransactionLog.Item[])new Gson().fromJson(var4.getString(3), TransactionLog.Item[].class)) {
-                     var1.add(TransactionLog.this.new SimpleTransaction(var5, var7, var12.itemPath, var12.amount, var8));
+                  for (TransactionLog.Item item : (TransactionLog.Item[])new Gson().fromJson(resultSet.getString(3), TransactionLog.Item[].class)) {
+                     simpleTransactions.add(TransactionLog.this.new SimpleTransaction(value, text, item.itemPath, item.amount, text2));
                   }
                }
             }
          } finally {
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
 
-            if (var3 != null) {
-               var3.close();
+            if (statement != null) {
+               statement.close();
             }
          }
       }
 
-      private TransactionLog.Table getTableFrom(TransactionLog.SimpleMonth var1) {
-         return this.tables.stream().filter(var1x -> var1x.date.equals(var1)).findFirst().get();
+      private TransactionLog.Table getTableFrom(TransactionLog.SimpleMonth simpleMonth) {
+         return this.tables.stream().filter(element -> element.date.equals(simpleMonth)).findFirst().get();
       }
 
-      private ArrayList<TransactionLog.AdvancedTransaction> getAllAdvanced(TransactionLog.SimpleMonth var1) throws SQLException {
-         TransactionLog.Table var2 = this.getTableFrom(var1);
-         ArrayList var3 = new ArrayList();
-         Statement var4 = null;
-         ResultSet var5 = null;
+      private ArrayList<TransactionLog.AdvancedTransaction> getAllAdvanced(TransactionLog.SimpleMonth simpleMonth) throws SQLException {
+         TransactionLog.Table table = this.getTableFrom(simpleMonth);
+         ArrayList values = new ArrayList();
+         Statement statement = null;
+         ResultSet resultSet = null;
 
          try {
-            var4 = this.conn.createStatement();
-            if (var2.single_items != null) {
-               var5 = var4.executeQuery("SELECT * FROM " + var2.single_items + ";");
+            statement = this.conn.createStatement();
+            if (table.single_items != null) {
+               resultSet = statement.executeQuery("SELECT * FROM " + table.single_items + ";");
 
-               while (var5.next()) {
-                  var3.add(
+               while (resultSet.next()) {
+                  values.add(
                      TransactionLog.this.new AdvancedTransaction(
-                        var5.getLong(1),
-                        var5.getString(2),
-                        TransactionLog.this.new SingleItem(var5.getString(3), true),
-                        TransactionLog.this.deserializePrices(var5.getString(4)),
-                        var5.getInt(5),
-                        var5.getString(6),
-                        var5.getString(7)
+                        resultSet.getLong(1),
+                        resultSet.getString(2),
+                        TransactionLog.this.new SingleItem(resultSet.getString(3), true),
+                        TransactionLog.this.deserializePrices(resultSet.getString(4)),
+                        resultSet.getInt(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7)
                      )
                   );
                }
             }
 
-            if (var2.multiple_items != null) {
-               var5 = var4.executeQuery("SELECT * FROM " + var2.multiple_items + ";");
+            if (table.multiple_items != null) {
+               resultSet = statement.executeQuery("SELECT * FROM " + table.multiple_items + ";");
 
-               while (var5.next()) {
-                  var3.add(
+               while (resultSet.next()) {
+                  values.add(
                      TransactionLog.this.new AdvancedTransaction(
-                        var5.getLong(1),
-                        var5.getString(2),
-                        TransactionLog.this.deserializeItems(var5.getString(3)),
-                        TransactionLog.this.deserializePrices(var5.getString(4)),
-                        var5.getInt(5),
-                        var5.getString(6),
-                        var5.getString(7)
+                        resultSet.getLong(1),
+                        resultSet.getString(2),
+                        TransactionLog.this.deserializeItems(resultSet.getString(3)),
+                        TransactionLog.this.deserializePrices(resultSet.getString(4)),
+                        resultSet.getInt(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7)
                      )
                   );
                }
             }
          } finally {
-            if (var5 != null) {
-               var5.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
          }
 
-         return var3;
+         return values;
       }
 
       public void saveUnsaved() {
-         List<TransactionLog.PendingEntry> var1 = new ArrayList<>(this.multiple_item_transactions);
+         List<TransactionLog.PendingEntry> values = new ArrayList<>(this.multiple_item_transactions);
          this.multiple_item_transactions.clear();
-         this.executeBatch(var1);
-         List<TransactionLog.PendingEntry> var2 = new ArrayList<>(this.single_item_transactions);
+         this.executeBatch(values);
+         List<TransactionLog.PendingEntry> values2 = new ArrayList<>(this.single_item_transactions);
          this.single_item_transactions.clear();
-         this.executeBatch(var2);
+         this.executeBatch(values2);
       }
    }
 
@@ -884,11 +884,11 @@ public class TransactionLog {
       public Format() {
       }
 
-      public String complete(String var1) {
-         String var2 = this.start + var1 + this.ending;
+      public String complete(String text) {
+         String text2 = this.start + text + this.ending;
          this.start = "";
          this.ending = "";
-         return var2;
+         return text2;
       }
    }
 
@@ -897,10 +897,10 @@ public class TransactionLog {
       List<TransactionLog.SimplePrice> cashIn;
       List<TransactionLog.SimplePrice> cashOut;
 
-      public GeneralStats(ArrayList<TransactionLog.AdvancedTransaction> nullx) {
-         this.transactions = nullx.size();
-         this.cashIn = TransactionLog.this.getCashFlow(nullx, Transaction.Mode.BUY);
-         this.cashOut = TransactionLog.this.getCashFlow(nullx, Transaction.Mode.SELL);
+      public GeneralStats(ArrayList<TransactionLog.AdvancedTransaction> advancedTransactions) {
+         this.transactions = advancedTransactions.size();
+         this.cashIn = TransactionLog.this.getCashFlow(advancedTransactions, Transaction.Mode.BUY);
+         this.cashOut = TransactionLog.this.getCashFlow(advancedTransactions, Transaction.Mode.SELL);
       }
    }
 
@@ -908,9 +908,9 @@ public class TransactionLog {
       private int amount;
       private String itemPath;
 
-      public Item(Entry<ShopItem, Integer> nullx) {
-         this.amount = (Integer)nullx.getValue();
-         this.itemPath = ((ShopItem)nullx.getKey()).getItemPath();
+      public Item(Entry<ShopItem, Integer> entry) {
+         this.amount = (Integer)entry.getValue();
+         this.itemPath = ((ShopItem)entry.getKey()).getItemPath();
       }
    }
 
@@ -921,9 +921,9 @@ public class TransactionLog {
       }
 
       public String get() {
-         String var1 = this.text;
+         String text = this.text;
          this.text = "";
-         return var1;
+         return text;
       }
    }
 
@@ -933,19 +933,19 @@ public class TransactionLog {
       String item;
       Material mat;
 
-      public MultipleItem(int nullx, String nullxx) {
-         this.amount = nullx;
+      public MultipleItem(int value, String itemId) {
+         this.amount = value;
 
          try {
-            ShopItem var4 = TransactionLog.this.plugin.getShopItem(nullxx);
-            this.name = TransactionLog.this.formatHTMLColors(var4.getDisplayname());
-            this.mat = var4.getItemToGive().getType();
-         } catch (NullPointerException var5) {
+            ShopItem shopItem = TransactionLog.this.plugin.getShopItem(itemId);
+            this.name = TransactionLog.this.formatHTMLColors(shopItem.getDisplayname());
+            this.mat = shopItem.getItemToGive().getType();
+         } catch (NullPointerException exception) {
             this.name = "Unknown item";
             this.mat = Material.BARRIER;
          }
 
-         this.item = nullxx;
+         this.item = itemId;
       }
    }
 
@@ -953,14 +953,14 @@ public class TransactionLog {
       public String name;
       UUID uuid;
 
-      public Player(UUID nullx) {
+      public Player(UUID playerId) {
          try {
-            this.name = Bukkit.getOfflinePlayer(nullx).getName();
-         } catch (NullPointerException var4) {
+            this.name = Bukkit.getOfflinePlayer(playerId).getName();
+         } catch (NullPointerException exception) {
             this.name = "Unknown";
          }
 
-         this.uuid = nullx;
+         this.uuid = playerId;
       }
    }
 
@@ -969,17 +969,17 @@ public class TransactionLog {
       String ecoType;
       double amount;
 
-      public Price(String nullx, Double nullxx) {
+      public Price(String price, Double amount) {
          try {
             this.formatted = TransactionLog.this.formatHTMLColors(
-               TransactionLog.this.plugin.formatPrice(TransactionLog.this.plugin.getEcoHandler().getLoaded(nullx), nullxx)
+               TransactionLog.this.plugin.formatPrice(TransactionLog.this.plugin.getEcoHandler().getLoaded(price), amount)
             );
-         } catch (NullPointerException var5) {
-            this.formatted = nullxx + " " + nullx;
+         } catch (NullPointerException exception) {
+            this.formatted = amount + " " + price;
          }
 
-         this.amount = nullxx;
-         this.ecoType = nullx;
+         this.amount = amount;
+         this.ecoType = price;
       }
 
       public String getEcoType() {
@@ -995,27 +995,27 @@ public class TransactionLog {
       private final int month;
       private final int year;
 
-      public SimpleMonth(String nullx) {
-         String var3 = nullx.split("_ITEM_TRANSACTIONS_")[1];
-         this.month = Integer.parseInt(var3.split("_")[0]);
-         this.year = Integer.parseInt(var3.split("_")[1]);
+      public SimpleMonth(String text) {
+         String text2 = text.split("_ITEM_TRANSACTIONS_")[1];
+         this.month = Integer.parseInt(text2.split("_")[0]);
+         this.year = Integer.parseInt(text2.split("_")[1]);
       }
 
-      public SimpleMonth(int nullx, int nullxx) {
-         this.month = nullx;
-         this.year = nullxx;
+      public SimpleMonth(int value, int value2) {
+         this.month = value;
+         this.year = value2;
       }
 
-      public boolean isLaterThen(TransactionLog.SimpleMonth var1) {
-         return this.year > var1.year || this.year == var1.year && this.month > var1.month;
+      public boolean isLaterThen(TransactionLog.SimpleMonth simpleMonth) {
+         return this.year > simpleMonth.year || this.year == simpleMonth.year && this.month > simpleMonth.month;
       }
 
-      public boolean isOlderThen(TransactionLog.SimpleMonth var1) {
-         return this.year < var1.year || this.year == var1.year && this.month < var1.month;
+      public boolean isOlderThen(TransactionLog.SimpleMonth simpleMonth) {
+         return this.year < simpleMonth.year || this.year == simpleMonth.year && this.month < simpleMonth.month;
       }
 
-      public int compareTo(@NotNull TransactionLog.SimpleMonth var1) {
-         return this.isLaterThen(var1) ? 1 : (this.isOlderThen(var1) ? -1 : 0);
+      public int compareTo(@NotNull TransactionLog.SimpleMonth simpleMonth) {
+         return this.isLaterThen(simpleMonth) ? 1 : (this.isOlderThen(simpleMonth) ? -1 : 0);
       }
 
       @Override
@@ -1024,12 +1024,12 @@ public class TransactionLog {
       }
 
       @Override
-      public boolean equals(Object var1) {
-         if (this == var1) {
+      public boolean equals(Object value) {
+         if (this == value) {
             return true;
-         } else if (var1 != null && this.getClass() == var1.getClass()) {
-            TransactionLog.SimpleMonth var2 = (TransactionLog.SimpleMonth)var1;
-            return this.month == var2.month && this.year == var2.year;
+         } else if (value != null && this.getClass() == value.getClass()) {
+            TransactionLog.SimpleMonth simpleMonth = (TransactionLog.SimpleMonth)value;
+            return this.month == simpleMonth.month && this.year == simpleMonth.year;
          } else {
             return false;
          }
@@ -1044,8 +1044,8 @@ public class TransactionLog {
    private final class SimplePrice {
       String formatted;
 
-      public SimplePrice(String nullx) {
-         this.formatted = nullx;
+      public SimplePrice(String price) {
+         this.formatted = price;
       }
    }
 
@@ -1056,12 +1056,12 @@ public class TransactionLog {
       public final String itemPath;
       public final Transaction.Mode action;
 
-      public SimpleTransaction(long nullx, String nullxx, String nullxxx, int nullxxxx, String nullxxxxx) {
-         this.date = nullx;
-         this.uuid = UUID.fromString(nullxx);
-         this.itemPath = nullxxx;
-         this.amount = nullxxxx;
-         this.action = Transaction.Mode.valueOf(nullxxxxx);
+      public SimpleTransaction(long value, String text, String text2, int value2, String text3) {
+         this.date = value;
+         this.uuid = UUID.fromString(text);
+         this.itemPath = text2;
+         this.amount = value2;
+         this.action = Transaction.Mode.valueOf(text3);
       }
    }
 
@@ -1070,17 +1070,17 @@ public class TransactionLog {
       String item;
       Material mat;
 
-      public SingleItem(String nullx, boolean nullxx) {
+      public SingleItem(String itemId, boolean flag) {
          try {
-            ShopItem var4 = TransactionLog.this.plugin.getShopItem(nullx);
-            this.name = nullxx ? TransactionLog.this.formatHTMLColors(var4.getDisplayname()) : var4.getDisplayname();
-            this.mat = var4.getItemToGive().getType();
-         } catch (NullPointerException var5) {
+            ShopItem shopItem = TransactionLog.this.plugin.getShopItem(itemId);
+            this.name = flag ? TransactionLog.this.formatHTMLColors(shopItem.getDisplayname()) : shopItem.getDisplayname();
+            this.mat = shopItem.getItemToGive().getType();
+         } catch (NullPointerException exception) {
             this.name = "Unknown item";
             this.mat = Material.BARRIER;
          }
 
-         this.item = nullx;
+         this.item = itemId;
       }
    }
 
@@ -1089,17 +1089,17 @@ public class TransactionLog {
       public String single_items;
       public String multiple_items;
 
-      public Table(TransactionLog.SimpleMonth nullx) {
-         this.date = nullx;
+      public Table(TransactionLog.SimpleMonth simpleMonth) {
+         this.date = simpleMonth;
       }
 
-      public TransactionLog.Table withSingle(String var1) {
-         this.single_items = var1;
+      public TransactionLog.Table withSingle(String text) {
+         this.single_items = text;
          return this;
       }
 
-      public TransactionLog.Table withMultiple(String var1) {
-         this.multiple_items = var1;
+      public TransactionLog.Table withMultiple(String text) {
+         this.multiple_items = text;
          return this;
       }
    }
@@ -1124,16 +1124,16 @@ public class TransactionLog {
       private final String action;
       private final String method;
 
-      private PendingEntry(String var1, String var2, String var3, String var4, String var5, int var6, String var7, String var8) {
-         this.table = var1;
-         this.column = var2;
+      private PendingEntry(String text, String text2, String text3, String text4, String text5, int value, String text6, String text7) {
+         this.table = text;
+         this.column = text2;
          this.date = Instant.now().toEpochMilli();
-         this.uuid = var3;
-         this.payload = var4;
-         this.prices = var5;
-         this.amount = var6;
-         this.action = var7;
-         this.method = var8;
+         this.uuid = text3;
+         this.payload = text4;
+         this.prices = text5;
+         this.amount = value;
+         this.action = text6;
+         this.method = text7;
       }
    }
 
@@ -1141,9 +1141,9 @@ public class TransactionLog {
       public final TransactionLog.SingleItem item;
       public final int amount;
 
-      public TopItem(String nullx, int nullxx, boolean nullxxx) {
-         this.item = TransactionLog.this.new SingleItem(nullx, nullxxx);
-         this.amount = nullxx;
+      public TopItem(String itemId, int value, boolean flag) {
+         this.item = TransactionLog.this.new SingleItem(itemId, flag);
+         this.amount = value;
       }
    }
 
@@ -1151,9 +1151,9 @@ public class TransactionLog {
       public final TransactionLog.Player player;
       public final int amount;
 
-      public TopPlayer(UUID nullx, int nullxx) {
-         this.player = TransactionLog.this.new Player(nullx);
-         this.amount = nullxx;
+      public TopPlayer(UUID playerId, int value) {
+         this.player = TransactionLog.this.new Player(playerId);
+         this.amount = value;
       }
    }
 }

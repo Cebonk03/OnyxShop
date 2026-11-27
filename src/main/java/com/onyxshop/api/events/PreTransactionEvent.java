@@ -22,36 +22,36 @@ public class PreTransactionEvent extends CustomEvent implements Cancellable {
    private final Player player;
    private final Transaction.Type transactionType;
 
-   public PreTransactionEvent(ShopItem var1, Player var2, int var3, double var4, Transaction.Type var6) {
-      this.amount = var3;
-      this.shopItem = var1;
-      this.player = var2;
-      this.price = var4;
+   public PreTransactionEvent(ShopItem shopItem, Player player, int value, double amount, Transaction.Type type) {
+      this.amount = value;
+      this.shopItem = shopItem;
+      this.player = player;
+      this.price = amount;
       this.originalPrice = this.price;
       this.prices = new HashMap<>();
       this.originalPrices = this.prices;
       this.items = new HashMap<>();
-      this.transactionType = var6;
+      this.transactionType = type;
    }
 
-   public PreTransactionEvent(Map<ShopItem, Integer> var1, Map<EcoType, Double> var2, Player var3, int var4, Transaction.Type var5) {
-      this.amount = var4;
-      this.shopItem = var1.size() >= 1 ? (ShopItem)var1.keySet().toArray()[0] : null;
-      this.player = var3;
-      this.price = var2 != null && !var2.isEmpty() ? (Double)var2.values().toArray()[0] : 0.0;
+   public PreTransactionEvent(Map<ShopItem, Integer> map, Map<EcoType, Double> map2, Player player, int value, Transaction.Type type) {
+      this.amount = value;
+      this.shopItem = map.size() >= 1 ? (ShopItem)map.keySet().toArray()[0] : null;
+      this.player = player;
+      this.price = map2 != null && !map2.isEmpty() ? (Double)map2.values().toArray()[0] : 0.0;
       this.originalPrice = this.price;
-      this.prices = var2;
+      this.prices = map2;
       this.originalPrices = Collections.unmodifiableMap(this.prices);
-      this.items = var1;
-      this.transactionType = var5;
+      this.items = map;
+      this.transactionType = type;
    }
 
    public boolean isCancelled() {
       return this.cancelled;
    }
 
-   public void setCancelled(boolean var1) {
-      this.cancelled = var1;
+   public void setCancelled(boolean flag) {
+      this.cancelled = flag;
    }
 
    public int getAmount() {
@@ -74,8 +74,8 @@ public class PreTransactionEvent extends CustomEvent implements Cancellable {
       return this.originalPrices;
    }
 
-   public void setPrice(double var1) {
-      this.price = var1;
+   public void setPrice(double price) {
+      this.price = price;
    }
 
    @Deprecated

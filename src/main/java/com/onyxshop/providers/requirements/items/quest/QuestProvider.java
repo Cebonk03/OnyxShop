@@ -4,15 +4,15 @@ import com.onyxshop.OnyxShop;
 import org.bukkit.entity.Player;
 
 public interface QuestProvider {
-   void init(OnyxShop var1, QuestManager var2);
+   void init(OnyxShop plugin, QuestManager questManager);
 
    boolean isReady();
 
    String getName();
 
-   boolean isLoaded(String var1);
+   boolean isLoaded(String text);
 
-   String getQuestName(String var1);
+   String getQuestName(String name);
 
-   boolean hasCompleted(Player var1, String var2);
+   boolean hasCompleted(Player player, String playerName);
 }

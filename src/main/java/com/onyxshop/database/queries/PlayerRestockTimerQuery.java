@@ -8,29 +8,29 @@ public class PlayerRestockTimerQuery implements Query {
    private final String playerUUID;
    private final long timer;
 
-   public PlayerRestockTimerQuery(String var1, String var2, long var3) {
-      this.itemPath = var1;
-      this.playerUUID = var2;
-      this.timer = var3;
+   public PlayerRestockTimerQuery(String playerName, String text, long restockTime) {
+      this.itemPath = playerName;
+      this.playerUUID = text;
+      this.timer = restockTime;
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.SAVE_PLAYER_RESTOCK.init(var1, this.itemPath, this.playerUUID, this.timer);
+   public String format(String text) {
+      return SQLQueries.SAVE_PLAYER_RESTOCK.init(text, this.itemPath, this.playerUUID, this.timer);
    }
 
    @Override
-   public String formatPostgres(String var1) {
-      return SQLQueries.SAVE_PLAYER_RESTOCK_PG.init(var1, this.itemPath, this.playerUUID, this.timer);
+   public String formatPostgres(String text) {
+      return SQLQueries.SAVE_PLAYER_RESTOCK_PG.init(text, this.itemPath, this.playerUUID, this.timer);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         PlayerRestockTimerQuery var2 = (PlayerRestockTimerQuery)var1;
-         return this.itemPath.equals(var2.itemPath) && this.playerUUID.equals(var2.playerUUID);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         PlayerRestockTimerQuery playerRestockTimerQuery = (PlayerRestockTimerQuery)value;
+         return this.itemPath.equals(playerRestockTimerQuery.itemPath) && this.playerUUID.equals(playerRestockTimerQuery.playerUUID);
       } else {
          return false;
       }

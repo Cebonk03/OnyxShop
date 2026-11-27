@@ -19,26 +19,26 @@ public class PostTransactionEvent extends CustomEvent {
    private final Transaction.Type type;
    private final Transaction.Result result;
 
-   public PostTransactionEvent(ShopItem var1, Player var2, int var3, double var4, Transaction.Type var6, Transaction.Result var7) {
-      this.amount = var3;
-      this.shopItem = var1;
-      this.player = var2;
-      this.price = var4;
-      this.type = var6;
-      this.result = var7;
+   public PostTransactionEvent(ShopItem shopItem, Player player, int value, double amount, Transaction.Type type, Transaction.Result result) {
+      this.amount = value;
+      this.shopItem = shopItem;
+      this.player = player;
+      this.price = amount;
+      this.type = type;
+      this.result = result;
       this.items = new HashMap<>();
       this.prices = new HashMap<>();
    }
 
-   public PostTransactionEvent(Map<ShopItem, Integer> var1, Map<EcoType, Double> var2, Player var3, int var4, Transaction.Type var5, Transaction.Result var6) {
-      this.amount = var4;
-      this.shopItem = var1.size() >= 1 ? (ShopItem)var1.keySet().toArray()[0] : null;
-      this.player = var3;
-      this.price = var2 != null && !var2.isEmpty() ? (Double)var2.values().toArray()[0] : 0.0;
-      this.type = var5;
-      this.result = var6;
-      this.items = var1;
-      this.prices = var2;
+   public PostTransactionEvent(Map<ShopItem, Integer> map, Map<EcoType, Double> map2, Player player, int value, Transaction.Type type, Transaction.Result result) {
+      this.amount = value;
+      this.shopItem = map.size() >= 1 ? (ShopItem)map.keySet().toArray()[0] : null;
+      this.player = player;
+      this.price = map2 != null && !map2.isEmpty() ? (Double)map2.values().toArray()[0] : 0.0;
+      this.type = type;
+      this.result = result;
+      this.items = map;
+      this.prices = map2;
    }
 
    public int getAmount() {

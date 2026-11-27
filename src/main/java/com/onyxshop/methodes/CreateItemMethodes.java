@@ -56,42 +56,42 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
 public class CreateItemMethodes {
-   public static ItemStack createItemMaterialFromString(ShopItem var0, String var1) throws ItemLoadException {
-      if (var1 != null && !var1.isEmpty()) {
-         ItemStack var2 = OnyxShop.getInstance().getItemManager().getSPM(var0, var1);
-         if (var2 == null) {
-            Optional var3 = XMaterial.matchXMaterial(var1);
-            if (!var3.isPresent()) {
-               String[] var4 = var1.split(":");
-               Material var5 = Material.getMaterial(var4[0]);
-               if (var5 == null) {
-                  throw new ItemLoadException(Lang.ITEM_MATERIAL_NULL.get().replace("%material%", var1));
+   public static ItemStack createItemMaterialFromString(ShopItem shopItem, String itemId) throws ItemLoadException {
+      if (itemId != null && !itemId.isEmpty()) {
+         ItemStack itemStack = OnyxShop.getInstance().getItemManager().getSPM(shopItem, itemId);
+         if (itemStack == null) {
+            Optional optional = XMaterial.matchXMaterial(itemId);
+            if (!optional.isPresent()) {
+               String[] materialNames = itemId.split(":");
+               Material material = Material.getMaterial(materialNames[0]);
+               if (material == null) {
+                  throw new ItemLoadException(Lang.ITEM_MATERIAL_NULL.get().replace("%material%", itemId));
                }
 
                try {
-                  var2 = var4.length == 1 ? new ItemStack(var5) : new ItemStack(var5, 1, Short.parseShort(var4[1]));
-               } catch (NumberFormatException var7) {
-                  throw new ItemLoadException(ChatColor.RED + "Unable to get data value for '%material%'".replace("%material%", var1));
+                  itemStack = materialNames.length == 1 ? new ItemStack(material) : new ItemStack(material, 1, Short.parseShort(materialNames[1]));
+               } catch (NumberFormatException exception) {
+                  throw new ItemLoadException(ChatColor.RED + "Unable to get data value for '%material%'".replace("%material%", itemId));
                }
             } else {
-               var2 = ((XMaterial)var3.get()).parseItem();
+               itemStack = ((XMaterial)optional.get()).parseItem();
             }
 
-            if (var2 == null) {
+            if (itemStack == null) {
                throw new ItemLoadException(Lang.MATERIAL_NOT_SUPPORTED.get());
             }
          }
 
-         return var2;
+         return itemStack;
       } else {
          throw new ItemLoadException(Lang.NEED_ITEM_MATERIAL.get());
       }
    }
 
-   public static ItemStack setNBTData(ItemStack var0, String var1, boolean var2) throws ItemLoadException {
-      if (var1 != null && !var1.isEmpty()) {
-         if (var1.charAt(0) == '{' && var1.charAt(var1.length() - 1) == '}') {
-            return OnyxShop.getInstance().versionHandler.addNBTtag(var0, var1, var2);
+   public static ItemStack setNBTData(ItemStack itemStack, String itemId, boolean flag) throws ItemLoadException {
+      if (itemId != null && !itemId.isEmpty()) {
+         if (itemId.charAt(0) == '{' && itemId.charAt(itemId.length() - 1) == '}') {
+            return OnyxShop.getInstance().versionHandler.addNBTtag(itemStack, itemId, flag);
          } else {
             throw new ItemLoadException(Lang.NBTDATA_NEEDS_CURLY_BRACKETS.get());
          }
@@ -100,38 +100,38 @@ public class CreateItemMethodes {
       }
    }
 
-   public ItemStack setOption(ItemStack var1, ConfigurationSection var2, DisplayItem var3, String var4, boolean var5) throws ItemLoadException {
-      if (var2.contains("enchantments")) {
-         var1 = setEnchantments(var1, var2.getStringList(".enchantments"), var4, "pages." + var2.getCurrentPath(), var5 ? var3 : null);
+   public ItemStack setOption(ItemStack itemStack, ConfigurationSection section, DisplayItem displayItem, String itemId, boolean flag) throws ItemLoadException {
+      if (section.contains("enchantments")) {
+         itemStack = setEnchantments(itemStack, section.getStringList(".enchantments"), itemId, "pages." + section.getCurrentPath(), flag ? displayItem : null);
       }
 
-      if (var2.contains("spawnertype")) {
-         if (var1.getType() != XMaterial.SPAWNER.parseMaterial()) {
+      if (section.contains("spawnertype")) {
+         if (itemStack.getType() != XMaterial.SPAWNER.parseMaterial()) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_SPAWNER.get());
          }
 
-         var1 = this.addSpawnerType(var5 && var3 instanceof ShopItem ? (ShopItem)var3 : null, var1, var2.getString("spawnertype"), var2.getString("name"));
-      } else if (var2.contains("potiontypes")) {
-         boolean var14 = var2.getString("material").equalsIgnoreCase("SPLASH_POTION");
-         var1 = setPotionTypes(var1, var2.getStringList("potiontypes"), var4, "pages." + var2.getCurrentPath(), var14);
-      } else if (var2.contains("recipes")) {
-         if (var1.getType() != XMaterial.KNOWLEDGE_BOOK.parseMaterial()) {
+         itemStack = this.addSpawnerType(flag && displayItem instanceof ShopItem ? (ShopItem)displayItem : null, itemStack, section.getString("spawnertype"), section.getString("name"));
+      } else if (section.contains("potiontypes")) {
+         boolean flag2 = section.getString("material").equalsIgnoreCase("SPLASH_POTION");
+         itemStack = setPotionTypes(itemStack, section.getStringList("potiontypes"), itemId, "pages." + section.getCurrentPath(), flag2);
+      } else if (section.contains("recipes")) {
+         if (itemStack.getType() != XMaterial.KNOWLEDGE_BOOK.parseMaterial()) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_BOOK.get());
          }
 
-         for (String var20 : var2.getStringList("recipes")) {
-            if (!var20.isEmpty()) {
-               var1 = this.addRecipe(var1, new NamespacedKey("minecraft", this.getRecipeMaterial(var20).toString().toLowerCase(Locale.ENGLISH)));
+         for (String text : section.getStringList("recipes")) {
+            if (!text.isEmpty()) {
+               itemStack = this.addRecipe(itemStack, new NamespacedKey("minecraft", this.getRecipeMaterial(text).toString().toLowerCase(Locale.ENGLISH)));
             }
          }
-      } else if (!var2.contains("skullowner") && !var2.contains("skull-texture")) {
-         if (var1.getType().equals(XMaterial.FIREWORK_ROCKET.parseMaterial())) {
-            var1 = FireworkUtil.addEffect(var1, var2);
-         } else if (var2.contains("instrument")) {
-            var1 = setInstrument(var1, var2.getString("instrument"));
-         } else if (var2.contains("stew-effect")) {
-            var1 = setStewEffect(var1, var2.getString("stew-effect"));
-         } else if (var2.getBoolean("autosell")) {
+      } else if (!section.contains("skullowner") && !section.contains("skull-texture")) {
+         if (itemStack.getType().equals(XMaterial.FIREWORK_ROCKET.parseMaterial())) {
+            itemStack = FireworkUtil.addEffect(itemStack, section);
+         } else if (section.contains("instrument")) {
+            itemStack = setInstrument(itemStack, section.getString("instrument"));
+         } else if (section.contains("stew-effect")) {
+            itemStack = setStewEffect(itemStack, section.getString("stew-effect"));
+         } else if (section.getBoolean("autosell")) {
             if (OnyxShop.getInstance().version < 116) {
                throw new ItemLoadException("AutoSellChests are only supported on 1.16 and above");
             }
@@ -140,140 +140,140 @@ public class CreateItemMethodes {
                throw new ItemLoadException("AutoSellChests needs to be installed to create this item");
             }
 
-            ItemMeta var12 = var1.getItemMeta();
-            var12.getPersistentDataContainer()
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            itemMeta.getPersistentDataContainer()
                .set(new NamespacedKey(Bukkit.getPluginManager().getPlugin("AutoSellChests"), "autosell"), PersistentDataType.INTEGER, 1);
-            var1.setItemMeta(var12);
-         } else if (var2.contains("armor-trim")) {
+            itemStack.setItemMeta(itemMeta);
+         } else if (section.contains("armor-trim")) {
             if (OnyxShop.getInstance().version < 120) {
                throw new ItemLoadException("ArmorTrim's are only supported in version 1.20 and above");
             }
 
-            new CreateItemMethodes.ArmorTrim(var2.getString("armor-trim.type"), var2.getString("armor-trim.pattern")).build(var1);
-         } else if (var2.contains("spawn-potentials")) {
-            if (XMaterial.matchXMaterial(var1.getType()) != XMaterial.TRIAL_SPAWNER) {
+            new CreateItemMethodes.ArmorTrim(section.getString("armor-trim.type"), section.getString("armor-trim.pattern")).build(itemStack);
+         } else if (section.contains("spawn-potentials")) {
+            if (XMaterial.matchXMaterial(itemStack.getType()) != XMaterial.TRIAL_SPAWNER) {
                throw new ItemLoadException(
                   Lang.INVALID_MATERIAL_FOR_ITEM_OPTION.get().replace("%material%", "TRIAL_SPAWNER").replace("%item-option%", "spawn-potentials")
                );
             }
 
-            var1 = this.addSpawnPotentials(var5 && var3 instanceof ShopItem ? (ShopItem)var3 : null, var2, var1, var4, "pages." + var2.getCurrentPath());
-         } else if (var2.contains("ominous-strength")) {
-            var1 = this.setOminousStrength(var1, var2.getInt("ominous-strength"));
+            itemStack = this.addSpawnPotentials(flag && displayItem instanceof ShopItem ? (ShopItem)displayItem : null, section, itemStack, itemId, "pages." + section.getCurrentPath());
+         } else if (section.contains("ominous-strength")) {
+            itemStack = this.setOminousStrength(itemStack, section.getInt("ominous-strength"));
          }
       } else {
-         if (var1.getType() != XMaterial.PLAYER_HEAD.parseMaterial()) {
+         if (itemStack.getType() != XMaterial.PLAYER_HEAD.parseMaterial()) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
          }
 
-         SkullMeta var6 = (SkullMeta)var1.getItemMeta();
-         if (var2.contains("skullowner")) {
-            String var7 = var2.getString("skullowner");
-            if (var7 == null || var7.isEmpty()) {
+         SkullMeta skullMeta = (SkullMeta)itemStack.getItemMeta();
+         if (section.contains("skullowner")) {
+            String text = section.getString("skullowner");
+            if (text == null || text.isEmpty()) {
                throw new ItemLoadException(Lang.NEED_SKULLOWNER.get());
             }
 
-            SkullUtil.setSkullTexture(var2x -> var3.updateSkullTexture(var2x, !var5), var1, var6, var7, var2.getString("skull-texture"));
-         } else if (var2.contains("skull-texture")) {
-            String var19 = var2.getString("skull-texture");
-            if (var19 == null || var19.isEmpty()) {
+            SkullUtil.setSkullTexture(element -> displayItem.updateSkullTexture(element, !flag), itemStack, skullMeta, text, section.getString("skull-texture"));
+         } else if (section.contains("skull-texture")) {
+            String text = section.getString("skull-texture");
+            if (text == null || text.isEmpty()) {
                throw new ItemLoadException(Lang.NEED_SKULLOWNER.get());
             }
 
-            SkullUtil.setSkullTextureFromHash(var6, var19);
+            SkullUtil.setSkullTextureFromHash(skullMeta, text);
          }
 
-         var1.setItemMeta(var6);
+         itemStack.setItemMeta(skullMeta);
       }
 
-      if (var2.contains("armorcolor")) {
-         if (!(var1.getItemMeta() instanceof LeatherArmorMeta)) {
+      if (section.contains("armorcolor")) {
+         if (!(itemStack.getItemMeta() instanceof LeatherArmorMeta)) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_LEATHER_ARMOR.get());
          }
 
-         LeatherArmorMeta var15 = (LeatherArmorMeta)var1.getItemMeta();
-         var15.setColor(this.getRGBColor(var2.getString("armorcolor"), var2.getCurrentPath() + ".armorcolor"));
-         var1.setItemMeta(var15);
+         LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta)itemStack.getItemMeta();
+         leatherArmorMeta.setColor(this.getRGBColor(section.getString("armorcolor"), section.getCurrentPath() + ".armorcolor"));
+         itemStack.setItemMeta(leatherArmorMeta);
       }
 
-      if (var2.contains("enchantment-glint") && var2.getBoolean("enchantment-glint")) {
-         ItemMeta var16 = var1.getItemMeta();
+      if (section.contains("enchantment-glint") && section.getBoolean("enchantment-glint")) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
          if (ServerInfo.supportsComponents()) {
-            var16.setEnchantmentGlintOverride(true);
+            itemMeta.setEnchantmentGlintOverride(true);
          } else {
-            var16.addEnchant(XEnchantment.WATER_WORKER.parseEnchantment(), 1, false);
-            var16.addItemFlags(new ItemFlag[]{ItemFlag.HIDE_ENCHANTS});
+            itemMeta.addEnchant(XEnchantment.WATER_WORKER.parseEnchantment(), 1, false);
+            itemMeta.addItemFlags(new ItemFlag[]{ItemFlag.HIDE_ENCHANTS});
          }
 
-         var1.setItemMeta(var16);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      if (var2.contains("item-flags")) {
-         var1 = this.addItemFlags(var1, var2);
+      if (section.contains("item-flags")) {
+         itemStack = this.addItemFlags(itemStack, section);
       }
 
-      if (var2.getBoolean("hide-tooltip") && ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R3)) {
-         var1 = new ItemBuilder(var1).hideToolTip().build();
+      if (section.getBoolean("hide-tooltip") && ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R3)) {
+         itemStack = new ItemBuilder(itemStack).hideToolTip().build();
       }
 
-      if (var2.contains("CustomModelData")) {
-         var1 = setCustomModelData(var1, var2);
+      if (section.contains("CustomModelData")) {
+         itemStack = setCustomModelData(itemStack, section);
       }
 
-      if (var2.contains("stack-size")) {
-         int var17 = var2.getInt("stack-size");
-         if (var17 < 1 || var17 > 64) {
+      if (section.contains("stack-size")) {
+         int size = section.getInt("stack-size");
+         if (size < 1 || size > 64) {
             throw new ItemLoadException(
-               "Cannot set the stack size to %stack-size%, it needs to be a number between 1 and 64.".replace("%stack-size%", String.valueOf(var17))
+               "Cannot set the stack size to %stack-size%, it needs to be a number between 1 and 64.".replace("%stack-size%", String.valueOf(size))
             );
          }
 
-         if (!OnyxShop.getInstance().allowIllegalStacks && var17 > var1.getMaxStackSize()) {
+         if (!OnyxShop.getInstance().allowIllegalStacks && size > itemStack.getMaxStackSize()) {
             throw new ItemLoadException(
                "Cannot set the stack size of item %material% to %stack-size% because it would exceed the vanilla max stack size."
-                  .replace("%material%", var1.getType().toString())
-                  .replace("%stack-size%", String.valueOf(var17))
+                  .replace("%material%", itemStack.getType().toString())
+                  .replace("%stack-size%", String.valueOf(size))
             );
          }
 
-         var1.setAmount(var17);
-      } else if (var3 instanceof ShopItem && ((ShopItem)var3).getStackSize() > 1) {
-         var1.setAmount(Math.max(Math.min(((ShopItem)var3).getStackSize(), 64), 1));
+         itemStack.setAmount(size);
+      } else if (displayItem instanceof ShopItem && ((ShopItem)displayItem).getStackSize() > 1) {
+         itemStack.setAmount(Math.max(Math.min(((ShopItem)displayItem).getStackSize(), 64), 1));
       }
 
-      String var18 = NBTUtils.getNBT(var1, var2, new ConfigManager.CFile(ConfigManager.CFile.Type.SHOP, var3.section()), var3.itemLoc(), var5);
-      if (var18 != null) {
-         var1 = setNBTData(var1, var18, true);
+      String nbt = NBTUtils.getNBT(itemStack, section, new ConfigManager.CFile(ConfigManager.CFile.Type.SHOP, displayItem.section()), displayItem.itemLoc(), flag);
+      if (nbt != null) {
+         itemStack = setNBTData(itemStack, nbt, true);
       }
 
-      if (var5) {
-         for (CommandType var10 : CommandType.values()) {
-            List var11 = var2.getStringList(var10.getCompound());
-            if (!var11.isEmpty()) {
-               var1 = OnyxShop.getInstance().versionHandler.addNBTCommands(var1, var11, var10);
+      if (flag) {
+         for (CommandType commandType : CommandType.values()) {
+            List stringList = section.getStringList(commandType.getCompound());
+            if (!stringList.isEmpty()) {
+               itemStack = OnyxShop.getInstance().versionHandler.addNBTCommands(itemStack, stringList, commandType);
             }
          }
       }
 
-      return var1;
+      return itemStack;
    }
 
-   private static PotionEffect getStewEffect(String var0) throws ItemLoadException {
-      CreateItemMethodes.Stew var1 = CreateItemMethodes.Stew.get(var0);
-      if (var1 == null) {
-         throw new ItemLoadException("Could not find a stew effect with name/id '" + var0 + "'");
+   private static PotionEffect getStewEffect(String itemId) throws ItemLoadException {
+      CreateItemMethodes.Stew stew = CreateItemMethodes.Stew.get(itemId);
+      if (stew == null) {
+         throw new ItemLoadException("Could not find a stew effect with name/id '" + itemId + "'");
       } else {
-         return var1.parseEffect();
+         return stew.parseEffect();
       }
    }
 
-   public static ItemStack setInstrument(ItemStack var0, String var1) throws ItemLoadException {
+   public static ItemStack setInstrument(ItemStack itemStack, String itemId) throws ItemLoadException {
       if (OnyxShop.getInstance().version >= 119) {
-         if (var0.getType() == Material.GOAT_HORN) {
+         if (itemStack.getType() == Material.GOAT_HORN) {
             try {
-               return CreateItemMethodes.Horn.setInstrument(var0, var1);
-            } catch (IllegalArgumentException var3) {
-               throw new ItemLoadException("Could not find a instrument called by that name '%instrument%'".replace("%instrument%", var1));
+               return CreateItemMethodes.Horn.setInstrument(itemStack, itemId);
+            } catch (IllegalArgumentException exception) {
+               throw new ItemLoadException("Could not find a instrument called by that name '%instrument%'".replace("%instrument%", itemId));
             }
          } else {
             throw new ItemLoadException("To apply a horn sound type, the material needs to be a goat horn");
@@ -283,13 +283,13 @@ public class CreateItemMethodes {
       }
    }
 
-   public static ItemStack setStewEffect(ItemStack var0, String var1) throws ItemLoadException {
+   public static ItemStack setStewEffect(ItemStack itemStack, String itemId) throws ItemLoadException {
       if (OnyxShop.getInstance().version >= 114) {
-         if (var0.getItemMeta() instanceof SuspiciousStewMeta) {
-            SuspiciousStewMeta var2 = (SuspiciousStewMeta)var0.getItemMeta();
-            var2.addCustomEffect(getStewEffect(var1), true);
-            var0.setItemMeta(var2);
-            return var0;
+         if (itemStack.getItemMeta() instanceof SuspiciousStewMeta) {
+            SuspiciousStewMeta suspiciousStewMeta = (SuspiciousStewMeta)itemStack.getItemMeta();
+            suspiciousStewMeta.addCustomEffect(getStewEffect(itemId), true);
+            itemStack.setItemMeta(suspiciousStewMeta);
+            return itemStack;
          } else {
             throw new ItemLoadException("To add a stew effect to an item, the material needs to be a 'SUSPICIOUS_STEW'.");
          }
@@ -298,17 +298,17 @@ public class CreateItemMethodes {
       }
    }
 
-   private Material getRecipeMaterial(String var1) throws ItemLoadException {
-      if (!var1.isEmpty()) {
-         Optional var3 = XMaterial.matchXMaterial(var1);
-         if (!var3.isPresent()) {
+   private Material getRecipeMaterial(String materialName) throws ItemLoadException {
+      if (!materialName.isEmpty()) {
+         Optional optional = XMaterial.matchXMaterial(materialName);
+         if (!optional.isPresent()) {
             throw new ItemLoadException(Lang.CANNOT_GET_RECIPE_MATERIAL.get());
          } else {
-            ItemStack var2 = ((XMaterial)var3.get()).parseItem();
-            if (var2 == null) {
+            ItemStack itemStack = ((XMaterial)optional.get()).parseItem();
+            if (itemStack == null) {
                throw new ItemLoadException(Lang.RECIPE_MATERIAL_NOT_SUPPORTED.get());
             } else {
-               return var2.getType();
+               return itemStack.getType();
             }
          }
       } else {
@@ -316,33 +316,33 @@ public class CreateItemMethodes {
       }
    }
 
-   public Color getRGBColor(String var1, String var2) throws ItemLoadException {
-      var1 = var1.replace("#", "");
-      if (var1.startsWith("0x")) {
-         var1 = var1.substring(2);
+   public Color getRGBColor(String itemId, String text) throws ItemLoadException {
+      itemId = itemId.replace("#", "");
+      if (itemId.startsWith("0x")) {
+         itemId = itemId.substring(2);
       }
 
       try {
-         java.awt.Color var3 = java.awt.Color.decode("#" + var1);
-         return Color.fromRGB(var3.getRed(), var3.getGreen(), var3.getBlue());
-      } catch (IllegalArgumentException var4) {
-         throw new ItemLoadException(Lang.RGB_COLOR_FORMATTED_WRONG.get().replace("%path%", var2));
+         java.awt.Color color = java.awt.Color.decode("#" + itemId);
+         return Color.fromRGB(color.getRed(), color.getGreen(), color.getBlue());
+      } catch (IllegalArgumentException exception) {
+         throw new ItemLoadException(Lang.RGB_COLOR_FORMATTED_WRONG.get().replace("%path%", text));
       }
    }
 
-   private ItemStack addSpawnerType(@Nullable ShopItem var1, ItemStack var2, String var3, String var4) throws ItemLoadException {
-      if (var3 != null) {
-         if (!var3.isEmpty()) {
-            Optional var5 = EntityTypes.matchEntityType(var3);
-            if (!var5.isPresent()) {
+   private ItemStack addSpawnerType(@Nullable ShopItem shopItem, ItemStack itemStack, String type, String itemId) throws ItemLoadException {
+      if (type != null) {
+         if (!type.isEmpty()) {
+            Optional optional = EntityTypes.matchEntityType(type);
+            if (!optional.isPresent()) {
                throw new ItemLoadException(Lang.ITEM_SPAWNERTYPE_NULL.get());
             } else {
-               var2 = OnyxShop.getInstance().getSpawnerManager().getProvider().setSpawnedType(var1, var2, (EntityType)var5.get());
-               if (var4 != null && !var4.isEmpty()) {
-                  OnyxShop.getInstance().addSpawnerName((EntityType)var5.get(), SendMessage.fromConfig(var4));
+               itemStack = OnyxShop.getInstance().getSpawnerManager().getProvider().setSpawnedType(shopItem, itemStack, (EntityType)optional.get());
+               if (itemId != null && !itemId.isEmpty()) {
+                  OnyxShop.getInstance().addSpawnerName((EntityType)optional.get(), SendMessage.fromConfig(itemId));
                }
 
-               return var2;
+               return itemStack;
             }
          } else {
             throw new ItemLoadException(Lang.NEED_ITEM_SPAWNERTYPE.get());
@@ -352,398 +352,398 @@ public class CreateItemMethodes {
       }
    }
 
-   private ItemStack addSpawnPotentials(@Nullable ShopItem var1, ConfigurationSection var2, ItemStack var3, String var4, String var5) throws ItemLoadException {
-      if (var1 != null) {
-         return var3;
+   private ItemStack addSpawnPotentials(@Nullable ShopItem shopItem, ConfigurationSection section, ItemStack itemStack, String itemId, String shopId) throws ItemLoadException {
+      if (shopItem != null) {
+         return itemStack;
       } else {
-         List<String> var6 = var2.getStringList("spawn-potentials");
+         List<String> stringList = section.getStringList("spawn-potentials");
 
-         for (String var8 : var6) {
+         for (String text : stringList) {
             try {
-               if (!var8.contains(":")) {
-                  throw new ItemLoadException(Lang.INVALID_SPAWN_POTENTIAL.get().replace("%spawn_potential%", var8));
+               if (!text.contains(":")) {
+                  throw new ItemLoadException(Lang.INVALID_SPAWN_POTENTIAL.get().replace("%spawn_potential%", text));
                }
 
-               Optional var9 = EntityTypes.matchEntityType(var8.split(":")[0]);
-               if (!var9.isPresent()) {
+               Optional optional = EntityTypes.matchEntityType(text.split(":")[0]);
+               if (!optional.isPresent()) {
                   throw new ItemLoadException(Lang.ITEM_SPAWNERTYPE_NULL.get());
                }
 
-               int var10;
+               int value;
                try {
-                  var10 = Integer.parseInt(var8.split(":")[1]);
-               } catch (NumberFormatException var15) {
+                  value = Integer.parseInt(text.split(":")[1]);
+               } catch (NumberFormatException exception) {
                   throw new ItemLoadException(Lang.INVALID_SPAWN_POTENTIAL_WEIGHT.get());
                }
 
                try {
-                  var3 = (ItemStack)ReflectUtil.invokeModernVersionMethod("addSpawnPotential", var3, var9.get(), var10);
-               } catch (Exception var14) {
-                  StringWriter var12 = new StringWriter();
-                  PrintWriter var13 = new PrintWriter(var12);
-                  var14.printStackTrace(var13);
-                  throw new ItemLoadException(Lang.ERROR_SETTING_ITEM_OPTION.get().replace("%item-option%", "spawn-potentials") + "\n" + var12.toString());
+                  itemStack = (ItemStack)ReflectUtil.invokeModernVersionMethod("addSpawnPotential", itemStack, optional.get(), value);
+               } catch (Exception exception) {
+                  StringWriter stringWriter = new StringWriter();
+                  PrintWriter printWriter = new PrintWriter(stringWriter);
+                  exception.printStackTrace(printWriter);
+                  throw new ItemLoadException(Lang.ERROR_SETTING_ITEM_OPTION.get().replace("%item-option%", "spawn-potentials") + "\n" + stringWriter.toString());
                }
-            } catch (ItemLoadException var16) {
-               if (var6.size() == 1) {
-                  throw var16;
+            } catch (ItemLoadException exception) {
+               if (stringList.size() == 1) {
+                  throw exception;
                }
 
-               SendMessage.warnMessage(var16.getMessage());
-               if (var2 != null) {
-                  if (!var5.startsWith("pages") && !var5.startsWith("items")) {
-                     SendMessage.errorSections(var4, var5 + ".spawn-potentials." + var8);
+               SendMessage.warnMessage(exception.getMessage());
+               if (section != null) {
+                  if (!shopId.startsWith("pages") && !shopId.startsWith("items")) {
+                     SendMessage.errorSections(itemId, shopId + ".spawn-potentials." + text);
                   } else {
-                     SendMessage.errorShops(var4, var5 + ".spawn-potentials." + var8);
+                     SendMessage.errorShops(itemId, shopId + ".spawn-potentials." + text);
                   }
                } else {
-                  SendMessage.errorItemConfig(var5);
+                  SendMessage.errorItemConfig(shopId);
                }
             }
          }
 
-         return var3;
+         return itemStack;
       }
    }
 
-   public ItemStack setOminousStrength(ItemStack var1, int var2) throws ItemLoadException {
-      if (var1.getType() != Material.OMINOUS_BOTTLE) {
+   public ItemStack setOminousStrength(ItemStack itemStack, int value) throws ItemLoadException {
+      if (itemStack.getType() != Material.OMINOUS_BOTTLE) {
          throw new ItemLoadException(
             Lang.INVALID_MATERIAL_FOR_ITEM_OPTION.get().replace("%material%", "OMINOUS_BOTTLE").replace("%item-option%", "ominous-strength")
          );
-      } else if (var2 >= 1 && var2 <= 5) {
+      } else if (value >= 1 && value <= 5) {
          try {
-            return (ItemStack)ReflectUtil.invokeModernVersionMethod("setOminousStrength", var1, var2 - 1);
-         } catch (Exception var6) {
-            StringWriter var4 = new StringWriter();
-            PrintWriter var5 = new PrintWriter(var4);
-            var6.printStackTrace(var5);
-            throw new ItemLoadException(Lang.ERROR_SETTING_ITEM_OPTION.get().replace("%item-option%", "ominous-strength") + "\n" + var4.toString());
+            return (ItemStack)ReflectUtil.invokeModernVersionMethod("setOminousStrength", itemStack, value - 1);
+         } catch (Exception exception) {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(stringWriter);
+            exception.printStackTrace(printWriter);
+            throw new ItemLoadException(Lang.ERROR_SETTING_ITEM_OPTION.get().replace("%item-option%", "ominous-strength") + "\n" + stringWriter.toString());
          }
       } else {
-         throw new ItemLoadException(Lang.INVALID_OMINOUS_BOTTLE_STRENGTH.get().replace("%strength%", String.valueOf(var2)));
+         throw new ItemLoadException(Lang.INVALID_OMINOUS_BOTTLE_STRENGTH.get().replace("%strength%", String.valueOf(value)));
       }
    }
 
-   public ItemStack addItemFlags(ItemStack var1, ConfigurationSection var2) throws ItemLoadException {
-      ItemMeta var3 = var1.getItemMeta();
+   public ItemStack addItemFlags(ItemStack itemStack, ConfigurationSection section) throws ItemLoadException {
+      ItemMeta itemMeta = itemStack.getItemMeta();
 
-      for (String var5 : var2.getStringList("item-flags")) {
-         if (var5.equals("*") || var5.equalsIgnoreCase("ALL")) {
-            var3.addItemFlags(ItemFlag.values());
+      for (String itemId : section.getStringList("item-flags")) {
+         if (itemId.equals("*") || itemId.equalsIgnoreCase("ALL")) {
+            itemMeta.addItemFlags(ItemFlag.values());
             break;
          }
 
          try {
-            ItemFlag var6 = ItemFlag.valueOf(var5.toUpperCase(Locale.ROOT));
-            var3.addItemFlags(new ItemFlag[]{var6});
-         } catch (IllegalArgumentException var7) {
+            ItemFlag itemFlag = ItemFlag.valueOf(itemId.toUpperCase(Locale.ROOT));
+            itemMeta.addItemFlags(new ItemFlag[]{itemFlag});
+         } catch (IllegalArgumentException exception) {
             throw new ItemLoadException(
-               "Invalid item flag for " + var5 + ", valid values are: " + Arrays.toString(Arrays.stream(ItemFlag.values()).map(Enum::name).toArray())
+               "Invalid item flag for " + itemId + ", valid values are: " + Arrays.toString(Arrays.stream(ItemFlag.values()).map(Enum::name).toArray())
             );
          }
       }
 
-      var1.setItemMeta(var3);
-      return var1;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
-   private ItemStack addRecipe(ItemStack var1, NamespacedKey var2) {
+   private ItemStack addRecipe(ItemStack itemStack, NamespacedKey namespacedKey) {
       if (OnyxShop.getInstance().version >= 112) {
-         KnowledgeBookMeta var3 = (KnowledgeBookMeta)var1.getItemMeta();
-         if (var3 != null) {
-            var3.addRecipe(new NamespacedKey[]{var2});
+         KnowledgeBookMeta knowledgeBookMeta = (KnowledgeBookMeta)itemStack.getItemMeta();
+         if (knowledgeBookMeta != null) {
+            knowledgeBookMeta.addRecipe(new NamespacedKey[]{namespacedKey});
          }
 
-         var1.setItemMeta(var3);
+         itemStack.setItemMeta(knowledgeBookMeta);
       }
 
-      return var1;
+      return itemStack;
    }
 
-   public static ItemStack setCustomModelData(ItemStack var0, ConfigurationSection var1) throws ItemLoadException {
-      int var2 = var1.getInt("CustomModelData");
-      if (var2 != 0) {
+   public static ItemStack setCustomModelData(ItemStack itemStack, ConfigurationSection section) throws ItemLoadException {
+      int value = section.getInt("CustomModelData");
+      if (value != 0) {
          if (ServerInfo.supportsComponents()) {
-            ItemMeta var3 = var0.getItemMeta();
-            var3.setCustomModelData(var2);
-            var0.setItemMeta(var3);
-            return var0;
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            itemMeta.setCustomModelData(value);
+            itemStack.setItemMeta(itemMeta);
+            return itemStack;
          } else {
-            return OnyxShop.getInstance().versionHandler.setNBTInt(var0, "CustomModelData", var2);
+            return OnyxShop.getInstance().versionHandler.setNBTInt(itemStack, "CustomModelData", value);
          }
       } else {
          throw new ItemLoadException("Invalid CustomModelData, should be a number");
       }
    }
 
-   public static ItemStack setEnchantments(ItemStack var0, List<String> var1, String var2, String var3, @Nullable DisplayItem var4) throws ItemLoadException {
-      if (var1.isEmpty()) {
-         return var0;
+   public static ItemStack setEnchantments(ItemStack itemStack, List<String> itemIds, String text, String text2, @Nullable DisplayItem displayItem) throws ItemLoadException {
+      if (itemIds.isEmpty()) {
+         return itemStack;
       } else {
-         for (String var6 : var1) {
+         for (String text3 : itemIds) {
             try {
-               SimpleEnchantment var7 = OnyxShop.getInstance().enchantsProvider.getEnchant(var6);
-               if (!var7.canEnchant(var0)) {
-                  throw new ItemLoadException("Could not apply enchantment '" + var6 + "' on item with material '" + var0.getType().name() + "'");
+               SimpleEnchantment simpleEnchantment = OnyxShop.getInstance().enchantsProvider.getEnchant(text3);
+               if (!simpleEnchantment.canEnchant(itemStack)) {
+                  throw new ItemLoadException("Could not apply enchantment '" + text3 + "' on item with material '" + itemStack.getType().name() + "'");
                }
 
-               var0 = var7.enchantItem(var0, var4);
-            } catch (ItemLoadException var8) {
-               if (var1.size() == 1) {
-                  throw var8;
+               itemStack = simpleEnchantment.enchantItem(itemStack, displayItem);
+            } catch (ItemLoadException exception) {
+               if (itemIds.size() == 1) {
+                  throw exception;
                }
 
-               SendMessage.warnMessage(var8.getMessage());
-               if (var2 != null) {
-                  if (!var3.startsWith("pages") && !var3.startsWith("items")) {
-                     SendMessage.errorSections(var2, var3 + ".enchantments." + var6);
+               SendMessage.warnMessage(exception.getMessage());
+               if (text != null) {
+                  if (!text2.startsWith("pages") && !text2.startsWith("items")) {
+                     SendMessage.errorSections(text, text2 + ".enchantments." + text3);
                   } else {
-                     SendMessage.errorShops(var2, var3 + ".enchantments." + var6);
+                     SendMessage.errorShops(text, text2 + ".enchantments." + text3);
                   }
                } else {
-                  SendMessage.errorItemConfig(var3);
+                  SendMessage.errorItemConfig(text2);
                }
             }
          }
 
-         return var0;
+         return itemStack;
       }
    }
 
-   public static ItemStack setPotionTypes(ItemStack var0, List<String> var1, String var2, String var3, boolean var4) throws ItemLoadException {
-      if (var1.isEmpty()) {
-         return var0;
+   public static ItemStack setPotionTypes(ItemStack itemStack, List<String> itemIds, String text, String text2, boolean flag) throws ItemLoadException {
+      if (itemIds.isEmpty()) {
+         return itemStack;
       } else {
-         for (String var6 : var1) {
+         for (String text3 : itemIds) {
             try {
-               if (!PotionTypes.canHaveEffects(var0.getType())) {
+               if (!PotionTypes.canHaveEffects(itemStack.getType())) {
                   throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_POTION.get());
                }
 
-               Optional var7 = PotionTypes.matchPotionType(var6);
-               if (!var7.isPresent()) {
+               Optional optional = PotionTypes.matchPotionType(text3);
+               if (!optional.isPresent()) {
                   throw new ItemLoadException(Lang.ITEM_POTIONTYPE_NULL.get());
                }
 
-               if (!((PotionTypes)var7.get()).isSupported()) {
+               if (!((PotionTypes)optional.get()).isSupported()) {
                   throw new ItemLoadException(Lang.POTIONTYPE_NOT_SUPPORTED.get());
                }
 
-               var0 = ((PotionTypes)var7.get()).addEffect(var0, var4);
-            } catch (ItemLoadException var8) {
-               if (var1.size() == 1) {
-                  throw var8;
+               itemStack = ((PotionTypes)optional.get()).addEffect(itemStack, flag);
+            } catch (ItemLoadException exception) {
+               if (itemIds.size() == 1) {
+                  throw exception;
                }
 
-               SendMessage.warnMessage(var8.getMessage());
-               if (var2 != null) {
-                  if (!var3.startsWith("pages") && !var3.startsWith("items")) {
-                     SendMessage.errorSections(var2, var3 + ".potiontypes." + var6);
+               SendMessage.warnMessage(exception.getMessage());
+               if (text != null) {
+                  if (!text2.startsWith("pages") && !text2.startsWith("items")) {
+                     SendMessage.errorSections(text, text2 + ".potiontypes." + text3);
                   } else {
-                     SendMessage.errorShops(var2, var3 + ".potiontypes." + var6);
+                     SendMessage.errorShops(text, text2 + ".potiontypes." + text3);
                   }
                } else {
-                  SendMessage.errorItemConfig(var3);
+                  SendMessage.errorItemConfig(text2);
                }
             }
          }
 
-         return var0;
+         return itemStack;
       }
    }
 
-   public void useLatestVersion(OnyxShop var1, boolean var2) {
-      var1.commandItems = var2;
-      var1.nbtItems = var2;
-      var1.useItemEditor = var2;
-      var1.placeholders = var2;
-      var1.requirements = var2;
-      var1.rotatingShops = var2;
-      if (!var2) {
-         var1.shopSearch = var2;
+   public void useLatestVersion(OnyxShop plugin, boolean flag) {
+      plugin.commandItems = flag;
+      plugin.nbtItems = flag;
+      plugin.useItemEditor = flag;
+      plugin.placeholders = flag;
+      plugin.requirements = flag;
+      plugin.rotatingShops = flag;
+      if (!flag) {
+         plugin.shopSearch = flag;
       }
 
-      if (!var2) {
-         var1.getEcoHandler().getEcon();
+      if (!flag) {
+         plugin.getEcoHandler().getEcon();
       }
 
-      if (!var2) {
-         var1.itemStock = var2;
+      if (!flag) {
+         plugin.itemStock = flag;
       }
 
-      if (!var2) {
-         var1.dynamicPricing = var2;
+      if (!flag) {
+         plugin.dynamicPricing = flag;
       }
 
-      if (!var2) {
-         var1.sellLimits = var2;
+      if (!flag) {
+         plugin.sellLimits = flag;
       }
    }
 
-   public List<String> getDisplayLore(ConfigurationSection var1, @Nullable ShopItem var2) {
-      Object var3 = new ArrayList();
-      if (var1.contains("displaylore")) {
-         var3 = this.getLore(var1.getStringList("displaylore"), var1.getCurrentPath(), var2);
-      } else if (var1.contains("lore")) {
-         var3 = this.getLore(var1.getStringList("lore"), var1.getCurrentPath(), var2);
+   public List<String> getDisplayLore(ConfigurationSection section, @Nullable ShopItem shopItem) {
+      Object value = new ArrayList();
+      if (section.contains("displaylore")) {
+         value = this.getLore(section.getStringList("displaylore"), section.getCurrentPath(), shopItem);
+      } else if (section.contains("lore")) {
+         value = this.getLore(section.getStringList("lore"), section.getCurrentPath(), shopItem);
       }
 
-      return (List<String>)var3;
+      return (List<String>)value;
    }
 
-   public List<String> setLore(List<String> var1, ConfigurationSection var2, @Nullable ShopItem var3) {
-      return var2.contains("lore") ? this.getLore(var2.getStringList("lore"), var2.getCurrentPath(), var3) : var1;
+   public List<String> setLore(List<String> lores, ConfigurationSection section, @Nullable ShopItem shopItem) {
+      return section.contains("lore") ? this.getLore(section.getStringList("lore"), section.getCurrentPath(), shopItem) : lores;
    }
 
-   private List<String> getLore(List<String> var1, String var2, @Nullable ShopItem var3) {
-      ArrayList var4 = new ArrayList();
-      if (!var1.isEmpty()) {
-         var1.forEach(
-            var3x -> {
-               if (var3x.contains("%buyPrice%") && OnyxShop.getInstance().createItem.getBaseBuyPrice(var2) != null) {
-                  var3x = var3x.replace(
+   private List<String> getLore(List<String> lores, String shopId, @Nullable ShopItem shopItem) {
+      ArrayList values = new ArrayList();
+      if (!lores.isEmpty()) {
+         lores.forEach(
+            entry -> {
+               if (entry.contains("%buyPrice%") && OnyxShop.getInstance().createItem.getBaseBuyPrice(shopId) != null) {
+                  entry = entry.replace(
                      "%buyPrice%",
                      OnyxShop.getInstance()
-                        .formatPrice(var3 != null ? var3.getEcoType() : null, OnyxShop.getInstance().createItem.getBaseBuyPrice(var2))
+                        .formatPrice(shopItem != null ? shopItem.getEcoType() : null, OnyxShop.getInstance().createItem.getBaseBuyPrice(shopId))
                   );
                }
 
-               if (var3x.contains("%sellPrice%") && OnyxShop.getInstance().createItem.getBaseSellPrice(var2) != null) {
-                  var3x = var3x.replace(
+               if (entry.contains("%sellPrice%") && OnyxShop.getInstance().createItem.getBaseSellPrice(shopId) != null) {
+                  entry = entry.replace(
                      "%sellPrice%",
                      OnyxShop.getInstance()
-                        .formatPrice(var3 != null ? var3.getEcoType() : null, OnyxShop.getInstance().createItem.getBaseSellPrice(var2))
+                        .formatPrice(shopItem != null ? shopItem.getEcoType() : null, OnyxShop.getInstance().createItem.getBaseSellPrice(shopId))
                   );
                }
 
-               var4.add(ChatUtil.formatColors(var3x));
+               values.add(ChatUtil.formatColors(entry));
             }
          );
       }
 
-      return var4;
+      return values;
    }
 
-   public ItemStack setName(ItemStack var1, ConfigurationSection var2) throws ItemLoadException {
-      if (var2.contains("name")) {
-         String var3 = var2.getString("name");
-         if (var3 != null) {
-            ItemMeta var4 = var1.getItemMeta();
-            var4.setDisplayName(ChatUtil.formatColors(var3));
-            var1.setItemMeta(var4);
-            return var1;
+   public ItemStack setName(ItemStack itemStack, ConfigurationSection section) throws ItemLoadException {
+      if (section.contains("name")) {
+         String text = section.getString("name");
+         if (text != null) {
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            itemMeta.setDisplayName(ChatUtil.formatColors(text));
+            itemStack.setItemMeta(itemMeta);
+            return itemStack;
          } else {
             throw new ItemLoadException(Lang.ITEM_NAME_NULL.get());
          }
       } else {
-         return var1;
+         return itemStack;
       }
    }
 
-   public Translatable getDisplayname(ConfigurationSection var1) {
-      if (var1.contains("displayname")) {
-         return SendMessage.fromConfig(var1.getString("displayname"));
+   public Translatable getDisplayname(ConfigurationSection section) {
+      if (section.contains("displayname")) {
+         return SendMessage.fromConfig(section.getString("displayname"));
       } else {
-         return var1.contains("name") ? SendMessage.fromConfig(var1.getString("name")) : null;
+         return section.contains("name") ? SendMessage.fromConfig(section.getString("name")) : null;
       }
    }
 
-   public ItemStack setSectionItemOption(ItemStack var1, String var2, ConfigurationSection var3) throws ItemLoadException {
-      if (var3.contains("potion-glow") && var3.getBoolean("potion-glow")) {
-         if (!PotionTypes.canHaveEffects(var1.getType())) {
+   public ItemStack setSectionItemOption(ItemStack itemStack, String sectionId, ConfigurationSection section) throws ItemLoadException {
+      if (section.contains("potion-glow") && section.getBoolean("potion-glow")) {
+         if (!PotionTypes.canHaveEffects(itemStack.getType())) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_POTION.get());
          }
 
-         boolean var4 = XMaterial.matchXMaterial(var3.getString("material")).get() == XMaterial.SPLASH_POTION;
-         PotionTypes.HEALING.addEffect(var1, var4);
+         boolean flag = XMaterial.matchXMaterial(section.getString("material")).get() == XMaterial.SPLASH_POTION;
+         PotionTypes.HEALING.addEffect(itemStack, flag);
       }
 
-      if (var3.contains("potiontypes")) {
-         setPotionTypes(var1, var3.getStringList("potiontypes"), var2, var3.getCurrentPath(), XMaterial.matchXMaterial(var1) == XMaterial.SPLASH_POTION);
+      if (section.contains("potiontypes")) {
+         setPotionTypes(itemStack, section.getStringList("potiontypes"), sectionId, section.getCurrentPath(), XMaterial.matchXMaterial(itemStack) == XMaterial.SPLASH_POTION);
       }
 
-      if (var3.contains("armor-trim")) {
+      if (section.contains("armor-trim")) {
          if (OnyxShop.getInstance().version < 120) {
             throw new ItemLoadException("ArmorTrim's are only supported in version 1.20 and above");
          }
 
-         new CreateItemMethodes.ArmorTrim(var3.getString("armor-trim.type"), var3.getString("armor-trim.pattern")).build(var1);
+         new CreateItemMethodes.ArmorTrim(section.getString("armor-trim.type"), section.getString("armor-trim.pattern")).build(itemStack);
       }
 
-      if (var3.contains("enchantment-glint") && var3.getBoolean("enchantment-glint")) {
-         ItemMeta var6 = var1.getItemMeta();
+      if (section.contains("enchantment-glint") && section.getBoolean("enchantment-glint")) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
          if (ServerInfo.supportsComponents()) {
-            var6.setEnchantmentGlintOverride(true);
+            itemMeta.setEnchantmentGlintOverride(true);
          } else {
-            var6.addEnchant(XEnchantment.WATER_WORKER.parseEnchantment(), 1, false);
+            itemMeta.addEnchant(XEnchantment.WATER_WORKER.parseEnchantment(), 1, false);
          }
 
-         var1.setItemMeta(var6);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      if (var3.contains("skullowner") || var3.contains("skull-texture")) {
-         if (var1.getType() != XMaterial.PLAYER_HEAD.parseMaterial()) {
+      if (section.contains("skullowner") || section.contains("skull-texture")) {
+         if (itemStack.getType() != XMaterial.PLAYER_HEAD.parseMaterial()) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
          }
 
-         if (var3.contains("skullowner")) {
-            String var7 = var3.getString("skullowner");
-            if (var7 == null || var7.isEmpty()) {
+         if (section.contains("skullowner")) {
+            String text = section.getString("skullowner");
+            if (text == null || text.isEmpty()) {
                throw new ItemLoadException(Lang.NEED_SKULLOWNER.get());
             }
 
-            SkullUtil.setSkullTexture(var1, null, var7, true);
+            SkullUtil.setSkullTexture(itemStack, null, text, true);
          }
 
-         if (var3.contains("skull-texture")) {
-            String var8 = var3.getString("skull-texture");
-            if (var8 == null || var8.isEmpty()) {
+         if (section.contains("skull-texture")) {
+            String text = section.getString("skull-texture");
+            if (text == null || text.isEmpty()) {
                throw new ItemLoadException(Lang.NEED_SKULLOWNER.get());
             }
 
-            SkullMeta var5 = (SkullMeta)var1.getItemMeta();
-            SkullUtil.setSkullTextureFromHash(var5, var8);
-            var1.setItemMeta(var5);
+            SkullMeta skullMeta = (SkullMeta)itemStack.getItemMeta();
+            SkullUtil.setSkullTextureFromHash(skullMeta, text);
+            itemStack.setItemMeta(skullMeta);
          }
       }
 
-      if (var3.contains("armorcolor")) {
-         if (!(var1.getItemMeta() instanceof LeatherArmorMeta)) {
+      if (section.contains("armorcolor")) {
+         if (!(itemStack.getItemMeta() instanceof LeatherArmorMeta)) {
             throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_LEATHER_ARMOR.get());
          }
 
-         LeatherArmorMeta var9 = (LeatherArmorMeta)var1.getItemMeta();
-         var9.setColor(this.getRGBColor(var3.getString("armorcolor"), var3.getCurrentPath() + ".armorcolor"));
-         var1.setItemMeta(var9);
+         LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta)itemStack.getItemMeta();
+         leatherArmorMeta.setColor(this.getRGBColor(section.getString("armorcolor"), section.getCurrentPath() + ".armorcolor"));
+         itemStack.setItemMeta(leatherArmorMeta);
       }
 
-      if (var3.contains("stack-size")) {
-         int var10 = var3.getInt("stack-size");
-         if (!OnyxShop.getInstance().allowIllegalStacks && var10 > var1.getMaxStackSize()) {
+      if (section.contains("stack-size")) {
+         int size = section.getInt("stack-size");
+         if (!OnyxShop.getInstance().allowIllegalStacks && size > itemStack.getMaxStackSize()) {
             throw new ItemLoadException(
                "Cannot set the stack size of item %material% to %stack-size% because it would exceed the vanilla max stack size."
-                  .replace("%material%", var1.getType().toString())
-                  .replace("%stack-size%", String.valueOf(var10))
+                  .replace("%material%", itemStack.getType().toString())
+                  .replace("%stack-size%", String.valueOf(size))
             );
          }
 
-         var1.setAmount(var10);
+         itemStack.setAmount(size);
       }
 
-      if (var3.contains("item-flags")) {
-         var1 = this.addItemFlags(var1, var3);
+      if (section.contains("item-flags")) {
+         itemStack = this.addItemFlags(itemStack, section);
       }
 
-      if (var3.contains("CustomModelData")) {
-         var1 = setCustomModelData(var1, var3);
+      if (section.contains("CustomModelData")) {
+         itemStack = setCustomModelData(itemStack, section);
       }
 
-      if (var3.getBoolean("hide-tooltip") && ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R3)) {
-         var1 = new ItemBuilder(var1).hideToolTip().build();
+      if (section.getBoolean("hide-tooltip") && ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R3)) {
+         itemStack = new ItemBuilder(itemStack).hideToolTip().build();
       }
 
-      return var1;
+      return itemStack;
    }
 
    public static class ArmorTrim {
@@ -751,27 +751,27 @@ public class CreateItemMethodes {
       private final TrimPattern pattern;
 
       public ArrayList<String> getTypes() {
-         ArrayList var1 = new ArrayList();
+         ArrayList values = new ArrayList();
 
-         for (Field var5 : TrimMaterial.class.getDeclaredFields()) {
-            if (Modifier.isStatic(var5.getModifiers()) && var5.getName().equals(var5.getName().toUpperCase(Locale.ROOT))) {
-               var1.add(var5.getName());
+         for (Field field : TrimMaterial.class.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) && field.getName().equals(field.getName().toUpperCase(Locale.ROOT))) {
+               values.add(field.getName());
             }
          }
 
-         return var1;
+         return values;
       }
 
       public ArrayList<String> getPatterns() {
-         ArrayList var1 = new ArrayList();
+         ArrayList values = new ArrayList();
 
-         for (Field var5 : TrimPattern.class.getDeclaredFields()) {
-            if (Modifier.isStatic(var5.getModifiers()) && var5.getName().equals(var5.getName().toUpperCase(Locale.ROOT))) {
-               var1.add(var5.getName().toUpperCase(Locale.ROOT));
+         for (Field field : TrimPattern.class.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) && field.getName().equals(field.getName().toUpperCase(Locale.ROOT))) {
+               values.add(field.getName().toUpperCase(Locale.ROOT));
             }
          }
 
-         return var1;
+         return values;
       }
 
       public ArmorTrim() {
@@ -779,41 +779,41 @@ public class CreateItemMethodes {
          this.pattern = null;
       }
 
-      public ArmorTrim(String var1, String var2) throws ItemLoadException {
-         if (var1 != null && var2 != null) {
-            this.type = this.getTrimType(var1);
-            this.pattern = this.getTrimPattern(var2);
+      public ArmorTrim(String itemId, String text) throws ItemLoadException {
+         if (itemId != null && text != null) {
+            this.type = this.getTrimType(itemId);
+            this.pattern = this.getTrimPattern(text);
          } else {
             throw new ItemLoadException("To apply a armor trim, it is required to specify both trim material and trim pattern!");
          }
       }
 
-      public TrimMaterial getTrimType(String var1) throws ItemLoadException {
+      public TrimMaterial getTrimType(String type) throws ItemLoadException {
          try {
-            Field var2 = TrimMaterial.class.getDeclaredField(var1.toUpperCase(Locale.ROOT).replace(" ", "_"));
-            var2.setAccessible(true);
-            return (TrimMaterial)var2.get(null);
-         } catch (IllegalAccessException | NoSuchFieldException var3) {
-            throw new ItemLoadException("Invalid armor trim type such as '" + var1 + "'. Valid values are: " + Arrays.toString(this.getTypes().toArray()));
+            Field field = TrimMaterial.class.getDeclaredField(type.toUpperCase(Locale.ROOT).replace(" ", "_"));
+            field.setAccessible(true);
+            return (TrimMaterial)field.get(null);
+         } catch (IllegalAccessException | NoSuchFieldException exception) {
+            throw new ItemLoadException("Invalid armor trim type such as '" + type + "'. Valid values are: " + Arrays.toString(this.getTypes().toArray()));
          }
       }
 
-      public TrimPattern getTrimPattern(String var1) throws ItemLoadException {
+      public TrimPattern getTrimPattern(String itemId) throws ItemLoadException {
          try {
-            Field var2 = TrimPattern.class.getDeclaredField(var1.toUpperCase(Locale.ROOT).replace(" ", "_"));
-            var2.setAccessible(true);
-            return (TrimPattern)var2.get(null);
-         } catch (IllegalAccessException | NoSuchFieldException var3) {
-            throw new ItemLoadException("Invalid armor trim pattern such as '" + var1 + "'. Valid values are: " + Arrays.toString(this.getPatterns().toArray()));
+            Field field = TrimPattern.class.getDeclaredField(itemId.toUpperCase(Locale.ROOT).replace(" ", "_"));
+            field.setAccessible(true);
+            return (TrimPattern)field.get(null);
+         } catch (IllegalAccessException | NoSuchFieldException exception) {
+            throw new ItemLoadException("Invalid armor trim pattern such as '" + itemId + "'. Valid values are: " + Arrays.toString(this.getPatterns().toArray()));
          }
       }
 
-      public ItemStack build(ItemStack var1) throws ItemLoadException {
-         if (var1.getItemMeta() instanceof ArmorMeta) {
-            ArmorMeta var2 = (ArmorMeta)var1.getItemMeta();
-            var2.setTrim(new org.bukkit.inventory.meta.trim.ArmorTrim(this.type, this.pattern));
-            var1.setItemMeta(var2);
-            return var1;
+      public ItemStack build(ItemStack itemStack) throws ItemLoadException {
+         if (itemStack.getItemMeta() instanceof ArmorMeta) {
+            ArmorMeta armorMeta = (ArmorMeta)itemStack.getItemMeta();
+            armorMeta.setTrim(new org.bukkit.inventory.meta.trim.ArmorTrim(this.type, this.pattern));
+            itemStack.setItemMeta(armorMeta);
+            return itemStack;
          } else {
             throw new ItemLoadException("To add a armor trim to an item, the material needs to be a armor piece.");
          }
@@ -832,44 +832,44 @@ public class CreateItemMethodes {
 
       private String key;
 
-      private Horn(String nullxx) {
-         this.key = nullxx;
+      private Horn(String text) {
+         this.key = text;
       }
 
       public String getKey() {
          return "minecraft:" + this.key;
       }
 
-      public static CreateItemMethodes.Horn getFromString(String var0) {
-         return valueOf(var0.toUpperCase(Locale.ENGLISH));
+      public static CreateItemMethodes.Horn getFromString(String itemId) {
+         return valueOf(itemId.toUpperCase(Locale.ENGLISH));
       }
 
-      public static ItemStack setInstrument(ItemStack var0, String var1) throws ItemLoadException {
+      public static ItemStack setInstrument(ItemStack itemStack, String itemId) throws ItemLoadException {
          if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_20_R2)) {
-            var1 = var1.toLowerCase(Locale.ROOT);
-            MusicInstrument var2 = (MusicInstrument)Registry.INSTRUMENT.get(NamespacedKey.minecraft(var1 + "_goat_horn"));
-            if (var2 == null) {
-               throw new ItemLoadException("Could not find a instrument called by that name '%instrument%'".replace("%instrument%", var1));
+            itemId = itemId.toLowerCase(Locale.ROOT);
+            MusicInstrument musicInstrument = (MusicInstrument)Registry.INSTRUMENT.get(NamespacedKey.minecraft(itemId + "_goat_horn"));
+            if (musicInstrument == null) {
+               throw new ItemLoadException("Could not find a instrument called by that name '%instrument%'".replace("%instrument%", itemId));
             }
 
-            MusicInstrumentMeta var3 = (MusicInstrumentMeta)var0.getItemMeta();
-            var3.setInstrument(var2);
-            var0.setItemMeta(var3);
+            MusicInstrumentMeta musicInstrumentMeta = (MusicInstrumentMeta)itemStack.getItemMeta();
+            musicInstrumentMeta.setInstrument(musicInstrument);
+            itemStack.setItemMeta(musicInstrumentMeta);
          } else {
             try {
-               CreateItemMethodes.Horn var6 = getFromString(var1);
-               var0 = new ItemStack(OnyxShop.getInstance().versionHandler.setNBTString(var0, "instrument", var6.getKey()));
-            } catch (IllegalArgumentException var4) {
-               throw new ItemLoadException("Could not find a instrument called by that name '%instrument%'".replace("%instrument%", var1));
+               CreateItemMethodes.Horn horn = getFromString(itemId);
+               itemStack = new ItemStack(OnyxShop.getInstance().versionHandler.setNBTString(itemStack, "instrument", horn.getKey()));
+            } catch (IllegalArgumentException exception) {
+               throw new ItemLoadException("Could not find a instrument called by that name '%instrument%'".replace("%instrument%", itemId));
             }
          }
 
-         return var0;
+         return itemStack;
       }
 
       public static List<String> getValues() {
          return ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_20_R2)
-            ? Registry.INSTRUMENT.stream().map(var0 -> var0.getKey().getKey().split("_goat_horn")[0]).collect(Collectors.toList())
+            ? Registry.INSTRUMENT.stream().map(entry -> entry.getKey().getKey().split("_goat_horn")[0]).collect(Collectors.toList())
             : Arrays.stream(values()).map(Enum::name).collect(Collectors.toList());
       }
    }
@@ -889,36 +889,36 @@ public class CreateItemMethodes {
       private final int duration;
       private final String[] aliases;
 
-      private Stew(int nullxx, int nullxxx, String... nullxxxx) {
-         this.id = nullxx;
-         this.duration = nullxxx;
-         this.aliases = nullxxxx;
+      private Stew(int value, int value2, String... values) {
+         this.id = value;
+         this.duration = value2;
+         this.aliases = values;
       }
 
-      public static CreateItemMethodes.Stew get(String var0) {
-         for (CreateItemMethodes.Stew var4 : values()) {
-            if (var4.name().equalsIgnoreCase(var0.replace(" ", "_")) || var4.anyMatchAliases(var0)) {
-               return var4;
+      public static CreateItemMethodes.Stew get(String itemId) {
+         for (CreateItemMethodes.Stew stew : values()) {
+            if (stew.name().equalsIgnoreCase(itemId.replace(" ", "_")) || stew.anyMatchAliases(itemId)) {
+               return stew;
             }
          }
 
          try {
-            int var7 = Integer.parseInt(var0);
+            int value = Integer.parseInt(itemId);
 
-            for (CreateItemMethodes.Stew var5 : values()) {
-               if (var5.id == var7) {
-                  return var5;
+            for (CreateItemMethodes.Stew stew : values()) {
+               if (stew.id == value) {
+                  return stew;
                }
             }
-         } catch (NumberFormatException var6) {
+         } catch (NumberFormatException exception) {
          }
 
          return null;
       }
 
-      private boolean anyMatchAliases(String var1) {
-         for (String var5 : this.aliases) {
-            if (var1.equalsIgnoreCase(var5.replace(" ", "_"))) {
+      private boolean anyMatchAliases(String text) {
+         for (String text2 : this.aliases) {
+            if (text.equalsIgnoreCase(text2.replace(" ", "_"))) {
                return true;
             }
          }
@@ -928,13 +928,13 @@ public class CreateItemMethodes {
 
       public PotionEffect parseEffect() {
          try {
-            PotionEffectType var1 = PotionEffectType.getByName(this.name());
-            if (var1 == null) {
-               var1 = PotionTypes.matchPotionType(this.name()).get().parsePotionEffectType();
+            PotionEffectType potionEffectType = PotionEffectType.getByName(this.name());
+            if (potionEffectType == null) {
+               potionEffectType = PotionTypes.matchPotionType(this.name()).get().parsePotionEffectType();
             }
 
-            return new PotionEffect(var1, this.duration, 1);
-         } catch (NullPointerException var2) {
+            return new PotionEffect(potionEffectType, this.duration, 1);
+         } catch (NullPointerException exception) {
             return null;
          }
       }

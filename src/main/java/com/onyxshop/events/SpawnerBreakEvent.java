@@ -30,8 +30,8 @@ public class SpawnerBreakEvent implements Listener {
    private final boolean dropEXP;
    private final boolean interact;
 
-   public SpawnerBreakEvent(OnyxShop var1) {
-      this.plugin = var1;
+   public SpawnerBreakEvent(OnyxShop plugin) {
+      this.plugin = plugin;
       this.dropEXP = ConfigManager.getConfig().getBoolean("player-placed-spawners-drop-exp");
       this.self = ConfigManager.getConfig().getBoolean("only-mine-plugin-spawners");
       this.interact = ConfigManager.getConfig().getBoolean("allow-spawner-type-change");
@@ -44,26 +44,26 @@ public class SpawnerBreakEvent implements Listener {
    @EventHandler(
       priority = EventPriority.HIGHEST
    )
-   public void onBlockBreak(BlockBreakEvent var1) {
-      if (!var1.isCancelled()) {
-         if (var1.getBlock().getType() == XMaterial.SPAWNER.parseMaterial()) {
+   public void onBlockBreak(BlockBreakEvent event) {
+      if (!event.isCancelled()) {
+         if (event.getBlock().getType() == XMaterial.SPAWNER.parseMaterial()) {
             if (this.plugin.getSpawnerManager().getProvider().getProviderName().equalsIgnoreCase("DEFAULT")) {
-               Block var2 = var1.getBlock();
-               Player var3 = var1.getPlayer();
-               CreatureSpawner var4 = (CreatureSpawner)var2.getState();
-               if (!this.self || this.isSelf(var4)) {
-                  if (this.isAllowedTool(this.plugin.versionHandler.getItemInHand(var3))) {
+               Block block = event.getBlock();
+               Player player = event.getPlayer();
+               CreatureSpawner creatureSpawner = (CreatureSpawner)block.getState();
+               if (!this.self || this.isSelf(creatureSpawner)) {
+                  if (this.isAllowedTool(this.plugin.versionHandler.getItemInHand(player))) {
                      if (!this.dropEXP) {
-                        var1.setExpToDrop(0);
+                        event.setExpToDrop(0);
                      }
 
-                     this.giveSpawner(var3, var4.getSpawnedType());
+                     this.giveSpawner(player, creatureSpawner.getSpawnedType());
                   } else {
                      SendMessage.logDebugMessage(
                         "Player "
-                           + var3.getName()
+                           + player.getName()
                            + " tried to mine a spawner with a not allowed spawner-break-tool: "
-                           + this.plugin.versionHandler.getItemInHand(var3).toString()
+                           + this.plugin.versionHandler.getItemInHand(player).toString()
                      );
                   }
                }
@@ -72,9 +72,9 @@ public class SpawnerBreakEvent implements Listener {
       }
    }
 
-   private boolean isAllowedTool(ItemStack var1) {
-      for (ItemStack var3 : this.allowedTools) {
-         if (var1.getType().equals(var3.getType()) && this.hasEnchants(var3, var1)) {
+   private boolean isAllowedTool(ItemStack itemStack) {
+      for (ItemStack itemStack2 : this.allowedTools) {
+         if (itemStack.getType().equals(itemStack2.getType()) && this.hasEnchants(itemStack2, itemStack)) {
             return true;
          }
       }
@@ -82,13 +82,13 @@ public class SpawnerBreakEvent implements Listener {
       return false;
    }
 
-   private boolean isSelf(CreatureSpawner var1) {
-      return this.plugin.version >= 114 && var1.getPersistentDataContainer().has(new NamespacedKey(this.plugin, "SpawnerType"), PersistentDataType.STRING);
+   private boolean isSelf(CreatureSpawner creatureSpawner) {
+      return this.plugin.version >= 114 && creatureSpawner.getPersistentDataContainer().has(new NamespacedKey(this.plugin, "SpawnerType"), PersistentDataType.STRING);
    }
 
-   private boolean hasEnchants(ItemStack var1, ItemStack var2) {
-      for (Enchantment var4 : var1.getEnchantments().keySet()) {
-         if (var2.getEnchantmentLevel(var4) < var1.getEnchantmentLevel(var4)) {
+   private boolean hasEnchants(ItemStack itemStack, ItemStack itemStack2) {
+      for (Enchantment enchantment : itemStack.getEnchantments().keySet()) {
+         if (itemStack2.getEnchantmentLevel(enchantment) < itemStack.getEnchantmentLevel(enchantment)) {
             return false;
          }
       }
@@ -96,26 +96,26 @@ public class SpawnerBreakEvent implements Listener {
       return true;
    }
 
-   private void giveSpawner(Player var1, EntityType var2) {
-      if (var2 != null) {
-         ItemStack var3 = this.plugin.versionHandler.getSpawnerToGive(var2);
+   private void giveSpawner(Player player, EntityType entityType) {
+      if (entityType != null) {
+         ItemStack itemStack = this.plugin.versionHandler.getSpawnerToGive(entityType);
          if (!this.interact) {
-            var3 = new ItemBuilder(var3).hideInteractLore().build();
+            itemStack = new ItemBuilder(itemStack).hideInteractLore().build();
          }
 
-         if (var1.getInventory().firstEmpty() != -1) {
-            var1.getInventory().addItem(new ItemStack[]{var3});
+         if (player.getInventory().firstEmpty() != -1) {
+            player.getInventory().addItem(new ItemStack[]{itemStack});
             SendMessage.chatToPlayer(
-               var1,
+               player,
                Lang.SPAWNER_BROKE_AND_APPLIED_TO_INVENTORY
-                  .get(var1)
-                  .replace("%spawnertype%", var3.getItemMeta().getDisplayName())
-                  .replace("%spawner-type%", var3.getItemMeta().getDisplayName())
+                  .get(player)
+                  .replace("%spawnertype%", itemStack.getItemMeta().getDisplayName())
+                  .replace("%spawner-type%", itemStack.getItemMeta().getDisplayName())
             );
          } else {
-            Location var4 = var1.getLocation();
-            World var5 = var1.getWorld();
-            var5.dropItem(var4, var3);
+            Location location = player.getLocation();
+            World world = player.getWorld();
+            world.dropItem(location, itemStack);
          }
       }
    }

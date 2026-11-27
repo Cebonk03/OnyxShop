@@ -3,7 +3,6 @@ package com.onyxshop.util.scheduler.schedulers;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
-import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -16,82 +15,94 @@ import org.bukkit.entity.Player;
 
 public class FoliaScheduler implements ServerScheduler {
    private final GlobalRegionScheduler globalRegionScheduler;
-   private final RegionScheduler regionScheduler;
    private final AsyncScheduler asyncScheduler;
    private final ScheduledExecutorService thread = Executors.newScheduledThreadPool(
       2, new ThreadFactoryBuilder().setNameFormat("ONYX_UTIL_THREAD #%d").build()
    );
 
-   public FoliaScheduler(OnyxShop var1) {
-      this.globalRegionScheduler = var1.getServer().getGlobalRegionScheduler();
-      this.regionScheduler = var1.getServer().getRegionScheduler();
-      this.asyncScheduler = var1.getServer().getAsyncScheduler();
+   public FoliaScheduler(OnyxShop plugin) {
+      this.globalRegionScheduler = plugin.getServer().getGlobalRegionScheduler();
+      this.asyncScheduler = plugin.getServer().getAsyncScheduler();
    }
 
    @Override
-   public ScheduledTask runTask(OnyxShop var1, Runnable var2) {
-      return new FoliaTask(this.globalRegionScheduler.run(var1, var1x -> var2.run()));
+   public ScheduledTask runTask(OnyxShop plugin, Runnable task) {
+      return new FoliaTask(this.globalRegionScheduler.run(plugin, element -> task.run()));
    }
 
    @Override
-   public ScheduledTask runTaskFor(OnyxShop var1, Runnable var2, Player var3) {
-      return new FoliaTask(this.regionScheduler.run(var1, var3.getLocation(), var1x -> var2.run()));
+   public ScheduledTask runTaskFor(OnyxShop plugin, Runnable task, Player player) {
+      io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask = player.getScheduler().run(plugin, element -> task.run(), null);
+      return scheduledTask != null ? new FoliaTask(scheduledTask) : () -> {
+      };
    }
 
    @Override
-   public ScheduledTask runTaskLater(OnyxShop var1, Runnable var2, long var3) {
-      return (ScheduledTask)(var3 <= 0L ? this.runTask(var1, var2) : new FoliaTask(this.globalRegionScheduler.runDelayed(var1, var1x -> var2.run(), var3)));
-   }
-
-   @Override
-   public ScheduledTask runTaskTimer(OnyxShop var1, Runnable var2, long var3, long var5) {
-      if (var3 <= 0L) {
-         var3 = 1L;
+   public ScheduledTask runTaskLaterFor(OnyxShop plugin, Runnable task, Player player, long value) {
+      if (value <= 0L) {
+         return this.runTaskFor(plugin, task, player);
       }
 
-      return new FoliaTask(this.globalRegionScheduler.runAtFixedRate(var1, var1x -> var2.run(), var3, var5));
+      io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask = player.getScheduler()
+         .runDelayed(plugin, element -> task.run(), null, value);
+      return scheduledTask != null ? new FoliaTask(scheduledTask) : () -> {
+      };
    }
 
    @Override
-   public ScheduledTask runTaskAsync(OnyxShop var1, Runnable var2) {
-      return new FoliaTask(this.asyncScheduler.runNow(var1, var1x -> var2.run()));
+   public ScheduledTask runTaskLater(OnyxShop plugin, Runnable task, long value) {
+      return (ScheduledTask)(value <= 0L ? this.runTask(plugin, task) : new FoliaTask(this.globalRegionScheduler.runDelayed(plugin, element -> task.run(), value)));
    }
 
    @Override
-   public ScheduledTask runTaskLaterAsync(OnyxShop var1, Runnable var2, long var3) {
-      return (ScheduledTask)(var3 <= 0L
-         ? this.runTaskAsync(var1, var2)
-         : new FoliaTask(this.asyncScheduler.runDelayed(var1, var1x -> var2.run(), var3 * 50L, TimeUnit.MILLISECONDS)));
-   }
-
-   @Override
-   public ScheduledTask runTaskAsyncTimer(OnyxShop var1, Runnable var2, long var3, long var5) {
-      if (var3 <= 0L) {
-         var3 = 1L;
+   public ScheduledTask runTaskTimer(OnyxShop plugin, Runnable task, long time, long value) {
+      if (time <= 0L) {
+         time = 1L;
       }
 
-      return new FoliaTask(this.asyncScheduler.runAtFixedRate(var1, var1x -> var2.run(), var3 * 50L, var5 * 50L, TimeUnit.MILLISECONDS));
+      return new FoliaTask(this.globalRegionScheduler.runAtFixedRate(plugin, element -> task.run(), time, value));
    }
 
    @Override
-   public void runKillableTask(Runnable var1) {
-      this.thread.execute(var1);
+   public ScheduledTask runTaskAsync(OnyxShop plugin, Runnable task) {
+      return new FoliaTask(this.asyncScheduler.runNow(plugin, element -> task.run()));
    }
 
    @Override
-   public ScheduledTask runKillableTaskLater(Runnable var1, long var2) {
-      return new KillableTask(this.thread.schedule(var1, var2 * 50L, TimeUnit.MILLISECONDS));
+   public ScheduledTask runTaskLaterAsync(OnyxShop plugin, Runnable task, long value) {
+      return (ScheduledTask)(value <= 0L
+         ? this.runTaskAsync(plugin, task)
+         : new FoliaTask(this.asyncScheduler.runDelayed(plugin, element -> task.run(), value * 50L, TimeUnit.MILLISECONDS)));
    }
 
    @Override
-   public ScheduledTask runKillableTaskTimer(Runnable var1, long var2, long var4) {
-      return new KillableTask(this.thread.scheduleAtFixedRate(var1, var2 * 50L, var4 * 50L, TimeUnit.MILLISECONDS));
+   public ScheduledTask runTaskAsyncTimer(OnyxShop plugin, Runnable task, long time, long value) {
+      if (time <= 0L) {
+         time = 1L;
+      }
+
+      return new FoliaTask(this.asyncScheduler.runAtFixedRate(plugin, element -> task.run(), time * 50L, value * 50L, TimeUnit.MILLISECONDS));
    }
 
    @Override
-   public void cancelTasks(OnyxShop var1) {
-      this.asyncScheduler.cancelTasks(var1);
-      this.globalRegionScheduler.cancelTasks(var1);
+   public void runKillableTask(Runnable task) {
+      this.thread.execute(task);
+   }
+
+   @Override
+   public ScheduledTask runKillableTaskLater(Runnable task, long value) {
+      return new KillableTask(this.thread.schedule(task, value * 50L, TimeUnit.MILLISECONDS));
+   }
+
+   @Override
+   public ScheduledTask runKillableTaskTimer(Runnable task, long time, long value) {
+      return new KillableTask(this.thread.scheduleAtFixedRate(task, time * 50L, value * 50L, TimeUnit.MILLISECONDS));
+   }
+
+   @Override
+   public void cancelTasks(OnyxShop plugin) {
+      this.asyncScheduler.cancelTasks(plugin);
+      this.globalRegionScheduler.cancelTasks(plugin);
       this.thread.shutdownNow();
    }
 }

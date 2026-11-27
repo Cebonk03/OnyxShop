@@ -22,62 +22,62 @@ public class JoinEvent implements Listener {
    private final boolean joinMessage;
    private final Set<UUID> toLoad = new HashSet<>();
 
-   public JoinEvent(OnyxShop var1, boolean var2) {
-      this.plugin = var1;
-      this.joinMessage = var2;
+   public JoinEvent(OnyxShop plugin, boolean flag) {
+      this.plugin = plugin;
+      this.joinMessage = flag;
    }
 
    @EventHandler
-   public void onPlayerJoin(PlayerJoinEvent var1) {
-      Player var2 = var1.getPlayer();
-      if (this.plugin.updateChecker != null && PermissionsCache.hasPermission(var2, "OnyxShop.notifyUpdate")) {
-         this.checkForUpdates(var2);
+   public void onPlayerJoin(PlayerJoinEvent event) {
+      Player player = event.getPlayer();
+      if (this.plugin.updateChecker != null && PermissionsCache.hasPermission(player, "OnyxShop.notifyUpdate")) {
+         this.checkForUpdates(player);
       }
 
       if (this.joinMessage) {
-         this.sendJoinMessage(var2);
+         this.sendJoinMessage(player);
       }
 
-      SkullUtil.updateTexture(var2);
-      this.toLoad.add(var2.getUniqueId());
+      SkullUtil.updateTexture(player);
+      this.toLoad.add(player.getUniqueId());
       this.plugin.runTaskLater(() -> {
-         if (this.toLoad.contains(var2.getUniqueId())) {
-            UserManager.getUser(var2);
+         if (this.toLoad.contains(player.getUniqueId())) {
+            UserManager.getUser(player);
          }
       }, 5L);
       this.plugin.runTaskLaterAsync(() -> {
          if (this.plugin.getModifierManager() != null) {
-            this.plugin.getModifierManager().loadCommandModifiersForPlayer(var2);
+            this.plugin.getModifierManager().loadCommandModifiersForPlayer(player);
          }
       }, 5L);
    }
 
    @EventHandler
-   public void onPlayerLeave(PlayerQuitEvent var1) {
-      UUID var2 = var1.getPlayer().getUniqueId();
-      this.toLoad.remove(var2);
-      UserManager.invalidate(var2);
+   public void onPlayerLeave(PlayerQuitEvent event) {
+      UUID uniqueId = event.getPlayer().getUniqueId();
+      this.toLoad.remove(uniqueId);
+      UserManager.invalidate(uniqueId);
       this.plugin.runTaskAsync(() -> {
          if (this.plugin.getModifierManager() != null) {
-            this.plugin.getModifierManager().unloadAndSaveCommandModifiers(var2);
+            this.plugin.getModifierManager().unloadAndSaveCommandModifiers(uniqueId);
          }
       });
    }
 
-   private void checkForUpdates(Player var1) {
+   private void checkForUpdates(Player player) {
       if (this.plugin.updateChecker.updateAvailable) {
          this.plugin
             .runTaskLater(
                () -> {
                   SendMessage.infoMessage(
-                     var1,
+                     player,
                      Lang.UPDATE_AVAILABLE
-                        .get(var1)
+                        .get(player)
                         .replace("%plugin_version%", this.plugin.updateChecker.CURRENT_VERSION.getVer())
                         .replace("%latest_version%", this.plugin.updateChecker.LATEST_VERSION.getVer())
                   );
                   SendMessage.infoMessage(
-                     var1,
+                     player,
                      "An update is available: v" + this.plugin.updateChecker.LATEST_VERSION.getVer()
                   );
                },
@@ -86,14 +86,14 @@ public class JoinEvent implements Listener {
       }
    }
 
-   private void sendJoinMessage(Player var1) {
-      OfflinePlayer var2 = this.plugin.getServer().getOfflinePlayer(var1.getUniqueId());
-      if (var2.hasPlayedBefore()) {
+   private void sendJoinMessage(Player player) {
+      OfflinePlayer offlinePlayer = this.plugin.getServer().getOfflinePlayer(player.getUniqueId());
+      if (offlinePlayer.hasPlayedBefore()) {
          SendMessage.chatToPlayer(
-            var1,
+            player,
             Lang.JOIN_MESSAGE
-               .get(var1)
-               .replace("%balance%", this.plugin.formatPrice((EcoType)null, this.plugin.getEcoHandler().getDefaultProvider().getBalance(var1)))
+               .get(player)
+               .replace("%balance%", this.plugin.formatPrice((EcoType)null, this.plugin.getEcoHandler().getDefaultProvider().getBalance(player)))
          );
       }
    }

@@ -12,13 +12,13 @@ public class LocaleChangeEvent implements Listener {
    }
 
    @EventHandler
-   public void onLocaleChange(PlayerLocaleChangeEvent var1) {
-      User var2 = UserManager.getUser(var1.getPlayer());
-      if (var2 != null) {
-         Locale var3 = UserManager.getLocale(var1.getPlayer(), var1.getLocale());
-         var2.setLocale(var3);
+   public void onLocaleChange(PlayerLocaleChangeEvent event) {
+      User user = UserManager.getUser(event.getPlayer());
+      if (user != null) {
+         Locale locale = UserManager.getLocale(event.getPlayer(), event.getLocale());
+         user.setLocale(locale);
       } else {
-         UserManager.loadUser(var1.getPlayer());
+         UserManager.loadUser(event.getPlayer());
       }
    }
 }

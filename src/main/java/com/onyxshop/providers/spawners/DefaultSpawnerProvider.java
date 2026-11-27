@@ -20,21 +20,21 @@ public class DefaultSpawnerProvider implements SpawnerProvider {
    private final OnyxShop plugin;
    private final boolean interact;
 
-   public DefaultSpawnerProvider(OnyxShop var1, @Nullable SpawnerInteractEvent var2, @Nullable SpawnerPlaceEvent var3, @Nullable SpawnerBreakEvent var4) {
-      this.plugin = var1;
-      if (var3 != null) {
-         this.plugin.getServer().getPluginManager().registerEvents(var3, this.plugin);
+   public DefaultSpawnerProvider(OnyxShop plugin, @Nullable SpawnerInteractEvent spawnerInteractEvent, @Nullable SpawnerPlaceEvent spawnerPlaceEvent, @Nullable SpawnerBreakEvent spawnerBreakEvent) {
+      this.plugin = plugin;
+      if (spawnerPlaceEvent != null) {
+         this.plugin.getServer().getPluginManager().registerEvents(spawnerPlaceEvent, this.plugin);
       }
 
-      if (var4 != null) {
-         this.plugin.getServer().getPluginManager().registerEvents(var4, this.plugin);
+      if (spawnerBreakEvent != null) {
+         this.plugin.getServer().getPluginManager().registerEvents(spawnerBreakEvent, this.plugin);
       }
 
-      if (var2 != null) {
-         this.plugin.getServer().getPluginManager().registerEvents(var2, this.plugin);
+      if (spawnerInteractEvent != null) {
+         this.plugin.getServer().getPluginManager().registerEvents(spawnerInteractEvent, this.plugin);
       }
 
-      this.interact = var2 == null;
+      this.interact = spawnerInteractEvent == null;
    }
 
    @Override
@@ -43,38 +43,38 @@ public class DefaultSpawnerProvider implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      if (var1 == null) {
-         var2 = this.plugin.versionHandler.setSpawnerType(var2, var3.name());
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      if (shopItem == null) {
+         itemStack = this.plugin.versionHandler.setSpawnerType(itemStack, entityType.name());
       }
 
-      ItemMeta var4 = var2.getItemMeta();
+      ItemMeta itemMeta = itemStack.getItemMeta();
       if (!this.interact) {
-         var2 = new ItemBuilder(var2).hideEntityData().build();
+         itemStack = new ItemBuilder(itemStack).hideEntityData().build();
       }
 
-      if (!var4.hasDisplayName()) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+      if (!itemMeta.hasDisplayName()) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      var2.setItemMeta(var4);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "display::Name");
-      var4.addAll(var3);
-      return this.plugin.isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "display::Name");
+      tags.addAll(shopIds);
+      return this.plugin.isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return var2;
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return price;
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      return this.plugin.versionHandler.getSpawnerType(var1);
+   public String getSpawnedType(ItemStack itemStack) {
+      return this.plugin.versionHandler.getSpawnerType(itemStack);
    }
 }

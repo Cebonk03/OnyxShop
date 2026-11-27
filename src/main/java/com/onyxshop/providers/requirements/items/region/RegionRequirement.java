@@ -14,11 +14,11 @@ public class RegionRequirement implements ItemRequirement {
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public RegionRequirement(RegionProvider var1, String var2, List<String> var3, String var4) {
-      this.regionID = var2;
-      this.regionProvider = var1;
-      this.lore = RequirementManager.getLore(var3, Lang.REGION_REQUIREMENT_LORE.get().toString());
-      this.customMSG = var4;
+   public RegionRequirement(RegionProvider regionProvider, String text, List<String> values, String text2) {
+      this.regionID = text;
+      this.regionProvider = regionProvider;
+      this.lore = RequirementManager.getLore(values, Lang.REGION_REQUIREMENT_LORE.get().toString());
+      this.customMSG = text2;
       if (this.regionProvider.isReady()) {
          this.onLoad();
       }
@@ -41,22 +41,22 @@ public class RegionRequirement implements ItemRequirement {
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      return this.regionProvider.isInsideRegion(var1, this.regionID);
+   public boolean isMet(Player player) {
+      return this.regionProvider.isInsideRegion(player, this.regionID);
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
       return this.lore.isReplaced()
-         ? this.lore.get(var1, var2, var3)
-         : this.lore.get(var1, var2, var3, "%regionName%", this.regionProvider.getRegionName(this.regionID));
+         ? this.lore.get(player, flag, flag2)
+         : this.lore.get(player, flag, flag2, "%regionName%", this.regionProvider.getRegionName(this.regionID));
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.REGION_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
-         SendMessage.chatToPlayer(var1, var2.replace("%regionName%", this.regionProvider.getRegionName(this.regionID)));
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.REGION_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
+         SendMessage.chatToPlayer(player, text.replace("%regionName%", this.regionProvider.getRegionName(this.regionID)));
       }
    }
 }

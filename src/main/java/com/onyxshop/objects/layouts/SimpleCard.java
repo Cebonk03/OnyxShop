@@ -18,24 +18,24 @@ public class SimpleCard {
    public SimpleCard() {
    }
 
-   public void setAuthMethod(AuthRequest.AuthMethod var1) {
-      this.authMethod = var1;
+   public void setAuthMethod(AuthRequest.AuthMethod authMethod) {
+      this.authMethod = authMethod;
    }
 
-   public void setToken(long var1) {
-      this.token = var1;
+   public void setToken(long value) {
+      this.token = value;
    }
 
-   public void setTitle(String var1) {
-      this.title = var1;
+   public void setTitle(String title) {
+      this.title = title;
    }
 
-   public void setDescription(String var1) {
-      this.description = var1;
+   public void setDescription(String text) {
+      this.description = text;
    }
 
-   public void setTags(List<String> var1) {
-      this.tags = var1;
+   public void setTags(List<String> values) {
+      this.tags = values;
    }
 
    public String getTitle() {
@@ -56,14 +56,14 @@ public class SimpleCard {
 
    @Override
    public String toString() {
-      HashMap var1 = new HashMap();
-      var1.put("authMethod", this.authMethod.name());
-      var1.put("token", this.token);
-      var1.put("title", this.title);
-      var1.put("description", this.description);
-      var1.put("tags", this.tags);
-      var1.put("plVer", OnyxShop.getInstance().getDescription().getVersion());
-      var1.put("mcVer", Bukkit.getBukkitVersion().split("-")[0]);
-      return new JSONObject(var1).toString();
+      HashMap map = new HashMap();
+      map.put("authMethod", this.authMethod.name());
+      map.put("token", this.token);
+      map.put("title", this.title);
+      map.put("description", this.description);
+      map.put("tags", this.tags);
+      map.put("plVer", OnyxShop.getInstance().getDescription().getVersion());
+      map.put("mcVer", Bukkit.getBukkitVersion().split("-")[0]);
+      return new JSONObject(map).toString();
    }
 }

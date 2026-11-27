@@ -40,104 +40,104 @@ public class CommentedConfig extends Config {
    private final Map<String, String> comments;
    private boolean reload = false;
 
-   public CommentedConfig(OnyxShop var1, File var2, InputStream var3) throws ConfigLoadException {
-      super(var2);
-      Object var4 = new HashMap();
+   public CommentedConfig(OnyxShop plugin, File file, InputStream inputStream) throws ConfigLoadException {
+      super(file);
+      Object value = new HashMap();
 
       try {
-         BufferedReader var5 = new BufferedReader(new InputStreamReader(var3, StandardCharsets.UTF_8));
-         var4 = this.getComments(var5.lines().collect(Collectors.toList()));
-         var5.close();
-      } catch (FileNotFoundException var6) {
-      } catch (IOException var7) {
-         throw new ConfigLoadException("A unknown IOE Exception occurred while loading " + var2.getName() + "\n" + this.stackTraceToString(var7));
+         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+         value = this.getComments(bufferedReader.lines().collect(Collectors.toList()));
+         bufferedReader.close();
+      } catch (FileNotFoundException exception) {
+      } catch (IOException exception) {
+         throw new ConfigLoadException("A unknown IOE Exception occurred while loading " + file.getName() + "\n" + this.stackTraceToString(exception));
       }
 
-      this.comments = (Map<String, String>)var4;
-      this.setDef(var1.loadConfiguration(new BufferedReader(new InputStreamReader(var1.getResource(var2.getName()), StandardCharsets.UTF_8)), var2.getName()));
+      this.comments = (Map<String, String>)value;
+      this.setDef(plugin.loadConfiguration(new BufferedReader(new InputStreamReader(plugin.getResource(file.getName()), StandardCharsets.UTF_8)), file.getName()));
    }
 
    private Set<String> getKeys() {
-      LinkedHashSet var1 = new LinkedHashSet();
-      Set var2 = this.getKeys(false);
-      var2.removeAll(var1);
+      LinkedHashSet values = new LinkedHashSet();
+      Set keys = this.getKeys(false);
+      keys.removeAll(values);
 
-      for (String var4 : this.defaults.getKeys(false)) {
-         var1.add(var4);
-         Object var5 = this.get(var4);
-         if (var5 instanceof MemorySection) {
-            for (String var7 : (this.specialKeys.contains(var4) ? this.getDef() : this).getConfigurationSection(var4).getKeys(true)) {
-               var1.add(var4 + "." + var7);
+      for (String text : this.defaults.getKeys(false)) {
+         values.add(text);
+         Object value = this.get(text);
+         if (value instanceof MemorySection) {
+            for (String sectionId : (this.specialKeys.contains(text) ? this.getDef() : this).getConfigurationSection(text).getKeys(true)) {
+               values.add(text + "." + sectionId);
             }
-         } else if (var5 == null) {
-            ConfigurationSection var6 = this.getDef().getConfigurationSection(var4);
-            if (var6 != null) {
-               var6.getKeys(true).forEach(var2x -> var1.add(var4 + "." + var2x));
+         } else if (value == null) {
+            ConfigurationSection section = this.getDef().getConfigurationSection(text);
+            if (section != null) {
+               section.getKeys(true).forEach(entry -> values.add(text + "." + entry));
             }
 
             this.reload = true;
          }
       }
 
-      var1.addAll(var2);
-      return var1;
+      values.addAll(keys);
+      return values;
    }
 
    @Override
    public void save() throws ConfigSaveException {
       try {
-         File var17 = new File(this.getFilePath().toString() + ".tmp");
-         BufferedWriter var1 = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(var17.toPath()), StandardCharsets.UTF_8));
-         Yaml var2 = new Yaml();
+         File file = new File(this.getFilePath().toString() + ".tmp");
+         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(file.toPath()), StandardCharsets.UTF_8));
+         Yaml yaml = new Yaml();
 
-         for (String var4 : this.getKeys()) {
-            String[] var5 = var4.split("\\.");
-            String var6 = var5[var5.length - 1];
-            String var7 = this.comments.get(var4);
-            StringBuilder var8 = new StringBuilder();
-            int var9 = var5.length - 1;
-            this.appendPrefixSpaces(var8, var9);
-            String var10 = var8.toString();
-            if (var7 != null) {
-               var1.write(var7);
+         for (String text : this.getKeys()) {
+            String[] values = text.split("\\.");
+            String text2 = values[values.length - 1];
+            String text3 = this.comments.get(text);
+            StringBuilder builder = new StringBuilder();
+            int value = values.length - 1;
+            this.appendPrefixSpaces(builder, value);
+            String text4 = builder.toString();
+            if (text3 != null) {
+               bufferedWriter.write(text3);
             }
 
-            Object var11 = this.get(var4, this.getDef().get(var4));
-            if (var11 instanceof ConfigurationSerializable) {
-               var1.write(var10 + var6 + ": " + var2.dump(((ConfigurationSerializable)var11).serialize()));
-            } else if (!(var11 instanceof String) && !(var11 instanceof Character)) {
-               if (var11 instanceof List) {
-                  var1.write(this.getListAsString((List)var11, var6, var10));
-               } else if (var11 instanceof MemorySection) {
-                  var1.write(var10 + var6 + ":\n");
+            Object value2 = this.get(text, this.getDef().get(text));
+            if (value2 instanceof ConfigurationSerializable) {
+               bufferedWriter.write(text4 + text2 + ": " + yaml.dump(((ConfigurationSerializable)value2).serialize()));
+            } else if (!(value2 instanceof String) && !(value2 instanceof Character)) {
+               if (value2 instanceof List) {
+                  bufferedWriter.write(this.getListAsString((List)value2, text2, text4));
+               } else if (value2 instanceof MemorySection) {
+                  bufferedWriter.write(text4 + text2 + ":\n");
                } else {
-                  var1.write(var10 + var6 + ": " + var2.dump(var11));
+                  bufferedWriter.write(text4 + text2 + ": " + yaml.dump(value2));
                }
-            } else if (var11 instanceof String && ((String)var11).contains("\n")) {
-               var1.write(var10 + var6 + ": \"" + ((String)var11).replace("\n", "\\n") + "\"\n");
+            } else if (value2 instanceof String && ((String)value2).contains("\n")) {
+               bufferedWriter.write(text4 + text2 + ": \"" + ((String)value2).replace("\n", "\\n") + "\"\n");
             } else {
-               String var12 = var2.dump(var11);
-               if (!var12.startsWith("|")) {
-                  var1.write(var10 + var6 + ": " + var12);
+               String text5 = yaml.dump(value2);
+               if (!text5.startsWith("|")) {
+                  bufferedWriter.write(text4 + text2 + ": " + text5);
                } else {
-                  String[] var13 = var12.substring(0, var12.length() - 1).split("\n");
-                  var1.write(var10 + var6 + ": " + var13[0] + "\n");
+                  String[] values2 = text5.substring(0, text5.length() - 1).split("\n");
+                  bufferedWriter.write(text4 + text2 + ": " + values2[0] + "\n");
 
-                  for (int var14 = 1; var14 < var13.length; var14++) {
-                     var1.write(var10 + "  " + var13[var14] + "\n");
+                  for (int index = 1; index < values2.length; index++) {
+                     bufferedWriter.write(text4 + "  " + values2[index] + "\n");
                   }
                }
             }
          }
 
-         String var16 = this.comments.get(null);
-         if (var16 != null) {
-            var1.write(var16);
+         String text = this.comments.get(null);
+         if (text != null) {
+            bufferedWriter.write(text);
          }
 
-         var1.close();
+         bufferedWriter.close();
          Files.move(
-            var17.toPath(),
+            file.toPath(),
             this.getFilePath(),
             java.nio.file.StandardCopyOption.REPLACE_EXISTING,
             java.nio.file.StandardCopyOption.ATOMIC_MOVE
@@ -146,154 +146,154 @@ public class CommentedConfig extends Config {
             this.reload = false;
             this.reload();
          }
-      } catch (IOException | ConfigLoadException var15) {
+      } catch (IOException | ConfigLoadException exception) {
          throw new ConfigSaveException(
-            Lang.COULD_NOT_SAVE_CONFIG.get().replace("%fileName%", this.getFilePath().getFileName().toString()) + "\n" + this.stackTraceToString(var15)
+            Lang.COULD_NOT_SAVE_CONFIG.get().replace("%fileName%", this.getFilePath().getFileName().toString()) + "\n" + this.stackTraceToString(exception)
          );
       }
    }
 
-   private String stackTraceToString(Exception var1) {
-      StringWriter var2 = new StringWriter();
-      PrintWriter var3 = new PrintWriter(var2);
-      var1.printStackTrace(var3);
-      return var2.toString();
+   private String stackTraceToString(Exception exception) {
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter printWriter = new PrintWriter(stringWriter);
+      exception.printStackTrace(printWriter);
+      return stringWriter.toString();
    }
 
-   private Map<String, String> getComments(List<String> var1) {
-      HashMap var2 = new HashMap();
-      StringBuilder var3 = new StringBuilder();
-      StringBuilder var4 = new StringBuilder();
-      int var5 = 0;
+   private Map<String, String> getComments(List<String> values) {
+      HashMap map = new HashMap();
+      StringBuilder builder = new StringBuilder();
+      StringBuilder builder2 = new StringBuilder();
+      int value = 0;
 
-      for (String var7 : var1) {
-         if (var7 == null || !var7.trim().startsWith("-")) {
-            if (var7 != null && !var7.trim().equals("") && !var7.trim().startsWith("#")) {
-               var5 = this.setFullKey(var4, var7, var5);
-               if (var4.length() > 0) {
-                  var2.put(var4.toString(), var3.toString());
-                  var3.setLength(0);
+      for (String text : values) {
+         if (text == null || !text.trim().startsWith("-")) {
+            if (text != null && !text.trim().equals("") && !text.trim().startsWith("#")) {
+               value = this.setFullKey(builder2, text, value);
+               if (builder2.length() > 0) {
+                  map.put(builder2.toString(), builder.toString());
+                  builder.setLength(0);
                }
             } else {
-               var3.append(var7).append("\n");
+               builder.append(text).append("\n");
             }
          }
       }
 
-      if (var3.length() > 0) {
-         var2.put(null, var3.toString());
+      if (builder.length() > 0) {
+         map.put(null, builder.toString());
       }
 
-      return var2;
+      return map;
    }
 
-   private String getListAsString(List var1, String var2, String var3) {
-      StringBuilder var4 = new StringBuilder(var3).append(var2).append(":");
-      if (var1.isEmpty()) {
-         var4.append(" []\n");
-         return var4.toString();
+   private String getListAsString(List values, String text, String text2) {
+      StringBuilder builder = new StringBuilder(text2).append(text).append(":");
+      if (values.isEmpty()) {
+         builder.append(" []\n");
+         return builder.toString();
       } else {
-         var4.append("\n");
+         builder.append("\n");
 
-         for (int var5 = 0; var5 < var1.size(); var5++) {
-            Object var6 = var1.get(var5);
-            if (var6 instanceof String || var6 instanceof Character) {
-               String var7 = var6.toString();
-               if (var7.contains("\"") || var7.contains("'")) {
-                  var7 = var7.replace("'", "''");
+         for (int size = 0; size < values.size(); size++) {
+            Object value = values.get(size);
+            if (value instanceof String || value instanceof Character) {
+               String text3 = value.toString();
+               if (text3.contains("\"") || text3.contains("'")) {
+                  text3 = text3.replace("'", "''");
                }
 
-               var4.append(var3).append("- '").append(var7).append("'");
-            } else if (var6 instanceof List) {
-               var4.append(var3).append("- ").append(new Yaml().dump(var6));
+               builder.append(text2).append("- '").append(text3).append("'");
+            } else if (value instanceof List) {
+               builder.append(text2).append("- ").append(new Yaml().dump(value));
             } else {
-               var4.append(var3).append("- ").append(var6);
+               builder.append(text2).append("- ").append(value);
             }
 
-            if (var5 != var1.size()) {
-               var4.append("\n");
+            if (size != values.size()) {
+               builder.append("\n");
             }
          }
 
-         return var4.toString();
+         return builder.toString();
       }
    }
 
-   private int setFullKey(StringBuilder var1, String var2, int var3) {
-      int var4 = this.countIndents(var2);
-      String var5 = var2.trim().split(":")[0];
-      if (var1.length() == 0) {
-         var1.append(var5);
-      } else if (var4 == var3) {
-         this.removeLastKey(var1);
-         if (var1.length() > 0) {
-            var1.append(".");
+   private int setFullKey(StringBuilder builder, String key, int value) {
+      int amount = this.countIndents(key);
+      String text = key.trim().split(":")[0];
+      if (builder.length() == 0) {
+         builder.append(text);
+      } else if (amount == value) {
+         this.removeLastKey(builder);
+         if (builder.length() > 0) {
+            builder.append(".");
          }
 
-         var1.append(var5);
-      } else if (var4 > var3) {
-         var1.append(".").append(var5);
+         builder.append(text);
+      } else if (amount > value) {
+         builder.append(".").append(text);
       } else {
-         int var6 = var3 - var4;
+         int value2 = value - amount;
 
-         for (int var7 = 0; var7 < var6 + 1; var7++) {
-            this.removeLastKey(var1);
+         for (int index = 0; index < value2 + 1; index++) {
+            this.removeLastKey(builder);
          }
 
-         if (var1.length() > 0) {
-            var1.append(".");
+         if (builder.length() > 0) {
+            builder.append(".");
          }
 
-         var1.append(var5);
+         builder.append(text);
       }
 
-      return var4;
+      return amount;
    }
 
-   private int countIndents(String var1) {
-      int var2 = 0;
+   private int countIndents(String text) {
+      int amount = 0;
 
-      for (char var6 : var1.toCharArray()) {
-         if (var6 != ' ') {
+      for (char character : text.toCharArray()) {
+         if (character != ' ') {
             break;
          }
 
-         var2++;
+         amount++;
       }
 
-      return var2 / 2;
+      return amount / 2;
    }
 
-   private void removeLastKey(StringBuilder var1) {
-      String var2 = var1.toString();
-      String[] var3 = var2.split("\\.");
-      if (var3.length == 1) {
-         var1.setLength(0);
+   private void removeLastKey(StringBuilder builder) {
+      String key = builder.toString();
+      String[] values = key.split("\\.");
+      if (values.length == 1) {
+         builder.setLength(0);
       } else {
-         var2 = var2.substring(0, var2.length() - var3[var3.length - 1].length() - 1);
-         var1.setLength(var2.length());
+         key = key.substring(0, key.length() - values[values.length - 1].length() - 1);
+         builder.setLength(key.length());
       }
    }
 
-   private String getPrefixSpaces(int var1) {
-      StringBuilder var2 = new StringBuilder();
+   private String getPrefixSpaces(int value) {
+      StringBuilder builder = new StringBuilder();
 
-      for (int var3 = 0; var3 < var1; var3++) {
-         var2.append("  ");
+      for (int index = 0; index < value; index++) {
+         builder.append("  ");
       }
 
-      return var2.toString();
+      return builder.toString();
    }
 
-   private void appendPrefixSpaces(StringBuilder var1, int var2) {
-      var1.append(this.getPrefixSpaces(var2));
+   private void appendPrefixSpaces(StringBuilder builder, int value) {
+      builder.append(this.getPrefixSpaces(value));
    }
 
    private final class ConfigurationDefaults {
       public Configuration defaults;
 
-      public ConfigurationDefaults(Configuration nullx) {
-         this.defaults = nullx;
+      public ConfigurationDefaults(Configuration configuration) {
+         this.defaults = configuration;
       }
    }
 }

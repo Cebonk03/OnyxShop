@@ -7,13 +7,13 @@ public class SimpleChunk {
    public final int x1;
    public final int z1;
 
-   public SimpleChunk(Chunk var1) {
-      this.world = var1.getWorld().getName();
-      this.x1 = var1.getX();
-      this.z1 = var1.getZ();
+   public SimpleChunk(Chunk chunk) {
+      this.world = chunk.getWorld().getName();
+      this.x1 = chunk.getX();
+      this.z1 = chunk.getZ();
    }
 
-   public boolean contains(SimpleLocation var1) {
-      return this.world.equals(var1.world) && this.x1 == var1.x >> 4 && this.z1 == var1.z >> 4;
+   public boolean contains(SimpleLocation simpleLocation) {
+      return this.world.equals(simpleLocation.world) && this.x1 == simpleLocation.x >> 4 && this.z1 == simpleLocation.z >> 4;
    }
 }

@@ -20,67 +20,67 @@ public class FireworkUtil {
    public FireworkUtil() {
    }
 
-   public static ItemStack addEffect(ItemStack var0, ConfigurationSection var1) throws ItemLoadException {
-      FireworkMeta var2 = (FireworkMeta)var0.getItemMeta();
-      if (var1.getInt("duration", 3) != 0) {
-         var2.setPower(var1.getInt("duration", 3));
+   public static ItemStack addEffect(ItemStack itemStack, ConfigurationSection section) throws ItemLoadException {
+      FireworkMeta fireworkMeta = (FireworkMeta)itemStack.getItemMeta();
+      if (section.getInt("duration", 3) != 0) {
+         fireworkMeta.setPower(section.getInt("duration", 3));
       }
 
-      if (var1.contains("flicker") || var1.contains("trail") || var1.contains("shape") || var1.contains("fade-colors")) {
-         if (var1.getStringList("colors").isEmpty()) {
+      if (section.contains("flicker") || section.contains("trail") || section.contains("shape") || section.contains("fade-colors")) {
+         if (section.getStringList("colors").isEmpty()) {
             throw new ItemLoadException("To apply a flicker, trail or firework type you need to give the firework at least one color using the 'colors' option");
          }
 
-         Builder var3 = FireworkEffect.builder();
-         List<FireworkUtil.FireworkColor> var4 = FireworkUtil.FireworkColor.matchColorsNames(var1.getStringList("colors"));
-         if (!var4.isEmpty()) {
-            var4.forEach(var1x -> var3.withColor(var1x.parseColor()));
+         Builder builder = FireworkEffect.builder();
+         List<FireworkUtil.FireworkColor> values = FireworkUtil.FireworkColor.matchColorsNames(section.getStringList("colors"));
+         if (!values.isEmpty()) {
+            values.forEach(entry -> builder.withColor(entry.parseColor()));
          } else {
-            var3.withColor(FireworkUtil.FireworkColor.WHITE.parseColor());
+            builder.withColor(FireworkUtil.FireworkColor.WHITE.parseColor());
          }
 
-         if (!var1.getStringList("fade-colors").isEmpty()) {
-            FireworkUtil.FireworkColor.matchColorsNames(var1.getStringList("fade-colors")).forEach(var1x -> var3.withFade(var1x.parseColor()));
+         if (!section.getStringList("fade-colors").isEmpty()) {
+            FireworkUtil.FireworkColor.matchColorsNames(section.getStringList("fade-colors")).forEach(entry -> builder.withFade(entry.parseColor()));
          }
 
-         if (var1.getBoolean("flicker", false)) {
-            var3.withFlicker();
+         if (section.getBoolean("flicker", false)) {
+            builder.withFlicker();
          }
 
-         if (var1.getBoolean("trail", false)) {
-            var3.trail(true);
+         if (section.getBoolean("trail", false)) {
+            builder.trail(true);
          }
 
-         if (var1.getString("shape") != null) {
+         if (section.getString("shape") != null) {
             try {
-               var3.with(Type.valueOf(var1.getString("shape").toUpperCase(Locale.ENGLISH)));
-            } catch (IllegalArgumentException var6) {
-               SendMessage.errorMessage("Could not add the firework shape '" + var1.getString("shape") + "'");
+               builder.with(Type.valueOf(section.getString("shape").toUpperCase(Locale.ENGLISH)));
+            } catch (IllegalArgumentException exception) {
+               SendMessage.errorMessage("Could not add the firework shape '" + section.getString("shape") + "'");
             }
          }
 
-         var2.addEffect(var3.build());
+         fireworkMeta.addEffect(builder.build());
       }
 
-      var0.setItemMeta(var2);
-      return var0;
+      itemStack.setItemMeta(fireworkMeta);
+      return itemStack;
    }
 
-   public static Map<String, Object> serialize(FireworkMeta var0) {
-      HashMap var1 = new HashMap();
-      var1.put("duration", var0.getPower());
-      if (!var0.hasEffects()) {
-         return var1;
+   public static Map<String, Object> serialize(FireworkMeta fireworkMeta) {
+      HashMap map = new HashMap();
+      map.put("duration", fireworkMeta.getPower());
+      if (!fireworkMeta.hasEffects()) {
+         return map;
       } else {
-         FireworkEffect var2 = (FireworkEffect)var0.getEffects().get(0);
-         var1.put("colors", var2.getColors().stream().map(var0x -> FireworkUtil.FireworkColor.matchColor(var0x.asRGB()).name()).collect(Collectors.toList()));
-         var1.put(
-            "fade-colors", var2.getFadeColors().stream().map(var0x -> FireworkUtil.FireworkColor.matchColor(var0x.asRGB()).name()).collect(Collectors.toList())
+         FireworkEffect fireworkEffect = (FireworkEffect)fireworkMeta.getEffects().get(0);
+         map.put("colors", fireworkEffect.getColors().stream().map(element -> FireworkUtil.FireworkColor.matchColor(element.asRGB()).name()).collect(Collectors.toList()));
+         map.put(
+            "fade-colors", fireworkEffect.getFadeColors().stream().map(element -> FireworkUtil.FireworkColor.matchColor(element.asRGB()).name()).collect(Collectors.toList())
          );
-         var1.put("shape", var2.getType().name());
-         var1.put("trail", var2.hasTrail());
-         var1.put("flicker", var2.hasFlicker());
-         return var1;
+         map.put("shape", fireworkEffect.getType().name());
+         map.put("trail", fireworkEffect.hasTrail());
+         map.put("flicker", fireworkEffect.hasFlicker());
+         return map;
       }
    }
 
@@ -105,66 +105,66 @@ public class FireworkUtil {
       int id;
       int rgb;
 
-      private FireworkColor(int nullxx, int nullxxx) {
-         this.id = nullxx;
-         this.rgb = nullxxx;
+      private FireworkColor(int value, int value2) {
+         this.id = value;
+         this.rgb = value2;
       }
 
-      public static FireworkUtil.FireworkColor matchColor(String var0) {
-         for (FireworkUtil.FireworkColor var4 : values()) {
-            if (var4.name().equalsIgnoreCase(var0)) {
-               return var4;
+      public static FireworkUtil.FireworkColor matchColor(String text) {
+         for (FireworkUtil.FireworkColor fireworkColor : values()) {
+            if (fireworkColor.name().equalsIgnoreCase(text)) {
+               return fireworkColor;
             }
          }
 
          return null;
       }
 
-      public static List<FireworkUtil.FireworkColor> matchColorsNames(List<String> var0) {
-         ArrayList var1 = new ArrayList();
+      public static List<FireworkUtil.FireworkColor> matchColorsNames(List<String> values) {
+         ArrayList values2 = new ArrayList();
 
-         for (String var3 : var0) {
-            for (FireworkUtil.FireworkColor var7 : values()) {
-               if (var7.name().equalsIgnoreCase(var3)) {
-                  var1.add(var7);
+         for (String text : values) {
+            for (FireworkUtil.FireworkColor fireworkColor : values()) {
+               if (fireworkColor.name().equalsIgnoreCase(text)) {
+                  values2.add(fireworkColor);
                }
             }
          }
 
-         return var1;
+         return values2;
       }
 
-      public static List<FireworkUtil.FireworkColor> matchColorsIds(String var0) {
-         ArrayList var1 = new ArrayList();
+      public static List<FireworkUtil.FireworkColor> matchColorsIds(String text) {
+         ArrayList values = new ArrayList();
 
-         for (String var5 : var0.split(",")) {
+         for (String text2 : text.split(",")) {
             try {
-               for (FireworkUtil.FireworkColor var9 : values()) {
-                  if (var9.id == Integer.parseInt(var5)) {
-                     var1.add(var9);
+               for (FireworkUtil.FireworkColor fireworkColor : values()) {
+                  if (fireworkColor.id == Integer.parseInt(text2)) {
+                     values.add(fireworkColor);
                   }
                }
-            } catch (NumberFormatException var10) {
+            } catch (NumberFormatException exception) {
             }
          }
 
-         return var1;
+         return values;
       }
 
-      public static FireworkUtil.FireworkColor getFromID(int var0) {
-         for (FireworkUtil.FireworkColor var4 : values()) {
-            if (var4.id == var0) {
-               return var4;
+      public static FireworkUtil.FireworkColor getFromID(int value) {
+         for (FireworkUtil.FireworkColor fireworkColor : values()) {
+            if (fireworkColor.id == value) {
+               return fireworkColor;
             }
          }
 
          return null;
       }
 
-      public static FireworkUtil.FireworkColor matchColor(int var0) {
-         for (FireworkUtil.FireworkColor var4 : values()) {
-            if (var4.rgb == var0) {
-               return var4;
+      public static FireworkUtil.FireworkColor matchColor(int value) {
+         for (FireworkUtil.FireworkColor fireworkColor : values()) {
+            if (fireworkColor.rgb == value) {
+               return fireworkColor;
             }
          }
 

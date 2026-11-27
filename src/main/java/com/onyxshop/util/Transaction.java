@@ -12,20 +12,20 @@ public class Transaction {
 
       private String name;
 
-      private Mode(String nullxx) {
-         this.name = nullxx;
+      private Mode(String text) {
+         this.name = text;
       }
 
       public String getName() {
          return this.name;
       }
 
-      public static Transaction.Mode getFromType(Transaction.Type var0) {
-         return var0 != Transaction.Type.BUY_SCREEN
-               && var0 != Transaction.Type.BUY_STACKS_SCREEN
-               && var0 != Transaction.Type.QUICK_BUY
-               && var0 != Transaction.Type.SHOPSTAND_BUY_SCREEN
-               && var0 != Transaction.Type.API_BUY
+      public static Transaction.Mode getFromType(Transaction.Type type) {
+         return type != Transaction.Type.BUY_SCREEN
+               && type != Transaction.Type.BUY_STACKS_SCREEN
+               && type != Transaction.Type.QUICK_BUY
+               && type != Transaction.Type.SHOPSTAND_BUY_SCREEN
+               && type != Transaction.Type.API_BUY
             ? SELL
             : BUY;
       }
@@ -71,16 +71,16 @@ public class Transaction {
       private String name;
       private String customType;
 
-      private Type(String nullxx) {
-         this.name = nullxx;
+      private Type(String type) {
+         this.name = type;
       }
 
       public String getName() {
          return this.name;
       }
 
-      public Transaction.Type withCustomType(String var1) {
-         this.customType = var1.toUpperCase().replace(" ", "_");
+      public Transaction.Type withCustomType(String type) {
+         this.customType = type.toUpperCase().replace(" ", "_");
          this.name = this.name.replace("%type%", this.customType);
          return this;
       }
@@ -89,14 +89,14 @@ public class Transaction {
          return this.name() + (this.customType != null ? "_" + this.customType : "");
       }
 
-      public static Transaction.Type fromValue(String var0) {
-         if (var0.startsWith("API")) {
-            String[] var1 = var0.split("_", 3);
-            Transaction.Type var2 = valueOf(var1[0] + "_" + var1[1]);
-            var2.name = var2.name.replace("%type%", var2.customType = var1[2]);
-            return var2;
+      public static Transaction.Type fromValue(String type) {
+         if (type.startsWith("API")) {
+            String[] values = type.split("_", 3);
+            Transaction.Type type2 = valueOf(values[0] + "_" + values[1]);
+            type2.name = type2.name.replace("%type%", type2.customType = values[2]);
+            return type2;
          } else {
-            return valueOf(var0);
+            return valueOf(type);
          }
       }
 

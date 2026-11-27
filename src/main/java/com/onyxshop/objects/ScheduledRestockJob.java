@@ -8,11 +8,11 @@ public class ScheduledRestockJob {
    private final int mode;
    private final long nextFire;
 
-   public ScheduledRestockJob(Runnable var1, String var2, int var3, long var4) {
-      this.onExecute = var1;
-      this.item = var2;
-      this.mode = var3;
-      this.nextFire = var4;
+   public ScheduledRestockJob(Runnable task, String text, int restockTime, long value) {
+      this.onExecute = task;
+      this.item = text;
+      this.mode = restockTime;
+      this.nextFire = value;
    }
 
    public void execute() {
@@ -25,7 +25,7 @@ public class ScheduledRestockJob {
          } else if (this.mode == 2) {
             SendMessage.logDebugMessage("Item '" + this.item + "' has been restocked successfully for every player and will next schedule at " + this.nextFire);
          }
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to execute restock job for shop item '" + this.item + "' and stock mode " + this.mode);
       }
    }

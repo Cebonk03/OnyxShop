@@ -28,13 +28,13 @@ public class UltraEconomy implements EconomyProvider {
    private boolean wait = false;
    private PriceFormatter.Format priceFormat;
 
-   public UltraEconomy(String var1) {
-      this.currency = var1;
+   public UltraEconomy(String text) {
+      this.currency = text;
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().isPluginEnabled("UltraEconomy")) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().isPluginEnabled("UltraEconomy")) {
          this.ue = me.TechsCode.UltraEconomy.UltraEconomy.getAPI();
          if (this.ue != null) {
             this.registerCurrency();
@@ -47,66 +47,66 @@ public class UltraEconomy implements EconomyProvider {
    }
 
    private void registerCurrency() throws EconomyLoadException {
-      String var1;
+      String text;
       if (this.currency != null && !this.currency.isEmpty()) {
-         Optional var2 = this.ue.getCurrencies().name(this.currency);
-         if (!var2.isPresent()) {
+         Optional optional = this.ue.getCurrencies().name(this.currency);
+         if (!optional.isPresent()) {
             throw new EconomyLoadException("Failed to register a UltraEconomy currency named as '" + this.currency + "'");
          }
 
-         this.cur = (Currency)var2.get();
-         var1 = this.currency;
+         this.cur = (Currency)optional.get();
+         text = this.currency;
          SendMessage.infoMessage("Successfully registered currency '" + this.currency + "' from UltraEconomy");
       } else {
          try {
             this.cur = (Currency)this.ue.getCurrencies().get(0);
-            var1 = this.cur.getName();
+            text = this.cur.getName();
             SendMessage.infoMessage("Successfully hooked into UltraEconomy and using default currency: " + this.cur.getKey() + "(" + this.cur.getName() + ")");
-         } catch (IndexOutOfBoundsException var3) {
+         } catch (IndexOutOfBoundsException exception) {
             throw new EconomyLoadException("Failed to find a currency in UltraEconomy");
          }
       }
 
-      String var4 = ConfigManager.getPathIgnoreCase("currency-formats.ultra-economy:" + var1);
-      if (!ConfigManager.getConfig().contains(var4)) {
-         var4 = ConfigManager.getPathIgnoreCase("currency-formats.ultra-economy");
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.ultra-economy:" + text);
+      if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+         pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.ultra-economy");
       }
 
-      this.formatSingular(var4);
-      this.formatPlural(var4);
-      this.formatFriendly(var4);
-      this.priceFormat = PriceFormatter.getFormatter(var4);
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
+      this.formatFriendly(pathIgnoreCase);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      Optional var2 = this.ue.getAccounts().uuid(var1.getUniqueId());
-      if (var2.isPresent()) {
-         return ((Account)var2.get()).getBalance(this.cur).getOnHand();
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      Optional optional = this.ue.getAccounts().uuid(offlinePlayer.getUniqueId());
+      if (optional.isPresent()) {
+         return ((Account)optional.get()).getBalance(this.cur).getOnHand();
       } else {
-         SendMessage.warnMessage("UltraEconomy Failed to retrieve the account from player '" + var1.getName() + "'");
+         SendMessage.warnMessage("UltraEconomy Failed to retrieve the account from player '" + offlinePlayer.getName() + "'");
          return 0.0;
       }
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      Optional var4 = this.ue.getAccounts().uuid(var1.getUniqueId());
-      if (var4.isPresent()) {
-         ((Account)var4.get()).getBalance(this.cur).addHand((float)var2);
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      Optional optional = this.ue.getAccounts().uuid(offlinePlayer.getUniqueId());
+      if (optional.isPresent()) {
+         ((Account)optional.get()).getBalance(this.cur).addHand((float)balance);
       } else {
-         SendMessage.warnMessage("UltraEconomy Failed to retrieve the account from player '" + var1.getName() + "'");
+         SendMessage.warnMessage("UltraEconomy Failed to retrieve the account from player '" + offlinePlayer.getName() + "'");
       }
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      Optional var4 = this.ue.getAccounts().uuid(var1.getUniqueId());
-      if (var4.isPresent()) {
-         ((Account)var4.get()).getBalance(this.cur).removeHand((float)var2);
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      Optional optional = this.ue.getAccounts().uuid(offlinePlayer.getUniqueId());
+      if (optional.isPresent()) {
+         ((Account)optional.get()).getBalance(this.cur).removeHand((float)balance);
          return true;
       } else {
-         SendMessage.warnMessage("UltraEconomy Failed to retrieve the account from player '" + var1.getName() + "'");
+         SendMessage.warnMessage("UltraEconomy Failed to retrieve the account from player '" + offlinePlayer.getName() + "'");
          return false;
       }
    }
@@ -142,13 +142,13 @@ public class UltraEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -158,38 +158,38 @@ public class UltraEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".singular", this.cur.getFormat().getSingularFormat().replace("{Amount} ", "").replace(" {Amount}", "").replace("{Amount}", ""))
+            .getString(text + ".singular", this.cur.getFormat().getSingularFormat().replace("{Amount} ", "").replace(" {Amount}", "").replace("{Amount}", ""))
       );
-      if (this.isSymbol(var2)) {
-         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+      if (this.isSymbol(text2)) {
+         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
       } else {
-         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".plural", this.cur.getFormat().getPluralFormat().replace("{Amount} ", "").replace(" {Amount}", "").replace("{Amount}", ""))
+            .getString(text + ".plural", this.cur.getFormat().getPluralFormat().replace("{Amount} ", "").replace(" {Amount}", "").replace("{Amount}", ""))
       );
-      if (this.isSymbol(var2)) {
-         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+      if (this.isSymbol(text2)) {
+         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
       } else {
-         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
       }
    }
 
-   private void formatFriendly(String var1) {
+   private void formatFriendly(String text) {
       this.friendly = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".friendly", this.cur.getFormat().getPluralFormat().replace("{Amount} ", "").replace(" {Amount}", "").replace("{Amount}", ""))
+            .getString(text + ".friendly", this.cur.getFormat().getPluralFormat().replace("{Amount} ", "").replace(" {Amount}", "").replace("{Amount}", ""))
       );
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

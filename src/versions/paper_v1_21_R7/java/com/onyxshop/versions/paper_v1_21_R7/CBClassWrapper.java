@@ -31,110 +31,110 @@ public class CBClassWrapper {
    private static Method eventFactoryHandleInventoryClose;
    public static Class<?> inventoryCloseEventReason;
 
-   public static Component[] chatMessageFromString(String var0, boolean var1) {
+   public static Component[] chatMessageFromString(String message, boolean flag) {
       try {
-         return (Component[])chatMessageFromString.invoke(null, var0, var1);
-      } catch (InvocationTargetException | IllegalAccessException var3) {
-         var3.printStackTrace();
+         return (Component[])chatMessageFromString.invoke(null, message, flag);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static Component chatMessageFromStringOrNull(String var0) {
+   public static Component chatMessageFromStringOrNull(String message) {
       try {
-         return (Component)chatMessageFromStringOrNull.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (Component)chatMessageFromStringOrNull.invoke(null, message);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static String chatMessageFromComponent(Component var0) {
+   public static String chatMessageFromComponent(Component component) {
       try {
-         return (String)chatMessageFromComponent.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (String)chatMessageFromComponent.invoke(null, component);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static String chatMessageToJSON(Component var0) {
+   public static String chatMessageToJSON(Component component) {
       try {
-         return (String)chatMessageToJSON.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (String)chatMessageToJSON.invoke(null, component);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static Component chatMessageFromJSON(String var0) {
+   public static Component chatMessageFromJSON(String message) {
       try {
-         return (Component)chatMessageFromJSON.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (Component)chatMessageFromJSON.invoke(null, message);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static Component chatMessageFromJSONOrString(String var0) {
+   public static Component chatMessageFromJSONOrString(String message) {
       try {
-         return (Component)chatMessageFromJSONOrString.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (Component)chatMessageFromJSONOrString.invoke(null, message);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static ItemStack craftStackAsNMSCopy(org.bukkit.inventory.ItemStack var0) {
+   public static ItemStack craftStackAsNMSCopy(org.bukkit.inventory.ItemStack itemStack) {
       try {
-         return (ItemStack)craftStackAsNMSCopy.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (ItemStack)craftStackAsNMSCopy.invoke(null, itemStack);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static org.bukkit.inventory.ItemStack craftStackAsBukkitCopy(ItemStack var0) {
+   public static org.bukkit.inventory.ItemStack craftStackAsBukkitCopy(ItemStack itemStack) {
       try {
-         return (org.bukkit.inventory.ItemStack)craftStackAsBukkitCopy.invoke(null, var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (org.bukkit.inventory.ItemStack)craftStackAsBukkitCopy.invoke(null, itemStack);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static ItemEntity getItemHandle(Object var0) {
+   public static ItemEntity getItemHandle(Object value) {
       try {
-         return (ItemEntity)getItemHandle.invoke(var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (ItemEntity)getItemHandle.invoke(value);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static ServerLevel getWorldHandle(Object var0) {
+   public static ServerLevel getWorldHandle(Object value) {
       try {
-         return (ServerLevel)getWorldHandle.invoke(var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (ServerLevel)getWorldHandle.invoke(value);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static ServerPlayer getPlayerHandle(Object var0) {
+   public static ServerPlayer getPlayerHandle(Object value) {
       try {
-         return (ServerPlayer)getPlayerHandle.invoke(var0);
-      } catch (InvocationTargetException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         return (ServerPlayer)getPlayerHandle.invoke(value);
+      } catch (InvocationTargetException | IllegalAccessException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static void eventFactoryHandleInventoryClose(Player var0) {
+   public static void eventFactoryHandleInventoryClose(Player player) {
       try {
-         eventFactoryHandleInventoryClose.invoke(null, var0, inventoryCloseEventReason.getField("PLUGIN").get(null));
-      } catch (InvocationTargetException | NoSuchFieldException | IllegalAccessException var2) {
-         var2.printStackTrace();
+         eventFactoryHandleInventoryClose.invoke(null, player, inventoryCloseEventReason.getField("PLUGIN").get(null));
+      } catch (InvocationTargetException | NoSuchFieldException | IllegalAccessException exception) {
+         exception.printStackTrace();
       }
    }
 
@@ -173,9 +173,9 @@ public class CBClassWrapper {
          );
          eventFactoryHandleInventoryClose.setAccessible(true);
          inventoryCloseEventReason = Class.forName("org.bukkit.event.inventory.InventoryCloseEvent$Reason");
-      } catch (NoSuchMethodException | ClassNotFoundException var1) {
+      } catch (NoSuchMethodException | ClassNotFoundException exception) {
          SendMessage.errorMessage("Failed to initialize CraftBukkit class wrapper, this is a bug!");
-         var1.printStackTrace();
+         exception.printStackTrace();
       }
    }
 }

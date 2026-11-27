@@ -18,61 +18,61 @@ public class PlaceholderLarger extends PlaceholderRequirement {
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public PlaceholderLarger(PlaceholderRequirement.ComparisonOperator var1, String var2, List<String> var3, String var4) throws ItemRequirementLoadException {
-      super(var2.split(var1.symbol)[0]);
-      Pattern var5 = Pattern.compile("%([^% ]+)%");
-      this.staticValue = !var5.matcher(var2.split(var1.symbol)[1]).find();
+   public PlaceholderLarger(PlaceholderRequirement.ComparisonOperator comparisonOperator, String itemId, List<String> values, String text) throws ItemRequirementLoadException {
+      super(itemId.split(comparisonOperator.symbol)[0]);
+      Pattern pattern = Pattern.compile("%([^% ]+)%");
+      this.staticValue = !pattern.matcher(itemId.split(comparisonOperator.symbol)[1]).find();
       if (this.staticValue) {
-         this.value = this.getNumber(var2.split(var1.symbol)[1]);
+         this.value = this.getNumber(itemId.split(comparisonOperator.symbol)[1]);
       } else {
-         this.value = var2.split(var1.symbol)[1];
+         this.value = itemId.split(comparisonOperator.symbol)[1];
       }
 
-      this.lore = RequirementManager.getLore(var3, Lang.PLACEHOLDER_LARGER_REQUIREMENT_LORE.get().toString());
-      this.customMSG = var4;
+      this.lore = RequirementManager.getLore(values, Lang.PLACEHOLDER_LARGER_REQUIREMENT_LORE.get().toString());
+      this.customMSG = text;
    }
 
    @Override
-   public boolean isMet(Player var1) {
+   public boolean isMet(Player player) {
       try {
-         return this.getNumber(this.getFormatted(var1)).compareTo(this.staticValue ? (BigDecimal)this.value : this.getNumber(this.getValue(var1))) >= 0;
-      } catch (ItemRequirementLoadException var3) {
-         SendMessage.errorMessage(var3.getMessage());
+         return this.getNumber(this.getFormatted(player)).compareTo(this.staticValue ? (BigDecimal)this.value : this.getNumber(this.getValue(player))) >= 0;
+      } catch (ItemRequirementLoadException exception) {
+         SendMessage.errorMessage(exception.getMessage());
          return false;
       }
    }
 
-   private String getValue(Player var1) {
-      return this.staticValue ? this.value.toString() : PlaceholderAPIHook.translate(var1, this.value.toString());
+   private String getValue(Player player) {
+      return this.staticValue ? this.value.toString() : PlaceholderAPIHook.translate(player, this.value.toString());
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
-      return this.lore.get(var1, var2, var3, "%requirement%", this.getValue(var1), "%progress%", this.getFormatted(var1));
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
+      return this.lore.get(player, flag, flag2, "%requirement%", this.getValue(player), "%progress%", this.getFormatted(player));
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PLACEHOLDER_LARGER_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PLACEHOLDER_LARGER_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
          SendMessage.chatToPlayer(
-            var1, var2.replace("%requirement%", this.staticValue ? this.value.toString() : this.getValue(var1)).replace("%progress%", this.getFormatted(var1))
+            player, text.replace("%requirement%", this.staticValue ? this.value.toString() : this.getValue(player)).replace("%progress%", this.getFormatted(player))
          );
       }
    }
 
-   private BigDecimal getNumber(String var1) throws ItemRequirementLoadException {
-      if (var1.contains("\\.") || var1.contains(",")) {
+   private BigDecimal getNumber(String itemId) throws ItemRequirementLoadException {
+      if (itemId.contains("\\.") || itemId.contains(",")) {
          try {
-            return BigDecimal.valueOf(Double.parseDouble(var1)).stripTrailingZeros();
-         } catch (NumberFormatException var4) {
+            return BigDecimal.valueOf(Double.parseDouble(itemId)).stripTrailingZeros();
+         } catch (NumberFormatException exception) {
          }
       }
 
       try {
-         return new BigDecimal(var1);
-      } catch (NumberFormatException var3) {
-         throw new ItemRequirementLoadException("Invalid placeholder value for " + var1 + ", needs to be a number for PLACEHOLDER_LARGER requirement!");
+         return new BigDecimal(itemId);
+      } catch (NumberFormatException exception) {
+         throw new ItemRequirementLoadException("Invalid placeholder value for " + itemId + ", needs to be a number for PLACEHOLDER_LARGER requirement!");
       }
    }
 }

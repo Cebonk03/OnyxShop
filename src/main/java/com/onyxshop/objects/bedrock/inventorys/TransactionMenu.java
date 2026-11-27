@@ -34,229 +34,229 @@ public class TransactionMenu extends BedrockInventory {
    private final boolean showCurrencyDropdown;
    private Integer currencySlot;
 
-   public TransactionMenu(boolean var1, com.onyxshop.objects.TransactionMenu var2) {
-      super(var1 ? TransactionMenus.getSize(var2.getTransactionType()) : 0);
-      this.menu = var2;
-      this.shopItem = var2.getShopItem();
-      this.buy = var2.getTransactionMode() == Transaction.Mode.BUY;
-      this.type = var2.getTransactionType();
-      this.currencyTypes = var2.isAPricing() ? (this.buy ? this.shopItem.getABuyPrice().getTypes() : this.shopItem.getASellPrice().getTypes()) : null;
-      this.showCurrencyDropdown = this.currencyTypes != null && !var2.isAllPrices() && this.currencyTypes.size() > 1;
+   public TransactionMenu(boolean flag, com.onyxshop.objects.TransactionMenu transactionMenu) {
+      super(flag ? TransactionMenus.getSize(transactionMenu.getTransactionType()) : 0);
+      this.menu = transactionMenu;
+      this.shopItem = transactionMenu.getShopItem();
+      this.buy = transactionMenu.getTransactionMode() == Transaction.Mode.BUY;
+      this.type = transactionMenu.getTransactionType();
+      this.currencyTypes = transactionMenu.isAPricing() ? (this.buy ? this.shopItem.getABuyPrice().getTypes() : this.shopItem.getASellPrice().getTypes()) : null;
+      this.showCurrencyDropdown = this.currencyTypes != null && !transactionMenu.isAllPrices() && this.currencyTypes.size() > 1;
    }
 
    @Override
-   public void openForm(OnyxShop var1, Player var2, FloodgatePlayer var3) {
-      this.p = var2;
-      int var4 = var1.allowIllegalStacks ? 64 : this.shopItem.getItemToGive().getMaxStackSize();
-      int var5 = this.buy
-         ? (this.shopItem.getMaxBuy() > 0 ? this.shopItem.getMaxBuy() : var4)
-         : (this.shopItem.getMaxSell() > 0 ? this.shopItem.getMaxSell() : var4);
-      int var6 = this.buy ? Math.max(1, this.shopItem.getMinBuy()) : Math.max(1, this.shopItem.getMinSell());
-      if (var6 > var5) {
-         var6 = var5;
+   public void openForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer) {
+      this.p = player;
+      int size = plugin.allowIllegalStacks ? 64 : this.shopItem.getItemToGive().getMaxStackSize();
+      int value = this.buy
+         ? (this.shopItem.getMaxBuy() > 0 ? this.shopItem.getMaxBuy() : size)
+         : (this.shopItem.getMaxSell() > 0 ? this.shopItem.getMaxSell() : size);
+      int value2 = this.buy ? Math.max(1, this.shopItem.getMinBuy()) : Math.max(1, this.shopItem.getMinSell());
+      if (value2 > value) {
+         value2 = value;
       }
 
-      int var7 = 1;
+      int value3 = 1;
       if (this.shopItem.isFixedStackSize()) {
-         var6 = this.shopItem.getSmallestStackSize(var6);
-         var5 = this.shopItem.getLargestStackSize(var5);
-         if (var6 > var5) {
-            var6 = var5;
+         value2 = this.shopItem.getSmallestStackSize(value2);
+         value = this.shopItem.getLargestStackSize(value);
+         if (value2 > value) {
+            value2 = value;
          }
 
-         var7 = this.shopItem.getFixedStackSize();
+         value3 = this.shopItem.getFixedStackSize();
       }
 
-      int var8 = var6;
-      int var9 = var5;
-      int var10 = Math.max(
-         var6, Math.min(var5, this.shopItem.isFixedStackSize() ? this.shopItem.getClosestStackSize(this.menu.getAmount()) : this.menu.getAmount())
+      int value4 = value2;
+      int value5 = value;
+      int value6 = Math.max(
+         value2, Math.min(value, this.shopItem.isFixedStackSize() ? this.shopItem.getClosestStackSize(this.menu.getAmount()) : this.menu.getAmount())
       );
-      Builder var11 = (Builder)CustomForm.builder().title(this.menu.getInvTitle().getBedrockLegacy());
-      var11.label(this.getFormattedPrice(var2, var10));
-      var11.slider(Lang.SELECTED_AMOUNT.get(var2).getBedrockLegacy(), var6, var5, var7, var10);
-      byte var12 = -1;
+      Builder builder = (Builder)CustomForm.builder().title(this.menu.getInvTitle().getBedrockLegacy());
+      builder.label(this.getFormattedPrice(player, value6));
+      builder.slider(Lang.SELECTED_AMOUNT.get(player).getBedrockLegacy(), value2, value, value3, value6);
+      byte value7 = -1;
       if (this.showCurrencyDropdown) {
-         ArrayList var13 = new ArrayList();
+         ArrayList values = new ArrayList();
 
-         for (EcoType var15 : this.currencyTypes) {
-            var13.add(var1.getEcoHandler().getEcon(var15).getFriendly());
+         for (EcoType ecoType : this.currencyTypes) {
+            values.add(plugin.getEcoHandler().getEcon(ecoType).getFriendly());
          }
 
-         int var17 = Math.max(0, this.currencyTypes.indexOf(this.menu.getCurrentEcoType()));
-         var11.dropdown(Lang.CHANGE_CURRENCY.get(var2).getBedrockLegacy(), var13, var17);
-         var12 = 2;
+         int index = Math.max(0, this.currencyTypes.indexOf(this.menu.getCurrentEcoType()));
+         builder.dropdown(Lang.CHANGE_CURRENCY.get(player).getBedrockLegacy(), values, index);
+         value7 = 2;
       }
 
-      byte var16 = var12;
-      var11.validResultHandler(var6x -> {
-         if (var16 != -1) {
-            this.menu.setEcoType(this.currencyTypes.get(var6x.asDropdown(var16)));
+      byte value8 = value7;
+      builder.validResultHandler(element -> {
+         if (value8 != -1) {
+            this.menu.setEcoType(this.currencyTypes.get(element.asDropdown(value8)));
          }
 
-         int var7x = Math.max(var8, Math.min(var9, Math.round(var6x.asSlider(1))));
-         this.menu.setAmount(var7x);
-         this.complete(var1, var2);
+         int value9 = Math.max(value4, Math.min(value5, Math.round(element.asSlider(1))));
+         this.menu.setAmount(value9);
+         this.complete(plugin, player);
       });
-      var3.sendForm(var11);
+      floodgatePlayer.sendForm(builder);
    }
 
-   private String getFormattedPrice(Player var1, int var2) {
-      Map var3 = this.buy
+   private String getFormattedPrice(Player player, int price) {
+      Map map = this.buy
          ? (
             this.menu.isAPricing()
-               ? this.shopItem.getABuyPrice().getBuyPrices(this.menu.getCurrentEcoType(), var1, var2, this.shopItem.getBuyModifiers())
-               : Collections.singletonMap(this.menu.getCurrentEcoType(), this.shopItem.getBuyPrice(var1, var2))
+               ? this.shopItem.getABuyPrice().getBuyPrices(this.menu.getCurrentEcoType(), player, price, this.shopItem.getBuyModifiers())
+               : Collections.singletonMap(this.menu.getCurrentEcoType(), this.shopItem.getBuyPrice(player, price))
          )
          : (
             this.menu.isAPricing()
-               ? this.shopItem.getASellPrice().getSellPrices(this.menu.getCurrentEcoType(), var1, var2, this.shopItem.getSellModifiers())
-               : Collections.singletonMap(this.menu.getCurrentEcoType(), this.shopItem.getSellPrice(var1, var2))
+               ? this.shopItem.getASellPrice().getSellPrices(this.menu.getCurrentEcoType(), player, price, this.shopItem.getSellModifiers())
+               : Collections.singletonMap(this.menu.getCurrentEcoType(), this.shopItem.getSellPrice(player, price))
          );
-      return OnyxShop.getInstance().formatPrices(null, var3, this.menu.isAllPrices());
+      return OnyxShop.getInstance().formatPrices(null, map, this.menu.isAllPrices());
    }
 
    @Override
-   public void openGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4) {
-      this.p = var2;
-      this.buildGridForm(var1, var2, var3, var4);
+   public void openGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag) {
+      this.p = player;
+      this.buildGridForm(plugin, player, floodgatePlayer, flag);
    }
 
-   private void buildGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4) {
-      HashMap var5 = new HashMap();
-      HashMap var6 = new HashMap();
-      HashSet<Integer> var7 = new HashSet<>();
-      HashSet var8 = new HashSet();
+   private void buildGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag) {
+      HashMap map = new HashMap();
+      HashMap map2 = new HashMap();
+      HashSet<Integer> values = new HashSet<>();
+      HashSet values2 = new HashSet();
 
-      for (TransactionItem var10 : TransactionMenus.getItems(this.type)) {
-         ItemStack var11 = var10.getItem(this.shopItem, var2, this.type, this.menu.getCurrentEcoType(), this.menu.getTotalAmount());
-         boolean var12 = var10.getType() == CreateItem.TransactionItemType.FILLITEM;
-         boolean var13 = var10.getType() == CreateItem.TransactionItemType.SELECTED_ITEM;
+      for (TransactionItem transactionItem : TransactionMenus.getItems(this.type)) {
+         ItemStack itemStack = transactionItem.getItem(this.shopItem, player, this.type, this.menu.getCurrentEcoType(), this.menu.getTotalAmount());
+         boolean flag2 = transactionItem.getType() == CreateItem.TransactionItemType.FILLITEM;
+         boolean flag3 = transactionItem.getType() == CreateItem.TransactionItemType.SELECTED_ITEM;
 
-         for (int var15 : var10.getSlots()) {
-            if (var15 >= 0 && var15 < this.items.length) {
-               var5.put(var15, var11);
-               var6.put(var15, var10.getBedrockTexture());
-               if (var12) {
-                  var7.add(var15);
+         for (int value : transactionItem.getSlots()) {
+            if (value >= 0 && value < this.items.length) {
+               map.put(value, itemStack);
+               map2.put(value, transactionItem.getBedrockTexture());
+               if (flag2) {
+                  values.add(value);
                }
 
-               if (var13) {
-                  var8.add(var15);
+               if (flag3) {
+                  values2.add(value);
                }
             }
          }
       }
 
       this.currencySlot = null;
-      if (this.showCurrencyDropdown && !var7.isEmpty()) {
-         this.currencySlot = Collections.min(var7);
-         var7.remove(this.currencySlot);
-         var5.put(this.currencySlot, this.getCurrencyToggleItem(var1));
+      if (this.showCurrencyDropdown && !values.isEmpty()) {
+         this.currencySlot = Collections.min(values);
+         values.remove(this.currencySlot);
+         map.put(this.currencySlot, this.getCurrencyToggleItem(plugin));
       }
 
-      org.geysermc.cumulus.form.SimpleForm.Builder var16 = (org.geysermc.cumulus.form.SimpleForm.Builder)SimpleForm.builder()
-         .title(this.getTitle(this.menu.getInvTitle(), this.items.length, 99, var4));
+      org.geysermc.cumulus.form.SimpleForm.Builder builder = (org.geysermc.cumulus.form.SimpleForm.Builder)SimpleForm.builder()
+         .title(this.getTitle(this.menu.getInvTitle(), this.items.length, 99, flag));
 
-      for (int var17 = 0; var17 < this.items.length; var17++) {
-         ItemStack var18 = (ItemStack)var5.get(var17);
-         if (var18 == null) {
-            var16.button("null");
+      for (int index = 0; index < this.items.length; index++) {
+         ItemStack itemStack = (ItemStack)map.get(index);
+         if (itemStack == null) {
+            builder.button("null");
          } else {
             this.addGridItem(
-               var16, var18, var7.contains(var17), var17, false, var8.contains(var17) ? this.shopItem.getBedrockTexture() : (String)var6.get(var17)
+               builder, itemStack, values.contains(index), index, false, values2.contains(index) ? this.shopItem.getBedrockTexture() : (String)map2.get(index)
             );
          }
       }
 
-      var16.validResultHandler(var6x -> {
-         int var7x = var6x.clickedButtonId();
-         if (this.items[var7x] != null) {
-            this.handleClick(var16, var1, var2, var3, var7x, -1, var4);
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            this.handleClick(builder, plugin, player, floodgatePlayer, id, -1, flag);
          }
       });
-      var3.sendForm(var16);
+      floodgatePlayer.sendForm(builder);
    }
 
    private void reopenGridForm(
-      org.geysermc.cumulus.form.SimpleForm.Builder var1, OnyxShop var2, Player var3, FloodgatePlayer var4, boolean var5, int var6, int var7
+      org.geysermc.cumulus.form.SimpleForm.Builder builder, OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag, int value, int value2
    ) {
-      if (var5 && var6 != var7) {
-         var1 = (org.geysermc.cumulus.form.SimpleForm.Builder)SimpleForm.builder().title(this.getTitle(this.menu.getInvTitle(), this.items.length, var6, var5));
+      if (flag && value != value2) {
+         builder = (org.geysermc.cumulus.form.SimpleForm.Builder)SimpleForm.builder().title(this.getTitle(this.menu.getInvTitle(), this.items.length, value, flag));
 
-         for (int var8 = 0; var8 < this.items.length; var8++) {
-            if (this.items[var8] != null) {
-               this.readdGridItem(var1, var8, var6 == var8);
+         for (int index = 0; index < this.items.length; index++) {
+            if (this.items[index] != null) {
+               this.readdGridItem(builder, index, value == index);
             } else {
-               var1.button("null");
+               builder.button("null");
             }
          }
 
-         var7 = var6;
+         value2 = value;
       }
 
-      int var10 = var7;
-      org.geysermc.cumulus.form.SimpleForm.Builder var9 = var1;
-      var1.validResultHandler(var7x -> {
-         int var8x = var7x.clickedButtonId();
-         if (this.items[var8x] != null) {
-            this.handleClick(var9, var2, var3, var4, var8x, var10, var5);
+      int value3 = value2;
+      org.geysermc.cumulus.form.SimpleForm.Builder builder2 = builder;
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            this.handleClick(builder2, plugin, player, floodgatePlayer, id, value3, flag);
          }
       });
-      var4.sendForm(var1);
+      floodgatePlayer.sendForm(builder);
    }
 
    private void handleClick(
-      org.geysermc.cumulus.form.SimpleForm.Builder var1, OnyxShop var2, Player var3, FloodgatePlayer var4, int var5, int var6, boolean var7
+      org.geysermc.cumulus.form.SimpleForm.Builder builder, OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, int value, int value2, boolean flag
    ) {
-      if (var7 && var6 != var5) {
-         this.reopenGridForm(var1, var2, var3, var4, var7, var5, var6);
-      } else if (this.items[var5].isFillItem()) {
-         this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
-      } else if (this.currencySlot != null && var5 == this.currencySlot) {
+      if (flag && value2 != value) {
+         this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, value, value2);
+      } else if (this.items[value].isFillItem()) {
+         this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
+      } else if (this.currencySlot != null && value == this.currencySlot) {
          this.toggleCurrency();
-         this.buildGridForm(var2, var3, var4, var7);
+         this.buildGridForm(plugin, player, floodgatePlayer, flag);
       } else {
-         TransactionItem var8 = TransactionMenus.getItemFromSlot(this.type, var5);
-         if (!this.handleAction(var2, var3, var8)) {
-            this.buildGridForm(var2, var3, var4, var7);
+         TransactionItem transactionItem = TransactionMenus.getItemFromSlot(this.type, value);
+         if (!this.handleAction(plugin, player, transactionItem)) {
+            this.buildGridForm(plugin, player, floodgatePlayer, flag);
          }
       }
    }
 
    private void toggleCurrency() {
-      int var1 = this.currencyTypes.indexOf(this.menu.getCurrentEcoType());
-      this.menu.setEcoType(this.currencyTypes.get((var1 + 1) % this.currencyTypes.size()));
+      int index = this.currencyTypes.indexOf(this.menu.getCurrentEcoType());
+      this.menu.setEcoType(this.currencyTypes.get((index + 1) % this.currencyTypes.size()));
    }
 
-   private ItemStack getCurrencyToggleItem(OnyxShop var1) {
-      ItemStack var2 = new ItemStack(Material.COMPASS);
-      ItemMeta var3 = var2.getItemMeta();
-      var1.getMetaUtils().setDisplayName(var3, Lang.CHANGE_CURRENCY.get(this.p));
-      var1.getMetaUtils()
+   private ItemStack getCurrencyToggleItem(OnyxShop plugin) {
+      ItemStack itemStack = new ItemStack(Material.COMPASS);
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      plugin.getMetaUtils().setDisplayName(itemMeta, Lang.CHANGE_CURRENCY.get(this.p));
+      plugin.getMetaUtils()
          .setLore(
-            var3,
+            itemMeta,
             Collections.singletonList(
-               Lang.CURRENT_CURRENCY.get(this.p).replace("%currency%", var1.getEcoHandler().getEcon(this.menu.getCurrentEcoType()).getFriendly())
+               Lang.CURRENT_CURRENCY.get(this.p).replace("%currency%", plugin.getEcoHandler().getEcon(this.menu.getCurrentEcoType()).getFriendly())
             )
          );
-      var2.setItemMeta(var3);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
-   private boolean handleAction(OnyxShop var1, Player var2, TransactionItem var3) {
-      if (var3 == null) {
+   private boolean handleAction(OnyxShop plugin, Player player, TransactionItem transactionItem) {
+      if (transactionItem == null) {
          return false;
       } else {
-         switch (var3.getAction().type) {
+         switch (transactionItem.getAction().type) {
             case BACK:
                if (this.type != Transaction.Type.BUY_STACKS_SCREEN) {
-                  com.onyxshop.objects.shops.ShopSection var5 = var1.getSection(this.shopItem.section);
-                  var5.openShopSection(var2, var5.getPageForShopItem(this.shopItem.itemLoc), this.menu.isDisabledBackButton(), this.menu.getRootSection());
-                  var1.getSoundEffects().useBackButton(var2);
+                  com.onyxshop.objects.shops.ShopSection section = plugin.getSection(this.shopItem.section);
+                  section.openShopSection(player, section.getPageForShopItem(this.shopItem.itemLoc), this.menu.isDisabledBackButton(), this.menu.getRootSection());
+                  plugin.getSoundEffects().useBackButton(player);
                } else {
                   new com.onyxshop.objects.TransactionMenu(
-                        var2,
+                        player,
                         this.shopItem,
                         this.menu.getRootSection(),
                         this.menu.isDisabledBackButton(),
@@ -269,25 +269,25 @@ public class TransactionMenu extends BedrockInventory {
 
                return true;
             case COMMAND:
-               List<String> var4 = var3.getClickCommands();
-               if (!var4.isEmpty()) {
-                  var4.forEach(var1x -> CommandHelper.executeCommand(null, var2, var1x));
+               List<String> clickCommands = transactionItem.getClickCommands();
+               if (!clickCommands.isEmpty()) {
+                  clickCommands.forEach(entry -> CommandHelper.executeCommand(null, player, entry));
                }
 
                return false;
             case INSTA_BUY:
             case INSTA_SELL:
-               this.menu.setAmount(var3.getItem().getAmount());
+               this.menu.setAmount(transactionItem.getItem().getAmount());
             case CONFIRM_TRANSACTION:
-               this.complete(var1, var2);
+               this.complete(plugin, player);
                return true;
             case SELL_ALL:
-               var1.menuHandler.completeSellAll(this.menu, var2);
+               plugin.menuHandler.completeSellAll(this.menu, player);
                return true;
             case OPEN_BUY_STACKS:
                if (!this.shopItem.isMaxBuy(this.menu.getMaxStackSize()) && this.shopItem.isAllowQuantity()) {
                   new com.onyxshop.objects.TransactionMenu(
-                        var2,
+                        player,
                         this.shopItem,
                         this.menu.getRootSection(),
                         this.menu.isDisabledBackButton(),
@@ -303,17 +303,17 @@ public class TransactionMenu extends BedrockInventory {
             case NONE:
                return false;
             default:
-               this.menu.updateAmount(var3.getAction());
+               this.menu.updateAmount(transactionItem.getAction());
                return false;
          }
       }
    }
 
-   private void complete(OnyxShop var1, Player var2) {
+   private void complete(OnyxShop plugin, Player player) {
       if (this.menu.isAPricing()) {
-         var1.menuHandler.completeTransactionA(this.menu, var2);
+         plugin.menuHandler.completeTransactionA(this.menu, player);
       } else {
-         var1.menuHandler.completeTransaction(this.menu, var2);
+         plugin.menuHandler.completeTransaction(this.menu, player);
       }
    }
 }

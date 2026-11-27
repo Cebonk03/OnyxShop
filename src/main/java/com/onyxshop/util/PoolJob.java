@@ -11,28 +11,28 @@ public class PoolJob {
    public boolean running = false;
    public boolean completed = false;
 
-   public PoolJob(int var1) {
-      this.id = var1;
+   public PoolJob(int value) {
+      this.id = value;
    }
 
-   public int addAndGetSize(ScheduledRestockJob var1) {
-      this.jobs.add(var1);
+   public int addAndGetSize(ScheduledRestockJob scheduledRestockJob) {
+      this.jobs.add(scheduledRestockJob);
       return this.jobs.size();
    }
 
    public void execute() {
       this.running = true;
-      int var1 = 0;
+      int value = 0;
 
-      for (ScheduledRestockJob var3 : this.jobs) {
+      for (ScheduledRestockJob scheduledRestockJob : this.jobs) {
          try {
-            var3.execute();
-         } catch (Exception var5) {
-            SendMessage.warnMessage("Failed to execute task " + var1 + " from pool job:");
-            var5.printStackTrace();
+            scheduledRestockJob.execute();
+         } catch (Exception exception) {
+            SendMessage.warnMessage("Failed to execute task " + value + " from pool job:");
+            exception.printStackTrace();
          }
 
-         var1++;
+         value++;
       }
 
       this.completed = true;

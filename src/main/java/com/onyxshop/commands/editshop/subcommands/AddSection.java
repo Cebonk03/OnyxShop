@@ -27,9 +27,9 @@ public class AddSection extends SubCommad {
    private String displayname;
    private Integer slot;
 
-   public AddSection(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public AddSection(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -48,54 +48,54 @@ public class AddSection extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 1) {
-         if (!this.p.matcher(var2[1]).find()) {
-            this.section = var2[1];
-            if (var2.length > 2) {
-               this.material = this.methods.getMaterial(var1, var2[2]);
+   public void perform(Object value, String[] values) {
+      if (values.length > 1) {
+         if (!this.p.matcher(values[1]).find()) {
+            this.section = values[1];
+            if (values.length > 2) {
+               this.material = this.methods.getMaterial(value, values[2]);
                if (this.material != null) {
-                  if (var2.length > 3) {
-                     this.displayname = var2[3];
-                     if (var2.length > 4) {
-                        this.slot = this.methods.getMainMenuSlot(var1, var2[4]);
+                  if (values.length > 3) {
+                     this.displayname = values[3];
+                     if (values.length > 4) {
+                        this.slot = this.methods.getMainMenuSlot(value, values[4]);
                         if (this.slot != null) {
-                           this.addSectionToSectionsConfig(var1);
+                           this.addSectionToSectionsConfig(value);
                         }
                      } else {
-                        SendMessage.sendMessage(var1, this.getSyntax());
+                        SendMessage.sendMessage(value, this.getSyntax());
                      }
                   } else {
-                     SendMessage.sendMessage(var1, this.getSyntax());
+                     SendMessage.sendMessage(value, this.getSyntax());
                   }
                }
             } else {
-               SendMessage.sendMessage(var1, this.getSyntax());
+               SendMessage.sendMessage(value, this.getSyntax());
             }
          } else {
-            SendMessage.sendMessage(var1, ChatColor.RED + "The section name can only contain letters and numbers.");
+            SendMessage.sendMessage(value, ChatColor.RED + "The section name can only contain letters and numbers.");
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 2:
             return Arrays.asList("Wood", "Armor", "Fireworks", "Stones", "CustomItems");
          case 3:
-            if (!var1[2].isEmpty()) {
-               ArrayList var2 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], this.plugin.getSupportedMatNames(), var2);
-               Collections.sort(var2);
-               return var2;
+            if (!values[2].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], this.plugin.getSupportedMatNames(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getSupportedMatNames();
@@ -114,8 +114,8 @@ public class AddSection extends SubCommad {
       }
    }
 
-   private void addSectionToSectionsConfig(Object var1) {
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_ADDING_SECTION.get().replace("%section%", this.section));
+   private void addSectionToSectionsConfig(Object value) {
+      SendMessage.sendMessage(value, Lang.EDITSHOP_ADDING_SECTION.get().replace("%section%", this.section));
       this.plugin.getConfigManager().createSectionConfig(this.section);
       ConfigManager.getSection(this.section).set("enable", true);
       ConfigManager.getSection(this.section).set("item.material", this.material);
@@ -123,15 +123,15 @@ public class AddSection extends SubCommad {
       ConfigManager.getSection(this.section).set("item.displayname", this.displayname);
       ConfigManager.saveSection(this.section);
       this.reloadPerms();
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_ADD_SECTION_SUCCESSFUL.get().replace("%path%", "/sections/" + this.section + ".yml"));
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
+      SendMessage.sendMessage(value, Lang.EDITSHOP_ADD_SECTION_SUCCESSFUL.get().replace("%path%", "/sections/" + this.section + ".yml"));
+      SendMessage.sendMessage(value, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
    }
 
    private void reloadPerms() {
-      for (String var4 : new String[]{"shop", "sellall", "sellallitem", "sellallhand", "sellgui"}) {
-         Permission var5 = new Permission("OnyxShop." + var4 + "." + this.section, PermissionDefault.TRUE);
-         if (!this.plugin.getServer().getPluginManager().getPermissions().contains(var5)) {
-            this.plugin.getServer().getPluginManager().addPermission(var5);
+      for (String shopId : new String[]{"shop", "sellall", "sellallitem", "sellallhand", "sellgui"}) {
+         Permission permission = new Permission("OnyxShop." + shopId + "." + this.section, PermissionDefault.TRUE);
+         if (!this.plugin.getServer().getPluginManager().getPermissions().contains(permission)) {
+            this.plugin.getServer().getPluginManager().addPermission(permission);
          }
       }
    }

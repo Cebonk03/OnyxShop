@@ -77,21 +77,21 @@ public enum XEnchantment {
    private final boolean self;
    private final String[] aliases;
 
-   private XEnchantment(String... nullxx) {
-      this(false, nullxx);
+   private XEnchantment(String... values) {
+      this(false, values);
    }
 
-   private XEnchantment(boolean nullxx, String... nullxxx) {
-      this.self = nullxx;
-      this.aliases = nullxxx;
+   private XEnchantment(boolean flag, String... values) {
+      this.self = flag;
+      this.aliases = values;
    }
 
-   private XEnchantment(boolean nullxx, boolean nullxxx, String... nullxxxx) {
+   private XEnchantment(boolean flag, boolean flag2, String... values) {
       this.self = ServerInfo.supportsComponents();
-      this.aliases = nullxxxx;
+      this.aliases = values;
    }
 
-   public static boolean isSmiteEffectiveAgainst(EntityType var0) {
+   public static boolean isSmiteEffectiveAgainst(EntityType entityType) {
       return Arrays.asList(
             EntityType.ZOMBIE,
             EntityType.SKELETON,
@@ -103,53 +103,53 @@ public enum XEnchantment {
             EntityType.PHANTOM,
             EntityType.DROWNED
          )
-         .contains(var0);
+         .contains(entityType);
    }
 
-   public static boolean isArthropodsEffectiveAgainst(EntityType var0) {
-      if (Arrays.asList(EntityType.SPIDER, EntityType.CAVE_SPIDER, EntityType.SILVERFISH, EntityType.ENDERMITE).contains(var0)) {
+   public static boolean isArthropodsEffectiveAgainst(EntityType entityType) {
+      if (Arrays.asList(EntityType.SPIDER, EntityType.CAVE_SPIDER, EntityType.SILVERFISH, EntityType.ENDERMITE).contains(entityType)) {
          return true;
       } else {
-         return Enums.getIfPresent(EntityType.class, "BEE").isPresent() ? var0 == EntityType.BEE : false;
+         return Enums.getIfPresent(EntityType.class, "BEE").isPresent() ? entityType == EntityType.BEE : false;
       }
    }
 
    @Nonnull
-   private static String format(@Nonnull String var0) {
-      return FORMAT_PATTERN.matcher(var0.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
+   private static String format(@Nonnull String text) {
+      return FORMAT_PATTERN.matcher(text.trim().replace('-', '_').replace(' ', '_')).replaceAll("").toUpperCase(Locale.ENGLISH);
    }
 
    @Nonnull
-   public static Optional<XEnchantment> matchXEnchantment(@Nonnull String var0) {
-      Validate.notEmpty(var0, "Enchantment name cannot be null or empty");
-      var0 = format(var0);
+   public static Optional<XEnchantment> matchXEnchantment(@Nonnull String text) {
+      Validate.notEmpty(text, "Enchantment name cannot be null or empty");
+      text = format(text);
 
-      for (XEnchantment var2 : VALUES) {
-         if (var2.name().equals(var0) || var2.anyMatchAliases(var0)) {
-            return Optional.of(var2);
+      for (XEnchantment xEnchantment : VALUES) {
+         if (xEnchantment.name().equals(text) || xEnchantment.anyMatchAliases(text)) {
+            return Optional.of(xEnchantment);
          }
       }
 
       return Optional.empty();
    }
 
-   public static XEnchantment matchXEnchantment(@Nonnull Enchantment var0) {
-      Objects.requireNonNull(var0, "Cannot parse XEnchantment of a null enchantment");
+   public static XEnchantment matchXEnchantment(@Nonnull Enchantment enchantment) {
+      Objects.requireNonNull(enchantment, "Cannot parse XEnchantment of a null enchantment");
 
       try {
-         return ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_20_R4) ? matchCorrectEnch(var0) : valueOf(var0.getName());
-      } catch (IllegalArgumentException var2) {
-         SendMessage.errorMessage("Could not find enchantment '" + var0.getName() + "'");
+         return ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_20_R4) ? matchCorrectEnch(enchantment) : valueOf(enchantment.getName());
+      } catch (IllegalArgumentException exception) {
+         SendMessage.errorMessage("Could not find enchantment '" + enchantment.getName() + "'");
          return null;
       }
    }
 
-   private static XEnchantment matchCorrectEnch(@Nonnull Enchantment var0) {
-      String var1 = var0.getKey().getKey().toUpperCase(Locale.ROOT);
+   private static XEnchantment matchCorrectEnch(@Nonnull Enchantment enchantment) {
+      String key = enchantment.getKey().getKey().toUpperCase(Locale.ROOT);
 
-      for (XEnchantment var3 : VALUES) {
-         if (!var3.self ? var3.aliases[0].equals(var1) : var3.name().equals(var1)) {
-            return var3;
+      for (XEnchantment xEnchantment : VALUES) {
+         if (!xEnchantment.self ? xEnchantment.aliases[0].equals(key) : xEnchantment.name().equals(key)) {
+            return xEnchantment;
          }
       }
 
@@ -157,65 +157,65 @@ public enum XEnchantment {
    }
 
    @Nonnull
-   public static ItemStack addEnchantFromString(ItemStack var0, String var1) {
-      Objects.requireNonNull(var0, "Cannot add enchantment to null ItemStack");
-      if (!Strings.isNullOrEmpty(var1) && !var1.equalsIgnoreCase("none")) {
-         String[] var2 = StringUtils.split(StringUtils.deleteWhitespace(var1), ',');
-         if (var2.length == 0) {
-            var2 = StringUtils.split(var1, ' ');
+   public static ItemStack addEnchantFromString(ItemStack itemStack, String itemId) {
+      Objects.requireNonNull(itemStack, "Cannot add enchantment to null ItemStack");
+      if (!Strings.isNullOrEmpty(itemId) && !itemId.equalsIgnoreCase("none")) {
+         String[] values = StringUtils.split(StringUtils.deleteWhitespace(itemId), ',');
+         if (values.length == 0) {
+            values = StringUtils.split(itemId, ' ');
          }
 
-         Optional var3 = matchXEnchantment(var2[0]);
-         if (var3.isPresent()) {
-            return var0;
+         Optional optional = matchXEnchantment(values[0]);
+         if (optional.isPresent()) {
+            return itemStack;
          } else {
-            Enchantment var4 = ((XEnchantment)var3.get()).parseEnchantment();
-            if (var4 == null) {
+            Enchantment enchantment = ((XEnchantment)optional.get()).parseEnchantment();
+            if (enchantment == null) {
                return null;
             } else {
-               int var5 = 1;
+               int value = 1;
 
                try {
-                  if (var2.length > 1) {
-                     var5 = Integer.parseInt(var2[1]);
+                  if (values.length > 1) {
+                     value = Integer.parseInt(values[1]);
                   }
-               } catch (NumberFormatException var7) {
+               } catch (NumberFormatException exception) {
                }
 
-               var0.addUnsafeEnchantment(var4, var5);
-               return var0;
+               itemStack.addUnsafeEnchantment(enchantment, value);
+               return itemStack;
             }
          }
       } else {
-         return var0;
+         return itemStack;
       }
    }
 
    @Nonnull
-   public ItemStack getBook(int var1) {
-      ItemStack var2 = new ItemStack(Material.ENCHANTED_BOOK);
-      EnchantmentStorageMeta var3 = (EnchantmentStorageMeta)var2.getItemMeta();
-      var3.addStoredEnchant(this.parseEnchantment(), var1, true);
-      var2.setItemMeta(var3);
-      return var2;
+   public ItemStack getBook(int value) {
+      ItemStack itemStack = new ItemStack(Material.ENCHANTED_BOOK);
+      EnchantmentStorageMeta enchantmentStorageMeta = (EnchantmentStorageMeta)itemStack.getItemMeta();
+      enchantmentStorageMeta.addStoredEnchant(this.parseEnchantment(), value, true);
+      itemStack.setItemMeta(enchantmentStorageMeta);
+      return itemStack;
    }
 
-   public List<String> getNames(ItemStack var1) {
-      HashSet<String> var2 = new HashSet<>();
-      var2.add(Material.ENCHANTED_BOOK.name() + " of " + this.name());
+   public List<String> getNames(ItemStack itemStack) {
+      HashSet<String> values = new HashSet<>();
+      values.add(Material.ENCHANTED_BOOK.name() + " of " + this.name());
 
-      for (String var6 : this.aliases) {
-         if (!this.name().contains(var6) && !var2.stream().anyMatch(var1x -> var1x.contains(var6)) && var6.length() >= 4) {
-            var2.add(Material.ENCHANTED_BOOK.name() + " of " + var6);
+      for (String text : this.aliases) {
+         if (!this.name().contains(text) && !values.stream().anyMatch(element -> element.contains(text)) && text.length() >= 4) {
+            values.add(Material.ENCHANTED_BOOK.name() + " of " + text);
          }
       }
 
-      return var2.stream().map(var0 -> OnyxShop.getInstance().getMaterialName(var0)).collect(Collectors.toList());
+      return values.stream().map(element -> OnyxShop.getInstance().getMaterialName(element)).collect(Collectors.toList());
    }
 
-   private boolean anyMatchAliases(String var1) {
-      for (String var5 : this.aliases) {
-         if (var1.equals(var5) || var1.equals(StringUtils.remove(var5, '_'))) {
+   private boolean anyMatchAliases(String text) {
+      for (String text2 : this.aliases) {
+         if (text.equals(text2) || text.equals(StringUtils.remove(text2, '_'))) {
             return true;
          }
       }
@@ -248,28 +248,28 @@ public enum XEnchantment {
    }
 
    public static List<String> getNames() {
-      ArrayList var0 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (XEnchantment var4 : values()) {
-         if (var4.isSupported()) {
-            var0.add(var4.getVanillaName() + ":1");
+      for (XEnchantment xEnchantment : values()) {
+         if (xEnchantment.isSupported()) {
+            values.add(xEnchantment.getVanillaName() + ":1");
          }
       }
 
-      return var0;
+      return values;
    }
 
    static {
-      boolean var0;
+      boolean flag;
       try {
-         Class var1 = Class.forName("org.bukkit.NamespacedKey");
-         Class var2 = Class.forName("org.bukkit.enchantments.Enchantment");
-         var2.getDeclaredMethod("getByKey", var1);
-         var0 = true;
-      } catch (NoSuchMethodException | ClassNotFoundException var3) {
-         var0 = false;
+         Class type = Class.forName("org.bukkit.NamespacedKey");
+         Class type2 = Class.forName("org.bukkit.enchantments.Enchantment");
+         type2.getDeclaredMethod("getByKey", type);
+         flag = true;
+      } catch (NoSuchMethodException | ClassNotFoundException exception) {
+         flag = false;
       }
 
-      ISFLAT = var0;
+      ISFLAT = flag;
    }
 }

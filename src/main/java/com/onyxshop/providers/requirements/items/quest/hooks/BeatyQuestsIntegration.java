@@ -17,17 +17,17 @@ public class BeatyQuestsIntegration implements QuestProvider {
    }
 
    @Override
-   public void init(OnyxShop var1, QuestManager var2) {
+   public void init(OnyxShop plugin, QuestManager questManager) {
       if (!this.isReady()) {
          SendMessage.infoMessage(this.getName() + " found, waiting...");
-         var1.runTaskLater(() -> {
+         plugin.runTaskLater(() -> {
             if (this.isReady()) {
                SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
             } else {
                SendMessage.warnMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", this.getName()));
             }
 
-            var2.onLoad();
+            questManager.onLoad();
          }, 65L);
       } else {
          SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
@@ -39,7 +39,7 @@ public class BeatyQuestsIntegration implements QuestProvider {
       try {
          this.questsAPI = QuestsAPI.getAPI();
          return true;
-      } catch (IllegalStateException var2) {
+      } catch (IllegalStateException exception) {
          return false;
       }
    }
@@ -50,41 +50,41 @@ public class BeatyQuestsIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean isLoaded(String var1) {
+   public boolean isLoaded(String text) {
       try {
-         return this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(var1)) != null;
-      } catch (NumberFormatException var3) {
+         return this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(text)) != null;
+      } catch (NumberFormatException exception) {
          return false;
       }
    }
 
    @Override
-   public String getQuestName(String var1) {
+   public String getQuestName(String name) {
       try {
-         Quest var2 = this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(var1));
-         if (var2 == null) {
+         Quest quest = this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(name));
+         if (quest == null) {
             throw new NullPointerException();
          } else {
-            return var2.getName();
+            return quest.getName();
          }
-      } catch (NullPointerException | NumberFormatException var3) {
-         return var1;
+      } catch (NullPointerException | NumberFormatException exception) {
+         return name;
       }
    }
 
    @Override
-   public boolean hasCompleted(Player var1, String var2) {
+   public boolean hasCompleted(Player player, String playerName) {
       try {
-         Quest var3 = this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(var2));
-         if (var3 == null) {
+         Quest quest = this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(playerName));
+         if (quest == null) {
             throw new NullPointerException();
          } else {
-            PlayerQuester var4 = this.questsAPI.getPlugin().getPlayersManager().getQuester(var1);
-            return var4 != null && var3.hasFinished(var4);
+            PlayerQuester playerQuester = this.questsAPI.getPlugin().getPlayersManager().getQuester(player);
+            return playerQuester != null && quest.hasFinished(playerQuester);
          }
-      } catch (NullPointerException | NumberFormatException var5) {
+      } catch (NullPointerException | NumberFormatException exception) {
          SendMessage.warnMessage(
-            "Failed to check if player " + var1.getName() + " completed quest '" + var2 + "' from BeautyQuests because it could not be loaded"
+            "Failed to check if player " + player.getName() + " completed quest '" + playerName + "' from BeautyQuests because it could not be loaded"
          );
          return false;
       }

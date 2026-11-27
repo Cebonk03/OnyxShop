@@ -48,178 +48,178 @@ public class ItemEditor {
       "enchantments", "potiontypes", "buy-commands", "sell-commands", "recipes", "lore", "displaylore", "colors", "fade-colors"
    );
 
-   public ItemEditor(OnyxShop var1) {
-      this.plugin = var1;
+   public ItemEditor(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
-   public ItemStack getSelectedItem(ShopItem var1) {
-      ItemStack var2 = new ItemStack(var1.getShopItem());
-      if (!var1.hasItemError() && !var1.isDisplayItem()) {
-         ArrayList var3 = new ArrayList();
-         var3.add(Lang.BUY_PRICE.get().getLegacy().replace("%amounttopay%", this.plugin.formatPrice(var1.getEcoType(), var1.getBuyPrice())));
-         var3.add(Lang.SELL_PRICE.get().getLegacy().replace("%amounttopay%", this.plugin.formatPrice(var1.getEcoType(), var1.getSellPrice())));
-         ItemMeta var4 = var2.getItemMeta();
-         var4.setLore(var3);
-         var2.setItemMeta(var4);
+   public ItemStack getSelectedItem(ShopItem shopItem) {
+      ItemStack itemStack = new ItemStack(shopItem.getShopItem());
+      if (!shopItem.hasItemError() && !shopItem.isDisplayItem()) {
+         ArrayList itemIds = new ArrayList();
+         itemIds.add(Lang.BUY_PRICE.get().getLegacy().replace("%amounttopay%", this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice())));
+         itemIds.add(Lang.SELL_PRICE.get().getLegacy().replace("%amounttopay%", this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice())));
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         itemMeta.setLore(itemIds);
+         itemStack.setItemMeta(itemMeta);
       }
 
-      return var2;
+      return itemStack;
    }
 
-   public void saveFireworkOptions(Inventory var1) {
-      boolean var2 = false;
-      String var3 = ((FireworkOptions)var1.getHolder()).getItem().section;
-      String var4 = ((FireworkOptions)var1.getHolder()).getItem().itemLoc;
-      int var5 = Integer.parseInt(this.plugin.versionHandler.getOnyxNbtString(var1.getItem(0), "value"));
-      if (var5 != ConfigManager.getShop(var3).getInt("pages." + var4 + ".duration", 1)) {
-         ConfigManager.getShop(var3).set("pages." + var4 + ".duration", var5);
-         var2 = true;
+   public void saveFireworkOptions(Inventory inventory) {
+      boolean flag = false;
+      String item = ((FireworkOptions)inventory.getHolder()).getItem().section;
+      String item2 = ((FireworkOptions)inventory.getHolder()).getItem().itemLoc;
+      int value = Integer.parseInt(this.plugin.versionHandler.getOnyxNbtString(inventory.getItem(0), "value"));
+      if (value != ConfigManager.getShop(item).getInt("pages." + item2 + ".duration", 1)) {
+         ConfigManager.getShop(item).set("pages." + item2 + ".duration", value);
+         flag = true;
       }
 
-      boolean var6 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(var1.getItem(3), "value"));
-      if (var6 != ConfigManager.getShop(var3).getBoolean("pages." + var4 + ".flicker")) {
-         ConfigManager.getShop(var3).set("pages." + var4 + ".flicker", var6);
-         var2 = true;
+      boolean flag2 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(inventory.getItem(3), "value"));
+      if (flag2 != ConfigManager.getShop(item).getBoolean("pages." + item2 + ".flicker")) {
+         ConfigManager.getShop(item).set("pages." + item2 + ".flicker", flag2);
+         flag = true;
       }
 
-      boolean var7 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(var1.getItem(4), "value"));
-      if (var7 != ConfigManager.getShop(var3).getBoolean("pages." + var4 + ".trail")) {
-         ConfigManager.getShop(var3).set("pages." + var4 + ".trail", var7);
-         var2 = true;
+      boolean flag3 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(inventory.getItem(4), "value"));
+      if (flag3 != ConfigManager.getShop(item).getBoolean("pages." + item2 + ".trail")) {
+         ConfigManager.getShop(item).set("pages." + item2 + ".trail", flag3);
+         flag = true;
       }
 
-      String var8 = this.plugin.versionHandler.getOnyxNbtString(var1.getItem(5), "value");
-      if (!var8.equals(ConfigManager.getShop(var3).getString("pages." + var4 + ".shape", "BALL"))) {
-         ConfigManager.getShop(var3).set("pages." + var4 + ".shape", var8);
-         var2 = true;
+      String onyxNbtString = this.plugin.versionHandler.getOnyxNbtString(inventory.getItem(5), "value");
+      if (!onyxNbtString.equals(ConfigManager.getShop(item).getString("pages." + item2 + ".shape", "BALL"))) {
+         ConfigManager.getShop(item).set("pages." + item2 + ".shape", onyxNbtString);
+         flag = true;
       }
 
-      if (var2) {
-         ConfigManager.saveShop(var3);
-         this.plugin.getSection(var3).reloadItem(var3 + "." + var4);
+      if (flag) {
+         ConfigManager.saveShop(item);
+         this.plugin.getSection(item).reloadItem(item + "." + item2);
       }
    }
 
-   public void saveDynamicPricingOptions(Inventory var1) {
-      boolean var2 = false;
-      String var3 = ((DynamicPricingOptions)var1.getHolder()).getItem().section;
-      String var4 = ((DynamicPricingOptions)var1.getHolder()).getItem().itemLoc;
-      boolean var5 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(var1.getItem(0), "value"));
-      if (var5 != ConfigManager.getShop(var3).getBoolean("pages." + var4 + "." + ItemEditor.Option.DYNAMIC_PRICING_ENABLE.getKey(), this.plugin.dynamicPricing)
+   public void saveDynamicPricingOptions(Inventory inventory) {
+      boolean flag = false;
+      String item = ((DynamicPricingOptions)inventory.getHolder()).getItem().section;
+      String item2 = ((DynamicPricingOptions)inventory.getHolder()).getItem().itemLoc;
+      boolean flag2 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(inventory.getItem(0), "value"));
+      if (flag2 != ConfigManager.getShop(item).getBoolean("pages." + item2 + "." + ItemEditor.Option.DYNAMIC_PRICING_ENABLE.getKey(), this.plugin.dynamicPricing)
          )
        {
-         ConfigManager.getShop(var3).set("pages." + var4 + "." + ItemEditor.Option.DYNAMIC_PRICING_ENABLE.getKey(), var5);
-         var2 = true;
+         ConfigManager.getShop(item).set("pages." + item2 + "." + ItemEditor.Option.DYNAMIC_PRICING_ENABLE.getKey(), flag2);
+         flag = true;
       }
 
-      if (var2) {
-         ConfigManager.saveShop(var3);
-         this.plugin.getSection(var3).reloadItem(var3 + "." + var4);
-      }
-   }
-
-   public void saveUnsavedOptions(Inventory var1) {
-      boolean var2 = false;
-      ShopItem var3 = ((AvailableOptions)var1.getHolder()).getItem();
-      boolean var4 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(var1.getItem(10), "value"));
-      if (var4 != ConfigManager.getShop(var3.section).getBoolean("pages." + var3.itemLoc + ".enchantment-glint")) {
-         ConfigManager.getShop(var3.section).set("pages." + var3.itemLoc + ".enchantment-glint", var4);
-         var2 = true;
-      }
-
-      if (var2) {
-         ConfigManager.saveShop(var3.section);
-         this.plugin.getSection(var3.section).reloadItem(var3.getItemPath());
+      if (flag) {
+         ConfigManager.saveShop(item);
+         this.plugin.getSection(item).reloadItem(item + "." + item2);
       }
    }
 
-   public ItemStack toggleOption(String var1, ItemEditor.Option var2) {
-      ItemStack var3 = null;
-      switch (var2) {
+   public void saveUnsavedOptions(Inventory inventory) {
+      boolean flag = false;
+      ShopItem shopItem = ((AvailableOptions)inventory.getHolder()).getItem();
+      boolean flag2 = Boolean.parseBoolean(this.plugin.versionHandler.getOnyxNbtString(inventory.getItem(10), "value"));
+      if (flag2 != ConfigManager.getShop(shopItem.section).getBoolean("pages." + shopItem.itemLoc + ".enchantment-glint")) {
+         ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + ".enchantment-glint", flag2);
+         flag = true;
+      }
+
+      if (flag) {
+         ConfigManager.saveShop(shopItem.section);
+         this.plugin.getSection(shopItem.section).reloadItem(shopItem.getItemPath());
+      }
+   }
+
+   public ItemStack toggleOption(String itemId, ItemEditor.Option option) {
+      ItemStack itemStack = null;
+      switch (option) {
          case ENCHANTMENT_GLINT:
-            var1 = var1.equals("true") ? "false" : "true";
-            ItemBuilder var4 = new ItemBuilder(var1.equals("true") ? XMaterial.ENCHANTED_BOOK.parseItem() : XMaterial.BOOK.parseItem())
-               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", var2.getName()))
+            itemId = itemId.equals("true") ? "false" : "true";
+            ItemBuilder itemBuilder = new ItemBuilder(itemId.equals("true") ? XMaterial.ENCHANTED_BOOK.parseItem() : XMaterial.BOOK.parseItem())
+               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", option.getName()))
                .withCLore(
                   Collections.singletonList(
                      Lang.CURRENT_VALUE
                         .get()
-                        .replace("%option%", var2.getName())
+                        .replace("%option%", option.getName())
                         .builder()
-                        .append(var1.equals("true") ? ChatColor.GREEN + var1 : ChatColor.RED + var1)
+                        .append(itemId.equals("true") ? ChatColor.GREEN + itemId : ChatColor.RED + itemId)
                         .build()
                   )
                );
-            var3 = var4.build();
+            itemStack = itemBuilder.build();
             break;
          case FIREWORK_DURATION:
-            var1 = String.valueOf(var1.equals("1") ? 2 : (var1.equals("2") ? 3 : 1));
-            ItemBuilder var8 = new ItemBuilder(XMaterial.GUNPOWDER.parseItem())
-               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", var2.getName()))
-               .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", var2.getName()) + ChatColor.GREEN + var1)
-               .setAmount(Integer.parseInt((String)var1));
-            var3 = var8.build();
+            itemId = String.valueOf(itemId.equals("1") ? 2 : (itemId.equals("2") ? 3 : 1));
+            ItemBuilder itemBuilder2 = new ItemBuilder(XMaterial.GUNPOWDER.parseItem())
+               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", option.getName()))
+               .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", option.getName()) + ChatColor.GREEN + itemId)
+               .setAmount(Integer.parseInt((String)itemId));
+            itemStack = itemBuilder2.build();
             break;
          case FIREWORK_FLICKER:
-            var1 = var1.equals("true") ? "false" : "true";
-            ItemBuilder var6 = new ItemBuilder(var1.equals("true") ? XMaterial.GLOWSTONE_DUST.parseItem() : XMaterial.GUNPOWDER.parseItem())
-               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", var2.getName()))
+            itemId = itemId.equals("true") ? "false" : "true";
+            ItemBuilder itemBuilder3 = new ItemBuilder(itemId.equals("true") ? XMaterial.GLOWSTONE_DUST.parseItem() : XMaterial.GUNPOWDER.parseItem())
+               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", option.getName()))
                .withCLore(
                   Collections.singletonList(
                      Lang.CURRENT_VALUE
                         .get()
-                        .replace("%option%", var2.getName())
+                        .replace("%option%", option.getName())
                         .builder()
-                        .append(var1.equals("true") ? ChatColor.GREEN + var1 : ChatColor.RED + var1)
+                        .append(itemId.equals("true") ? ChatColor.GREEN + itemId : ChatColor.RED + itemId)
                         .build()
                   )
                );
-            var3 = var6.build();
+            itemStack = itemBuilder3.build();
             break;
          case FIREWORK_TRAIL:
-            var1 = var1.equals("true") ? "false" : "true";
-            ItemBuilder var7 = new ItemBuilder(var1.equals("true") ? XMaterial.DIAMOND_BLOCK.parseItem() : XMaterial.DIAMOND.parseItem())
-               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", var2.getName()))
+            itemId = itemId.equals("true") ? "false" : "true";
+            ItemBuilder itemBuilder4 = new ItemBuilder(itemId.equals("true") ? XMaterial.DIAMOND_BLOCK.parseItem() : XMaterial.DIAMOND.parseItem())
+               .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", option.getName()))
                .withCLore(
                   Collections.singletonList(
                      Lang.CURRENT_VALUE
                         .get()
-                        .replace("%option%", var2.getName())
+                        .replace("%option%", option.getName())
                         .builder()
-                        .append(var1.equals("true") ? ChatColor.GREEN + var1 : ChatColor.RED + var1)
+                        .append(itemId.equals("true") ? ChatColor.GREEN + itemId : ChatColor.RED + itemId)
                         .build()
                   )
                );
-            var3 = var7.build();
+            itemStack = itemBuilder4.build();
             break;
          case FIREWORK_SHAPE:
-            var1 = var1.equalsIgnoreCase("BALL_LARGE")
+            itemId = itemId.equalsIgnoreCase("BALL_LARGE")
                ? "STAR"
                : (
-                  var1.equalsIgnoreCase("STAR")
+                  itemId.equalsIgnoreCase("STAR")
                      ? "BURST"
-                     : (var1.equalsIgnoreCase("BURST") ? "CREEPER" : (var1.equalsIgnoreCase("CREEPER") ? "BALL" : "BALL_LARGE"))
+                     : (itemId.equalsIgnoreCase("BURST") ? "CREEPER" : (itemId.equalsIgnoreCase("CREEPER") ? "BALL" : "BALL_LARGE"))
                );
-            ItemBuilder var9 = new ItemBuilder(
-                  var1.equalsIgnoreCase("BALL_LARGE")
+            ItemBuilder itemBuilder5 = new ItemBuilder(
+                  itemId.equalsIgnoreCase("BALL_LARGE")
                      ? XMaterial.FIRE_CHARGE.parseItem()
                      : (
-                        var1.equalsIgnoreCase("STAR")
+                        itemId.equalsIgnoreCase("STAR")
                            ? XMaterial.GOLD_NUGGET.parseItem()
                            : (
-                              var1.equalsIgnoreCase("BURST")
+                              itemId.equalsIgnoreCase("BURST")
                                  ? XMaterial.FEATHER.parseItem()
-                                 : (var1.equalsIgnoreCase("CREEPER") ? XMaterial.CREEPER_HEAD.parseItem() : XMaterial.FIREWORK_STAR.parseItem())
+                                 : (itemId.equalsIgnoreCase("CREEPER") ? XMaterial.CREEPER_HEAD.parseItem() : XMaterial.FIREWORK_STAR.parseItem())
                            )
                      )
                )
-               .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", var2.getName()))
-               .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", var2.getName()) + ChatColor.GREEN + var1);
-            var3 = var9.build();
+               .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", option.getName()))
+               .withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", option.getName()) + ChatColor.GREEN + itemId);
+            itemStack = itemBuilder5.build();
             break;
          case DYNAMIC_PRICING_ENABLE:
-            var1 = var1.equals("true") ? "false" : "true";
-            ItemBuilder var5 = new ItemBuilder(XMaterial.LEVER.parseItem())
+            itemId = itemId.equals("true") ? "false" : "true";
+            ItemBuilder itemBuilder6 = new ItemBuilder(XMaterial.LEVER.parseItem())
                .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_DYNAMIC_PRICING_ENABLE.get()))
                .withCLore(
                   Collections.singletonList(
@@ -227,141 +227,141 @@ public class ItemEditor {
                         .get()
                         .replace("%option%", Lang.OPTION_DYNAMIC_PRICING.get())
                         .builder()
-                        .append(var1.equals("true") ? ChatColor.GREEN + var1 : ChatColor.RED + var1)
+                        .append(itemId.equals("true") ? ChatColor.GREEN + itemId : ChatColor.RED + itemId)
                         .build()
                   )
                );
-            if (var1.equals("true")) {
-               var5.withEnchantGlint();
+            if (itemId.equals("true")) {
+               itemBuilder6.withEnchantGlint();
             }
 
-            var3 = var5.build();
+            itemStack = itemBuilder6.build();
       }
 
-      return this.setEditOption(this.plugin.versionHandler.setOnyxNbtString(var3, "value", (String)var1), var2);
+      return this.setEditOption(this.plugin.versionHandler.setOnyxNbtString(itemStack, "value", (String)itemId), option);
    }
 
-   public List<ItemStack> getAllKeys(String var1, String var2) {
-      ShopItem var3 = this.plugin.getShopItem(var1, var2);
-      Config var4 = ConfigManager.getShop(var1);
-      String var5 = "pages." + var2;
-      ArrayList var6 = new ArrayList();
-      ItemBuilder var7 = new ItemBuilder(XMaterial.GRASS_BLOCK.parseItem())
+   public List<ItemStack> getAllKeys(String itemId, String text) {
+      ShopItem shopItem = this.plugin.getShopItem(itemId, text);
+      Config config = ConfigManager.getShop(itemId);
+      String text2 = "pages." + text;
+      ArrayList values = new ArrayList();
+      ItemBuilder itemBuilder = new ItemBuilder(XMaterial.GRASS_BLOCK.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_MATERIAL.get()));
-      if (var4.getString(var5 + ".material") != null && !var4.getString(var5 + ".material").isEmpty()) {
-         var7.setCLore(
+      if (config.getString(text2 + ".material") != null && !config.getString(text2 + ".material").isEmpty()) {
+         itemBuilder.setCLore(
             Arrays.asList(
-               Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_MATERIAL.get()).builder().color('a').append(var4.getString(var5 + ".material")).build()
+               Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_MATERIAL.get()).builder().color('a').append(config.getString(text2 + ".material")).build()
             )
          );
       }
 
-      var6.add(this.setEditOption(var7.build(), ItemEditor.Option.MATERIAL));
-      ItemBuilder var8 = new ItemBuilder(XMaterial.NAME_TAG.parseItem())
+      values.add(this.setEditOption(itemBuilder.build(), ItemEditor.Option.MATERIAL));
+      ItemBuilder itemBuilder2 = new ItemBuilder(XMaterial.NAME_TAG.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_DISPLAYNAME.get()));
-      if (var4.getString(var5 + ".displayname") != null && !var4.getString(var5 + ".displayname").isEmpty()) {
-         var8.setCLore(
+      if (config.getString(text2 + ".displayname") != null && !config.getString(text2 + ".displayname").isEmpty()) {
+         itemBuilder2.setCLore(
             Arrays.asList(
                Lang.CURRENT_VALUE
                   .get()
                   .replace("%option%", Lang.OPTION_DISPLAYNAME.get())
                   .builder()
-                  .append(SendMessage.fromConfig(var4.getString(var5 + ".displayname")))
+                  .append(SendMessage.fromConfig(config.getString(text2 + ".displayname")))
                   .build()
             )
          );
       }
 
-      var6.add(this.setEditOption(var8.build(), ItemEditor.Option.DISPLAYNAME));
-      ItemBuilder var9 = new ItemBuilder(XMaterial.NAME_TAG.parseItem())
+      values.add(this.setEditOption(itemBuilder2.build(), ItemEditor.Option.DISPLAYNAME));
+      ItemBuilder itemBuilder3 = new ItemBuilder(XMaterial.NAME_TAG.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_NAME.get()));
-      if (var4.getString(var5 + ".name") != null && !var4.getString(var5 + ".name").isEmpty()) {
-         var9.setCLore(
+      if (config.getString(text2 + ".name") != null && !config.getString(text2 + ".name").isEmpty()) {
+         itemBuilder3.setCLore(
             Arrays.asList(
                Lang.CURRENT_VALUE
                   .get()
                   .replace("%option%", Lang.OPTION_NAME.get())
                   .builder()
-                  .append(SendMessage.fromConfig(var4.getString(var5 + ".name")))
+                  .append(SendMessage.fromConfig(config.getString(text2 + ".name")))
                   .build()
             )
          );
       }
 
-      var6.add(this.setEditOption(var9.build(), ItemEditor.Option.NAME));
-      ItemBuilder var10 = new ItemBuilder(XMaterial.GOLD_NUGGET.parseItem())
+      values.add(this.setEditOption(itemBuilder3.build(), ItemEditor.Option.NAME));
+      ItemBuilder itemBuilder4 = new ItemBuilder(XMaterial.GOLD_NUGGET.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_BUY_PRICE.get()));
-      if (var4.getString(var5 + ".buy") != null && !var4.getString(var5 + ".buy").isEmpty()) {
-         var10.setCLore(
-            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_BUY_PRICE.get()).builder().append(var4.getString(var5 + ".buy")).build())
+      if (config.getString(text2 + ".buy") != null && !config.getString(text2 + ".buy").isEmpty()) {
+         itemBuilder4.setCLore(
+            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_BUY_PRICE.get()).builder().append(config.getString(text2 + ".buy")).build())
          );
       }
 
-      var6.add(this.setEditOption(var10.build(), ItemEditor.Option.BUY_PRICE));
-      ItemBuilder var11 = new ItemBuilder(XMaterial.GOLD_NUGGET.parseItem())
+      values.add(this.setEditOption(itemBuilder4.build(), ItemEditor.Option.BUY_PRICE));
+      ItemBuilder itemBuilder5 = new ItemBuilder(XMaterial.GOLD_NUGGET.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SELL_PRICE.get()));
-      if (var4.getString(var5 + ".sell") != null && !var4.getString(var5 + ".sell").isEmpty()) {
-         var11.setCLore(
-            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SELL_PRICE.get()).builder().append(var4.getString(var5 + ".sell")).build())
+      if (config.getString(text2 + ".sell") != null && !config.getString(text2 + ".sell").isEmpty()) {
+         itemBuilder5.setCLore(
+            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SELL_PRICE.get()).builder().append(config.getString(text2 + ".sell")).build())
          );
       }
 
-      var6.add(this.setEditOption(var11.build(), ItemEditor.Option.SELL_PRICE));
-      ItemBuilder var12 = new ItemBuilder(XMaterial.MOJANG_BANNER_PATTERN.parseItem())
+      values.add(this.setEditOption(itemBuilder5.build(), ItemEditor.Option.SELL_PRICE));
+      ItemBuilder itemBuilder6 = new ItemBuilder(XMaterial.MOJANG_BANNER_PATTERN.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_LORE.get()))
          .hideFlags();
-      if (!var4.getStringList(var5 + ".lore").isEmpty()) {
-         ArrayList var13 = new ArrayList();
-         var13.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_LORE.get()));
-         var4.getStringList(var5 + ".lore").forEach(var1x -> var13.add(SendMessage.fromConfig("- " + var1x)));
-         var12.setCLore(var13);
+      if (!config.getStringList(text2 + ".lore").isEmpty()) {
+         ArrayList values2 = new ArrayList();
+         values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_LORE.get()));
+         config.getStringList(text2 + ".lore").forEach(entry -> values2.add(SendMessage.fromConfig("- " + entry)));
+         itemBuilder6.setCLore(values2);
       }
 
-      var6.add(this.setEditOption(var12.build(), ItemEditor.Option.LORE));
-      ItemBuilder var25 = new ItemBuilder(XMaterial.MOJANG_BANNER_PATTERN.parseItem())
+      values.add(this.setEditOption(itemBuilder6.build(), ItemEditor.Option.LORE));
+      ItemBuilder itemBuilder7 = new ItemBuilder(XMaterial.MOJANG_BANNER_PATTERN.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_DISPLAYLORE.get()))
          .hideFlags();
-      if (!var4.getStringList(var5 + ".displaylore").isEmpty()) {
-         ArrayList var14 = new ArrayList();
-         var14.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_DISPLAYLORE.get()));
-         var4.getStringList(var5 + ".displaylore").forEach(var1x -> var14.add(SendMessage.fromConfig("- " + var1x)));
-         var25.setCLore(var14);
+      if (!config.getStringList(text2 + ".displaylore").isEmpty()) {
+         ArrayList values2 = new ArrayList();
+         values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_DISPLAYLORE.get()));
+         config.getStringList(text2 + ".displaylore").forEach(entry -> values2.add(SendMessage.fromConfig("- " + entry)));
+         itemBuilder7.setCLore(values2);
       }
 
-      var6.add(this.setEditOption(var25.build(), ItemEditor.Option.DISPLAYLORE));
-      ItemBuilder var26 = new ItemBuilder(XMaterial.TRIPWIRE_HOOK.parseItem())
+      values.add(this.setEditOption(itemBuilder7.build(), ItemEditor.Option.DISPLAYLORE));
+      ItemBuilder itemBuilder8 = new ItemBuilder(XMaterial.TRIPWIRE_HOOK.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SLOT.get()));
-      if (var4.getString(var5 + ".slot") != null && !var4.getString(var5 + ".slot").isEmpty()) {
-         var26.setCLore(
-            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SLOT.get()).builder().append(var4.getString(var5 + ".slot")).build())
+      if (config.getString(text2 + ".slot") != null && !config.getString(text2 + ".slot").isEmpty()) {
+         itemBuilder8.setCLore(
+            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SLOT.get()).builder().append(config.getString(text2 + ".slot")).build())
          );
       }
 
-      var6.add(this.setEditOption(var26.build(), ItemEditor.Option.SLOT));
-      ItemBuilder var15 = new ItemBuilder(XMaterial.FEATHER.parseItem())
+      values.add(this.setEditOption(itemBuilder8.build(), ItemEditor.Option.SLOT));
+      ItemBuilder itemBuilder9 = new ItemBuilder(XMaterial.FEATHER.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_STACK_SIZE.get()));
-      if (var4.getString(var5 + ".stack-size") != null && !var4.getString(var5 + ".stack-size").isEmpty()) {
-         var15.setCLore(
+      if (config.getString(text2 + ".stack-size") != null && !config.getString(text2 + ".stack-size").isEmpty()) {
+         itemBuilder9.setCLore(
             Arrays.asList(
-               Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_STACK_SIZE.get()).builder().append(var4.getString(var5 + ".stack-size")).build()
+               Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_STACK_SIZE.get()).builder().append(config.getString(text2 + ".stack-size")).build()
             )
          );
-         var15.setAmount(var4.getInt(var5 + ".stack-size", 16));
+         itemBuilder9.setAmount(config.getInt(text2 + ".stack-size", 16));
       }
 
-      var6.add(this.setEditOption(var15.build(), ItemEditor.Option.STACK_SIZE));
-      ItemBuilder var16 = new ItemBuilder(XMaterial.ENCHANTED_BOOK.parseItem())
+      values.add(this.setEditOption(itemBuilder9.build(), ItemEditor.Option.STACK_SIZE));
+      ItemBuilder itemBuilder10 = new ItemBuilder(XMaterial.ENCHANTED_BOOK.parseItem())
          .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_ENCHANTMENT.get()));
-      if (!var4.getStringList(var5 + ".enchantments").isEmpty()) {
-         ArrayList var17 = new ArrayList();
-         var17.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_ENCHANTMENT.get()));
-         var4.getStringList(var5 + ".enchantments").forEach(var1x -> var17.add(SendMessage.fromConfig("- " + var1x)));
-         var16.setCLore(var17);
+      if (!config.getStringList(text2 + ".enchantments").isEmpty()) {
+         ArrayList values2 = new ArrayList();
+         values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_ENCHANTMENT.get()));
+         config.getStringList(text2 + ".enchantments").forEach(entry -> values2.add(SendMessage.fromConfig("- " + entry)));
+         itemBuilder10.setCLore(values2);
       }
 
-      var6.add(this.setEditOption(var16.build(), ItemEditor.Option.ENCHANTMENTS));
-      boolean var27 = var4.getBoolean(var5 + ".enchantment-glint");
-      ItemBuilder var18 = new ItemBuilder(var27 ? XMaterial.ENCHANTED_BOOK.parseItem() : XMaterial.BOOK.parseItem())
+      values.add(this.setEditOption(itemBuilder10.build(), ItemEditor.Option.ENCHANTMENTS));
+      boolean flag = config.getBoolean(text2 + ".enchantment-glint");
+      ItemBuilder itemBuilder11 = new ItemBuilder(flag ? XMaterial.ENCHANTED_BOOK.parseItem() : XMaterial.BOOK.parseItem())
          .withDisplayName(Lang.TOGGLE_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_ENCHANTMENT_GLINT.get()))
          .withCLore(
             Arrays.asList(
@@ -369,410 +369,410 @@ public class ItemEditor {
                   .get()
                   .replace("%option%", Lang.OPTION_ENCHANTMENT_GLINT.get())
                   .builder()
-                  .append(var27 ? ChatColor.GREEN + "true" : ChatColor.RED + "false")
+                  .append(flag ? ChatColor.GREEN + "true" : ChatColor.RED + "false")
                   .build()
             )
          );
-      var6.add(
-         this.setEditOption(this.plugin.versionHandler.setOnyxNbtString(var18.build(), "value", String.valueOf(var27)), ItemEditor.Option.ENCHANTMENT_GLINT)
+      values.add(
+         this.setEditOption(this.plugin.versionHandler.setOnyxNbtString(itemBuilder11.build(), "value", String.valueOf(flag)), ItemEditor.Option.ENCHANTMENT_GLINT)
       );
-      if (this.isFirework(var1, var5)) {
-         ItemBuilder var19 = new ItemBuilder(XMaterial.FIREWORK_ROCKET.parseItem())
+      if (this.isFirework(itemId, text2)) {
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.FIREWORK_ROCKET.parseItem())
             .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.FIREWORK_OPTIONS.get()));
-         var6.add(this.setEditOption(var19.build(), ItemEditor.Option.FIREWORK));
+         values.add(this.setEditOption(itemBuilder12.build(), ItemEditor.Option.FIREWORK));
       } else {
-         ItemBuilder var28 = new ItemBuilder(XMaterial.FIREWORK_ROCKET.parseItem());
-         List var20 = Lang.DISABLED_FIREWORK_OPTIONS.getMultiple();
-         var28.setCDisplayName((Translatable)var20.get(0));
-         var28.setCLore(var20.size() > 0 ? var20.subList(1, var20.size()) : var20);
-         var6.add(var28.build());
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.FIREWORK_ROCKET.parseItem());
+         List multiple = Lang.DISABLED_FIREWORK_OPTIONS.getMultiple();
+         itemBuilder12.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder12.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         values.add(itemBuilder12.build());
       }
 
-      if (this.isPotion(var1, var5)) {
-         ItemBuilder var29 = new ItemBuilder(XMaterial.POTION.parseItem())
+      if (this.isPotion(itemId, text2)) {
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.POTION.parseItem())
             .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_POTIONTYPES.get()))
             .hideFlags();
-         if (!var4.getStringList(var5 + ".potiontypes").isEmpty()) {
-            ArrayList var40 = new ArrayList();
-            var40.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_POTIONTYPES.get()));
-            var4.getStringList(var5 + ".potiontypes").forEach(var1x -> var40.add(SendMessage.fromConfig("- " + var1x)));
-            var29.setCLore(var40);
+         if (!config.getStringList(text2 + ".potiontypes").isEmpty()) {
+            ArrayList values2 = new ArrayList();
+            values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_POTIONTYPES.get()));
+            config.getStringList(text2 + ".potiontypes").forEach(entry -> values2.add(SendMessage.fromConfig("- " + entry)));
+            itemBuilder12.setCLore(values2);
          }
 
-         var6.add(this.setEditOption(this.plugin.versionHandler.setPotionType(var29.build(), PotionTypes.HEALING), ItemEditor.Option.POTIONTYPES));
+         values.add(this.setEditOption(this.plugin.versionHandler.setPotionType(itemBuilder12.build(), PotionTypes.HEALING), ItemEditor.Option.POTIONTYPES));
       } else {
-         ItemBuilder var30 = new ItemBuilder(XMaterial.POTION.parseItem());
-         List var41 = Lang.DISABLED_POTIONTYPES_OPTION.getMultiple();
-         var30.setCDisplayName((Translatable)var41.get(0));
-         var30.setCLore(var41.size() > 0 ? var41.subList(1, var41.size()) : var41);
-         var30.hideFlags();
-         var6.add(var30.build());
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.POTION.parseItem());
+         List multiple = Lang.DISABLED_POTIONTYPES_OPTION.getMultiple();
+         itemBuilder12.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder12.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         itemBuilder12.hideFlags();
+         values.add(itemBuilder12.build());
       }
 
-      if (this.isSpawner(var1, var5)) {
-         ItemBuilder var31 = new ItemBuilder(XMaterial.BLAZE_SPAWN_EGG.parseItem());
-         var31.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SPAWNER_TYPE.get()));
-         if (var4.getString(var5 + ".spawnertype") != null && !var4.getString(var5 + ".spawnertype").isEmpty()) {
-            var31.setCLore(
+      if (this.isSpawner(itemId, text2)) {
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.BLAZE_SPAWN_EGG.parseItem());
+         itemBuilder12.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SPAWNER_TYPE.get()));
+         if (config.getString(text2 + ".spawnertype") != null && !config.getString(text2 + ".spawnertype").isEmpty()) {
+            itemBuilder12.setCLore(
                Arrays.asList(
-                  Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SPAWNER_TYPE.get()).builder().append(var4.getString(var5 + ".spawnertype")).build()
+                  Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SPAWNER_TYPE.get()).builder().append(config.getString(text2 + ".spawnertype")).build()
                )
             );
          }
 
-         var6.add(this.setEditOption(var31.build(), ItemEditor.Option.SPAWNERTYPE));
+         values.add(this.setEditOption(itemBuilder12.build(), ItemEditor.Option.SPAWNERTYPE));
       } else {
-         ItemBuilder var32 = new ItemBuilder(XMaterial.BLAZE_SPAWN_EGG.parseItem());
-         List var42 = Lang.DISABLED_SPAWNER_TYPE_OPTION.getMultiple();
-         var32.setCDisplayName((Translatable)var42.get(0));
-         var32.setCLore(var42.size() > 0 ? var42.subList(1, var42.size()) : var42);
-         var6.add(var32.build());
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.BLAZE_SPAWN_EGG.parseItem());
+         List multiple = Lang.DISABLED_SPAWNER_TYPE_OPTION.getMultiple();
+         itemBuilder12.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder12.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         values.add(itemBuilder12.build());
       }
 
-      if (this.isKnowledgeBook(var1, var5)) {
-         ItemBuilder var33 = new ItemBuilder(XMaterial.KNOWLEDGE_BOOK.parseItem());
-         var33.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_RECIPE.get()));
-         if (!var4.getStringList(var5 + ".recipes").isEmpty()) {
-            ArrayList var43 = new ArrayList();
-            var43.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_RECIPE.get()));
-            var4.getStringList(var5 + ".recipes").forEach(var1x -> var43.add(SendMessage.fromConfig("- " + var1x)));
-            var33.setCLore(var43);
+      if (this.isKnowledgeBook(itemId, text2)) {
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.KNOWLEDGE_BOOK.parseItem());
+         itemBuilder12.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_RECIPE.get()));
+         if (!config.getStringList(text2 + ".recipes").isEmpty()) {
+            ArrayList values2 = new ArrayList();
+            values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_RECIPE.get()));
+            config.getStringList(text2 + ".recipes").forEach(entry -> values2.add(SendMessage.fromConfig("- " + entry)));
+            itemBuilder12.setCLore(values2);
          }
 
-         var6.add(this.setEditOption(var33.build(), ItemEditor.Option.RECIPES));
+         values.add(this.setEditOption(itemBuilder12.build(), ItemEditor.Option.RECIPES));
       } else {
-         ItemBuilder var34 = new ItemBuilder(XMaterial.KNOWLEDGE_BOOK.parseItem());
-         List var44 = Lang.DISABLED_RECIPE_OPTION.getMultiple();
-         var34.setCDisplayName((Translatable)var44.get(0));
-         var34.setCLore(var44.size() > 0 ? var44.subList(1, var44.size()) : var44);
-         var6.add(var34.build());
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.KNOWLEDGE_BOOK.parseItem());
+         List multiple = Lang.DISABLED_RECIPE_OPTION.getMultiple();
+         itemBuilder12.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder12.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         values.add(itemBuilder12.build());
       }
 
-      if (this.isPlayerHead(var1, var5)) {
-         ItemBuilder var35 = new ItemBuilder(XMaterial.PLAYER_HEAD.parseItem());
-         var35.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SKULLOWNER.get()));
-         if (var4.getString(var5 + ".skullowner") != null && !var4.getString(var5 + ".skullowner").isEmpty()) {
-            var35.setCLore(
+      if (this.isPlayerHead(itemId, text2)) {
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.PLAYER_HEAD.parseItem());
+         itemBuilder12.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SKULLOWNER.get()));
+         if (config.getString(text2 + ".skullowner") != null && !config.getString(text2 + ".skullowner").isEmpty()) {
+            itemBuilder12.setCLore(
                Arrays.asList(
                   Lang.CURRENT_VALUE
                      .get()
                      .replace("%option%", Lang.OPTION_SKULLOWNER.get())
                      .builder()
-                     .append(SendMessage.fromConfig(var4.getString(var5 + ".skullowner")))
+                     .append(SendMessage.fromConfig(config.getString(text2 + ".skullowner")))
                      .build()
                )
             );
          }
 
-         var6.add(this.setEditOption(var35.build(), ItemEditor.Option.SKULLOWNER));
+         values.add(this.setEditOption(itemBuilder12.build(), ItemEditor.Option.SKULLOWNER));
       } else {
-         ItemBuilder var36 = new ItemBuilder(XMaterial.PLAYER_HEAD.parseItem());
-         List var45 = Lang.DISABLED_SKULLOWNER_OPTION.getMultiple();
-         var36.setCDisplayName((Translatable)var45.get(0));
-         var36.setCLore(var45.size() > 0 ? var45.subList(1, var45.size()) : var45);
-         var6.add(var36.build());
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.PLAYER_HEAD.parseItem());
+         List multiple = Lang.DISABLED_SKULLOWNER_OPTION.getMultiple();
+         itemBuilder12.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder12.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         values.add(itemBuilder12.build());
       }
 
-      if (this.isLeatherArmor(var1, var5)) {
-         ItemBuilder var37 = new ItemBuilder(XMaterial.LEATHER_CHESTPLATE.parseItem());
-         var37.setArmorColor(Color.fromRGB(39680));
-         var37.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_ARMORCOLOR.get()));
-         if (var4.getString(var5 + ".armorcolor") != null && !var4.getString(var5 + ".armorcolor").isEmpty()) {
-            var37.setCLore(
+      if (this.isLeatherArmor(itemId, text2)) {
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.LEATHER_CHESTPLATE.parseItem());
+         itemBuilder12.setArmorColor(Color.fromRGB(39680));
+         itemBuilder12.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_ARMORCOLOR.get()));
+         if (config.getString(text2 + ".armorcolor") != null && !config.getString(text2 + ".armorcolor").isEmpty()) {
+            itemBuilder12.setCLore(
                Arrays.asList(
-                  Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_ARMORCOLOR.get()).builder().append(var4.getString(var5 + ".armorcolor")).build()
+                  Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_ARMORCOLOR.get()).builder().append(config.getString(text2 + ".armorcolor")).build()
                )
             );
          }
 
          if (this.plugin.version >= 117) {
-            var37.hideFlags();
+            itemBuilder12.hideFlags();
          }
 
-         var6.add(this.setEditOption(var37.build(), ItemEditor.Option.ARMORCOLOR));
+         values.add(this.setEditOption(itemBuilder12.build(), ItemEditor.Option.ARMORCOLOR));
       } else {
-         ItemBuilder var38 = new ItemBuilder(XMaterial.LEATHER_CHESTPLATE.parseItem());
-         var38.setArmorColor(Color.RED);
-         List var46 = Lang.DISABLED_ARMORCOLOR_OPTION.getMultiple();
-         var38.setCDisplayName((Translatable)var46.get(0));
-         var38.setCLore(var46.size() > 0 ? var46.subList(1, var46.size()) : var46);
+         ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.LEATHER_CHESTPLATE.parseItem());
+         itemBuilder12.setArmorColor(Color.RED);
+         List multiple = Lang.DISABLED_ARMORCOLOR_OPTION.getMultiple();
+         itemBuilder12.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder12.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
          if (this.plugin.version >= 117) {
-            var38.hideFlags();
+            itemBuilder12.hideFlags();
          }
 
-         var6.add(var38.build());
+         values.add(itemBuilder12.build());
       }
 
-      ItemBuilder var39 = new ItemBuilder(XMaterial.WRITABLE_BOOK.parseItem());
-      var39.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_NBTDATA.get()));
-      if (var4.getString(var5 + ".NBTData") != null && !var4.getString(var5 + ".NBTData").isEmpty()) {
-         var39.setCLore(
-            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_NBTDATA.get()).builder().append(var4.getString(var5 + ".NBTData")).build())
+      ItemBuilder itemBuilder12 = new ItemBuilder(XMaterial.WRITABLE_BOOK.parseItem());
+      itemBuilder12.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_NBTDATA.get()));
+      if (config.getString(text2 + ".NBTData") != null && !config.getString(text2 + ".NBTData").isEmpty()) {
+         itemBuilder12.setCLore(
+            Arrays.asList(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_NBTDATA.get()).builder().append(config.getString(text2 + ".NBTData")).build())
          );
       }
 
-      var6.add(this.setEditOption(var39.build(), ItemEditor.Option.NBTDATA));
-      ItemBuilder var47 = new ItemBuilder(XMaterial.CHAIN_COMMAND_BLOCK.parseItem());
-      var47.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_BUY_COMMANDS.get()));
-      if (!var4.getStringList(var5 + ".buy-commands").isEmpty()) {
-         ArrayList var21 = new ArrayList();
-         var21.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_BUY_COMMANDS.get()));
-         var4.getStringList(var5 + ".buy-commands").forEach(var1x -> var21.add(SendMessage.fromConfig("&f- " + var1x)));
-         var47.setCLore(var21);
+      values.add(this.setEditOption(itemBuilder12.build(), ItemEditor.Option.NBTDATA));
+      ItemBuilder itemBuilder13 = new ItemBuilder(XMaterial.CHAIN_COMMAND_BLOCK.parseItem());
+      itemBuilder13.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_BUY_COMMANDS.get()));
+      if (!config.getStringList(text2 + ".buy-commands").isEmpty()) {
+         ArrayList values2 = new ArrayList();
+         values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_BUY_COMMANDS.get()));
+         config.getStringList(text2 + ".buy-commands").forEach(entry -> values2.add(SendMessage.fromConfig("&f- " + entry)));
+         itemBuilder13.setCLore(values2);
       }
 
-      var6.add(this.setEditOption(var47.build(), ItemEditor.Option.BUY_COMMANDS));
-      ItemBuilder var48 = new ItemBuilder(XMaterial.CHAIN_COMMAND_BLOCK.parseItem());
-      var48.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SELL_COMMANDS.get()));
-      if (!var4.getStringList(var5 + ".sell-commands").isEmpty()) {
-         ArrayList var22 = new ArrayList();
-         var22.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SELL_COMMANDS.get()));
-         var4.getStringList(var5 + ".sell-commands").forEach(var1x -> var22.add(SendMessage.fromConfig("&f- " + var1x)));
-         var48.setCLore(var22);
+      values.add(this.setEditOption(itemBuilder13.build(), ItemEditor.Option.BUY_COMMANDS));
+      ItemBuilder itemBuilder14 = new ItemBuilder(XMaterial.CHAIN_COMMAND_BLOCK.parseItem());
+      itemBuilder14.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SELL_COMMANDS.get()));
+      if (!config.getStringList(text2 + ".sell-commands").isEmpty()) {
+         ArrayList values2 = new ArrayList();
+         values2.add(Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SELL_COMMANDS.get()));
+         config.getStringList(text2 + ".sell-commands").forEach(entry -> values2.add(SendMessage.fromConfig("&f- " + entry)));
+         itemBuilder14.setCLore(values2);
       }
 
-      var6.add(this.setEditOption(var48.build(), ItemEditor.Option.SELL_COMMANDS));
-      ItemBuilder var49 = new ItemBuilder(XMaterial.ENDER_CHEST.parseItem());
-      if (var4.contains(var5 + ".stock-limit-player")) {
-         List<Translatable> var23 = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
-         var23.forEach(var0 -> var0.replace("%option%", Lang.GLOBAL_STOCK_OPTIONS.get()).replace("%option2%", Lang.OPTION_PLAYER_STOCK.get()));
-         var49.setCDisplayName((Translatable)var23.get(0));
-         var49.setCLore(var23.size() > 0 ? var23.subList(1, var23.size()) : var23);
-         var6.add(var49.build());
+      values.add(this.setEditOption(itemBuilder14.build(), ItemEditor.Option.SELL_COMMANDS));
+      ItemBuilder itemBuilder15 = new ItemBuilder(XMaterial.ENDER_CHEST.parseItem());
+      if (config.contains(text2 + ".stock-limit-player")) {
+         List<Translatable> multiple = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
+         multiple.forEach(entry -> entry.replace("%option%", Lang.GLOBAL_STOCK_OPTIONS.get()).replace("%option2%", Lang.OPTION_PLAYER_STOCK.get()));
+         itemBuilder15.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder15.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         values.add(itemBuilder15.build());
       } else {
-         var49.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.GLOBAL_STOCK_OPTIONS.get()));
-         var6.add(this.setEditOption(var49.build(), ItemEditor.Option.GLOBAL_STOCK));
+         itemBuilder15.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.GLOBAL_STOCK_OPTIONS.get()));
+         values.add(this.setEditOption(itemBuilder15.build(), ItemEditor.Option.GLOBAL_STOCK));
       }
 
-      ItemBuilder var50 = new ItemBuilder(XMaterial.CHEST.parseItem());
-      if (var4.contains(var5 + ".stock-limit-global")) {
-         List<Translatable> var24 = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
-         var24.forEach(var0 -> var0.replace("%option%", Lang.PLAYER_STOCK_OPTIONS.get()).replace("%option2%", Lang.OPTION_GLOBAL_STOCK.get()));
-         var50.setCDisplayName((Translatable)var24.get(0));
-         var50.setCLore(var24.size() > 0 ? var24.subList(1, var24.size()) : var24);
-         var6.add(var50.build());
+      ItemBuilder itemBuilder16 = new ItemBuilder(XMaterial.CHEST.parseItem());
+      if (config.contains(text2 + ".stock-limit-global")) {
+         List<Translatable> multiple = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
+         multiple.forEach(entry -> entry.replace("%option%", Lang.PLAYER_STOCK_OPTIONS.get()).replace("%option2%", Lang.OPTION_GLOBAL_STOCK.get()));
+         itemBuilder16.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder16.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         values.add(itemBuilder16.build());
       } else {
-         var50.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.PLAYER_STOCK_OPTIONS.get()));
-         var6.add(this.setEditOption(var50.build(), ItemEditor.Option.PLAYER_STOCK));
+         itemBuilder16.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.PLAYER_STOCK_OPTIONS.get()));
+         values.add(this.setEditOption(itemBuilder16.build(), ItemEditor.Option.PLAYER_STOCK));
       }
 
       if (this.plugin.dynamicPricing) {
-         ItemBuilder var51 = new ItemBuilder(var3.isDynamicPricing() ? XMaterial.COMPARATOR.parseItem() : XMaterial.REPEATER.parseItem());
-         var51.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.DYNAMIC_PRICING_OPTIONS.get()));
-         if (var3.isDynamicPricing()) {
-            var51.withEnchantGlint();
+         ItemBuilder itemBuilder17 = new ItemBuilder(shopItem.isDynamicPricing() ? XMaterial.COMPARATOR.parseItem() : XMaterial.REPEATER.parseItem());
+         itemBuilder17.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.DYNAMIC_PRICING_OPTIONS.get()));
+         if (shopItem.isDynamicPricing()) {
+            itemBuilder17.withEnchantGlint();
          }
 
-         var6.add(this.setEditOption(var51.build(), ItemEditor.Option.DYNAMIC_PRICING));
+         values.add(this.setEditOption(itemBuilder17.build(), ItemEditor.Option.DYNAMIC_PRICING));
       } else {
-         ItemBuilder var52 = new ItemBuilder(var3.isDynamicPricing() ? XMaterial.COMPARATOR.parseItem() : XMaterial.REPEATER.parseItem());
-         var52.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.DYNAMIC_PRICING_OPTIONS.get()));
-         var52.setCLore(Lang.DISABLED_DYNAMIC_PRICING_OPTION.getMultiple());
-         var6.add(var52.build());
+         ItemBuilder itemBuilder17 = new ItemBuilder(shopItem.isDynamicPricing() ? XMaterial.COMPARATOR.parseItem() : XMaterial.REPEATER.parseItem());
+         itemBuilder17.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.DYNAMIC_PRICING_OPTIONS.get()));
+         itemBuilder17.setCLore(Lang.DISABLED_DYNAMIC_PRICING_OPTION.getMultiple());
+         values.add(itemBuilder17.build());
       }
 
-      ItemBuilder var53 = new ItemBuilder(var3.isLinked() ? XMaterial.ENDER_EYE.parseItem() : XMaterial.ENDER_PEARL.parseItem());
-      var53.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SUBSECTION.get()));
-      if (var3.isLinked()) {
-         var53.setCLore(
+      ItemBuilder itemBuilder17 = new ItemBuilder(shopItem.isLinked() ? XMaterial.ENDER_EYE.parseItem() : XMaterial.ENDER_PEARL.parseItem());
+      itemBuilder17.setCDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", Lang.OPTION_SUBSECTION.get()));
+      if (shopItem.isLinked()) {
+         itemBuilder17.setCLore(
             Arrays.asList(
-               Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SUBSECTION.get()).builder().append(ChatColor.WHITE + var3.getSubSection()).build()
+               Lang.CURRENT_VALUE.get().replace("%option%", Lang.OPTION_SUBSECTION.get()).builder().append(ChatColor.WHITE + shopItem.getSubSection()).build()
             )
          );
       }
 
-      var6.add(this.setEditOption(var53.build(), ItemEditor.Option.SUB_SECTION));
-      return var6;
+      values.add(this.setEditOption(itemBuilder17.build(), ItemEditor.Option.SUB_SECTION));
+      return values;
    }
 
-   private ItemStack setEditOption(ItemStack var1, ItemEditor.Option var2) {
-      return this.plugin.versionHandler.setEditOption(var1, var2.getKey());
+   private ItemStack setEditOption(ItemStack itemStack, ItemEditor.Option option) {
+      return this.plugin.versionHandler.setEditOption(itemStack, option.getKey());
    }
 
-   public List<ItemStack> getAvailableActions(String var1, String var2, String var3) {
-      ArrayList var4 = new ArrayList();
-      ItemBuilder var5 = new ItemBuilder(XMaterial.BARRIER.parseItem());
-      var5.setDisplayName(Lang.DISABLED_ACTION.get());
-      ItemBuilder var6 = new ItemBuilder(XMaterial.EMERALD_BLOCK.parseItem());
-      var6.setDisplayName(Lang.ADD_ACTION.get().replace("%key%", var3));
-      ItemBuilder var7 = new ItemBuilder(XMaterial.NAME_TAG.parseItem());
-      var7.setDisplayName(Lang.EDIT_ACTION.get().replace("%key%", var3));
-      ItemBuilder var8 = new ItemBuilder(XMaterial.REDSTONE_BLOCK.parseItem());
-      var8.setDisplayName(Lang.REMOVE_ACTION.get().replace("%key%", var3));
-      var3 = var3.equals("global stock")
+   public List<ItemStack> getAvailableActions(String itemId, String text, String text2) {
+      ArrayList values = new ArrayList();
+      ItemBuilder itemBuilder = new ItemBuilder(XMaterial.BARRIER.parseItem());
+      itemBuilder.setDisplayName(Lang.DISABLED_ACTION.get());
+      ItemBuilder itemBuilder2 = new ItemBuilder(XMaterial.EMERALD_BLOCK.parseItem());
+      itemBuilder2.setDisplayName(Lang.ADD_ACTION.get().replace("%key%", text2));
+      ItemBuilder itemBuilder3 = new ItemBuilder(XMaterial.NAME_TAG.parseItem());
+      itemBuilder3.setDisplayName(Lang.EDIT_ACTION.get().replace("%key%", text2));
+      ItemBuilder itemBuilder4 = new ItemBuilder(XMaterial.REDSTONE_BLOCK.parseItem());
+      itemBuilder4.setDisplayName(Lang.REMOVE_ACTION.get().replace("%key%", text2));
+      text2 = text2.equals("global stock")
          ? "stock-limit-global"
          : (
-            var3.equals("player stock")
+            text2.equals("player stock")
                ? "stock-limit-player"
-               : (var3.equals("global stock timer") ? "auto-restock-global" : (var3.equals("player stock timer") ? "auto-restock-player" : var3))
+               : (text2.equals("global stock timer") ? "auto-restock-global" : (text2.equals("player stock timer") ? "auto-restock-player" : text2))
          );
-      if (ConfigManager.getShop(var1).get("pages." + var2 + "." + var3) == null) {
-         var4.add(0, this.plugin.versionHandler.setAction(var6.build(), "ADD"));
-         var4.add(1, var5.build());
-         var4.add(2, var5.build());
-      } else if (this.allListKeys.contains(var3)) {
-         var4.add(0, this.plugin.versionHandler.setAction(var6.build(), "ADD"));
-         if (ConfigManager.getShop(var1).getConfigurationSection("pages." + var2).getStringList(var3).isEmpty()) {
-            var4.add(1, var5.build());
-            var4.add(2, var5.build());
+      if (ConfigManager.getShop(itemId).get("pages." + text + "." + text2) == null) {
+         values.add(0, this.plugin.versionHandler.setAction(itemBuilder2.build(), "ADD"));
+         values.add(1, itemBuilder.build());
+         values.add(2, itemBuilder.build());
+      } else if (this.allListKeys.contains(text2)) {
+         values.add(0, this.plugin.versionHandler.setAction(itemBuilder2.build(), "ADD"));
+         if (ConfigManager.getShop(itemId).getConfigurationSection("pages." + text).getStringList(text2).isEmpty()) {
+            values.add(1, itemBuilder.build());
+            values.add(2, itemBuilder.build());
          } else {
-            var4.add(1, this.plugin.versionHandler.setAction(var7.build(), "EDIT"));
-            var4.add(2, this.plugin.versionHandler.setAction(var8.build(), "REMOVE"));
+            values.add(1, this.plugin.versionHandler.setAction(itemBuilder3.build(), "EDIT"));
+            values.add(2, this.plugin.versionHandler.setAction(itemBuilder4.build(), "REMOVE"));
          }
       } else {
-         var4.add(0, var5.build());
-         var4.add(1, this.plugin.versionHandler.setAction(var7.build(), "EDIT"));
-         if (var3.equalsIgnoreCase("material")) {
-            var4.add(2, var5.build());
+         values.add(0, itemBuilder.build());
+         values.add(1, this.plugin.versionHandler.setAction(itemBuilder3.build(), "EDIT"));
+         if (text2.equalsIgnoreCase("material")) {
+            values.add(2, itemBuilder.build());
          } else {
-            var4.add(2, this.plugin.versionHandler.setAction(var8.build(), "REMOVE"));
+            values.add(2, this.plugin.versionHandler.setAction(itemBuilder4.build(), "REMOVE"));
          }
       }
 
-      return var4;
+      return values;
    }
 
-   public List<String> getMultipleItemLore(String... var1) {
-      ArrayList var2 = new ArrayList();
+   public List<String> getMultipleItemLore(String... itemIds) {
+      ArrayList lores = new ArrayList();
 
-      for (String var6 : var1) {
-         if (var6.contains("\n")) {
-            var2.addAll(Arrays.asList(var6.split("\n")));
+      for (String text : itemIds) {
+         if (text.contains("\n")) {
+            lores.addAll(Arrays.asList(text.split("\n")));
          } else {
-            var2.add(var6);
+            lores.add(text);
          }
       }
 
-      return var2;
+      return lores;
    }
 
-   private Material getMaterial(String var1, String var2) {
-      String var4 = ConfigManager.getShop(var1).getString(var2 + ".material");
-      if (var4 == null || var4.isEmpty()) {
+   private Material getMaterial(String materialName, String text) {
+      String text2 = ConfigManager.getShop(materialName).getString(text + ".material");
+      if (text2 == null || text2.isEmpty()) {
          return null;
-      } else if (!var4.contains(":")) {
-         Optional var5 = XMaterial.matchXMaterial(var4);
-         if (!var5.isPresent()) {
+      } else if (!text2.contains(":")) {
+         Optional optional = XMaterial.matchXMaterial(text2);
+         if (!optional.isPresent()) {
             return null;
          } else {
-            ItemStack var3 = ((XMaterial)var5.get()).parseItem();
-            return var3 == null ? null : var3.getType();
+            ItemStack itemStack = ((XMaterial)optional.get()).parseItem();
+            return itemStack == null ? null : itemStack.getType();
          }
       } else {
          try {
-            return OnyxShop.getInstance().getItemManager().getSPM(null, var4).getType();
-         } catch (ItemLoadException var6) {
-            SendMessage.warnMessage("Could not get material value of item: '" + var4 + "'");
+            return OnyxShop.getInstance().getItemManager().getSPM(null, text2).getType();
+         } catch (ItemLoadException exception) {
+            SendMessage.warnMessage("Could not get material value of item: '" + text2 + "'");
             return null;
          }
       }
    }
 
-   private boolean isFirework(String var1, String var2) {
-      Material var3 = this.getMaterial(var1, var2);
-      return var3 == null ? false : var3.equals(XMaterial.FIREWORK_ROCKET.parseMaterial());
+   private boolean isFirework(String text, String text2) {
+      Material material = this.getMaterial(text, text2);
+      return material == null ? false : material.equals(XMaterial.FIREWORK_ROCKET.parseMaterial());
    }
 
-   private boolean isLeatherArmor(String var1, String var2) {
-      Material var3 = this.getMaterial(var1, var2);
-      if (var3 == null) {
+   private boolean isLeatherArmor(String text, String text2) {
+      Material material = this.getMaterial(text, text2);
+      if (material == null) {
          return false;
       } else {
-         ItemStack var4 = new ItemStack(var3);
-         return var4.getItemMeta() instanceof LeatherArmorMeta;
+         ItemStack itemStack = new ItemStack(material);
+         return itemStack.getItemMeta() instanceof LeatherArmorMeta;
       }
    }
 
-   private boolean isPlayerHead(String var1, String var2) {
-      Material var3 = this.getMaterial(var1, var2);
-      return var3 == null ? false : XMaterial.matchXMaterial(var3).equals(XMaterial.PLAYER_HEAD);
+   private boolean isPlayerHead(String playerName, String text) {
+      Material material = this.getMaterial(playerName, text);
+      return material == null ? false : XMaterial.matchXMaterial(material).equals(XMaterial.PLAYER_HEAD);
    }
 
-   private boolean isKnowledgeBook(String var1, String var2) {
-      Material var3 = this.getMaterial(var1, var2);
-      return var3 == null ? false : XMaterial.matchXMaterial(var3).equals(XMaterial.KNOWLEDGE_BOOK);
+   private boolean isKnowledgeBook(String text, String text2) {
+      Material material = this.getMaterial(text, text2);
+      return material == null ? false : XMaterial.matchXMaterial(material).equals(XMaterial.KNOWLEDGE_BOOK);
    }
 
-   private boolean isSpawner(String var1, String var2) {
-      Material var3 = this.getMaterial(var1, var2);
-      return var3 == null ? false : XMaterial.matchXMaterial(var3).equals(XMaterial.SPAWNER);
+   private boolean isSpawner(String text, String text2) {
+      Material material = this.getMaterial(text, text2);
+      return material == null ? false : XMaterial.matchXMaterial(material).equals(XMaterial.SPAWNER);
    }
 
-   private boolean isPotion(String var1, String var2) {
-      Material var3 = this.getMaterial(var1, var2);
-      return var3 == null ? false : PotionTypes.canHaveEffects(var3);
+   private boolean isPotion(String text, String text2) {
+      Material material = this.getMaterial(text, text2);
+      return material == null ? false : PotionTypes.canHaveEffects(material);
    }
 
-   public ItemStack getPotion(String var1, String var2, String var3) {
-      ItemBuilder var4 = new ItemBuilder(Material.BARRIER);
-      var4.setDisplayName(var1);
-      Material var5 = this.getMaterial(var2, var3);
-      if (var5 == null) {
-         return var4.build();
+   public ItemStack getPotion(String itemId, String text, String text2) {
+      ItemBuilder itemBuilder = new ItemBuilder(Material.BARRIER);
+      itemBuilder.setDisplayName(itemId);
+      Material material = this.getMaterial(text, text2);
+      if (material == null) {
+         return itemBuilder.build();
       } else {
-         Optional var6 = PotionTypes.matchPotionType(var1);
-         if (var6.isPresent() && ((PotionTypes)var6.get()).isSupported()) {
-            boolean var7 = XMaterial.matchXMaterial(ConfigManager.getShop(var2).getString(var3 + ".material")).get() == XMaterial.SPLASH_POTION;
-            return ((PotionTypes)var6.get()).addEffect(new ItemStack(var5), var7);
+         Optional optional = PotionTypes.matchPotionType(itemId);
+         if (optional.isPresent() && ((PotionTypes)optional.get()).isSupported()) {
+            boolean flag = XMaterial.matchXMaterial(ConfigManager.getShop(text).getString(text2 + ".material")).get() == XMaterial.SPLASH_POTION;
+            return ((PotionTypes)optional.get()).addEffect(new ItemStack(material), flag);
          } else {
-            return var4.build();
+            return itemBuilder.build();
          }
       }
    }
 
-   public ItemStack getBook(String var1) {
+   public ItemStack getBook(String itemId) {
       try {
-         return this.plugin.enchantsProvider.getEnchant(var1).getBook();
-      } catch (ItemLoadException var4) {
-         ItemBuilder var3 = new ItemBuilder(Material.BARRIER);
-         var3.setDisplayName(var1);
-         return var3.build();
+         return this.plugin.enchantsProvider.getEnchant(itemId).getBook();
+      } catch (ItemLoadException exception) {
+         ItemBuilder itemBuilder = new ItemBuilder(Material.BARRIER);
+         itemBuilder.setDisplayName(itemId);
+         return itemBuilder.build();
       }
    }
 
-   public SimpleEnchantment getChosenEnchantment(String var1, String var2, Integer var3) {
-      List var4 = this.plugin.enchantsProvider.getEnchantsOfItem(this.plugin.getShopItem(var1, var2).getItemToGive());
-      if (var4.size() == 1) {
-         var3 = 0;
+   public SimpleEnchantment getChosenEnchantment(String text, String text2, Integer value) {
+      List enchantsOfItem = this.plugin.enchantsProvider.getEnchantsOfItem(this.plugin.getShopItem(text, text2).getItemToGive());
+      if (enchantsOfItem.size() == 1) {
+         value = 0;
       }
 
-      return var3 >= 0 && var3 < var4.size() ? (SimpleEnchantment)var4.get(var3) : null;
+      return value >= 0 && value < enchantsOfItem.size() ? (SimpleEnchantment)enchantsOfItem.get(value) : null;
    }
 
-   public PotionEffect getChosenPotionEffectType(String var1, String var2, int var3) {
-      if (ConfigManager.getShop(var1).getStringList("pages." + var2 + ".potiontypes").size() == 1) {
-         var3 = 0;
+   public PotionEffect getChosenPotionEffectType(String type, String text, int value) {
+      if (ConfigManager.getShop(type).getStringList("pages." + text + ".potiontypes").size() == 1) {
+         value = 0;
       }
 
-      if (var3 >= 0 && var3 < ConfigManager.getShop(var1).getStringList("pages." + var2 + ".potiontypes").size()) {
-         Optional var4 = PotionTypes.matchPotionType((String)ConfigManager.getShop(var1).getStringList("pages." + var2 + ".potiontypes").get(var3));
-         if (var4.isPresent() && ((PotionTypes)var4.get()).isSupported()) {
-            return ((PotionTypes)var4.get()).parsePotionEffect();
+      if (value >= 0 && value < ConfigManager.getShop(type).getStringList("pages." + text + ".potiontypes").size()) {
+         Optional optional = PotionTypes.matchPotionType((String)ConfigManager.getShop(type).getStringList("pages." + text + ".potiontypes").get(value));
+         if (optional.isPresent() && ((PotionTypes)optional.get()).isSupported()) {
+            return ((PotionTypes)optional.get()).parsePotionEffect();
          }
       }
 
       return null;
    }
 
-   public void loadItemChanges(ItemEditor.Action var1, ItemEditor.Option var2, String var3) {
+   public void loadItemChanges(ItemEditor.Action action, ItemEditor.Option option, String itemId) {
       label26:
-      switch (var1) {
+      switch (action) {
          case EDIT:
          case ADD:
          case REMOVE:
-            if (var2 == ItemEditor.Option.SLOT) {
-               this.plugin.addSection(var3.split("\\.")[0], new ShopCategory(this.plugin, var3.split("\\.")[0]));
+            if (option == ItemEditor.Option.SLOT) {
+               this.plugin.addSection(itemId.split("\\.")[0], new ShopCategory(this.plugin, itemId.split("\\.")[0]));
             } else {
-               this.plugin.getSection(var3.split("\\.")[0]).reloadItem(var3);
-               switch (var2) {
+               this.plugin.getSection(itemId.split("\\.")[0]).reloadItem(itemId);
+               switch (option) {
                   case BUY_PRICE:
                   case SELL_PRICE:
-                     if (this.plugin.getShopItem(var3).isDynamicPricing()) {
-                        SendMessage.logDebugMessage("Detected price change for item '" + var3 + "', reloading DynamicPricing...");
+                     if (this.plugin.getShopItem(itemId).isDynamicPricing()) {
+                        SendMessage.logDebugMessage("Detected price change for item '" + itemId + "', reloading DynamicPricing...");
                      }
                   case DYNAMIC_PRICING_ENABLE:
                   case DYNAMIC_PRICING_MAX_STOCK:
-                     if (this.plugin.getShopItem(var3).isDynamicPricing()) {
+                     if (this.plugin.getShopItem(itemId).isDynamicPricing()) {
                         this.plugin.getDynamicPricingProvider().reload();
                      }
                      break label26;
@@ -787,10 +787,10 @@ public class ItemEditor {
             }
             break;
          case ADD_ITEM:
-            this.plugin.getSection(var3.split("\\.")[0]).addNewItem(var3);
+            this.plugin.getSection(itemId.split("\\.")[0]).addNewItem(itemId);
             break;
          case REMOVE_ITEM:
-            this.plugin.addSection(var3.split("\\.")[0], new ShopCategory(this.plugin, var3.split("\\.")[0]));
+            this.plugin.addSection(itemId.split("\\.")[0], new ShopCategory(this.plugin, itemId.split("\\.")[0]));
       }
 
       if (!this.plugin.shopItemsByMaterialName.isEmpty()) {
@@ -800,187 +800,187 @@ public class ItemEditor {
       this.plugin.startupReload.getShopItemsByMaterialName();
    }
 
-   private String getNextAvailablePosition(String var1) {
-      Config var2 = ConfigManager.getShop(var1);
-      int var3 = var2.getConfigurationSection("pages").getKeys(false).size();
-      if (var3 == 0) {
+   private String getNextAvailablePosition(String text) {
+      Config config = ConfigManager.getShop(text);
+      int size = config.getConfigurationSection("pages").getKeys(false).size();
+      if (size == 0) {
          return "page1.items.1";
       } else {
-         LinkedList var4 = new LinkedList(var2.getConfigurationSection("pages").getKeys(false));
-         String var5 = (String)var4.get(var3 - 1);
-         int var6 = var2.getInt("pages." + var5 + ".gui-rows", 6) * 9 - (this.plugin.navBar.isEnabled(var1) ? 9 : 0);
-         if (var2.getConfigurationSection("pages." + var5 + ".items").getKeys(false).size() >= var6) {
-            return "page" + (var4.size() + 1) + ".items.1";
+         LinkedList sectionIds = new LinkedList(config.getConfigurationSection("pages").getKeys(false));
+         String text2 = (String)sectionIds.get(size - 1);
+         int value = config.getInt("pages." + text2 + ".gui-rows", 6) * 9 - (this.plugin.navBar.isEnabled(text) ? 9 : 0);
+         if (config.getConfigurationSection("pages." + text2 + ".items").getKeys(false).size() >= value) {
+            return "page" + (sectionIds.size() + 1) + ".items.1";
          } else {
-            Set var7 = var2.getConfigurationSection("pages." + var5 + ".items").getKeys(false);
-            int var8 = var7.size() + 1;
+            Set keys = config.getConfigurationSection("pages." + text2 + ".items").getKeys(false);
+            int value2 = keys.size() + 1;
 
-            while (var7.contains(String.valueOf(var8))) {
-               var8++;
+            while (keys.contains(String.valueOf(value2))) {
+               value2++;
             }
 
-            return var5 + ".items." + var8;
+            return text2 + ".items." + value2;
          }
       }
    }
 
-   public void openItemEditorCreateItem(Player var1, ShopItem var2, String var3, Double var4, Double var5) {
-      if (var3 == null) {
-         new ChooseValue(var1, var2, ItemEditor.Option.MATERIAL, ItemEditor.Action.ADD, -1, 1);
-      } else if (var4 == null) {
+   public void openItemEditorCreateItem(Player player, ShopItem shopItem, String itemId, Double amount, Double amount2) {
+      if (itemId == null) {
+         new ChooseValue(player, shopItem, ItemEditor.Option.MATERIAL, ItemEditor.Action.ADD, -1, 1);
+      } else if (amount == null) {
          new AnvilGUI.Builder()
-            .onComplete((var4x, var5x) -> {
+            .onComplete((player2, input) -> {
                try {
-                  Double var6x = Double.parseDouble(var5x);
-                  this.plugin.runTaskLater(() -> this.openItemEditorCreateItem(var1, var2, var3, var6x, null), 1L);
+                  Double amount3 = Double.parseDouble(input);
+                  this.plugin.runTaskLaterFor(() -> this.openItemEditorCreateItem(player, shopItem, itemId, amount3, null), player, 1L);
                   return AnvilGUI.Response.close();
-               } catch (NumberFormatException var7) {
+               } catch (NumberFormatException exception) {
                   return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                }
             })
-            .onClose(var2x -> this.plugin.runTaskLater(() -> this.openItemEditorCreateItem(var2x, var2, null, null, null), 1L))
+            .onClose(player2 -> this.plugin.runTaskLaterFor(() -> this.openItemEditorCreateItem(player2, shopItem, null, null, null), player2, 1L))
             .text(Lang.OPTION_BUY_PRICE.get().getLegacy())
             .itemLeft(new ItemStack(Material.PAPER))
             .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", Lang.OPTION_BUY_PRICE.get()).getLegacy())
             .plugin(this.plugin)
-            .open(var1);
-      } else if (var5 == null) {
+            .open(player);
+      } else if (amount2 == null) {
          new AnvilGUI.Builder()
-            .onComplete((var5x, var6x) -> {
+            .onComplete((player2, input) -> {
                try {
-                  Double var7 = Double.parseDouble(var6x);
-                  this.plugin.runTaskLater(() -> this.openItemEditorCreateItem(var1, var2, var3, var4, var7), 1L);
+                  Double amount3 = Double.parseDouble(input);
+                  this.plugin.runTaskLaterFor(() -> this.openItemEditorCreateItem(player, shopItem, itemId, amount, amount3), player, 1L);
                   return AnvilGUI.Response.close();
-               } catch (NumberFormatException var8) {
+               } catch (NumberFormatException exception) {
                   return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                }
             })
-            .onClose(var3x -> this.plugin.runTaskLater(() -> this.openItemEditorCreateItem(var3x, var2, var3, null, null), 1L))
+            .onClose(player2 -> this.plugin.runTaskLaterFor(() -> this.openItemEditorCreateItem(player2, shopItem, itemId, null, null), player2, 1L))
             .text(Lang.OPTION_SELL_PRICE.get().getLegacy())
             .itemLeft(new ItemStack(Material.PAPER))
             .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", Lang.OPTION_SELL_PRICE.get()).getLegacy())
             .plugin(this.plugin)
-            .open(var1);
+            .open(player);
       } else {
-         String var6 = this.getNextAvailablePosition(var2.section);
-         ConfigManager.getShop(var2.section).set("pages." + var6 + ".material", var3);
-         ConfigManager.getShop(var2.section).set("pages." + var6 + ".buy", var4);
-         ConfigManager.getShop(var2.section).set("pages." + var6 + ".sell", var5);
-         ConfigManager.saveShop(var2.section);
-         new ConclusionScreen(var1, var2, null, ItemEditor.Action.ADD_ITEM, var2.section + "." + var6);
+         String nextAvailablePosition = this.getNextAvailablePosition(shopItem.section);
+         ConfigManager.getShop(shopItem.section).set("pages." + nextAvailablePosition + ".material", itemId);
+         ConfigManager.getShop(shopItem.section).set("pages." + nextAvailablePosition + ".buy", amount);
+         ConfigManager.getShop(shopItem.section).set("pages." + nextAvailablePosition + ".sell", amount2);
+         ConfigManager.saveShop(shopItem.section);
+         new ConclusionScreen(player, shopItem, null, ItemEditor.Action.ADD_ITEM, shopItem.section + "." + nextAvailablePosition);
       }
    }
 
-   public void openAvailableResultsForOption(Player var1, ItemEditor.Option var2, ItemEditor.Action var3, ShopItem var4, int var5) {
-      boolean var6 = false;
-      switch (var2) {
+   public void openAvailableResultsForOption(Player player, ItemEditor.Option option, ItemEditor.Action action, ShopItem shopItem, int value) {
+      boolean flag = false;
+      switch (option) {
          case MATERIAL:
-            new ChooseValue(var1, var4, var2, var3, var5, 1);
+            new ChooseValue(player, shopItem, option, action, value, 1);
             return;
          case BUY_PRICE:
          case SELL_PRICE:
          case SLOT:
          case STACK_SIZE:
          case DYNAMIC_PRICING_MAX_STOCK:
-            if (var3 != ItemEditor.Action.REMOVE) {
+            if (action != ItemEditor.Action.REMOVE) {
                new AnvilGUI.Builder()
-                  .onComplete((var5x, var6x) -> {
+                  .onComplete((player2, input) -> {
                      try {
-                        Object var7x;
-                        if (var2 != ItemEditor.Option.BUY_PRICE && var2 != ItemEditor.Option.SELL_PRICE) {
-                           var7x = Integer.parseInt(var6x);
+                        Object value2;
+                        if (option != ItemEditor.Option.BUY_PRICE && option != ItemEditor.Option.SELL_PRICE) {
+                           value2 = Integer.parseInt(input);
                         } else {
-                           var7x = Double.parseDouble(var6x);
+                           value2 = Double.parseDouble(input);
                         }
 
-                        ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), var7x);
-                        ConfigManager.saveShop(var4.section);
-                        this.plugin.runTaskLater(() -> new ConclusionScreen(var1, var4, var2, var3, null), 1L);
+                        ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), value2);
+                        ConfigManager.saveShop(shopItem.section);
+                        this.plugin.runTaskLaterFor(() -> new ConclusionScreen(player, shopItem, option, action, null), player, 1L);
                         return AnvilGUI.Response.close();
-                     } catch (NumberFormatException var8x) {
+                     } catch (NumberFormatException exception) {
                         return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                      }
                   })
-                  .onClose(var4x -> this.plugin.runTaskLater(() -> new AvailableActions(var1, var4, var2), 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
                   .text(
-                     var3 != ItemEditor.Action.ADD
+                     action != ItemEditor.Action.ADD
                         ? (
-                           var2 == ItemEditor.Option.BUY_PRICE
-                              ? String.valueOf(var4.getBuyPrice())
+                           option == ItemEditor.Option.BUY_PRICE
+                              ? String.valueOf(shopItem.getBuyPrice())
                               : (
-                                 var2 == ItemEditor.Option.SELL_PRICE
-                                    ? String.valueOf(var4.getSellPrice())
+                                 option == ItemEditor.Option.SELL_PRICE
+                                    ? String.valueOf(shopItem.getSellPrice())
                                     : (
-                                       var2 == ItemEditor.Option.SLOT
-                                          ? String.valueOf(this.plugin.getSection(var4.section).getItemLocs().indexOf(var4.itemLoc))
-                                          : (var2 == ItemEditor.Option.STACK_SIZE ? String.valueOf(var4.getStackSize()) : var2.getName())
+                                       option == ItemEditor.Option.SLOT
+                                          ? String.valueOf(this.plugin.getSection(shopItem.section).getItemLocs().indexOf(shopItem.itemLoc))
+                                          : (option == ItemEditor.Option.STACK_SIZE ? String.valueOf(shopItem.getStackSize()) : option.getName())
                                     )
                               )
                         )
-                        : var2.getName()
+                        : option.getName()
                   )
                   .itemLeft(new ItemStack(Material.PAPER))
-                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", var2.getName()).getLegacy())
+                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
                   .plugin(this.plugin)
-                  .open(var1);
+                  .open(player);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
             break;
          case NAME:
          case DISPLAYNAME:
          case NBTDATA:
          case PLAYER_STOCK_FREQUENCY:
          case GLOBAL_STOCK_FREQUENCY:
-            if (var3 != ItemEditor.Action.REMOVE) {
-               var1.closeInventory();
-               this.convFactory.startConversation(var1, var2, var3, var4.getItemPath(), var5);
+            if (action != ItemEditor.Action.REMOVE) {
+               player.closeInventory();
+               this.convFactory.startConversation(player, option, action, shopItem.getItemPath(), value);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
             break;
          case LORE:
          case DISPLAYLORE:
          case BUY_COMMANDS:
          case SELL_COMMANDS:
-            if (var3 == ItemEditor.Action.ADD) {
-               var1.closeInventory();
-               this.convFactory.startConversation(var1, var2, var3, var4.getItemPath(), var5);
+            if (action == ItemEditor.Action.ADD) {
+               player.closeInventory();
+               this.convFactory.startConversation(player, option, action, shopItem.getItemPath(), value);
                return;
             }
 
-            if (var3 == ItemEditor.Action.EDIT) {
-               if (ConfigManager.getShop(var4.section).getStringList("pages." + var4.itemLoc + "." + var2.getKey()).size() == 1) {
-                  var1.closeInventory();
-                  this.convFactory.startConversation(var1, var2, var3, var4.getItemPath(), var5);
-               } else if (var5 == -1) {
-                  new IndexChooser(var1, var4, var2, var3);
+            if (action == ItemEditor.Action.EDIT) {
+               if (ConfigManager.getShop(shopItem.section).getStringList("pages." + shopItem.itemLoc + "." + option.getKey()).size() == 1) {
+                  player.closeInventory();
+                  this.convFactory.startConversation(player, option, action, shopItem.getItemPath(), value);
+               } else if (value == -1) {
+                  new IndexChooser(player, shopItem, option, action);
                } else {
-                  var1.closeInventory();
-                  this.convFactory.startConversation(var1, var2, var3, var4.getItemPath(), var5);
+                  player.closeInventory();
+                  this.convFactory.startConversation(player, option, action, shopItem.getItemPath(), value);
                }
 
                return;
             }
 
-            if (var3 == ItemEditor.Action.REMOVE) {
-               if (ConfigManager.getShop(var4.section).getStringList("pages." + var4.itemLoc + "." + var2.getKey()).size() == 1) {
-                  ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-                  var6 = true;
+            if (action == ItemEditor.Action.REMOVE) {
+               if (ConfigManager.getShop(shopItem.section).getStringList("pages." + shopItem.itemLoc + "." + option.getKey()).size() == 1) {
+                  ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+                  flag = true;
                } else {
-                  if (var5 == -1) {
-                     new IndexChooser(var1, var4, var2, var3);
+                  if (value == -1) {
+                     new IndexChooser(player, shopItem, option, action);
                      return;
                   }
 
-                  List var8 = ConfigManager.getShop(var4.section).getStringList("pages." + var4.itemLoc + "." + var2.getKey());
-                  var8.remove(var5);
-                  ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), var8);
-                  var6 = true;
+                  List stringList = ConfigManager.getShop(shopItem.section).getStringList("pages." + shopItem.itemLoc + "." + option.getKey());
+                  stringList.remove(value);
+                  ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), stringList);
+                  flag = true;
                }
             }
          case HIDE_PRICING_LORE:
@@ -1005,157 +1005,157 @@ public class ItemEditor {
          case FIREWORK_COLORS:
          case FIREWORK_FADE_COLORS:
          case SUB_SECTION:
-            if (var3 == ItemEditor.Action.ADD) {
-               new ChooseValue(var1, var4, var2, var3, var5, 1);
+            if (action == ItemEditor.Action.ADD) {
+               new ChooseValue(player, shopItem, option, action, value, 1);
                return;
             }
 
-            if (var3 == ItemEditor.Action.EDIT) {
-               if (ConfigManager.getShop(var4.section).getStringList("pages." + var4.itemLoc + "." + var2.getKey()).size() == 1) {
-                  new ChooseValue(var1, var4, var2, var3, var5, 1);
-               } else if (var5 == -1) {
-                  new IndexChooser(var1, var4, var2, var3);
+            if (action == ItemEditor.Action.EDIT) {
+               if (ConfigManager.getShop(shopItem.section).getStringList("pages." + shopItem.itemLoc + "." + option.getKey()).size() == 1) {
+                  new ChooseValue(player, shopItem, option, action, value, 1);
+               } else if (value == -1) {
+                  new IndexChooser(player, shopItem, option, action);
                } else {
-                  new ChooseValue(var1, var4, var2, var3, var5, 1);
+                  new ChooseValue(player, shopItem, option, action, value, 1);
                }
 
                return;
             }
 
-            if (var3 == ItemEditor.Action.REMOVE) {
-               if (ConfigManager.getShop(var4.section).getStringList("pages." + var4.itemLoc + "." + var2.getKey()).size() == 1) {
-                  ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-                  var6 = true;
+            if (action == ItemEditor.Action.REMOVE) {
+               if (ConfigManager.getShop(shopItem.section).getStringList("pages." + shopItem.itemLoc + "." + option.getKey()).size() == 1) {
+                  ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+                  flag = true;
                } else {
-                  if (var5 == -1) {
-                     new IndexChooser(var1, var4, var2, var3);
+                  if (value == -1) {
+                     new IndexChooser(player, shopItem, option, action);
                      return;
                   }
 
-                  List var7 = ConfigManager.getShop(var4.section).getStringList("pages." + var4.itemLoc + "." + var2.getKey());
-                  var7.remove(var5);
-                  ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), var7);
-                  var6 = true;
+                  List stringList = ConfigManager.getShop(shopItem.section).getStringList("pages." + shopItem.itemLoc + "." + option.getKey());
+                  stringList.remove(value);
+                  ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), stringList);
+                  flag = true;
                }
             }
             break;
          case SPAWNERTYPE:
-            if (var3 != ItemEditor.Action.REMOVE) {
-               new ChooseValue(var1, var4, var2, var3, var5, 1);
+            if (action != ItemEditor.Action.REMOVE) {
+               new ChooseValue(player, shopItem, option, action, value, 1);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
             break;
          case SKULLOWNER:
-            if (var3 != ItemEditor.Action.REMOVE) {
+            if (action != ItemEditor.Action.REMOVE) {
                new AnvilGUI.Builder()
-                  .onComplete((var5x, var6x) -> {
-                     ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), var6x);
-                     ConfigManager.saveShop(var4.section);
-                     this.plugin.runTaskLater(() -> new ConclusionScreen(var1, var4, var2, var3, null), 1L);
+                  .onComplete((player2, input) -> {
+                     ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), input);
+                     ConfigManager.saveShop(shopItem.section);
+                     this.plugin.runTaskLaterFor(() -> new ConclusionScreen(player, shopItem, option, action, null), player, 1L);
                      return AnvilGUI.Response.close();
                   })
-                  .onClose(var4x -> this.plugin.runTaskLater(() -> new AvailableActions(var1, var4, var2), 1L))
-                  .text(var2.getName())
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .text(option.getName())
                   .itemLeft(new ItemStack(Material.PAPER))
-                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", var2.getName()).getLegacy())
+                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
                   .plugin(this.plugin)
-                  .open(var1);
+                  .open(player);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
             break;
          case ARMORCOLOR:
-            if (var3 != ItemEditor.Action.REMOVE) {
+            if (action != ItemEditor.Action.REMOVE) {
                new AnvilGUI.Builder()
-                  .onComplete((var5x, var6x) -> {
-                     var6x = var6x.replace("#", "");
-                     if (var6x.startsWith("0x")) {
-                        var6x = var6x.substring(2);
+                  .onComplete((player2, input) -> {
+                     input = input.replace("#", "");
+                     if (input.startsWith("0x")) {
+                        input = input.substring(2);
                      }
 
-                     if (var6x.length() == 6) {
-                        ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), var6x);
-                        ConfigManager.saveShop(var4.section);
-                        this.plugin.runTaskLater(() -> new ConclusionScreen(var1, var4, var2, var3, null), 1L);
+                     if (input.length() == 6) {
+                        ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), input);
+                        ConfigManager.saveShop(shopItem.section);
+                        this.plugin.runTaskLaterFor(() -> new ConclusionScreen(player, shopItem, option, action, null), player, 1L);
                         return AnvilGUI.Response.close();
                      } else {
                         return AnvilGUI.Response.text("0x00FF00");
                      }
                   })
-                  .onClose(var4x -> this.plugin.runTaskLater(() -> new AvailableActions(var1, var4, var2), 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
                   .text("0x00FF00")
                   .itemLeft(new ItemStack(Material.PAPER))
-                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", var2.getName()).getLegacy())
+                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
                   .plugin(this.plugin)
-                  .open(var1);
+                  .open(player);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
             break;
          case PLAYER_STOCK_LIMIT:
          case GLOBAL_STOCK_LIMIT:
-            if (var3 != ItemEditor.Action.REMOVE) {
+            if (action != ItemEditor.Action.REMOVE) {
                new AnvilGUI.Builder()
-                  .onComplete((var5x, var6x) -> {
+                  .onComplete((player2, input) -> {
                      try {
-                        ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), Integer.parseInt(var6x));
-                        ConfigManager.saveShop(var4.section);
-                        this.plugin.runTaskLater(() -> new ConclusionScreen(var1, var4, var2, var3, null), 1L);
+                        ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), Integer.parseInt(input));
+                        ConfigManager.saveShop(shopItem.section);
+                        this.plugin.runTaskLaterFor(() -> new ConclusionScreen(player, shopItem, option, action, null), player, 1L);
                         return AnvilGUI.Response.close();
-                     } catch (NumberFormatException var8x) {
+                     } catch (NumberFormatException exception) {
                         return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                      }
                   })
-                  .onClose(var4x -> this.plugin.runTaskLater(() -> new AvailableActions(var1, var4, var2), 1L))
-                  .text(var2.getName())
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
+                  .text(option.getName())
                   .itemLeft(new ItemStack(Material.PAPER))
-                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", var2.getName()).getLegacy())
+                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
                   .plugin(this.plugin)
-                  .open(var1);
+                  .open(player);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
             break;
          case PLAYER_STOCK_TIMER:
          case GLOBAL_STOCK_TIMER:
-            if (var3 != ItemEditor.Action.REMOVE) {
+            if (action != ItemEditor.Action.REMOVE) {
                new AnvilGUI.Builder()
-                  .onComplete((var5x, var6x) -> {
+                  .onComplete((player2, input) -> {
                      try {
-                        TimeUtils.getTime(var6x);
-                        ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), var6x);
-                        ConfigManager.saveShop(var4.section);
-                        this.plugin.runTaskLater(() -> new ConclusionScreen(var1, var4, var2, var3, null), 1L);
+                        TimeUtils.getTime(input);
+                        ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), input);
+                        ConfigManager.saveShop(shopItem.section);
+                        this.plugin.runTaskLaterFor(() -> new ConclusionScreen(player, shopItem, option, action, null), player, 1L);
                         return AnvilGUI.Response.close();
-                     } catch (ParseException var8x) {
+                     } catch (ParseException exception) {
                         return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                      }
                   })
-                  .onClose(var4x -> this.plugin.runTaskLater(() -> new AvailableActions(var1, var4, var2), 1L))
+                  .onClose(player2 -> this.plugin.runTaskLaterFor(() -> new AvailableActions(player, shopItem, option), player2, 1L))
                   .text("5d 12h 30m 10s")
                   .itemLeft(new ItemStack(Material.PAPER))
-                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", var2.getName()).getLegacy())
+                  .title(Lang.ANVILGUI_ENTER_VALUE.get().replace("%option%", option.getName()).getLegacy())
                   .plugin(this.plugin)
-                  .open(var1);
+                  .open(player);
                return;
             }
 
-            ConfigManager.getShop(var4.section).set("pages." + var4.itemLoc + "." + var2.getKey(), null);
-            var6 = true;
+            ConfigManager.getShop(shopItem.section).set("pages." + shopItem.itemLoc + "." + option.getKey(), null);
+            flag = true;
       }
 
-      if (var6) {
-         ConfigManager.saveShop(var4.section);
-         new ConclusionScreen(var1, var4, var2, var3, null);
+      if (flag) {
+         ConfigManager.saveShop(shopItem.section);
+         new ConclusionScreen(player, shopItem, option, action, null);
       }
    }
 
@@ -1217,15 +1217,15 @@ public class ItemEditor {
       private final String key;
       private final String name;
 
-      private Option(String nullxx, Translatable nullxxx) {
-         this.key = nullxx;
-         this.name = nullxxx != null ? nullxxx.getLegacy() : null;
+      private Option(String text, Translatable text2) {
+         this.key = text;
+         this.name = text2 != null ? text2.getLegacy() : null;
       }
 
-      public static ItemEditor.Option getFromKey(String var0) {
-         for (ItemEditor.Option var4 : values()) {
-            if (var4.getKey().equals(var0)) {
-               return var4;
+      public static ItemEditor.Option getFromKey(String key) {
+         for (ItemEditor.Option option : values()) {
+            if (option.getKey().equals(key)) {
+               return option;
             }
          }
 

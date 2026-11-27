@@ -26,15 +26,15 @@ public class CoinsEngineEconomyV1 implements EconomyProvider {
    private boolean wait = false;
    private PriceFormatter.Format priceFormat;
 
-   public CoinsEngineEconomyV1(String var1) throws EconomyLoadException {
-      if (!var1.isEmpty()) {
-         this.currency = var1;
+   public CoinsEngineEconomyV1(String text) throws EconomyLoadException {
+      if (!text.isEmpty()) {
+         this.currency = text;
       }
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (!var1.getServer().getPluginManager().isPluginEnabled("CoinsEngine")) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (!plugin.getServer().getPluginManager().isPluginEnabled("CoinsEngine")) {
          throw new EconomyLoadException("Could not find CoinsEngine");
       } else {
          this.registerCurrency();
@@ -42,14 +42,14 @@ public class CoinsEngineEconomyV1 implements EconomyProvider {
    }
 
    private void registerCurrency() throws EconomyLoadException {
-      String var1;
+      String text;
       if (this.currency != null && !this.currency.isEmpty()) {
          this.cur = CoinsEngineAPI.getCurrencyManager().getCurrency(this.currency);
          if (this.cur == null) {
             throw new EconomyLoadException("Failed to register a CoinsEngine currency named as '" + this.currency + "'");
          }
 
-         var1 = this.currency;
+         text = this.currency;
          SendMessage.infoMessage("Successfully registered currency '" + this.currency + "' from CoinsEngine");
       } else {
          this.cur = (Currency)CoinsEngineAPI.getCurrencyManager().getCurrencies().stream().findFirst().orElse(null);
@@ -57,48 +57,48 @@ public class CoinsEngineEconomyV1 implements EconomyProvider {
             throw new EconomyLoadException("Failed to find default currency from CoinsEngine");
          }
 
-         var1 = this.cur.getName();
+         text = this.cur.getName();
          SendMessage.infoMessage("Successfully hooked into CoinsEngine and using default currency: " + this.cur.getName());
       }
 
-      String var2 = ConfigManager.getPathIgnoreCase("currency-formats.excellent-economy:" + var1);
-      if (!ConfigManager.getConfig().contains(var2)) {
-         var2 = ConfigManager.getPathIgnoreCase("currency-formats.excellent-economy");
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.excellent-economy:" + text);
+      if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+         pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.excellent-economy");
       }
 
-      this.formatSingular(var2);
-      this.formatPlural(var2);
-      this.formatFriendly(var2);
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
+      this.formatFriendly(pathIgnoreCase);
       this.decimal = this.cur.isDecimal();
-      this.priceFormat = PriceFormatter.getFormatter(var2);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      CoinsUser var2 = (CoinsUser)CoinsEngineAPI.getUserManager().getUserData(var1.getUniqueId());
-      return var2.getCurrencyData(this.cur).getBalance();
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      CoinsUser coinsUser = (CoinsUser)CoinsEngineAPI.getUserManager().getUserData(offlinePlayer.getUniqueId());
+      return coinsUser.getCurrencyData(this.cur).getBalance();
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      CoinsEngineAPI.getUserManager().getUserDataAsync(var1.getUniqueId()).thenAccept(var4 -> {
-         if (var4 == null) {
-            SendMessage.errorMessage("Failed to deposit balance: Cannot find player " + var1.getName() + " in CoinsEngine");
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      CoinsEngineAPI.getUserManager().getUserDataAsync(offlinePlayer.getUniqueId()).thenAccept(value -> {
+         if (value == null) {
+            SendMessage.errorMessage("Failed to deposit balance: Cannot find player " + offlinePlayer.getName() + " in CoinsEngine");
          } else {
-            var4.getCurrencyData(this.cur).addBalance(var2);
-            var4.saveData(CoinsEngineAPI.PLUGIN);
+            value.getCurrencyData(this.cur).addBalance(balance);
+            value.saveData(CoinsEngineAPI.PLUGIN);
          }
       });
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      CoinsEngineAPI.getUserManager().getUserDataAsync(var1.getUniqueId()).thenAccept(var4 -> {
-         if (var4 == null) {
-            SendMessage.errorMessage("Failed to withdraw balance: Cannot find player " + var1.getName() + " in CoinsEngine");
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      CoinsEngineAPI.getUserManager().getUserDataAsync(offlinePlayer.getUniqueId()).thenAccept(value -> {
+         if (value == null) {
+            SendMessage.errorMessage("Failed to withdraw balance: Cannot find player " + offlinePlayer.getName() + " in CoinsEngine");
          } else {
-            var4.getCurrencyData(this.cur).removeBalance(var2);
-            var4.saveData(CoinsEngineAPI.PLUGIN);
+            value.getCurrencyData(this.cur).removeBalance(balance);
+            value.saveData(CoinsEngineAPI.PLUGIN);
          }
       });
       return true;
@@ -135,13 +135,13 @@ public class CoinsEngineEconomyV1 implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -151,39 +151,39 @@ public class CoinsEngineEconomyV1 implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", this.cur.getSymbol()));
-      String var3 = ChatUtil.formatColors(this.cur.getFormat().replace("%amount%", "%price%").replace("%currency_symbol%", var2));
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.singular = var3.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy() : var3;
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", this.cur.getSymbol()));
+      String price = ChatUtil.formatColors(this.cur.getFormat().replace("%amount%", "%price%").replace("%currency_symbol%", text2));
+      if (!text2.isEmpty()) {
+         if (this.isSymbol(text2)) {
+            this.singular = price.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy() : price;
          } else {
-            this.singular = var3.isEmpty() ? Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy() : var3;
+            this.singular = price.isEmpty() ? Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy() : price;
          }
       } else {
-         this.singular = var3.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", Lang.CURRENCYSYMBOL.get()).getLegacy() : var3;
+         this.singular = price.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", Lang.CURRENCYSYMBOL.get()).getLegacy() : price;
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", this.cur.getSymbol()));
-      String var3 = ChatUtil.formatColors(this.cur.getFormat().replace("%amount%", "%price%").replace("%currency_symbol%", var2));
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.plural = var3.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy() : var3;
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", this.cur.getSymbol()));
+      String price = ChatUtil.formatColors(this.cur.getFormat().replace("%amount%", "%price%").replace("%currency_symbol%", text2));
+      if (!text2.isEmpty()) {
+         if (this.isSymbol(text2)) {
+            this.plural = price.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy() : price;
          } else {
-            this.plural = var3.isEmpty() ? Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy() : var3;
+            this.plural = price.isEmpty() ? Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy() : price;
          }
       } else {
-         this.plural = var3.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", Lang.CURRENCYSYMBOL.get()).getLegacy() : var3;
+         this.plural = price.isEmpty() ? Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", Lang.CURRENCYSYMBOL.get()).getLegacy() : price;
       }
    }
 
-   private void formatFriendly(String var1) {
-      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".friendly", this.cur.getName()));
+   private void formatFriendly(String text) {
+      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".friendly", this.cur.getName()));
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

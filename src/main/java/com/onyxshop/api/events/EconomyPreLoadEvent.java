@@ -6,11 +6,11 @@ import com.onyxshop.api.objects.ExternalEconomy;
 public class EconomyPreLoadEvent extends CustomEvent {
    private final OnyxShop plugin;
 
-   public EconomyPreLoadEvent(OnyxShop var1) {
-      this.plugin = var1;
+   public EconomyPreLoadEvent(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
-   public void registerExternal(ExternalEconomy var1) {
-      this.plugin.getEcoHandler().registerExternalProvider(var1);
+   public void registerExternal(ExternalEconomy externalEconomy) {
+      this.plugin.getEcoHandler().registerExternalProvider(externalEconomy);
    }
 }

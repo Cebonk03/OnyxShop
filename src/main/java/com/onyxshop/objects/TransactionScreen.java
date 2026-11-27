@@ -6,9 +6,9 @@ public class TransactionScreen {
    private final List<TransactionItem> items;
    private final int size;
 
-   public TransactionScreen(List<TransactionItem> var1, int var2) {
-      this.items = var1;
-      this.size = var2;
+   public TransactionScreen(List<TransactionItem> values, int value) {
+      this.items = values;
+      this.size = value;
    }
 
    public List<TransactionItem> getItems() {

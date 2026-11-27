@@ -7,12 +7,12 @@ public class ClearStockQuery implements Query {
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.CLEAR_TABLE.init(var1);
+   public String format(String text) {
+      return SQLQueries.CLEAR_TABLE.init(text);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      return this == var1 ? true : var1 != null && this.getClass() == var1.getClass();
+   public boolean equals(Object value) {
+      return this == value ? true : value != null && this.getClass() == value.getClass();
    }
 }

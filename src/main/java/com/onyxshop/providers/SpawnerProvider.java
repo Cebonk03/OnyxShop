@@ -10,11 +10,11 @@ import org.jetbrains.annotations.Nullable;
 public interface SpawnerProvider {
    String getProviderName();
 
-   ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException;
+   ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException;
 
-   boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3);
+   boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds);
 
-   Double getSpawnerSellPrice(ItemStack var1, double var2);
+   Double getSpawnerSellPrice(ItemStack itemStack, double price);
 
-   String getSpawnedType(ItemStack var1);
+   String getSpawnedType(ItemStack itemStack);
 }

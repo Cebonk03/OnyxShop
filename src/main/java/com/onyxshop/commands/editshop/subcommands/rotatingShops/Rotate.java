@@ -20,9 +20,9 @@ public class Rotate extends SubCommad {
    String section;
    boolean silent = true;
 
-   public Rotate(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public Rotate(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -41,41 +41,41 @@ public class Rotate extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.rotatingshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.rotatingshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         this.section = this.methods.getSection(var1, var2[2]);
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         this.section = this.methods.getSection(value, values[2]);
          if (this.section != null) {
-            if (var2.length > 3 && (var2[3].equalsIgnoreCase("true") || var2[3].equalsIgnoreCase("false"))) {
-               this.silent = Boolean.parseBoolean(var2[3]);
+            if (values.length > 3 && (values[3].equalsIgnoreCase("true") || values[3].equalsIgnoreCase("false"))) {
+               this.silent = Boolean.parseBoolean(values[3]);
             }
 
             if (this.plugin.getShopType(this.section) != ShopType.ROTATING) {
-               SendMessage.sendMessage(var1, "§cShop " + this.section + " is not a rotating shop");
+               SendMessage.sendMessage(value, "§cShop " + this.section + " is not a rotating shop");
             } else {
-               RotatingShop var3 = (RotatingShop)this.plugin.getSection(this.section);
-               var3.forceRotate(this.silent);
-               SendMessage.infoMessage(var1, "Successfully rotated items inside shop " + this.section + ", next rotation in " + var3.getNextRotation());
+               RotatingShop rotatingShop = (RotatingShop)this.plugin.getSection(this.section);
+               rotatingShop.forceRotate(this.silent);
+               SendMessage.infoMessage(value, "Successfully rotated items inside shop " + this.section + ", next rotation in " + rotatingShop.getNextRotation());
             }
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               ArrayList var2 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], this.plugin.getShopSections(), var2);
-               Collections.sort(var2);
-               return var2;
+            if (!values[2].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();

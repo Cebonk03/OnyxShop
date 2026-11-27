@@ -13,9 +13,9 @@ public abstract class SubCommad {
 
    public abstract String getSyntax();
 
-   public abstract boolean hasPermission(CommandSender var1);
+   public abstract boolean hasPermission(CommandSender sender);
 
-   public abstract void perform(Object var1, String[] var2);
+   public abstract void perform(Object value, String[] values);
 
-   public abstract List<String> getTabCompletion(String[] var1);
+   public abstract List<String> getTabCompletion(String[] values);
 }

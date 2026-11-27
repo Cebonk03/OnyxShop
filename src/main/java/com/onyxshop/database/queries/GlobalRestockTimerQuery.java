@@ -7,28 +7,28 @@ public class GlobalRestockTimerQuery implements Query {
    private final String itemPath;
    private final long timer;
 
-   public GlobalRestockTimerQuery(String var1, long var2) {
-      this.itemPath = var1;
-      this.timer = var2;
+   public GlobalRestockTimerQuery(String text, long restockTime) {
+      this.itemPath = text;
+      this.timer = restockTime;
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.SAVE_ITEM_RESTOCK.init(var1, this.itemPath, this.timer);
+   public String format(String text) {
+      return SQLQueries.SAVE_ITEM_RESTOCK.init(text, this.itemPath, this.timer);
    }
 
    @Override
-   public String formatPostgres(String var1) {
-      return SQLQueries.SAVE_ITEM_RESTOCK_PG.init(var1, this.itemPath, this.timer);
+   public String formatPostgres(String text) {
+      return SQLQueries.SAVE_ITEM_RESTOCK_PG.init(text, this.itemPath, this.timer);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         GlobalRestockTimerQuery var2 = (GlobalRestockTimerQuery)var1;
-         return this.itemPath.equals(var2.itemPath);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         GlobalRestockTimerQuery globalRestockTimerQuery = (GlobalRestockTimerQuery)value;
+         return this.itemPath.equals(globalRestockTimerQuery.itemPath);
       } else {
          return false;
       }

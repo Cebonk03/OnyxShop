@@ -14,92 +14,92 @@ public class StringSerializer {
    public StringSerializer() {
    }
 
-   public static ItemStack updateItem(ShopItem var0, ItemStack var1) {
-      if (var0.needsUpdate() && var1.hasItemMeta()) {
-         if (var0.getSerializer().isBukkit()) {
-            ItemMeta var2 = var1.getItemMeta();
-            if (var2.hasDisplayName()) {
-               var2.setDisplayName(fromBukkitSerializer(var0, "§f" + var2.getDisplayName()));
+   public static ItemStack updateItem(ShopItem shopItem, ItemStack itemStack) {
+      if (shopItem.needsUpdate() && itemStack.hasItemMeta()) {
+         if (shopItem.getSerializer().isBukkit()) {
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (itemMeta.hasDisplayName()) {
+               itemMeta.setDisplayName(fromBukkitSerializer(shopItem, "§f" + itemMeta.getDisplayName()));
             }
 
-            if (var2.hasLore()) {
-               var2.setLore(var2.getLore().stream().map(var1x -> fromBukkitSerializer(var0, var1x)).collect(Collectors.toList()));
+            if (itemMeta.hasLore()) {
+               itemMeta.setLore(itemMeta.getLore().stream().map(element -> fromBukkitSerializer(shopItem, element)).collect(Collectors.toList()));
             }
 
-            var1.setItemMeta(var2);
+            itemStack.setItemMeta(itemMeta);
          } else {
             try {
-               ItemMeta var4 = var1.getItemMeta();
-               if (var4.hasDisplayName()) {
-                  ReflectUtil.setMetaValue("displayName", var4, serializeString(var0, var4.getDisplayName()));
+               ItemMeta itemMeta = itemStack.getItemMeta();
+               if (itemMeta.hasDisplayName()) {
+                  ReflectUtil.setMetaValue("displayName", itemMeta, serializeString(shopItem, itemMeta.getDisplayName()));
                }
 
-               if (var4.hasLore()) {
-                  ReflectUtil.setMetaValue("lore", var4, var4.getLore().stream().map(var1x -> serializeString(var0, var1x)).collect(Collectors.toList()));
+               if (itemMeta.hasLore()) {
+                  ReflectUtil.setMetaValue("lore", itemMeta, itemMeta.getLore().stream().map(element -> serializeString(shopItem, element)).collect(Collectors.toList()));
                }
 
-               var1.setItemMeta(var4);
-            } catch (Exception var3) {
-               SendMessage.warnMessage("Failed to update item with reason: " + var3.getMessage());
-               var3.printStackTrace();
-               return var1;
+               itemStack.setItemMeta(itemMeta);
+            } catch (Exception exception) {
+               SendMessage.warnMessage("Failed to update item with reason: " + exception.getMessage());
+               exception.printStackTrace();
+               return itemStack;
             }
          }
 
-         return var1;
+         return itemStack;
       } else {
-         return var1;
+         return itemStack;
       }
    }
 
-   public static String fromBukkitSerializer(ShopItem var0, String var1) {
-      if (var1.isEmpty()) {
-         return var1;
+   public static String fromBukkitSerializer(ShopItem shopItem, String shopId) {
+      if (shopId.isEmpty()) {
+         return shopId;
       } else {
-         switch (var0.getSerializer()) {
+         switch (shopItem.getSerializer()) {
             case BUKKIT:
-               return var1;
+               return shopId;
             case BUKKIT_V2:
-               if (var1.startsWith("§f")) {
-                  return removeRedundant(var1, "§f");
+               if (shopId.startsWith("§f")) {
+                  return removeRedundant(shopId, "§f");
                }
 
-               return "§f" + var1;
+               return "§f" + shopId;
             default:
-               return var1;
+               return shopId;
          }
       }
    }
 
-   private static String removeRedundant(String var0, String var1) {
-      for (String var5 : formats) {
-         var0 = var0.replaceAll("(?<!^)" + var1 + "§" + var5, "§" + var5);
+   private static String removeRedundant(String text, String text2) {
+      for (String text3 : formats) {
+         text = text.replaceAll("(?<!^)" + text2 + "§" + text3, "§" + text3);
       }
 
-      return var0;
+      return text;
    }
 
-   public static String serializeString(ShopItem var0, String var1) {
-      switch (var0.getSerializer()) {
+   public static String serializeString(ShopItem shopItem, String shopId) {
+      switch (shopItem.getSerializer()) {
          case BUKKIT:
-            return serializeBukkitMSGToJson(var1);
+            return serializeBukkitMSGToJson(shopId);
          case BUKKIT_V2:
-            return serializeBukkitMSGToJson("§f" + var1);
+            return serializeBukkitMSGToJson("§f" + shopId);
          case CUSTOM_V1:
-            return serializer.serializeToJson(var1);
+            return serializer.serializeToJson(shopId);
          case CUSTOM_V2:
-            return serializer.serializeToJson("§f" + var1);
+            return serializer.serializeToJson("§f" + shopId);
          default:
             return null;
       }
    }
 
-   private static String serializeBukkitMSGToJson(String var0) {
+   private static String serializeBukkitMSGToJson(String text) {
       try {
-         return (String)ReflectUtil.invokeStaticLegacyVersionMethod("fromStringToJSON", ".util.CraftChatMessage", true, var0);
-      } catch (Exception var2) {
-         SendMessage.errorMessage("Failed to update item with reason: " + var2.getMessage());
-         var2.printStackTrace();
+         return (String)ReflectUtil.invokeStaticLegacyVersionMethod("fromStringToJSON", ".util.CraftChatMessage", true, text);
+      } catch (Exception exception) {
+         SendMessage.errorMessage("Failed to update item with reason: " + exception.getMessage());
+         exception.printStackTrace();
          return null;
       }
    }

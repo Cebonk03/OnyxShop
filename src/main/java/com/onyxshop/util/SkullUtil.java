@@ -54,62 +54,62 @@ public class SkullUtil {
    private static final Function<GameProfile, String> nameMethod = getNameMethod();
    private static Class<?> profileClass;
 
-   public static PropertyMap getProperties(GameProfile var0) {
-      return propertiesMethod.apply(var0);
+   public static PropertyMap getProperties(GameProfile gameProfile) {
+      return propertiesMethod.apply(gameProfile);
    }
 
-   public static String getName(GameProfile var0) {
-      return nameMethod.apply(var0);
+   public static String getName(GameProfile gameProfile) {
+      return nameMethod.apply(gameProfile);
    }
 
-   public SkullUtil(OnyxShop var1) {
-      SKULL_CACHE = new SkullCache(var1);
-      plugin = var1;
+   public SkullUtil(OnyxShop plugin2) {
+      SKULL_CACHE = new SkullCache(plugin2);
+      plugin = plugin2;
    }
 
    public void saveCache() {
       SKULL_CACHE.write();
    }
 
-   public static ItemStack getHDBHead(String var0) throws ItemLoadException {
+   public static ItemStack getHDBHead(String itemId) throws ItemLoadException {
       if (plugin.getItemManager().getHdbHook() == null) {
          throw new ItemLoadException(Lang.CANNOT_CREATE_ITEM_FROM_PLUGIN.get());
       } else {
-         return plugin.getItemManager().getHdbHook().getItem(var0);
+         return plugin.getItemManager().getHdbHook().getItem(itemId);
       }
    }
 
-   private static String getPost(String var0) throws IOException {
-      URL var1 = new URL(var0);
-      BufferedReader var2 = new BufferedReader(new InputStreamReader(var1.openStream()));
-      StringBuilder var3 = new StringBuilder();
+   private static String getPost(String text) throws IOException {
+      URL url = new URL(text);
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(url.openStream()));
+      StringBuilder builder = new StringBuilder();
 
-      for (String var5 : var2.lines().collect(Collectors.toList())) {
-         var3.append(var5);
+      for (String text2 : bufferedReader.lines().collect(Collectors.toList())) {
+         builder.append(text2);
       }
 
-      var2.close();
-      return var3.toString().replaceAll(" ", "");
+      bufferedReader.close();
+      return builder.toString().replaceAll(" ", "");
    }
 
-   private static void cache(Consumer<String> var0, ItemStack var1, String var2) {
-      if (!var2.equals("CS-CoreLib")) {
+   private static void cache(Consumer<String> task, ItemStack itemStack, String itemId) {
+      if (!itemId.equals("CS-CoreLib")) {
          try {
-            String var3 = getPost("https://api.minecraftservices.com/minecraft/profile/lookup/name/" + var2);
-            String var4 = (String)((JSONObject)new JSONParser().parse(var3)).get("id");
-            String var5 = getPost("https://sessionserver.mojang.com/session/minecraft/profile/" + var4 + "?unsigned=false");
-            JSONObject var6 = (JSONObject)((JSONArray)((JSONObject)new JSONParser().parse(var5)).get("properties")).get(0);
-            var0.accept(getTextureURL(JsonUtil.getString(var6, "value")));
-         } catch (FileNotFoundException var7) {
-            var0.accept(" ");
-         } catch (SocketException var8) {
+            String post = getPost("https://api.minecraftservices.com/minecraft/profile/lookup/name/" + itemId);
+            String text = (String)((JSONObject)new JSONParser().parse(post)).get("id");
+            String post2 = getPost("https://sessionserver.mojang.com/session/minecraft/profile/" + text + "?unsigned=false");
+            JSONObject jsonObject = (JSONObject)((JSONArray)((JSONObject)new JSONParser().parse(post2)).get("properties")).get(0);
+            task.accept(getTextureURL(JsonUtil.getString(jsonObject, "value")));
+         } catch (FileNotFoundException exception) {
+            task.accept(" ");
+         } catch (SocketException exception) {
             SendMessage.logDebugMessage(
-               "Socket exception occurred while trying to retrieve skull texture for player '" + var2 + "', trying again in 5 seconds..."
+               "Socket exception occurred while trying to retrieve skull texture for player '" + itemId + "', trying again in 5 seconds..."
             );
-            plugin.runTaskLaterAsync(() -> cache(var0, var1, var2), 100L);
-         } catch (UnknownHostException var9) {
-         } catch (IOException var10) {
-            if (var10.getMessage().contains("429")) {
+            plugin.runTaskLaterAsync(() -> cache(task, itemStack, itemId), 100L);
+         } catch (UnknownHostException exception) {
+         } catch (IOException exception) {
+            if (exception.getMessage().contains("429")) {
                if (!rateLimit) {
                   SendMessage.logDebugMessage(
                      "Mojang started to rate limit our connections while trying to retrieve a skull texture, trying again in 60 seconds..."
@@ -118,64 +118,64 @@ public class SkullUtil {
                }
 
                plugin.runTaskLaterAsync(() -> {
-                  cache(var0, var1, var2);
+                  cache(task, itemStack, itemId);
                   rateLimit = false;
                }, 1200L);
             } else {
-               SendMessage.warnMessage("Failed to retrieve skull texture for player '" + var2 + "'");
-               var10.printStackTrace();
+               SendMessage.warnMessage("Failed to retrieve skull texture for player '" + itemId + "'");
+               exception.printStackTrace();
             }
-         } catch (Exception var11) {
-            SendMessage.warnMessage("Failed to retrieve skull texture for player '" + var2 + "'");
-            var11.printStackTrace();
+         } catch (Exception exception) {
+            SendMessage.warnMessage("Failed to retrieve skull texture for player '" + itemId + "'");
+            exception.printStackTrace();
          }
       }
    }
 
-   public static String getPlayerSkullTexture(Object var0) {
+   public static String getPlayerSkullTexture(Object value) {
       try {
-         String var1 = new String(Base64.getDecoder().decode((String)VALUE.get(var0)));
-         JsonObject var2 = ((JsonObject)new Gson().fromJson(var1, JsonObject.class)).get("textures").getAsJsonObject();
-         var2.get("SKIN").getAsJsonObject().remove("metadata");
-         return Base64.getEncoder().encodeToString(("{\"textures\":" + var2 + "}").getBytes());
-      } catch (Exception var3) {
+         String playerName = new String(Base64.getDecoder().decode((String)VALUE.get(value)));
+         JsonObject jsonObject = ((JsonObject)new Gson().fromJson(playerName, JsonObject.class)).get("textures").getAsJsonObject();
+         jsonObject.get("SKIN").getAsJsonObject().remove("metadata");
+         return Base64.getEncoder().encodeToString(("{\"textures\":" + jsonObject + "}").getBytes());
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to get skull texture from item");
-         var3.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private static String getSkullProfile(SkullMeta var0) {
+   private static String getSkullProfile(SkullMeta skullMeta) {
       try {
-         return getName(getProfile(var0));
-      } catch (Exception var2) {
+         return getName(getProfile(skullMeta));
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to get skull texture from item");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public static String getSkullTexture(SkullMeta var0) {
+   public static String getSkullTexture(SkullMeta skullMeta) {
       try {
-         return getSkullTexture(getProfile(var0));
-      } catch (Exception var2) {
+         return getSkullTexture(getProfile(skullMeta));
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to get skull texture from item");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private static GameProfile getProfile(SkullMeta var0) throws IllegalAccessException {
-      Object var1 = PROFILE.get(var0);
-      return (GameProfile)(profileClass == GameProfile.class ? var1 : MODERN_PROFILE.get(var1));
+   private static GameProfile getProfile(SkullMeta skullMeta) throws IllegalAccessException {
+      Object value = PROFILE.get(skullMeta);
+      return (GameProfile)(profileClass == GameProfile.class ? value : MODERN_PROFILE.get(value));
    }
 
-   private static String getSkullTexture(GameProfile var0) {
-      if (var0 != null && !getProperties(var0).get("textures").isEmpty()) {
-         for (Property var2 : getProperties(var0).get("textures")) {
-            String var3 = getValue(var2);
-            if (!var3.isEmpty()) {
-               return var3;
+   private static String getSkullTexture(GameProfile gameProfile) {
+      if (gameProfile != null && !getProperties(gameProfile).get("textures").isEmpty()) {
+         for (Property property : getProperties(gameProfile).get("textures")) {
+            String value = getValue(property);
+            if (!value.isEmpty()) {
+               return value;
             }
          }
       }
@@ -183,308 +183,308 @@ public class SkullUtil {
       return null;
    }
 
-   public static String getTextureURL(String var0) {
-      String var1 = new String(Base64.getDecoder().decode(var0));
+   public static String getTextureURL(String text) {
+      String text2 = new String(Base64.getDecoder().decode(text));
 
       try {
-         JSONObject var2 = (JSONObject)new JSONParser().parse(var1);
-         String var3 = ((JSONObject)var2.get("textures")).get("SKIN").toString().replace("\\", "").replace("https://", "http://");
-         return encodeTexture(var3);
-      } catch (ParseException var4) {
+         JSONObject jsonObject = (JSONObject)new JSONParser().parse(text2);
+         String text3 = ((JSONObject)jsonObject.get("textures")).get("SKIN").toString().replace("\\", "").replace("https://", "http://");
+         return encodeTexture(text3);
+      } catch (ParseException exception) {
          return "";
-      } catch (Exception var5) {
-         SendMessage.errorMessage("Failed to get skull texture from item: " + var1);
-         var5.printStackTrace();
+      } catch (Exception exception) {
+         SendMessage.errorMessage("Failed to get skull texture from item: " + text2);
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private static String encodeTexture(String var0) {
-      return Base64.getEncoder().encodeToString(("{\"textures\":{\"SKIN\":" + var0 + "}}").getBytes());
+   private static String encodeTexture(String text) {
+      return Base64.getEncoder().encodeToString(("{\"textures\":{\"SKIN\":" + text + "}}").getBytes());
    }
 
-   public static boolean hasSkullOwner(SkullMeta var0) {
+   public static boolean hasSkullOwner(SkullMeta skullMeta) {
       try {
-         GameProfile var1 = getProfile(var0);
-         if (var1 != null && !getProperties(var1).get("textures").isEmpty()) {
-            for (Property var3 : getProperties(var1).get("textures")) {
-               String var4 = getSignature(var3);
-               if (var4 != null && !var4.isEmpty()) {
+         GameProfile gameProfile = getProfile(skullMeta);
+         if (gameProfile != null && !getProperties(gameProfile).get("textures").isEmpty()) {
+            for (Property property : getProperties(gameProfile).get("textures")) {
+               String signature = getSignature(property);
+               if (signature != null && !signature.isEmpty()) {
                   return true;
                }
             }
          }
-      } catch (Exception var5) {
-         SendMessage.errorMessage("Failed to get skull owner from item " + var0.toString());
-         var5.printStackTrace();
+      } catch (Exception exception) {
+         SendMessage.errorMessage("Failed to get skull owner from item " + skullMeta.toString());
+         exception.printStackTrace();
       }
 
       return false;
    }
 
-   public static boolean isSimilarSkull(ItemStack var0, ItemStack var1) {
-      return getSkullTexture((SkullMeta)var0.getItemMeta()).equals(getSkullTexture((SkullMeta)var1.getItemMeta()));
+   public static boolean isSimilarSkull(ItemStack itemStack, ItemStack itemStack2) {
+      return getSkullTexture((SkullMeta)itemStack.getItemMeta()).equals(getSkullTexture((SkullMeta)itemStack2.getItemMeta()));
    }
 
-   public static boolean isSimilarTexture(GameProfile var0, GameProfile var1) {
+   public static boolean isSimilarTexture(GameProfile gameProfile, GameProfile gameProfile2) {
       try {
-         return getSkullTexture(var0).equals(getSkullTexture(var1));
-      } catch (Exception var3) {
+         return getSkullTexture(gameProfile).equals(getSkullTexture(gameProfile2));
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to match skull texture from item");
-         var3.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
 
-   public static void setSkullTextureFromHash(SkullMeta var0, String var1) {
-      GameProfile var2 = createNewProfile(UUID.nameUUIDFromBytes(var1.getBytes(StandardCharsets.UTF_8)), var0.hasOwner() ? getSkullProfile(var0) : "");
-      getProperties(var2).put("textures", new Property("textures", var1));
-      applySkullProfile(var2, var0);
+   public static void setSkullTextureFromHash(SkullMeta skullMeta, String text) {
+      GameProfile gameProfile = createNewProfile(UUID.nameUUIDFromBytes(text.getBytes(StandardCharsets.UTF_8)), skullMeta.hasOwner() ? getSkullProfile(skullMeta) : "");
+      getProperties(gameProfile).put("textures", new Property("textures", text));
+      applySkullProfile(gameProfile, skullMeta);
    }
 
-   public static void setSkullTexture(ItemStack var0, SkullMeta var1, String var2, boolean var3) {
-      String var4 = SKULL_CACHE.getSkull(var2);
-      if (var4 == null) {
-         Consumer<String> var5 = var2x -> {
-            SKULL_CACHE.cacheSkull(var2, var2x);
+   public static void setSkullTexture(ItemStack itemStack, SkullMeta skullMeta, String itemId, boolean flag) {
+      String skull = SKULL_CACHE.getSkull(itemId);
+      if (skull == null) {
+         Consumer<String> task = element -> {
+            SKULL_CACHE.cacheSkull(itemId, element);
             plugin.runTaskLater(() -> {
-               SkullMeta var3x = (SkullMeta)var0.getItemMeta();
-               setSkullTexture(var3x, var2, var2x);
-               var0.setItemMeta(var3x);
+               SkullMeta skullMeta2 = (SkullMeta)itemStack.getItemMeta();
+               setSkullTexture(skullMeta2, itemId, element);
+               itemStack.setItemMeta(skullMeta2);
             }, 1L);
          };
-         if (var3) {
-            plugin.runTaskLaterAsync(() -> cache(var5, var0, var2), 1L);
+         if (flag) {
+            plugin.runTaskLaterAsync(() -> cache(task, itemStack, itemId), 1L);
          } else {
-            cache(var5, var0, var2);
+            cache(task, itemStack, itemId);
          }
-      } else if (var1 == null) {
-         SkullMeta var6 = (SkullMeta)var0.getItemMeta();
-         setSkullTexture(var6, var2, var4);
-         var0.setItemMeta(var6);
+      } else if (skullMeta == null) {
+         SkullMeta skullMeta2 = (SkullMeta)itemStack.getItemMeta();
+         setSkullTexture(skullMeta2, itemId, skull);
+         itemStack.setItemMeta(skullMeta2);
       } else {
-         setSkullTexture(var1, var2, var4);
+         setSkullTexture(skullMeta, itemId, skull);
       }
    }
 
-   public static void setSkullTexture(Consumer<Object> var0, ItemStack var1, SkullMeta var2, String var3, String var4) {
-      String var5 = var4 == null ? SKULL_CACHE.getSkull(var3) : var4;
-      if (var5 == null) {
-         plugin.runTaskLaterAsync(() -> cache(var2xx -> {
-            SKULL_CACHE.cacheSkull(var3, var2xx);
-            var0.accept(getProfile(var3, var2xx));
-         }, var1, var3), 1L);
-      } else if (var2 == null) {
-         SkullMeta var6 = (SkullMeta)var1.getItemMeta();
-         setSkullTexture(var6, var3, var5);
-         var1.setItemMeta(var6);
+   public static void setSkullTexture(Consumer<Object> task, ItemStack itemStack, SkullMeta skullMeta, String itemId, String text) {
+      String text2 = text == null ? SKULL_CACHE.getSkull(itemId) : text;
+      if (text2 == null) {
+         plugin.runTaskLaterAsync(() -> cache(element -> {
+            SKULL_CACHE.cacheSkull(itemId, element);
+            plugin.runTask(() -> task.accept(getProfile(itemId, element)));
+         }, itemStack, itemId), 1L);
+      } else if (skullMeta == null) {
+         SkullMeta skullMeta2 = (SkullMeta)itemStack.getItemMeta();
+         setSkullTexture(skullMeta2, itemId, text2);
+         itemStack.setItemMeta(skullMeta2);
       } else {
-         setSkullTexture(var2, var3, var5);
+         setSkullTexture(skullMeta, itemId, text2);
       }
    }
 
-   private static void setSkullTexture(SkullMeta var0, String var1, String var2) {
-      applySkullProfile(getProfile(var1, var2), var0);
+   private static void setSkullTexture(SkullMeta skullMeta, String text, String text2) {
+      applySkullProfile(getProfile(text, text2), skullMeta);
    }
 
-   private static Object getProfile(String var0, String var1) {
-      GameProfile var2 = createNewProfile(UUID.nameUUIDFromBytes(var1.getBytes(StandardCharsets.UTF_8)), var0);
-      getProperties(var2).put("textures", new Property("textures", var1));
-      return var2;
+   private static Object getProfile(String text, String text2) {
+      GameProfile gameProfile = createNewProfile(UUID.nameUUIDFromBytes(text2.getBytes(StandardCharsets.UTF_8)), text);
+      getProperties(gameProfile).put("textures", new Property("textures", text2));
+      return gameProfile;
    }
 
-   public static void applySkullProfile(Object var0, SkullMeta var1) {
+   public static void applySkullProfile(Object value, SkullMeta skullMeta) {
       try {
          if (PROFILE_SETTER != null) {
-            PROFILE_SETTER.invoke(var1, profileClass == GameProfile.class ? var0 : getModernProfile((GameProfile)var0));
+            PROFILE_SETTER.invoke(skullMeta, profileClass == GameProfile.class ? value : getModernProfile((GameProfile)value));
          } else {
-            PROFILE.set(var1, var0);
+            PROFILE.set(skullMeta, value);
          }
-      } catch (IllegalAccessException | IllegalArgumentException | ExceptionInInitializerError | InvocationTargetException var3) {
+      } catch (IllegalAccessException | IllegalArgumentException | ExceptionInInitializerError | InvocationTargetException exception) {
          SendMessage.logDebugMessage("Failed to create skull texture");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   public static void updateTexture(Player var0) {
-      String var1 = null;
+   public static void updateTexture(Player player) {
+      String text = null;
 
       try {
-         Method var2 = var0.getClass().getDeclaredMethod(plugin.version > 117 ? "getPlayerProfile" : "getProfile");
-         var2.setAccessible(true);
+         Method method = player.getClass().getDeclaredMethod(plugin.version > 117 ? "getPlayerProfile" : "getProfile");
+         method.setAccessible(true);
          if (plugin.version > 117) {
-            String var3 = ((PlayerProfile)var2.invoke(var0)).getTextures().getSkin().toString();
-            if (var3 == null) {
+            String playerName = ((PlayerProfile)method.invoke(player)).getTextures().getSkin().toString();
+            if (playerName == null) {
                return;
             }
 
-            var1 = encodeTexture("{\"url\":\"" + var3 + "\"}");
+            text = encodeTexture("{\"url\":\"" + playerName + "\"}");
          } else {
-            var1 = getSkullTexture((GameProfile)var2.invoke(var0));
-            if (var1 == null) {
+            text = getSkullTexture((GameProfile)method.invoke(player));
+            if (text == null) {
                return;
             }
 
-            var1 = getTextureURL(var1);
+            text = getTextureURL(text);
          }
-      } catch (Exception var5) {
+      } catch (Exception exception) {
       }
 
-      if (var1 != null) {
-         SkullCache.PlayerTexture var6 = SKULL_CACHE.getTexture(var0.getName());
-         if (var6 == null) {
-            SKULL_CACHE.cacheSkull(var0.getName(), var1);
+      if (text != null) {
+         SkullCache.PlayerTexture playerTexture = SKULL_CACHE.getTexture(player.getName());
+         if (playerTexture == null) {
+            SKULL_CACHE.cacheSkull(player.getName(), text);
          } else {
             try {
-               if (!var1.equalsIgnoreCase(var6.getTexture())) {
-                  SendMessage.logDebugMessage("Detected skin change of " + var0.getName() + ", updating cached skin...");
-                  SKULL_CACHE.cacheSkull(var0.getName(), var1);
+               if (!text.equalsIgnoreCase(playerTexture.getTexture())) {
+                  SendMessage.logDebugMessage("Detected skin change of " + player.getName() + ", updating cached skin...");
+                  SKULL_CACHE.cacheSkull(player.getName(), text);
                }
-            } catch (ArrayIndexOutOfBoundsException var4) {
+            } catch (ArrayIndexOutOfBoundsException exception) {
             }
          }
       }
    }
 
-   private static String getValue(Property var0) {
+   private static String getValue(Property property) {
       try {
-         return (String)VAL.get(var0);
-      } catch (IllegalAccessException var2) {
+         return (String)VAL.get(property);
+      } catch (IllegalAccessException exception) {
          SendMessage.warnMessage("A error occurred while reading skull");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return "";
       }
    }
 
-   private static String getSignature(Property var0) {
+   private static String getSignature(Property property) {
       try {
-         return (String)SIG.get(var0);
-      } catch (IllegalAccessException var2) {
+         return (String)SIG.get(property);
+      } catch (IllegalAccessException exception) {
          SendMessage.warnMessage("A error occurred while reading skull");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private static GameProfile createNewProfile(UUID var0, String var1) {
+   private static GameProfile createNewProfile(UUID uniqueId, String text) {
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R6)) {
          try {
-            PropertyMap var2 = new PropertyMap(LinkedHashMultimap.create());
-            propertyMap.set(var2, LinkedHashMultimap.create());
-            return new GameProfile(var0, var1, var2);
-         } catch (IllegalAccessException var3) {
+            PropertyMap propertyMap2 = new PropertyMap(LinkedHashMultimap.create());
+            propertyMap.set(propertyMap2, LinkedHashMultimap.create());
+            return new GameProfile(uniqueId, text, propertyMap2);
+         } catch (IllegalAccessException exception) {
             SendMessage.errorMessage("Failed to create modern player profile properties map");
-            throw new RuntimeException(var3);
+            throw new RuntimeException(exception);
          }
       } else {
-         return new GameProfile(var0, var1);
+         return new GameProfile(uniqueId, text);
       }
    }
 
-   private static ResolvableProfile getModernProfile(GameProfile var0) {
+   private static ResolvableProfile getModernProfile(GameProfile gameProfile) {
       try {
          return ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R6)
-            ? (ResolvableProfile)createResolved.invoke(null, var0)
-            : ResolvableProfile.class.getDeclaredConstructor(GameProfile.class).newInstance(var0);
-      } catch (Exception var2) {
+            ? (ResolvableProfile)createResolved.invoke(null, gameProfile)
+            : ResolvableProfile.class.getDeclaredConstructor(GameProfile.class).newInstance(gameProfile);
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to create modern player profile instance");
-         throw new RuntimeException(var2);
+         throw new RuntimeException(exception);
       }
    }
 
    private static Function<GameProfile, PropertyMap> getPropertiesMethod() {
       try {
-         Method var0 = GameProfile.class.getMethod("getProperties");
-         return var1x -> {
+         Method method = GameProfile.class.getMethod("getProperties");
+         return element -> {
             try {
-               return (PropertyMap)var0.invoke(var1x);
-            } catch (Exception var3) {
-               throw new RuntimeException(var3);
+               return (PropertyMap)method.invoke(element);
+            } catch (Exception exception) {
+               throw new RuntimeException(exception);
             }
          };
-      } catch (NoSuchMethodException var1) {
+      } catch (NoSuchMethodException exception) {
          return GameProfile::properties;
       }
    }
 
    private static Function<GameProfile, String> getNameMethod() {
       try {
-         Method var0 = GameProfile.class.getMethod("getName");
-         return var1x -> {
+         Method method = GameProfile.class.getMethod("getName");
+         return element -> {
             try {
-               return (String)var0.invoke(var1x);
-            } catch (Exception var3) {
-               throw new RuntimeException(var3);
+               return (String)method.invoke(element);
+            } catch (Exception exception) {
+               throw new RuntimeException(exception);
             }
          };
-      } catch (NoSuchMethodException var1) {
+      } catch (NoSuchMethodException exception) {
          return GameProfile::name;
       }
    }
 
    static {
-      SkullMeta var0 = (SkullMeta)new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial()).getItemMeta();
+      SkullMeta skullMeta = (SkullMeta)new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial()).getItemMeta();
 
       try {
-         if (var0.getClass().getDeclaredField("profile").getType() == GameProfile.class) {
+         if (skullMeta.getClass().getDeclaredField("profile").getType() == GameProfile.class) {
             throw new NoSuchFieldException();
          }
 
          profileClass = Class.forName("net.minecraft.world.item.component.ResolvableProfile");
 
-         for (Field var4 : profileClass.getDeclaredFields()) {
-            if (var4.getType().equals(GameProfile.class)) {
-               MODERN_PROFILE = var4;
-               var4.setAccessible(true);
+         for (Field field : profileClass.getDeclaredFields()) {
+            if (field.getType().equals(GameProfile.class)) {
+               MODERN_PROFILE = field;
+               field.setAccessible(true);
                break;
             }
          }
-      } catch (SecurityException | ClassNotFoundException | LinkageError | NoSuchFieldException var12) {
+      } catch (SecurityException | ClassNotFoundException | LinkageError | NoSuchFieldException exception) {
          profileClass = GameProfile.class;
       }
 
       try {
-         PROFILE_SETTER = var0.getClass().getDeclaredMethod("setProfile", profileClass);
+         PROFILE_SETTER = skullMeta.getClass().getDeclaredMethod("setProfile", profileClass);
          PROFILE_SETTER.setAccessible(true);
-      } catch (SecurityException | NoSuchMethodException var11) {
+      } catch (SecurityException | NoSuchMethodException exception) {
       }
 
       try {
          createResolved = Class.forName("net.minecraft.world.item.component.ResolvableProfile")
             .getDeclaredMethod(ServerInfo.usesMojangMappings() ? "createResolved" : "a", GameProfile.class);
          createResolved.setAccessible(true);
-      } catch (NoSuchMethodException var9) {
-      } catch (ClassNotFoundException var10) {
+      } catch (NoSuchMethodException exception) {
+      } catch (ClassNotFoundException exception) {
       }
 
       try {
-         PROFILE = var0.getClass().getDeclaredField("profile");
+         PROFILE = skullMeta.getClass().getDeclaredField("profile");
          PROFILE.setAccessible(true);
-      } catch (SecurityException | NoSuchFieldException var8) {
-         var8.printStackTrace();
+      } catch (SecurityException | NoSuchFieldException exception) {
+         exception.printStackTrace();
       }
 
-      Property var13 = new Property("", "");
+      Property property = new Property("", "");
 
       try {
-         VAL = var13.getClass().getDeclaredField("value");
+         VAL = property.getClass().getDeclaredField("value");
          VAL.setAccessible(true);
-         SIG = var13.getClass().getDeclaredField("signature");
+         SIG = property.getClass().getDeclaredField("signature");
          SIG.setAccessible(true);
-      } catch (SecurityException | NoSuchFieldException var7) {
-         var7.printStackTrace();
+      } catch (SecurityException | NoSuchFieldException exception) {
+         exception.printStackTrace();
       }
 
       try {
-         Class var14 = Class.forName("com.mojang.authlib.properties.PropertyMap");
-         propertyMap = var14.getDeclaredField("properties");
+         Class type = Class.forName("com.mojang.authlib.properties.PropertyMap");
+         propertyMap = type.getDeclaredField("properties");
          propertyMap.setAccessible(true);
-         Class var15 = Class.forName("org.geysermc.floodgate.skin.SkinDataImpl");
-         VALUE = var15.getDeclaredField("value");
+         Class type2 = Class.forName("org.geysermc.floodgate.skin.SkinDataImpl");
+         VALUE = type2.getDeclaredField("value");
          VALUE.setAccessible(true);
-      } catch (SecurityException | NoSuchFieldException var5) {
-         var5.printStackTrace();
-      } catch (ClassNotFoundException var6) {
+      } catch (SecurityException | NoSuchFieldException exception) {
+         exception.printStackTrace();
+      } catch (ClassNotFoundException exception) {
       }
    }
 }

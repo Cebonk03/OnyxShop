@@ -13,7 +13,7 @@ public class UltraPerms implements PermissionsProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) {
+   public void setup(OnyxShop plugin) {
       this.api = UltraPermissions.getAPI();
    }
 
@@ -23,10 +23,10 @@ public class UltraPerms implements PermissionsProvider {
    }
 
    @Override
-   public String getGroupName(String var1) {
-      for (Group var3 : this.api.getGroups()) {
-         if (var3.getPermissions().stream().anyMatch(var1x -> var1x.getKey().equalsIgnoreCase(var1))) {
-            return var3.getName();
+   public String getGroupName(String name) {
+      for (Group group : this.api.getGroups()) {
+         if (group.getPermissions().stream().anyMatch(entry -> entry.getKey().equalsIgnoreCase(name))) {
+            return group.getName();
          }
       }
 

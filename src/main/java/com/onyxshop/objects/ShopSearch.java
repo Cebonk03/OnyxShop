@@ -37,17 +37,17 @@ public class ShopSearch extends ShopInventory {
       return this.results.size();
    }
 
-   public ShopSearch(Player var1, String var2) {
-      this.player = var1;
-      this.search = var2;
+   public ShopSearch(Player player, String shopId) {
+      this.player = player;
+      this.search = shopId;
       this.getResults(this::init, this.currentQuery, this.search);
    }
 
-   private void init(LinkedList<ShopItem> var1) {
+   private void init(LinkedList<ShopItem> shopItems) {
       OnyxShop.getInstance()
-         .runTask(
+         .runTaskFor(
             () -> {
-               this.results = var1;
+               this.results = shopItems;
                this.inv = OnyxShop.getInstance()
                   .getMetaUtils()
                   .createInventory(
@@ -56,33 +56,34 @@ public class ShopSearch extends ShopInventory {
                      TitleManager.get(TitleManager.Menu.SHOPSEARCH_RESULT, this.player).replace("%search-query%", this.search)
                   );
                this.open(1);
-            }
+            },
+            this.player
          );
    }
 
-   public void open(int var1) {
+   public void open(int value) {
       if (OnyxShop.getInstance().shopSearch) {
          if (!this.inv.isEmpty()) {
             this.inv.clear();
          }
 
-         this.page = var1;
-         int var2 = (size == -1 ? 54 : size) - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0);
-         int var3 = var1 * var2 - var2;
+         this.page = value;
+         int size2 = (size == -1 ? 54 : size) - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0);
+         int value2 = value * size2 - size2;
 
-         for (int var4 = 0; var4 < Math.min(this.results.size() - var3, 45); var4++) {
-            ShopItem var5 = this.results.get(var3 + var4);
-            this.inv.setItem(var4, OnyxShop.getInstance().getSection(var5.section).updateItem(this.player, var5));
+         for (int index = 0; index < Math.min(this.results.size() - value2, 45); index++) {
+            ShopItem shopItem = this.results.get(value2 + index);
+            this.inv.setItem(index, OnyxShop.getInstance().getSection(shopItem.section).updateItem(this.player, shopItem));
          }
 
-         OnyxShop.getInstance().navBar.addSearchNavBar(this.inv, this.player, this.currentQuery.cycle(), var1, this.pages);
+         OnyxShop.getInstance().navBar.addSearchNavBar(this.inv, this.player, this.currentQuery.cycle(), value, this.pages);
          this.open(this.player, UserManager.getUser(this.player));
       }
    }
 
-   private void open(Player var1, User var2) {
-      var2.setOpenNewGUI(true);
-      var1.openInventory(this.inv);
+   private void open(Player player, User user) {
+      user.setOpenNewGUI(true);
+      player.openInventory(this.inv);
    }
 
    public void cycleQueryMethod() {
@@ -91,12 +92,12 @@ public class ShopSearch extends ShopInventory {
 
    public void newSearch() {
       new AnvilGUI.Builder()
-         .onComplete((var1, var2) -> {
-            this.search = var2;
+         .onComplete((player, input) -> {
+            this.search = input;
             this.getResults(this::init, this.currentQuery, this.search);
             return AnvilGUI.Response.close();
          })
-         .onClose(var1 -> OnyxShop.getInstance().runTaskLater(this.player::updateInventory, 1L))
+         .onClose(player -> OnyxShop.getInstance().runTaskLaterFor(this.player::updateInventory, this.player, 1L))
          .itemLeft(new ItemStack(Material.PAPER))
          .text(this.search)
          .title(Lang.SHOPSEARCH_TITLE.get(this.player).getLegacy())
@@ -104,28 +105,28 @@ public class ShopSearch extends ShopInventory {
          .open(this.player);
    }
 
-   public ShopItem getShopItemForSlot(int var1) {
-      int var2 = (size == -1 ? 54 : size) - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0);
-      int var3 = this.page * var2 - var2;
-      return this.results.get(var3 + var1);
+   public ShopItem getShopItemForSlot(int slot) {
+      int size2 = (size == -1 ? 54 : size) - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0);
+      int page = this.page * size2 - size2;
+      return this.results.get(page + slot);
    }
 
-   private void getResults(Consumer<LinkedList<ShopItem>> var1, ShopSearch.QueryMethod var2, String var3) {
+   private void getResults(Consumer<LinkedList<ShopItem>> task, ShopSearch.QueryMethod queryMethod, String shopId) {
       if (OnyxShop.getInstance().shopSearch) {
          OnyxShop.getInstance().runTaskAsync(() -> {
-            LinkedList var4 = null;
-            QueryBuilder var5 = OnyxShop.getInstance().getQueryBuilder();
-            switch (var2) {
+            LinkedList values = null;
+            QueryBuilder queryBuilder = OnyxShop.getInstance().getQueryBuilder();
+            switch (queryMethod) {
                case BY_NAME:
-                  var4 = var5.queryByName(var3);
+                  values = queryBuilder.queryByName(shopId);
                   break;
                case BY_TYPE:
-                  var4 = var5.queryByType(var3);
+                  values = queryBuilder.queryByType(shopId);
             }
 
-            int var6 = size == -1 ? CalculateAmount.getInvSlots(UserManager.getUser(this.player), var4.size()) : size;
-            this.pages = (int)Math.ceil(var4.size() / ((double)var6 - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0)));
-            var1.accept(var4);
+            int size2 = size == -1 ? CalculateAmount.getInvSlots(UserManager.getUser(this.player), values.size()) : size;
+            this.pages = (int)Math.ceil(values.size() / ((double)size2 - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0)));
+            task.accept(values);
          });
       }
    }
@@ -136,8 +137,8 @@ public class ShopSearch extends ShopInventory {
    }
 
    static {
-      int var0 = Math.min(ConfigManager.getConfig().getInt("shop-search-screen.gui-rows", -1), 6);
-      size = var0 < 1 ? -1 : var0 * 9;
+      int value = Math.min(ConfigManager.getConfig().getInt("shop-search-screen.gui-rows", -1), 6);
+      size = value < 1 ? -1 : value * 9;
    }
 
    public static enum QueryMethod {
@@ -148,8 +149,8 @@ public class ShopSearch extends ShopInventory {
       }
 
       public String getName() {
-         String var1 = "SHOPSEARCH_METHOD_" + this.name();
-         return Lang.valueOf(var1).get().getLegacy();
+         String name = "SHOPSEARCH_METHOD_" + this.name();
+         return Lang.valueOf(name).get().getLegacy();
       }
 
       public ShopSearch.QueryMethod cycle() {

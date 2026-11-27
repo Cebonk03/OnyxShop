@@ -11,23 +11,23 @@ public class PaperLibrariesLoader implements PluginLoader {
    public PaperLibrariesLoader() {
    }
 
-   public void classloader(PluginClasspathBuilder var1) {
-      MavenLibraryResolver var2 = new MavenLibraryResolver();
-      var2.addRepository(new Builder("central", "default", this.getDefaultMavenCentralMirror()).build());
-      var2.addDependency(new Dependency(new DefaultArtifact("org.postgresql:postgresql:42.7.4"), null));
-      var1.addLibrary(var2);
+   public void classloader(PluginClasspathBuilder pluginClasspathBuilder) {
+      MavenLibraryResolver mavenLibraryResolver = new MavenLibraryResolver();
+      mavenLibraryResolver.addRepository(new Builder("central", "default", this.getDefaultMavenCentralMirror()).build());
+      mavenLibraryResolver.addDependency(new Dependency(new DefaultArtifact("org.postgresql:postgresql:42.7.4"), null));
+      pluginClasspathBuilder.addLibrary(mavenLibraryResolver);
    }
 
    private String getDefaultMavenCentralMirror() {
-      String var1 = System.getenv("PAPER_DEFAULT_CENTRAL_REPOSITORY");
-      if (var1 == null) {
-         var1 = System.getProperty("org.bukkit.plugin.java.LibraryLoader.centralURL");
+      String env = System.getenv("PAPER_DEFAULT_CENTRAL_REPOSITORY");
+      if (env == null) {
+         env = System.getProperty("org.bukkit.plugin.java.LibraryLoader.centralURL");
       }
 
-      if (var1 == null) {
-         var1 = "https://maven-central.storage-download.googleapis.com/maven2";
+      if (env == null) {
+         env = "https://maven-central.storage-download.googleapis.com/maven2";
       }
 
-      return var1;
+      return env;
    }
 }

@@ -31,30 +31,30 @@ public class CrazyEnchantmentsHook implements EnchantProvider {
    }
 
    @Override
-   public String getName(SimpleEnchantment var1) {
-      return ((CEnchantment)var1.getEnchant()).getName();
+   public String getName(SimpleEnchantment simpleEnchantment) {
+      return ((CEnchantment)simpleEnchantment.getEnchant()).getName();
    }
 
    @Override
-   public SimpleEnchantment getEnchant(String var1, int var2) throws ItemLoadException {
-      CEnchantment var3 = this.ce.getCrazyManager().getEnchantmentFromName(var1);
-      if (var3 != null) {
-         var2 = OnyxShop.getInstance().allowUnsafeEnchants ? var2 : (var2 > var3.getMaxLevel() ? var3.getMaxLevel() : var2);
-         return new SimpleEnchantment(EnchantsProvider.Provider.CRAZY_ENCHANTS, var3, var1, var2);
+   public SimpleEnchantment getEnchant(String itemId, int value) throws ItemLoadException {
+      CEnchantment cEnchantment = this.ce.getCrazyManager().getEnchantmentFromName(itemId);
+      if (cEnchantment != null) {
+         value = OnyxShop.getInstance().allowUnsafeEnchants ? value : (value > cEnchantment.getMaxLevel() ? cEnchantment.getMaxLevel() : value);
+         return new SimpleEnchantment(EnchantsProvider.Provider.CRAZY_ENCHANTS, cEnchantment, itemId, value);
       } else {
-         throw new ItemLoadException("CrazyEnchantments could not find a enchantment with name '" + var1 + "'");
+         throw new ItemLoadException("CrazyEnchantments could not find a enchantment with name '" + itemId + "'");
       }
    }
 
    @Override
-   public boolean canEnchantItem(ItemStack var1, SimpleEnchantment var2) {
+   public boolean canEnchantItem(ItemStack itemStack, SimpleEnchantment simpleEnchantment) {
       if (OnyxShop.getInstance().allowUnsafeEnchants) {
          return true;
       } else {
-         if (var2.getEnchant() instanceof CEnchantment) {
-            CEnchantment var3 = (CEnchantment)var2.getEnchant();
-            if (!var3.canEnchantItem(var1)) {
-               SendMessage.errorMessage("Could not apply enchantment '" + var2.getKey() + "' to this shop item material type");
+         if (simpleEnchantment.getEnchant() instanceof CEnchantment) {
+            CEnchantment cEnchantment = (CEnchantment)simpleEnchantment.getEnchant();
+            if (!cEnchantment.canEnchantItem(itemStack)) {
+               SendMessage.errorMessage("Could not apply enchantment '" + simpleEnchantment.getKey() + "' to this shop item material type");
                return false;
             }
          }
@@ -64,47 +64,47 @@ public class CrazyEnchantmentsHook implements EnchantProvider {
    }
 
    @Override
-   public ItemStack addEnchantment(ItemStack var1, SimpleEnchantment var2, @Nullable DisplayItem var3) {
-      if (var2.getEnchant() instanceof CEnchantment) {
-         if (XMaterial.matchXMaterial(var1) == XMaterial.BOOK) {
-            CEBook var4 = new CEBook((CEnchantment)var2.getEnchant(), var2.getLvl(), var1.getAmount());
-            var4.setSuccessRate(100);
-            var4.setDestroyRate(0);
-            ItemBuilder var5 = new ItemBuilder(var4.buildBook());
-            var5.withSimpleMeta(var1);
-            return var5.build();
+   public ItemStack addEnchantment(ItemStack itemStack, SimpleEnchantment simpleEnchantment, @Nullable DisplayItem displayItem) {
+      if (simpleEnchantment.getEnchant() instanceof CEnchantment) {
+         if (XMaterial.matchXMaterial(itemStack) == XMaterial.BOOK) {
+            CEBook ceBook = new CEBook((CEnchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl(), itemStack.getAmount());
+            ceBook.setSuccessRate(100);
+            ceBook.setDestroyRate(0);
+            ItemBuilder itemBuilder = new ItemBuilder(ceBook.buildBook());
+            itemBuilder.withSimpleMeta(itemStack);
+            return itemBuilder.build();
          } else {
-            return this.ce.getCrazyManager().addEnchantment(var1, (CEnchantment)var2.getEnchant(), var2.getLvl());
+            return this.ce.getCrazyManager().addEnchantment(itemStack, (CEnchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl());
          }
       } else {
-         return var1;
+         return itemStack;
       }
    }
 
    @Override
-   public boolean isEnchant(NamespacedKey var1) {
-      return this.ce.getCrazyManager().getEnchantmentFromName(var1.getKey()) != null;
+   public boolean isEnchant(NamespacedKey namespacedKey) {
+      return this.ce.getCrazyManager().getEnchantmentFromName(namespacedKey.getKey()) != null;
    }
 
-   public List<String> getAppliedEnchants(ItemStack var1) {
+   public List<String> getAppliedEnchants(ItemStack itemStack) {
       return this.ce
          .getEnchantmentBookSettings()
-         .getEnchantments(var1)
+         .getEnchantments(itemStack)
          .entrySet()
          .stream()
-         .map(var0 -> "crazyenchantments:" + ((CEnchantment)var0.getKey()).getName() + ":" + var0.getValue())
+         .map(entry -> "crazyenchantments:" + ((CEnchantment)entry.getKey()).getName() + ":" + entry.getValue())
          .collect(Collectors.toList());
    }
 
-   public List<SimpleEnchantment> getEnchantsOfItem(ItemStack var1) {
+   public List<SimpleEnchantment> getEnchantsOfItem(ItemStack itemStack) {
       return this.ce
          .getEnchantmentBookSettings()
-         .getEnchantments(var1)
+         .getEnchantments(itemStack)
          .entrySet()
          .stream()
          .map(
-            var0 -> new SimpleEnchantment(
-               EnchantsProvider.Provider.CRAZY_ENCHANTS, var0.getKey(), ((CEnchantment)var0.getKey()).getName(), (Integer)var0.getValue()
+            entry -> new SimpleEnchantment(
+               EnchantsProvider.Provider.CRAZY_ENCHANTS, entry.getKey(), ((CEnchantment)entry.getKey()).getName(), (Integer)entry.getValue()
             )
          )
          .collect(Collectors.toList());
@@ -112,32 +112,32 @@ public class CrazyEnchantmentsHook implements EnchantProvider {
 
    @Override
    public List<String> getAvailableEnchantKeys() {
-      return Arrays.stream(CEnchantments.values()).map(var0 -> "crazyenchantments:" + var0.getName() + ":1").collect(Collectors.toList());
+      return Arrays.stream(CEnchantments.values()).map(element -> "crazyenchantments:" + element.getName() + ":1").collect(Collectors.toList());
    }
 
    @Override
    public List<SimpleEnchantment> getAvailableEnchants() {
       return Arrays.stream(CEnchantments.values())
-         .map(var0 -> new SimpleEnchantment(EnchantsProvider.Provider.CRAZY_ENCHANTS, var0.getEnchantment(), var0.getName(), 1))
+         .map(element -> new SimpleEnchantment(EnchantsProvider.Provider.CRAZY_ENCHANTS, element.getEnchantment(), element.getName(), 1))
          .collect(Collectors.toList());
    }
 
    @Override
-   public List<Object> getAvailableEnchants(ItemStack var1) {
+   public List<Object> getAvailableEnchants(ItemStack itemStack) {
       return Arrays.stream(CEnchantments.values())
          .map(CEnchantments::getEnchantment)
-         .filter(var1x -> var1x.canEnchantItem(var1))
+         .filter(element -> element.canEnchantItem(itemStack))
          .collect(Collectors.toList());
    }
 
    @Override
-   public ItemStack getBook(SimpleEnchantment var1) {
-      ItemStack var2 = new ItemStack(Material.ENCHANTED_BOOK);
-      var2 = this.addEnchantment(var2, var1, null);
-      ItemMeta var3 = var2.getItemMeta();
-      var3.setDisplayName(((CEnchantment)var1.getEnchant()).getInfoName());
-      var3.setLore(((CEnchantment)var1.getEnchant()).getInfoDescription());
-      var2.setItemMeta(var3);
-      return var2;
+   public ItemStack getBook(SimpleEnchantment simpleEnchantment) {
+      ItemStack itemStack = new ItemStack(Material.ENCHANTED_BOOK);
+      itemStack = this.addEnchantment(itemStack, simpleEnchantment, null);
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      itemMeta.setDisplayName(((CEnchantment)simpleEnchantment.getEnchant()).getInfoName());
+      itemMeta.setLore(((CEnchantment)simpleEnchantment.getEnchant()).getInfoDescription());
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 }

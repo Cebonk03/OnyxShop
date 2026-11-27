@@ -705,8 +705,8 @@ public enum Lang {
    private static boolean perPlayerLanguages;
    private static final Map<Locale, Lang.LangCache> langCache = new HashMap<>();
 
-   private Lang(String nullxx) {
-      this.def = nullxx;
+   private Lang(String text) {
+      this.def = text;
    }
 
    public void reload() {
@@ -715,57 +715,57 @@ public enum Lang {
       }
 
       plugin.startupReload.checkIfLanguageFilesExist();
-      boolean var1 = true;
-      String var2 = ConfigManager.badYaml != null ? "lang-en.yml" : ConfigManager.getConfig().getString("language-file", "lang-en.yml");
+      boolean flag = true;
+      String text = ConfigManager.badYaml != null ? "lang-en.yml" : ConfigManager.getConfig().getString("language-file", "lang-en.yml");
 
       try {
-         defaultLang = Locale.forLanguageTag(var2.split("-")[1].split("\\.")[0].replace("_", "-"));
-      } catch (ArrayIndexOutOfBoundsException var14) {
-         var1 = false;
+         defaultLang = Locale.forLanguageTag(text.split("-")[1].split("\\.")[0].replace("_", "-"));
+      } catch (ArrayIndexOutOfBoundsException exception) {
+         flag = false;
       }
 
-      if (!var1 || defaultLang.getLanguage().isEmpty()) {
-         SendMessage.errorMessage("Failed to get language for file name '%fileName%', using English as default...".replace("%fileName%", var2));
+      if (!flag || defaultLang.getLanguage().isEmpty()) {
+         SendMessage.errorMessage("Failed to get language for file name '%fileName%', using English as default...".replace("%fileName%", text));
          defaultLang = Locale.ENGLISH;
       }
 
       try {
-         langCache.put(defaultLang, new Lang.LangCache(var2));
-         SendMessage.infoMessage("Using " + var2 + " as language file");
-      } catch (ConfigLoadException var13) {
-         SendMessage.errorMessage("Failed to load language file '%fileName%' from config.yml, using English as default...".replace("%fileName%", var2));
+         langCache.put(defaultLang, new Lang.LangCache(text));
+         SendMessage.infoMessage("Using " + text + " as language file");
+      } catch (ConfigLoadException exception) {
+         SendMessage.errorMessage("Failed to load language file '%fileName%' from config.yml, using English as default...".replace("%fileName%", text));
 
          try {
             langCache.put(defaultLang = Locale.ENGLISH, new Lang.LangCache("lang-en.yml"));
-         } catch (ConfigLoadException var12) {
+         } catch (ConfigLoadException exception2) {
             SendMessage.errorMessage("Failed to load default lang-en.yml, this is a bug!");
          }
       }
 
       if (ConfigManager.badYaml == null && ConfigManager.getConfig().getBoolean("per-player-languages", true)) {
          SendMessage.infoMessage(LOADING_LANGUAGE_FILES.get());
-         File var3 = new File(plugin.getDataFolder() + File.separator + "LanguageFiles");
-         if (var3.exists() && var3.isDirectory()) {
+         File file = new File(plugin.getDataFolder() + File.separator + "LanguageFiles");
+         if (file.exists() && file.isDirectory()) {
             perPlayerLanguages = true;
 
-            for (File var7 : var3.listFiles()) {
-               if (!var7.getName().equals(var2)) {
-                  Locale var8 = null;
+            for (File file2 : file.listFiles()) {
+               if (!file2.getName().equals(text)) {
+                  Locale locale = null;
 
                   try {
-                     var8 = Locale.forLanguageTag(var7.getName().split("-")[1].split("\\.")[0].replace("_", "-"));
-                  } catch (ArrayIndexOutOfBoundsException var11) {
-                     var1 = false;
+                     locale = Locale.forLanguageTag(file2.getName().split("-")[1].split("\\.")[0].replace("_", "-"));
+                  } catch (ArrayIndexOutOfBoundsException exception) {
+                     flag = false;
                   }
 
-                  if (var1 && var8 != null && !var8.getLanguage().isEmpty()) {
+                  if (flag && locale != null && !locale.getLanguage().isEmpty()) {
                      try {
-                        langCache.put(var8, new Lang.LangCache(var7));
-                     } catch (ConfigLoadException var10) {
-                        SendMessage.errorMessage(FAILED_TO_LOAD_LANGUAGE_FILE.get().replace("%fileName%", var7.getName()));
+                        langCache.put(locale, new Lang.LangCache(file2));
+                     } catch (ConfigLoadException exception) {
+                        SendMessage.errorMessage(FAILED_TO_LOAD_LANGUAGE_FILE.get().replace("%fileName%", file2.getName()));
                      }
                   } else {
-                     SendMessage.errorMessage(FAILED_TO_GET_LOCALE.get().replace("%fileName%", var7.getName()));
+                     SendMessage.errorMessage(FAILED_TO_GET_LOCALE.get().replace("%fileName%", file2.getName()));
                   }
                }
             }
@@ -787,24 +787,24 @@ public enum Lang {
       }
    }
 
-   public Translatable get(Player var1) {
-      return perPlayerLanguages ? this.get(UserManager.getUser(var1).getLocale()) : this.get();
+   public Translatable get(Player player) {
+      return perPlayerLanguages ? this.get(UserManager.getUser(player).getLocale()) : this.get();
    }
 
-   public Translatable get(Locale var1) {
-      return langCache.getOrDefault(var1, langCache.get(defaultLang)).get(this.getKey(), this.def);
+   public Translatable get(Locale locale) {
+      return langCache.getOrDefault(locale, langCache.get(defaultLang)).get(this.getKey(), this.def);
    }
 
    public Translatable get() {
       return langCache.get(defaultLang).get(this.getKey(), this.def);
    }
 
-   public static Translatable getOrNull(String var0) {
-      return langCache.get(defaultLang).getOrNull(var0);
+   public static Translatable getOrNull(String text) {
+      return langCache.get(defaultLang).getOrNull(text);
    }
 
-   public static Translatable getOrNull(String var0, Locale var1) {
-      return langCache.getOrDefault(var1, langCache.get(defaultLang)).getOrNull(var0);
+   public static Translatable getOrNull(String text, Locale locale) {
+      return langCache.getOrDefault(locale, langCache.get(defaultLang)).getOrNull(text);
    }
 
    public static Set<Locale> getLocales() {
@@ -823,41 +823,41 @@ public enum Lang {
       return langCache.get(defaultLang).getRaw(this.getKey(), this.def);
    }
 
-   public String getRaw(Locale var1) {
-      return langCache.getOrDefault(var1, langCache.get(defaultLang)).getRaw(this.getKey(), this.def);
+   public String getRaw(Locale locale) {
+      return langCache.getOrDefault(locale, langCache.get(defaultLang)).getRaw(this.getKey(), this.def);
    }
 
-   private static Translatable translate(String var0) {
+   private static Translatable translate(String text) {
       return (Translatable)(!supportsComponents
-         ? new TranslatableRaw(var0)
-         : (Translatable)ReflectUtil.getPaperFeature("files.lang.TranslatableComponent", var0));
+         ? new TranslatableRaw(text)
+         : (Translatable)ReflectUtil.getPaperFeature("files.lang.TranslatableComponent", text));
    }
 
-   private static FileConfiguration getLangFile(File var0) {
-      if (!var0.exists()) {
+   private static FileConfiguration getLangFile(File file) {
+      if (!file.exists()) {
          return null;
       } else {
-         YamlConfiguration var1 = plugin.loadConfiguration(var0, var0.getName());
-         if (var1 == null) {
+         YamlConfiguration config = plugin.loadConfiguration(file, file.getName());
+         if (config == null) {
             return null;
          } else {
             try {
-               plugin.saveResource("LanguageFiles" + File.separator + var0.getName(), true);
-               YamlConfiguration var2 = plugin.loadConfiguration(var0, var0.getName());
-               if (var2 == null) {
-                  ConfigUtil.save(var1, var0);
-                  return var1;
+               plugin.saveResource("LanguageFiles" + File.separator + file.getName(), true);
+               YamlConfiguration config2 = plugin.loadConfiguration(file, file.getName());
+               if (config2 == null) {
+                  ConfigUtil.save(config, file);
+                  return config;
                } else {
-                  for (String var4 : var1.getKeys(false)) {
-                     var2.set(var4, var1.get(var4));
+                  for (String text : config.getKeys(false)) {
+                     config2.set(text, config.get(text));
                   }
 
-                  ConfigUtil.save(var2, var0);
-                  return var2;
+                  ConfigUtil.save(config2, file);
+                  return config2;
                }
-            } catch (Exception var5) {
-               SendMessage.logDebugMessage("Failed to automatically update the language file for " + var0.getName());
-               return plugin.loadConfiguration(var0, var0.getName());
+            } catch (Exception exception) {
+               SendMessage.logDebugMessage("Failed to automatically update the language file for " + file.getName());
+               return plugin.loadConfiguration(file, file.getName());
             }
          }
       }
@@ -867,56 +867,56 @@ public enum Lang {
       private final FileConfiguration config;
       private final HashMap<String, Translatable> cache = new HashMap<>();
 
-      public LangCache(String var1) throws ConfigLoadException {
-         this.config = Lang.getLangFile(new File(Lang.plugin.getDataFolder() + File.separator + "LanguageFiles", var1));
+      public LangCache(String text) throws ConfigLoadException {
+         this.config = Lang.getLangFile(new File(Lang.plugin.getDataFolder() + File.separator + "LanguageFiles", text));
          if (this.config == null) {
-            throw new ConfigLoadException("Can not find or load language file '" + var1 + "'");
+            throw new ConfigLoadException("Can not find or load language file '" + text + "'");
          }
       }
 
-      public LangCache(File var1) throws ConfigLoadException {
-         this.config = Lang.getLangFile(var1);
+      public LangCache(File file) throws ConfigLoadException {
+         this.config = Lang.getLangFile(file);
          if (this.config == null) {
-            throw new ConfigLoadException("Can not find or load language file '" + var1.getName() + "'");
+            throw new ConfigLoadException("Can not find or load language file '" + file.getName() + "'");
          }
       }
 
-      public Translatable get(String var1, String var2) {
-         if (this.cache.containsKey(var1)) {
-            return this.cache.get(var1);
+      public Translatable get(String text, String text2) {
+         if (this.cache.containsKey(text)) {
+            return this.cache.get(text);
          } else {
-            Translatable var3;
+            Translatable text3;
             try {
-               var3 = Lang.translate(this.config.getString(var1, var2));
-            } catch (NullPointerException var5) {
-               var3 = Lang.translate(var2);
+               text3 = Lang.translate(this.config.getString(text, text2));
+            } catch (NullPointerException exception) {
+               text3 = Lang.translate(text2);
             }
 
-            this.cache.put(var1, var3);
-            return var3;
+            this.cache.put(text, text3);
+            return text3;
          }
       }
 
-      public Translatable getOrNull(String var1) {
-         if (this.cache.containsKey(var1)) {
-            return this.cache.get(var1);
+      public Translatable getOrNull(String text) {
+         if (this.cache.containsKey(text)) {
+            return this.cache.get(text);
          } else {
-            String var3 = this.config.getString(var1);
-            if (var3 == null) {
+            String text2 = this.config.getString(text);
+            if (text2 == null) {
                return null;
             } else {
-               Translatable var2 = Lang.translate(var3);
-               this.cache.put(var1, var2);
-               return var2;
+               Translatable text3 = Lang.translate(text2);
+               this.cache.put(text, text3);
+               return text3;
             }
          }
       }
 
-      public String getRaw(String var1, String var2) {
+      public String getRaw(String text, String text2) {
          try {
-            return this.config.getString(var1, var2);
-         } catch (NullPointerException var4) {
-            return var2;
+            return this.config.getString(text, text2);
+         } catch (NullPointerException exception) {
+            return text2;
          }
       }
    }

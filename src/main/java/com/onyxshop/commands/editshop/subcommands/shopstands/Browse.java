@@ -14,9 +14,9 @@ public class Browse extends SubCommad {
    private final Methods methods;
    private final OnyxShop plugin;
 
-   public Browse(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public Browse(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -35,19 +35,19 @@ public class Browse extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.shopstands." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.shopstands." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var1 instanceof Player) {
-         new StandBrowser(this.plugin, (Player)var1);
+   public void perform(Object value, String[] values) {
+      if (value instanceof Player) {
+         new StandBrowser(this.plugin, (Player)value);
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
+   public List<String> getTabCompletion(String[] values) {
       return null;
    }
 }

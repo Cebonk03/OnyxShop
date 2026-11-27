@@ -47,9 +47,9 @@ public class PaperMeta implements MetaUtils {
    private final OnyxShop plugin;
    private PaperMeta.Utils utils;
 
-   public PaperMeta(OnyxShop var1) {
-      this.logger = var1.getServer().getConsoleSender();
-      this.plugin = var1;
+   public PaperMeta(OnyxShop plugin) {
+      this.logger = plugin.getServer().getConsoleSender();
+      this.plugin = plugin;
    }
 
    @Override
@@ -65,345 +65,345 @@ public class PaperMeta implements MetaUtils {
       config.update();
    }
 
-   private void send(Player var1, Component var2) {
-      var1.sendMessage(config.prefix.append(var2));
+   private void send(Player player, Component component) {
+      player.sendMessage(config.prefix.append(component));
    }
 
    @Override
-   public void send(Player var1, Translatable var2) {
-      var1.sendMessage(config.prefix.append((Component)var2.get()));
+   public void send(Player player, Translatable text) {
+      player.sendMessage(config.prefix.append((Component)text.get()));
    }
 
    @Override
-   public void send(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(config.prefix.append((Component)var2.get()));
+   public void send(Object value, Translatable text) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(config.prefix.append((Component)text.get()));
       } else {
-         ((CommandSender)var1).sendMessage((Component)var2.get());
+         ((CommandSender)value).sendMessage((Component)text.get());
       }
    }
 
    @Override
-   public void send(Translatable var1) {
-      this.logger.sendMessage((Component)var1.get());
+   public void send(Translatable text) {
+      this.logger.sendMessage((Component)text.get());
    }
 
    @Override
-   public void sendLegacy(Player var1, String var2) {
-      var1.sendMessage(AdventureUtil.toLegacy(config.prefix) + var2);
+   public void sendLegacy(Player player, String playerName) {
+      player.sendMessage(AdventureUtil.toLegacy(config.prefix) + playerName);
    }
 
    @Override
-   public void sendLegacy(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(AdventureUtil.toLegacy(config.prefix) + var2);
+   public void sendLegacy(Object value, String text) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(AdventureUtil.toLegacy(config.prefix) + text);
       } else {
-         ((CommandSender)var1).sendMessage(var2);
+         ((CommandSender)value).sendMessage(text);
       }
    }
 
    @Override
-   public void sendLegacy(String var1) {
-      this.logger.sendMessage(var1);
+   public void sendLegacy(String text) {
+      this.logger.sendMessage(text);
    }
 
    @Override
-   public void sendTransactionMessage(Player var1, int var2, double var3, ShopItem var5, Transaction.Mode var6, Transaction.Type var7, boolean var8) {
-      this.sendTransactionMessage(var1, var2, Collections.singletonMap(var5.getEcoType(), var3), var5, var6, var7, var8);
+   public void sendTransactionMessage(Player player, int value, double amount, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag) {
+      this.sendTransactionMessage(player, value, Collections.singletonMap(shopItem.getEcoType(), amount), shopItem, mode, type, flag);
    }
 
    @Override
    public void sendTransactionMessage(
-      Player var1, int var2, Map<EcoType, Double> var3, ShopItem var4, Transaction.Mode var5, Transaction.Type var6, boolean var7
+      Player player, int value, Map<EcoType, Double> map, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag
    ) {
-      Translatable var8 = var5 == Transaction.Mode.BUY
-         ? (var7 ? Lang.PAY_CONFIRMATION_COMMAND.get(var1) : Lang.PAY_CONFIRMATION.get(var1))
-         : (var7 ? Lang.SELL_CONFIRMATION_COMMAND.get(var1) : Lang.SELL_CONFIRMATION.get(var1));
-      String var9 = ChatUtil.getAdventureUtils().getLastColors(var8.toString().split("%material%")[0]);
+      Translatable text = mode == Transaction.Mode.BUY
+         ? (flag ? Lang.PAY_CONFIRMATION_COMMAND.get(player) : Lang.PAY_CONFIRMATION.get(player))
+         : (flag ? Lang.SELL_CONFIRMATION_COMMAND.get(player) : Lang.SELL_CONFIRMATION.get(player));
+      String lastColors = ChatUtil.getAdventureUtils().getLastColors(text.toString().split("%material%")[0]);
       this.send(
-         var1,
-         (Component)var8.replace("%amounttopay%", this.getCurrencyDisplay(var9, var3))
-            .replace("%amount%", String.valueOf(var2))
+         player,
+         (Component)text.replace("%amounttopay%", this.getCurrencyDisplay(lastColors, map))
+            .replace("%amount%", String.valueOf(value))
             .replace(
                "%material%",
                (
-                     var4 instanceof ShopItem.Shulker
-                        ? this.translate(var4)
+                     shopItem instanceof ShopItem.Shulker
+                        ? this.translate(shopItem)
                            + ChatColor.GRAY
-                           + ((ShopItem.Shulker)var4)
+                           + ((ShopItem.Shulker)shopItem)
                               .getContents()
                               .entrySet()
                               .stream()
-                              .map(var1x -> var1x.getValue() + "x " + this.translate(var1x.getKey()) + ChatColor.GRAY)
+                              .map(entry -> entry.getValue() + "x " + this.translate(entry.getKey()) + ChatColor.GRAY)
                               .collect(Collectors.toList())
-                        : this.translate(var4)
+                        : this.translate(shopItem)
                   )
-                  + var9
+                  + lastColors
             )
             .get()
       );
    }
 
-   private String translate(ShopItem var1) {
-      return var1.hasCustomName() ? var1.getDisplayname() : "<lang:" + var1.getTranslationKey() + ">";
+   private String translate(ShopItem shopItem) {
+      return shopItem.hasCustomName() ? shopItem.getDisplayname() : "<lang:" + shopItem.getTranslationKey() + ">";
    }
 
    @Override
-   public void sendTransactionMessage(Player var1, int var2, Map<EcoType, Double> var3, Map<ShopItem, Integer> var4, Transaction.Type var5) {
-      Translatable var6 = Lang.SELL_CONFIRMATION_MULTIPLE_ITEMS.get(var1);
-      String var7 = ChatUtil.getAdventureUtils().getLastColors(var6.toString().split("%amounttopay%")[0]);
-      HoverEvent var8 = HoverEvent.showText(ChatUtil.getAdventureUtils().formatLegacyAndMini("§7" + this.getItemDisplay("§7", var4))).asHoverEvent();
+   public void sendTransactionMessage(Player player, int value, Map<EcoType, Double> map, Map<ShopItem, Integer> map2, Transaction.Type type) {
+      Translatable text = Lang.SELL_CONFIRMATION_MULTIPLE_ITEMS.get(player);
+      String lastColors = ChatUtil.getAdventureUtils().getLastColors(text.toString().split("%amounttopay%")[0]);
+      HoverEvent hoverEvent = HoverEvent.showText(ChatUtil.getAdventureUtils().formatLegacyAndMini("§7" + this.getItemDisplay("§7", map2))).asHoverEvent();
       this.send(
-         var1,
-         ((Component)var6.replace("%items%", this.getItemDisplay(var7, var4))
-               .replace("%amount%", String.valueOf(var2))
-               .replace("%amounttopay%", this.getCurrencyDisplay(var7, var3))
+         player,
+         ((Component)text.replace("%items%", this.getItemDisplay(lastColors, map2))
+               .replace("%amount%", String.valueOf(value))
+               .replace("%amounttopay%", this.getCurrencyDisplay(lastColors, map))
                .get())
-            .hoverEvent(var8)
+            .hoverEvent(hoverEvent)
       );
    }
 
-   private String getItemDisplay(String var1, Map<ShopItem, Integer> var2) {
-      StringBuilder var3 = new StringBuilder();
-      int var4 = 0;
+   private String getItemDisplay(String itemId, Map<ShopItem, Integer> map) {
+      StringBuilder builder = new StringBuilder();
+      int value = 0;
 
-      for (Entry<ShopItem, Integer> var6 : var2.entrySet()) {
-         if (var6.getKey() instanceof ShopItem.Shulker) {
-            Map<ShopItem, Integer> var7 = ((ShopItem.Shulker)var6.getKey()).getContents();
-            var3.append(var6.getValue()).append("x ").append(this.translate((ShopItem)var6.getKey()));
-            var3.append(var7.entrySet().stream().map(var1x -> var1x.getValue() + "x " + this.translate((ShopItem)var1x.getKey())).collect(Collectors.toList()));
+      for (Entry<ShopItem, Integer> entry : map.entrySet()) {
+         if (entry.getKey() instanceof ShopItem.Shulker) {
+            Map<ShopItem, Integer> contents = ((ShopItem.Shulker)entry.getKey()).getContents();
+            builder.append(entry.getValue()).append("x ").append(this.translate((ShopItem)entry.getKey()));
+            builder.append(contents.entrySet().stream().map(entry2 -> entry2.getValue() + "x " + this.translate((ShopItem)entry2.getKey())).collect(Collectors.toList()));
          } else {
-            var3.append(var6.getValue()).append("x ").append(this.translate((ShopItem)var6.getKey()));
+            builder.append(entry.getValue()).append("x ").append(this.translate((ShopItem)entry.getKey()));
          }
 
-         var3.append(var1);
-         if (var4 != var2.size() - 1) {
-            var3.append(", ");
+         builder.append(itemId);
+         if (value != map.size() - 1) {
+            builder.append(", ");
          }
 
-         var4++;
+         value++;
       }
 
-      return var3.toString();
+      return builder.toString();
    }
 
-   private String getCurrencyDisplay(String var1, Map<EcoType, Double> var2) {
-      StringBuilder var3 = new StringBuilder();
-      int var4 = 0;
+   private String getCurrencyDisplay(String type, Map<EcoType, Double> map) {
+      StringBuilder builder = new StringBuilder();
+      int value = 0;
 
-      for (Entry<EcoType, Double> var6 : var2.entrySet()) {
-         var3.append(this.plugin.formatPrice(var6.getKey(), var6.getValue()));
-         var3.append(var1);
-         if (var4 != var2.size() - 1) {
-            var3.append(", ");
+      for (Entry<EcoType, Double> entry : map.entrySet()) {
+         builder.append(this.plugin.formatPrice(entry.getKey(), entry.getValue()));
+         builder.append(type);
+         if (value != map.size() - 1) {
+            builder.append(", ");
          }
 
-         var4++;
+         value++;
       }
 
-      return var3.toString();
+      return builder.toString();
    }
 
    @Override
-   public Inventory createInventory(InventoryHolder var1, int var2, Translatable var3) {
-      return this.utils.createInventory(var1, var2, var3);
+   public Inventory createInventory(InventoryHolder holder, int value, Translatable text) {
+      return this.utils.createInventory(holder, value, text);
    }
 
    @Override
-   public void setRawDisplayName(ItemMeta var1, String var2) {
-      this.utils.setRawDisplayName(var1, var2);
+   public void setRawDisplayName(ItemMeta itemMeta, String name) {
+      this.utils.setRawDisplayName(itemMeta, name);
    }
 
    @Override
-   public void setDisplayName(ItemMeta var1, Translatable var2) {
-      this.utils.setDisplayName(var1, var2);
+   public void setDisplayName(ItemMeta itemMeta, Translatable text) {
+      this.utils.setDisplayName(itemMeta, text);
    }
 
    @Override
-   public String getRawDisplayName(ItemMeta var1) {
-      return this.utils.getRawDisplayName(var1);
+   public String getRawDisplayName(ItemMeta itemMeta) {
+      return this.utils.getRawDisplayName(itemMeta);
    }
 
    @Override
-   public String getRawItemName(ItemMeta var1) {
-      return this.utils.getRawItemName(var1);
+   public String getRawItemName(ItemMeta itemMeta) {
+      return this.utils.getRawItemName(itemMeta);
    }
 
    @Override
-   public Translatable getDisplayName(ItemMeta var1) {
-      return this.utils.getDisplayName(var1);
+   public Translatable getDisplayName(ItemMeta itemMeta) {
+      return this.utils.getDisplayName(itemMeta);
    }
 
-   public static ItemStack setDisplayname(ItemStack var0, String var1) {
-      var0.setData(DataComponentTypes.ITEM_NAME, AdventureUtil.fromGson(var1).decoration(TextDecoration.ITALIC, false));
-      return var0;
-   }
-
-   @Override
-   public void setRawLore(ItemMeta var1, List<String> var2) {
-      this.utils.setRawLore(var1, var2);
+   public static ItemStack setDisplayname(ItemStack itemStack, String itemId) {
+      itemStack.setData(DataComponentTypes.ITEM_NAME, AdventureUtil.fromGson(itemId).decoration(TextDecoration.ITALIC, false));
+      return itemStack;
    }
 
    @Override
-   public void setLore(ItemMeta var1, List<Translatable> var2) {
-      this.utils.setLore(var1, var2);
+   public void setRawLore(ItemMeta itemMeta, List<String> lores) {
+      this.utils.setRawLore(itemMeta, lores);
    }
 
    @Override
-   public void addLore(ItemMeta var1, Translatable var2) {
-      this.utils.addLore(var1, var2);
+   public void setLore(ItemMeta itemMeta, List<Translatable> values) {
+      this.utils.setLore(itemMeta, values);
    }
 
    @Override
-   public List<String> getRawLore(ItemMeta var1) {
-      return this.utils.getRawLore(var1);
+   public void addLore(ItemMeta itemMeta, Translatable text) {
+      this.utils.addLore(itemMeta, text);
    }
 
    @Override
-   public List<Translatable> getLore(ItemMeta var1) {
-      return this.utils.getLore(var1);
+   public List<String> getRawLore(ItemMeta itemMeta) {
+      return this.utils.getRawLore(itemMeta);
    }
 
-   public static ItemStack setLore(ItemStack var0, ArrayList<String> var1) {
-      var0.setData(
+   @Override
+   public List<Translatable> getLore(ItemMeta itemMeta) {
+      return this.utils.getLore(itemMeta);
+   }
+
+   public static ItemStack setLore(ItemStack itemStack, ArrayList<String> lores) {
+      itemStack.setData(
          DataComponentTypes.LORE,
-         ItemLore.lore(var1.stream().map(var0x -> AdventureUtil.fromGson(var0x).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()))
+         ItemLore.lore(lores.stream().map(element -> AdventureUtil.fromGson(element).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()))
       );
-      return var0;
+      return itemStack;
    }
 
-   public static ItemStack setRawLore(ItemStack var0, ArrayList<String> var1) {
-      var0.setData(
+   public static ItemStack setRawLore(ItemStack itemStack, ArrayList<String> lores) {
+      itemStack.setData(
          DataComponentTypes.LORE,
          ItemLore.lore(
-            var1.stream()
-               .map(var0x -> ChatUtil.getAdventureUtils().formatLegacyAndMini(var0x).decoration(TextDecoration.ITALIC, false))
+            lores.stream()
+               .map(element -> ChatUtil.getAdventureUtils().formatLegacyAndMini(element).decoration(TextDecoration.ITALIC, false))
                .collect(Collectors.toList())
          )
       );
-      return var0;
+      return itemStack;
    }
 
    @Override
-   public void broadcast(Translatable var1) {
-      this.plugin.getServer().broadcast(config.prefix.append((Component)var1.get()));
+   public void broadcast(Translatable text) {
+      this.plugin.getServer().broadcast(config.prefix.append((Component)text.get()));
    }
 
    @Override
-   public void logDevDebugMessage(Translatable var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.debug).append((Component)var1.get()));
+   public void logDevDebugMessage(Translatable text) {
+      this.logger.sendMessage(config.consolePrefix.append(config.debug).append((Component)text.get()));
    }
 
    @Override
-   public void logPlayerTransaction(Translatable var1) {
-      this.logger.sendMessage(config.prefix.append((Component)var1.get()));
+   public void logPlayerTransaction(Translatable text) {
+      this.logger.sendMessage(config.prefix.append((Component)text.get()));
    }
 
    @Override
-   public void logPlayerTransaction(String var1) {
-      this.logger.sendMessage(config.prefix.append(Component.text(var1)));
+   public void logPlayerTransaction(String playerName) {
+      this.logger.sendMessage(config.prefix.append(Component.text(playerName)));
    }
 
    @Override
-   public void infoMessage(Translatable var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.info).append((Component)var1.get()));
+   public void infoMessage(Translatable text) {
+      this.logger.sendMessage(config.consolePrefix.append(config.info).append((Component)text.get()));
    }
 
    @Override
-   public void logDebugMessage(Translatable var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.debug).append((Component)var1.get()));
+   public void logDebugMessage(Translatable text) {
+      this.logger.sendMessage(config.consolePrefix.append(config.debug).append((Component)text.get()));
    }
 
    @Override
-   public void warnMessage(Translatable var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.warn).append((Component)var1.get()));
+   public void warnMessage(Translatable text) {
+      this.logger.sendMessage(config.consolePrefix.append(config.warn).append((Component)text.get()));
    }
 
    @Override
-   public void errorMessage(Translatable var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.error).append((Component)var1.get()));
+   public void errorMessage(Translatable text) {
+      this.logger.sendMessage(config.consolePrefix.append(config.error).append((Component)text.get()));
    }
 
    @Override
-   public void infoLegacyMessage(String var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.info).append(Component.text(var1)));
+   public void infoLegacyMessage(String message) {
+      this.logger.sendMessage(config.consolePrefix.append(config.info).append(Component.text(message)));
    }
 
    @Override
-   public void logLegacyDebugMessage(String var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.debug).append(Component.text(var1)));
+   public void logLegacyDebugMessage(String message) {
+      this.logger.sendMessage(config.consolePrefix.append(config.debug).append(Component.text(message)));
    }
 
    @Override
-   public void warnLegacyMessage(String var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.warn).append(Component.text(var1)));
+   public void warnLegacyMessage(String message) {
+      this.logger.sendMessage(config.consolePrefix.append(config.warn).append(Component.text(message)));
    }
 
    @Override
-   public void errorLegacyMessage(String var1) {
-      this.logger.sendMessage(config.consolePrefix.append(config.error).append(Component.text(var1)));
+   public void errorLegacyMessage(String message) {
+      this.logger.sendMessage(config.consolePrefix.append(config.error).append(Component.text(message)));
    }
 
    @Override
-   public void infoMessage(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(config.prefix.color(COLOR_MAP.get('a')).append((Component)var2.get()));
+   public void infoMessage(Object value, Translatable text) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(config.prefix.color(COLOR_MAP.get('a')).append((Component)text.get()));
       } else {
-         ((CommandSender)var1).sendMessage(config.consolePrefix.append(config.info).append((Component)var2.get()));
+         ((CommandSender)value).sendMessage(config.consolePrefix.append(config.info).append((Component)text.get()));
       }
    }
 
    @Override
-   public void warnMessage(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(config.prefix.color(COLOR_MAP.get('c')).append((Component)var2.get()));
+   public void warnMessage(Object value, Translatable text) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(config.prefix.color(COLOR_MAP.get('c')).append((Component)text.get()));
       } else {
-         ((CommandSender)var1).sendMessage(config.consolePrefix.append(config.warn).append((Component)var2.get()));
+         ((CommandSender)value).sendMessage(config.consolePrefix.append(config.warn).append((Component)text.get()));
       }
    }
 
    @Override
-   public void errorMessage(Object var1, Translatable var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(config.prefix.color(COLOR_MAP.get('c')).append((Component)var2.get()));
+   public void errorMessage(Object value, Translatable text) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(config.prefix.color(COLOR_MAP.get('c')).append((Component)text.get()));
       } else {
-         ((CommandSender)var1).sendMessage(config.consolePrefix.append(config.error).append((Component)var2.get()));
+         ((CommandSender)value).sendMessage(config.consolePrefix.append(config.error).append((Component)text.get()));
       }
    }
 
    @Override
-   public void infoLegacyMessage(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(AdventureUtil.toLegacy(config.prefix) + ChatColor.GREEN + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage(AdventureUtil.toLegacy(config.consolePrefix.append(config.info)) + var2);
+   public void infoLegacyMessage(Object value, String message) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(AdventureUtil.toLegacy(config.prefix) + ChatColor.GREEN + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage(AdventureUtil.toLegacy(config.consolePrefix.append(config.info)) + message);
       }
    }
 
    @Override
-   public void infoLegacyMessageWithoutPrefix(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(ChatColor.GREEN + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage((String)var2);
+   public void infoLegacyMessageWithoutPrefix(Object value, String message) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(ChatColor.GREEN + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage((String)message);
       }
    }
 
    @Override
-   public void warnLegacyMessage(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(AdventureUtil.toLegacy(config.prefix) + ChatColor.RED + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage(AdventureUtil.toLegacy(config.consolePrefix.append(config.warn)) + var2);
+   public void warnLegacyMessage(Object value, String message) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(AdventureUtil.toLegacy(config.prefix) + ChatColor.RED + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage(AdventureUtil.toLegacy(config.consolePrefix.append(config.warn)) + message);
       }
    }
 
    @Override
-   public void errorLegacyMessage(Object var1, String var2) {
-      if (var1 instanceof Player) {
-         ((Player)var1).sendMessage(AdventureUtil.toLegacy(config.prefix) + ChatColor.RED + var2);
-      } else if (var1 instanceof CommandSender) {
-         ((CommandSender)var1).sendMessage(AdventureUtil.toLegacy(config.consolePrefix.append(config.error)) + var2);
+   public void errorLegacyMessage(Object value, String message) {
+      if (value instanceof Player) {
+         ((Player)value).sendMessage(AdventureUtil.toLegacy(config.prefix) + ChatColor.RED + message);
+      } else if (value instanceof CommandSender) {
+         ((CommandSender)value).sendMessage(AdventureUtil.toLegacy(config.consolePrefix.append(config.error)) + message);
       }
    }
 
@@ -431,60 +431,60 @@ public class PaperMeta implements MetaUtils {
       }
 
       @Override
-      public Inventory createInventory(InventoryHolder var1, int var2, Translatable var3) {
-         return Bukkit.createInventory(var1, var2, var3.getLegacy());
+      public Inventory createInventory(InventoryHolder holder, int value, Translatable text) {
+         return Bukkit.createInventory(holder, value, text.getLegacy());
       }
 
       @Override
-      public void setRawDisplayName(ItemMeta var1, String var2) {
-         var1.setDisplayName(var2);
+      public void setRawDisplayName(ItemMeta itemMeta, String name) {
+         itemMeta.setDisplayName(name);
       }
 
       @Override
-      public void setDisplayName(ItemMeta var1, Translatable var2) {
-         var1.setDisplayName(var2.getLegacy());
+      public void setDisplayName(ItemMeta itemMeta, Translatable text) {
+         itemMeta.setDisplayName(text.getLegacy());
       }
 
       @Override
-      public String getRawDisplayName(ItemMeta var1) {
-         return var1.getDisplayName();
+      public String getRawDisplayName(ItemMeta itemMeta) {
+         return itemMeta.getDisplayName();
       }
 
       @Override
-      public Translatable getDisplayName(ItemMeta var1) {
-         return new TranslatableComponent(var1.getDisplayName());
+      public Translatable getDisplayName(ItemMeta itemMeta) {
+         return new TranslatableComponent(itemMeta.getDisplayName());
       }
 
       @Override
-      public String getRawItemName(ItemMeta var1) {
-         return var1.getItemName();
+      public String getRawItemName(ItemMeta itemMeta) {
+         return itemMeta.getItemName();
       }
 
       @Override
-      public void setRawLore(ItemMeta var1, List<String> var2) {
-         var1.setLore(var2);
+      public void setRawLore(ItemMeta itemMeta, List<String> lores) {
+         itemMeta.setLore(lores);
       }
 
       @Override
-      public void setLore(ItemMeta var1, List<Translatable> var2) {
-         var1.setLore(var2.stream().map(Translatable::getLegacy).collect(Collectors.toList()));
+      public void setLore(ItemMeta itemMeta, List<Translatable> values) {
+         itemMeta.setLore(values.stream().map(Translatable::getLegacy).collect(Collectors.toList()));
       }
 
       @Override
-      public void addLore(ItemMeta var1, Translatable var2) {
-         List<String> var3 = var1.hasLore() ? var1.getLore() : new ArrayList<>();
-         var3.add(var2.getLegacy());
-         var1.setLore((List)var3);
+      public void addLore(ItemMeta itemMeta, Translatable text) {
+         List<String> lores = itemMeta.hasLore() ? itemMeta.getLore() : new ArrayList<>();
+         lores.add(text.getLegacy());
+         itemMeta.setLore((List)lores);
       }
 
       @Override
-      public List<String> getRawLore(ItemMeta var1) {
-         return var1.getLore();
+      public List<String> getRawLore(ItemMeta itemMeta) {
+         return itemMeta.getLore();
       }
 
       @Override
-      public List<Translatable> getLore(ItemMeta var1) {
-         return var1.getLore().stream().map(TranslatableComponent::new).collect(Collectors.toList());
+      public List<Translatable> getLore(ItemMeta itemMeta) {
+         return itemMeta.getLore().stream().map(TranslatableComponent::new).collect(Collectors.toList());
       }
    }
 
@@ -515,122 +515,122 @@ public class PaperMeta implements MetaUtils {
       }
 
       @Override
-      public Inventory createInventory(InventoryHolder var1, int var2, Translatable var3) {
-         return Bukkit.createInventory(var1, var2, (Component)var3.get());
+      public Inventory createInventory(InventoryHolder holder, int value, Translatable text) {
+         return Bukkit.createInventory(holder, value, (Component)text.get());
       }
 
       @Override
-      public void setRawDisplayName(ItemMeta var1, String var2) {
+      public void setRawDisplayName(ItemMeta itemMeta, String name) {
          try {
-            SET_DISPLAYNAME.invoke(var1, ChatUtil.getAdventureUtils().formatLegacyAndMini(var2).decoration(TextDecoration.ITALIC, false));
-         } catch (InvocationTargetException | IllegalAccessException var4) {
-            var4.printStackTrace();
+            SET_DISPLAYNAME.invoke(itemMeta, ChatUtil.getAdventureUtils().formatLegacyAndMini(name).decoration(TextDecoration.ITALIC, false));
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
          }
       }
 
       @Override
-      public void setDisplayName(ItemMeta var1, Translatable var2) {
+      public void setDisplayName(ItemMeta itemMeta, Translatable text) {
          try {
-            SET_DISPLAYNAME.invoke(var1, ((Component)var2.get()).decoration(TextDecoration.ITALIC, false));
-         } catch (InvocationTargetException | IllegalAccessException var4) {
-            var4.printStackTrace();
+            SET_DISPLAYNAME.invoke(itemMeta, ((Component)text.get()).decoration(TextDecoration.ITALIC, false));
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
          }
       }
 
       @Override
-      public String getRawDisplayName(ItemMeta var1) {
+      public String getRawDisplayName(ItemMeta itemMeta) {
          try {
-            return AdventureUtil.serialize((Component)GET_DISPLAYNAME.invoke(var1));
-         } catch (InvocationTargetException | IllegalAccessException var3) {
-            var3.printStackTrace();
+            return AdventureUtil.serialize((Component)GET_DISPLAYNAME.invoke(itemMeta));
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
             return null;
          }
       }
 
       @Override
-      public Translatable getDisplayName(ItemMeta var1) {
+      public Translatable getDisplayName(ItemMeta itemMeta) {
          try {
-            return new TranslatableComponent((Component)GET_DISPLAYNAME.invoke(var1));
-         } catch (InvocationTargetException | IllegalAccessException var3) {
-            var3.printStackTrace();
+            return new TranslatableComponent((Component)GET_DISPLAYNAME.invoke(itemMeta));
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
             return null;
          }
       }
 
       @Override
-      public String getRawItemName(ItemMeta var1) {
+      public String getRawItemName(ItemMeta itemMeta) {
          try {
-            return AdventureUtil.serialize((Component)GET_ITEMNAME.invoke(var1));
-         } catch (InvocationTargetException | IllegalAccessException var3) {
-            var3.printStackTrace();
+            return AdventureUtil.serialize((Component)GET_ITEMNAME.invoke(itemMeta));
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
             return null;
          }
       }
 
       @Override
-      public void setRawLore(ItemMeta var1, List<String> var2) {
+      public void setRawLore(ItemMeta itemMeta, List<String> lores) {
          try {
             SET_LORE.invoke(
-               var1,
-               var2.stream()
-                  .map(var0 -> ChatUtil.getAdventureUtils().formatLegacyAndMini(var0).decoration(TextDecoration.ITALIC, false))
+               itemMeta,
+               lores.stream()
+                  .map(element -> ChatUtil.getAdventureUtils().formatLegacyAndMini(element).decoration(TextDecoration.ITALIC, false))
                   .collect(Collectors.toList())
             );
-         } catch (InvocationTargetException | IllegalAccessException var4) {
-            var4.printStackTrace();
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
          }
       }
 
       @Override
-      public void setLore(ItemMeta var1, List<Translatable> var2) {
+      public void setLore(ItemMeta itemMeta, List<Translatable> values) {
          try {
-            SET_LORE.invoke(var1, var2.stream().map(var0 -> ((Component)var0.get()).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
-         } catch (InvocationTargetException | IllegalAccessException var4) {
-            var4.printStackTrace();
+            SET_LORE.invoke(itemMeta, values.stream().map(element -> ((Component)element.get()).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
          }
       }
 
       @Override
-      public void addLore(ItemMeta var1, Translatable var2) {
+      public void addLore(ItemMeta itemMeta, Translatable text) {
          try {
-            List<Component> var3 = (List<Component>)GET_LORE.invoke(var1);
-            if (var3 == null) {
-               var3 = new ArrayList();
+            List<Component> values = (List<Component>)GET_LORE.invoke(itemMeta);
+            if (values == null) {
+               values = new ArrayList();
             }
 
-            var3.add(((Component)var2.get()).decoration(TextDecoration.ITALIC, false));
-            SET_LORE.invoke(var1, var3);
-         } catch (InvocationTargetException | IllegalAccessException var4) {
-            var4.printStackTrace();
+            values.add(((Component)text.get()).decoration(TextDecoration.ITALIC, false));
+            SET_LORE.invoke(itemMeta, values);
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
          }
       }
 
       @Override
-      public List<String> getRawLore(ItemMeta var1) {
+      public List<String> getRawLore(ItemMeta itemMeta) {
          try {
-            List<Component> var2 = (List<Component>)GET_LORE.invoke(var1);
-            if (var2 == null) {
-               var2 = new ArrayList<>();
+            List<Component> values = (List<Component>)GET_LORE.invoke(itemMeta);
+            if (values == null) {
+               values = new ArrayList<>();
             }
 
-            return var2.stream().map(var0 -> AdventureUtil.serialize(var0)).collect(Collectors.toList());
-         } catch (InvocationTargetException | IllegalAccessException var3) {
-            var3.printStackTrace();
+            return values.stream().map(element -> AdventureUtil.serialize(element)).collect(Collectors.toList());
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
             return null;
          }
       }
 
       @Override
-      public List<Translatable> getLore(ItemMeta var1) {
+      public List<Translatable> getLore(ItemMeta itemMeta) {
          try {
-            List<Component> var2 = (List<Component>)GET_LORE.invoke(var1);
-            if (var2 == null) {
-               var2 = new ArrayList<>();
+            List<Component> values = (List<Component>)GET_LORE.invoke(itemMeta);
+            if (values == null) {
+               values = new ArrayList<>();
             }
 
-            return var2.stream().map(TranslatableComponent::new).collect(Collectors.toList());
-         } catch (InvocationTargetException | IllegalAccessException var3) {
-            var3.printStackTrace();
+            return values.stream().map(TranslatableComponent::new).collect(Collectors.toList());
+         } catch (InvocationTargetException | IllegalAccessException exception) {
+            exception.printStackTrace();
             return null;
          }
       }
@@ -646,33 +646,33 @@ public class PaperMeta implements MetaUtils {
             SET_LORE.setAccessible(true);
             GET_LORE = ItemMeta.class.getDeclaredMethod("lore");
             GET_LORE.setAccessible(true);
-         } catch (NoSuchMethodException var1) {
-            throw new RuntimeException(var1);
+         } catch (NoSuchMethodException exception) {
+            throw new RuntimeException(exception);
          }
       }
    }
 
    private interface Utils {
-      Inventory createInventory(InventoryHolder var1, int var2, Translatable var3);
+      Inventory createInventory(InventoryHolder holder, int value, Translatable text);
 
-      void setRawDisplayName(ItemMeta var1, String var2);
+      void setRawDisplayName(ItemMeta itemMeta, String name);
 
-      void setDisplayName(ItemMeta var1, Translatable var2);
+      void setDisplayName(ItemMeta itemMeta, Translatable text);
 
-      String getRawDisplayName(ItemMeta var1);
+      String getRawDisplayName(ItemMeta itemMeta);
 
-      Translatable getDisplayName(ItemMeta var1);
+      Translatable getDisplayName(ItemMeta itemMeta);
 
-      String getRawItemName(ItemMeta var1);
+      String getRawItemName(ItemMeta itemMeta);
 
-      void setRawLore(ItemMeta var1, List<String> var2);
+      void setRawLore(ItemMeta itemMeta, List<String> lores);
 
-      void setLore(ItemMeta var1, List<Translatable> var2);
+      void setLore(ItemMeta itemMeta, List<Translatable> values);
 
-      void addLore(ItemMeta var1, Translatable var2);
+      void addLore(ItemMeta itemMeta, Translatable text);
 
-      List<String> getRawLore(ItemMeta var1);
+      List<String> getRawLore(ItemMeta itemMeta);
 
-      List<Translatable> getLore(ItemMeta var1);
+      List<Translatable> getLore(ItemMeta itemMeta);
    }
 }

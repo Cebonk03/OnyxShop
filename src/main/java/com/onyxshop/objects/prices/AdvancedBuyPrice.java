@@ -31,41 +31,41 @@ public class AdvancedBuyPrice {
    private boolean dynamicPricing;
    private int stackSize;
 
-   public AdvancedBuyPrice(ShopItem var1) {
-      this.itemLoc = var1.itemLoc;
-      this.section = var1.section;
-      this.itemPath = var1.getItemPath();
+   public AdvancedBuyPrice(ShopItem shopItem) {
+      this.itemLoc = shopItem.itemLoc;
+      this.section = shopItem.section;
+      this.itemPath = shopItem.getItemPath();
       this.all = ConfigManager.getShop(this.section).getBoolean(this.getItemLoc() + ".buy-prices.require-all");
    }
 
-   public void init(ShopItem var1) throws ItemLoadException {
-      this.stackSize = var1.getStackSize();
-      this.dynamicPricing = var1.isDynamicPricing();
-      this.initBuyPrices(var1);
+   public void init(ShopItem shopItem) throws ItemLoadException {
+      this.stackSize = shopItem.getStackSize();
+      this.dynamicPricing = shopItem.isDynamicPricing();
+      this.initBuyPrices(shopItem);
    }
 
-   public List<EcoType> has(Player var1, double var2) {
+   public List<EcoType> has(Player player, double amount) {
       if (this.all) {
          return (List<EcoType>)(this.buyPrices
                .keySet()
                .stream()
-               .allMatch(var3 -> OnyxShop.getInstance().getEcoHandler().getEcon(var3).getBalance(var1) >= var2)
+               .allMatch(element -> OnyxShop.getInstance().getEcoHandler().getEcon(element).getBalance(player) >= amount)
             ? new ArrayList<>(this.buyPrices.keySet())
             : Collections.emptyList());
       } else {
          return this.buyPrices
             .keySet()
             .stream()
-            .filter(var3 -> OnyxShop.getInstance().getEcoHandler().getEcon(var3).getBalance(var1) >= var2)
+            .filter(element -> OnyxShop.getInstance().getEcoHandler().getEcon(element).getBalance(player) >= amount)
             .collect(Collectors.toList());
       }
    }
 
-   public void withdraw(List<EcoType> var1, Player var2, double var3) {
+   public void withdraw(List<EcoType> values, Player player, double amount) {
       if (this.all) {
-         var1.forEach(var3x -> OnyxShop.getInstance().getEcoHandler().getEcon(var3x).withdrawBalance(var2, var3));
+         values.forEach(entry -> OnyxShop.getInstance().getEcoHandler().getEcon(entry).withdrawBalance(player, amount));
       } else {
-         OnyxShop.getInstance().getEcoHandler().getEcon((EcoType)var1.get(0)).withdrawBalance(var2, var3);
+         OnyxShop.getInstance().getEcoHandler().getEcon((EcoType)values.get(0)).withdrawBalance(player, amount);
       }
    }
 
@@ -81,31 +81,31 @@ public class AdvancedBuyPrice {
       return this.section;
    }
 
-   private void initBuyPrices(ShopItem var1) throws ItemLoadException {
-      List var2 = ConfigManager.getShop(this.section).getStringList(this.getItemLoc() + ".buy-prices.prices");
+   private void initBuyPrices(ShopItem shopItem) throws ItemLoadException {
+      List stringList = ConfigManager.getShop(this.section).getStringList(this.getItemLoc() + ".buy-prices.prices");
 
-      for (int var3 = 0; var3 < var2.size(); var3++) {
-         String var4 = (String)var2.get(var3);
+      for (int size = 0; size < stringList.size(); size++) {
+         String text = (String)stringList.get(size);
 
          try {
-            String var5 = var1.section + "." + (var1.rotates() ? "" : "pages.") + var1.itemLoc;
-            EcoType var6 = OnyxShop.getInstance().getEcoHandler().getEcoType(var5 + ".buy-prices.prices", var4.split("::")[0], var3);
-            if (var6 != null) {
-               double var7 = Double.parseDouble(var4.split("::")[1]);
-               if (!(var7 < 0.0)) {
-                  this.buyPrices.put(var6, var7 / this.stackSize);
-                  if (ChatUtil.hasRGB(OnyxShop.getInstance().getEcoHandler().getEcon(var6).getPlural())
-                     || ChatUtil.hasRGB(OnyxShop.getInstance().getEcoHandler().getEcon(var6).getSingular())) {
-                     var1.rgb = true;
+            String sectionId = shopItem.section + "." + (shopItem.rotates() ? "" : "pages.") + shopItem.itemLoc;
+            EcoType ecoType = OnyxShop.getInstance().getEcoHandler().getEcoType(sectionId + ".buy-prices.prices", text.split("::")[0], size);
+            if (ecoType != null) {
+               double amount = Double.parseDouble(text.split("::")[1]);
+               if (!(amount < 0.0)) {
+                  this.buyPrices.put(ecoType, amount / this.stackSize);
+                  if (ChatUtil.hasRGB(OnyxShop.getInstance().getEcoHandler().getEcon(ecoType).getPlural())
+                     || ChatUtil.hasRGB(OnyxShop.getInstance().getEcoHandler().getEcon(ecoType).getSingular())) {
+                     shopItem.rgb = true;
                   }
                }
             }
-         } catch (ArrayIndexOutOfBoundsException | NumberFormatException var9) {
-            if (var2.size() == 1 && var3 == var2.size()) {
+         } catch (ArrayIndexOutOfBoundsException | NumberFormatException exception) {
+            if (stringList.size() == 1 && size == stringList.size()) {
                throw new ItemLoadException(Lang.BUY_VALUE_WRONG.get());
             }
 
-            SendMessage.warnMessage(Lang.INVALID_BUY_PRICE.get().replace("%price%", var4));
+            SendMessage.warnMessage(Lang.INVALID_BUY_PRICE.get().replace("%price%", text));
             SendMessage.errorShops(this.section, this.itemLoc);
          }
       }
@@ -119,212 +119,212 @@ public class AdvancedBuyPrice {
       return this.buyPrices.get(this.getTypes().get(0));
    }
 
-   public double getFirstPrice(Player var1, int var2, Modifiers var3, boolean var4) {
-      return this.getBuyPrice(this.getTypes().get(0), var1, var2, var3, var4);
+   public double getFirstPrice(Player player, int price, Modifiers modifiers, boolean flag) {
+      return this.getBuyPrice(this.getTypes().get(0), player, price, modifiers, flag);
    }
 
    public Map<EcoType, Double> getBuyPrices() {
       return this.buyPrices
          .entrySet()
          .stream()
-         .collect(Collectors.toMap(Entry::getKey, var1 -> (Double)var1.getValue() * this.stackSize, (var0, var1) -> var0, LinkedHashMap::new));
+         .collect(Collectors.toMap(Entry::getKey, entry -> (Double)entry.getValue() * this.stackSize, (element, value) -> element, LinkedHashMap::new));
    }
 
-   public Map<EcoType, Double> getBuyPrices(EcoType var1, int var2) {
-      return this.getBuyPrices(var1, var2, false);
+   public Map<EcoType, Double> getBuyPrices(EcoType ecoType, int value) {
+      return this.getBuyPrices(ecoType, value, false);
    }
 
-   public Map<EcoType, Double> getBuyPrices(EcoType var1, int var2, boolean var3) {
+   public Map<EcoType, Double> getBuyPrices(EcoType ecoType, int value, boolean flag) {
       return this.buyPrices
          .entrySet()
          .stream()
-         .filter(var1x -> var1 == null || var1.equals(var1x.getKey()))
-         .collect(Collectors.toMap(Entry::getKey, var3x -> this.getBuyPrice((EcoType)var3x.getKey(), var2, var3), (var0, var1x) -> var0, LinkedHashMap::new));
+         .filter(entry -> ecoType == null || ecoType.equals(entry.getKey()))
+         .collect(Collectors.toMap(Entry::getKey, entry -> this.getBuyPrice((EcoType)entry.getKey(), value, flag), (element, value2) -> element, LinkedHashMap::new));
    }
 
-   private double getBuyPrice(EcoType var1, int var2, boolean var3) {
-      double var4 = this.buyPrices.get(var1);
-      return this.dynamicPricing && var4 > 0.0
-         ? OnyxShop.getInstance().round(var1, OnyxShop.getInstance().getDynamicPricingProvider().getBuyPrice(this.itemPath, var4, var2, var3))
-         : var4 * var2;
+   private double getBuyPrice(EcoType ecoType, int price, boolean flag) {
+      double amount = this.buyPrices.get(ecoType);
+      return this.dynamicPricing && amount > 0.0
+         ? OnyxShop.getInstance().round(ecoType, OnyxShop.getInstance().getDynamicPricingProvider().getBuyPrice(this.itemPath, amount, price, flag))
+         : amount * price;
    }
 
-   public Map<EcoType, Double> getBuyPrices(EcoType var1, Player var2, int var3, Modifiers var4) {
-      return this.getBuyPrices(var1, var2, var3, var4, false);
+   public Map<EcoType, Double> getBuyPrices(EcoType ecoType, Player player, int value, Modifiers modifiers) {
+      return this.getBuyPrices(ecoType, player, value, modifiers, false);
    }
 
-   public Map<EcoType, Double> getBuyPrices(EcoType var1, Player var2, int var3, Modifiers var4, boolean var5) {
+   public Map<EcoType, Double> getBuyPrices(EcoType ecoType, Player player, int value, Modifiers modifiers, boolean flag) {
       return this.buyPrices
          .entrySet()
          .stream()
-         .filter(var1x -> var1 == null || var1.equals(var1x.getKey()))
+         .filter(entry -> ecoType == null || ecoType.equals(entry.getKey()))
          .collect(
             Collectors.toMap(
-               Entry::getKey, var5x -> this.getBuyPrice((EcoType)var5x.getKey(), var2, var3, var4, var5), (var0, var1x) -> var0, LinkedHashMap::new
+               Entry::getKey, entry -> this.getBuyPrice((EcoType)entry.getKey(), player, value, modifiers, flag), (element, value2) -> element, LinkedHashMap::new
             )
          );
    }
 
-   private double getBuyPrice(EcoType var1, Player var2, int var3, Modifiers var4, boolean var5) {
-      double var6 = this.buyPrices.get(var1);
-      if (this.dynamicPricing && var6 > 0.0) {
-         double var8 = OnyxShop.getInstance().getDynamicPricingProvider().getBuyPrice(this.itemPath, var6, var3, var5);
-         return this.getPlayerBuyPrice(var2, var1, var8, var4);
+   private double getBuyPrice(EcoType ecoType, Player player, int price, Modifiers modifiers, boolean flag) {
+      double amount = this.buyPrices.get(ecoType);
+      if (this.dynamicPricing && amount > 0.0) {
+         double buyPrice = OnyxShop.getInstance().getDynamicPricingProvider().getBuyPrice(this.itemPath, amount, price, flag);
+         return this.getPlayerBuyPrice(player, ecoType, buyPrice, modifiers);
       } else {
-         return this.getPlayerBuyPrice(var2, var1, var6 * var3, var4);
+         return this.getPlayerBuyPrice(player, ecoType, amount * price, modifiers);
       }
    }
 
-   public Map<EcoType, Double> getBuyPricesRaw(int var1) {
+   public Map<EcoType, Double> getBuyPricesRaw(int value) {
       return this.buyPrices
          .entrySet()
          .stream()
-         .collect(Collectors.toMap(Entry::getKey, var1x -> (Double)var1x.getValue() * var1, (var0, var1x) -> var0, LinkedHashMap::new));
+         .collect(Collectors.toMap(Entry::getKey, entry -> (Double)entry.getValue() * value, (element, value2) -> element, LinkedHashMap::new));
    }
 
-   public String formatBuyPrices(String var1) {
-      String var2 = ChatColor.RESET.toString();
-      if (var1 != null) {
-         var2 = ChatUtil.getLastColor(var1.split("%buyPrice%")[0]);
+   public String formatBuyPrices(String text) {
+      String text2 = ChatColor.RESET.toString();
+      if (text != null) {
+         text2 = ChatUtil.getLastColor(text.split("%buyPrice%")[0]);
       }
 
-      Map<EcoType, Double> var3 = this.getBuyPrices();
-      StringBuilder var4 = new StringBuilder();
-      int var5 = var3.size();
+      Map<EcoType, Double> buyPrices = this.getBuyPrices();
+      StringBuilder builder = new StringBuilder();
+      int size = buyPrices.size();
 
-      for (Entry var7 : var3.entrySet()) {
-         if (var5 == 1) {
-            if (var3.size() == 1) {
-               return OnyxShop.getInstance().formatPrice((EcoType)var7.getKey(), (Double)var7.getValue());
+      for (Entry entry : buyPrices.entrySet()) {
+         if (size == 1) {
+            if (buyPrices.size() == 1) {
+               return OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue());
             }
 
-            var4.append(var2).append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get().getLegacy());
+            builder.append(text2).append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get().getLegacy());
          } else {
-            if (var5 != var3.size()) {
-               var4.append(var2).append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get().getLegacy());
+            if (size != buyPrices.size()) {
+               builder.append(text2).append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get().getLegacy());
             }
 
-            var5--;
+            size--;
          }
 
-         var4.append(OnyxShop.getInstance().formatPrice((EcoType)var7.getKey(), (Double)var7.getValue()));
+         builder.append(OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
       }
 
-      return var4.toString();
+      return builder.toString();
    }
 
-   public String formatBuyPrices(String var1, EcoType var2, int var3) {
-      return this.formatBuyPrices(var1, var2, var3, false);
+   public String formatBuyPrices(String type, EcoType ecoType, int value) {
+      return this.formatBuyPrices(type, ecoType, value, false);
    }
 
-   public String formatBuyPrices(String var1, EcoType var2, int var3, boolean var4) {
-      String var5 = ChatColor.RESET.toString();
-      if (var1 != null) {
-         var5 = ChatUtil.getLastColor(var1);
+   public String formatBuyPrices(String type, EcoType ecoType, int value, boolean flag) {
+      String text = ChatColor.RESET.toString();
+      if (type != null) {
+         text = ChatUtil.getLastColor(type);
       }
 
-      Map<EcoType, Double> var6 = this.getBuyPrices(var2, var3, var4);
-      StringBuilder var7 = new StringBuilder();
-      int var8 = var6.size();
+      Map<EcoType, Double> buyPrices = this.getBuyPrices(ecoType, value, flag);
+      StringBuilder builder = new StringBuilder();
+      int size = buyPrices.size();
 
-      for (Entry var10 : var6.entrySet()) {
-         if (var8 == 1) {
-            if (var6.size() == 1) {
-               return OnyxShop.getInstance().formatPrice((EcoType)var10.getKey(), (Double)var10.getValue());
+      for (Entry entry : buyPrices.entrySet()) {
+         if (size == 1) {
+            if (buyPrices.size() == 1) {
+               return OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue());
             }
 
-            var7.append(var5).append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get().getLegacy());
+            builder.append(text).append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get().getLegacy());
          } else {
-            if (var8 != var6.size()) {
-               var7.append(var5).append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get().getLegacy());
+            if (size != buyPrices.size()) {
+               builder.append(text).append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get().getLegacy());
             }
 
-            var8--;
+            size--;
          }
 
-         var7.append(OnyxShop.getInstance().formatPrice((EcoType)var10.getKey(), (Double)var10.getValue()));
+         builder.append(OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
       }
 
-      return var7.toString();
+      return builder.toString();
    }
 
-   public String formatBuyPrices(String var1, EcoType var2, Player var3, int var4, Modifiers var5) {
-      return this.formatBuyPrices(var1, var2, var3, var4, var5, false);
+   public String formatBuyPrices(String type, EcoType ecoType, Player player, int value, Modifiers modifiers) {
+      return this.formatBuyPrices(type, ecoType, player, value, modifiers, false);
    }
 
-   public String formatBuyPrices(String var1, EcoType var2, Player var3, int var4, Modifiers var5, boolean var6) {
-      String var7 = ChatColor.RESET.toString();
-      if (var1 != null) {
-         var7 = ChatUtil.getLastColor(var1);
+   public String formatBuyPrices(String type, EcoType ecoType, Player player, int value, Modifiers modifiers, boolean flag) {
+      String text = ChatColor.RESET.toString();
+      if (type != null) {
+         text = ChatUtil.getLastColor(type);
       }
 
-      Map<EcoType, Double> var8 = this.getBuyPrices(var2, var3, var4, var5, var6);
-      StringBuilder var9 = new StringBuilder();
-      int var10 = var8.size();
+      Map<EcoType, Double> buyPrices = this.getBuyPrices(ecoType, player, value, modifiers, flag);
+      StringBuilder builder = new StringBuilder();
+      int size = buyPrices.size();
 
-      for (Entry var12 : var8.entrySet()) {
-         if (var10 == 1) {
-            if (var8.size() == 1) {
-               return OnyxShop.getInstance().formatPrice((EcoType)var12.getKey(), (Double)var12.getValue());
+      for (Entry entry : buyPrices.entrySet()) {
+         if (size == 1) {
+            if (buyPrices.size() == 1) {
+               return OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue());
             }
 
-            var9.append(var7).append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get(var3).getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get(var3).getLegacy());
+            builder.append(text).append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get(player).getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get(player).getLegacy());
          } else {
-            if (var10 != var8.size()) {
-               var9.append(var7).append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get(var3).getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get(var3).getLegacy());
+            if (size != buyPrices.size()) {
+               builder.append(text).append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get(player).getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get(player).getLegacy());
             }
 
-            var10--;
+            size--;
          }
 
-         var9.append(OnyxShop.getInstance().formatPrice((EcoType)var12.getKey(), (Double)var12.getValue()));
+         builder.append(OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
       }
 
-      return var9.toString();
+      return builder.toString();
    }
 
-   public String formatBuyPricesRaw(int var1) {
-      Map<EcoType, Double> var2 = this.getBuyPricesRaw(var1);
-      StringBuilder var3 = new StringBuilder();
-      int var4 = var2.size();
+   public String formatBuyPricesRaw(int value) {
+      Map<EcoType, Double> buyPricesRaw = this.getBuyPricesRaw(value);
+      StringBuilder builder = new StringBuilder();
+      int size = buyPricesRaw.size();
 
-      for (Entry var6 : var2.entrySet()) {
-         if (var4 == 1) {
-            if (var2.size() == 1) {
-               return OnyxShop.getInstance().formatPrice((EcoType)var6.getKey(), (Double)var6.getValue());
+      for (Entry entry : buyPricesRaw.entrySet()) {
+         if (size == 1) {
+            if (buyPricesRaw.size() == 1) {
+               return OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue());
             }
 
-            var3.append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get().getLegacy());
+            builder.append(this.all ? Lang.AND_PRICE_SEPARATOR_LONG.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_LONG.get().getLegacy());
          } else {
-            if (var4 != var2.size()) {
-               var3.append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get().getLegacy());
+            if (size != buyPricesRaw.size()) {
+               builder.append(this.all ? Lang.AND_PRICE_SEPARATOR_SHORT.get().getLegacy() : Lang.OR_PRICE_SEPARATOR_SHORT.get().getLegacy());
             }
 
-            var4--;
+            size--;
          }
 
-         var3.append(OnyxShop.getInstance().formatPrice((EcoType)var6.getKey(), (Double)var6.getValue()));
+         builder.append(OnyxShop.getInstance().formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
       }
 
-      return var3.toString();
+      return builder.toString();
    }
 
-   private double getPlayerBuyPrice(Player var1, EcoType var2, double var3, Modifiers var5) {
-      if (var5 != null) {
-         for (PriceModifier var7 : var5) {
-            var3 = var7.modify(var1, var3);
+   private double getPlayerBuyPrice(Player player, EcoType ecoType, double price, Modifiers modifiers) {
+      if (modifiers != null) {
+         for (PriceModifier priceModifier : modifiers) {
+            price = priceModifier.modify(player, price);
          }
       }
 
       if (OnyxShop.getInstance().discountsActive && OnyxShop.getInstance().hasDiscount(this.section)) {
-         var3 = CalculateAmount.calculateDiscount(var1, this.section, var3);
+         price = CalculateAmount.calculateDiscount(player, this.section, price);
       }
 
-      return OnyxShop.getInstance().round(var2, var3);
+      return OnyxShop.getInstance().round(ecoType, price);
    }
 
    private String getItemLoc() {
-      String[] var1 = this.itemPath.split("\\.", 2);
-      return (OnyxShop.getInstance().getShopType(var1[0]) == ShopType.CATEGORY ? "pages." : "") + var1[1];
+      String[] itemIds = this.itemPath.split("\\.", 2);
+      return (OnyxShop.getInstance().getShopType(itemIds[0]) == ShopType.CATEGORY ? "pages." : "") + itemIds[1];
    }
 }

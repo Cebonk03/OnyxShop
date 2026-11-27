@@ -12,17 +12,17 @@ public class SpawnerInteractEvent implements Listener {
    }
 
    @EventHandler
-   public void onPlayerInteract(PlayerInteractEvent var1) {
-      if (var1.getAction() != Action.LEFT_CLICK_BLOCK) {
-         if (var1.getClickedBlock() != null && var1.getClickedBlock().getType() == XMaterial.SPAWNER.parseMaterial()) {
-            if (this.isSpawnEgg(var1.getPlayer().getItemInHand())) {
-               var1.setCancelled(true);
+   public void onPlayerInteract(PlayerInteractEvent event) {
+      if (event.getAction() != Action.LEFT_CLICK_BLOCK) {
+         if (event.getClickedBlock() != null && event.getClickedBlock().getType() == XMaterial.SPAWNER.parseMaterial()) {
+            if (this.isSpawnEgg(event.getPlayer().getItemInHand())) {
+               event.setCancelled(true);
             }
          }
       }
    }
 
-   private boolean isSpawnEgg(ItemStack var1) {
-      return XMaterial.isNewVersion() ? var1.getType().name().endsWith("SPAWN_EGG") : var1.getType().name().contains("MONSTER_EGG");
+   private boolean isSpawnEgg(ItemStack itemStack) {
+      return XMaterial.isNewVersion() ? itemStack.getType().name().endsWith("SPAWN_EGG") : itemStack.getType().name().contains("MONSTER_EGG");
    }
 }

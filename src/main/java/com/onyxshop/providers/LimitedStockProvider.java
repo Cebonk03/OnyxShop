@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.onyxshop.OnyxShop;
 import com.onyxshop.database.Database;
@@ -47,22 +48,23 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 
 public class LimitedStockProvider {
-   private final Map<String, Integer> itemStocks = new HashMap<>();
-   private Map<String, Integer> CASHED_GLOBAL_STOCK = new HashMap<>();
-   private Map<String, Map<UUID, Integer>> CASHED_PLAYER_STOCK = new HashMap<>();
-   private Map<String, Long> GLOBAL_RESTOCK_TIMER = new HashMap<>();
-   private Map<String, Map<UUID, Long>> PLAYER_RESTOCK_TIMER = new HashMap<>();
+   private final ConcurrentHashMap<String, Integer> itemStocks = new ConcurrentHashMap<>();
+   private ConcurrentHashMap<String, Integer> CASHED_GLOBAL_STOCK = new ConcurrentHashMap<>();
+   private ConcurrentHashMap<String, Map<UUID, Integer>> CASHED_PLAYER_STOCK = new ConcurrentHashMap<>();
+   private ConcurrentHashMap<String, Long> GLOBAL_RESTOCK_TIMER = new ConcurrentHashMap<>();
+   private ConcurrentHashMap<String, Map<UUID, Long>> PLAYER_RESTOCK_TIMER = new ConcurrentHashMap<>();
+   private final Object STOCK_LOCK = new Object();
    private final ThreadLocal<LimitedStockProvider.Snapshot> PAGE_STOCK_SNAPSHOT = new ThreadLocal<>();
-   private Map<ScheduleManager.Item, Long> restockSchedulers = new HashMap<>();
+   private ConcurrentHashMap<ScheduleManager.Item, Long> restockSchedulers = new ConcurrentHashMap<>();
    private final OnyxShop plugin;
    private final Database database;
    private SQLBatch sqlBatch;
    private final boolean cache;
 
-   public LimitedStockProvider(OnyxShop var1, Database var2) {
-      this.plugin = var1;
-      this.database = var2;
-      this.cache = var2 instanceof SQLite;
+   public LimitedStockProvider(OnyxShop plugin, Database database) {
+      this.plugin = plugin;
+      this.database = database;
+      this.cache = database instanceof SQLite;
       SendMessage.infoMessage(Lang.LOADING_ITEM_STOCK.get());
       this.loadItemStockModes();
       this.loadRestockTimes();
@@ -91,151 +93,151 @@ public class LimitedStockProvider {
    }
 
    private void startRestockTimers() {
-      Map var1 = this.getCachedSchedulers();
-      int var2 = this.loadRestockTimers(var1);
-      if (var2 != 0) {
-         SendMessage.infoMessage("Completed loading " + var2 + " item restock cron schedulers");
+      Map cachedSchedulers = this.getCachedSchedulers();
+      int restockTime = this.loadRestockTimers(cachedSchedulers);
+      if (restockTime != 0) {
+         SendMessage.infoMessage("Completed loading " + restockTime + " item restock cron schedulers");
       }
    }
 
    private void reloadRestockTimers() {
-      int var1 = this.loadRestockTimers(this.restockSchedulers);
-      if (var1 != 0) {
-         SendMessage.infoMessage("Successfully reloaded " + var1 + " item restock cron schedulers");
+      int restockTime = this.loadRestockTimers(this.restockSchedulers);
+      if (restockTime != 0) {
+         SendMessage.infoMessage("Successfully reloaded " + restockTime + " item restock cron schedulers");
       }
    }
 
-   private int loadRestockTimers(Map<ScheduleManager.Item, Long> var1) {
-      AtomicInteger var2 = new AtomicInteger(0);
+   private int loadRestockTimers(Map<ScheduleManager.Item, Long> restockTimes) {
+      AtomicInteger counter = new AtomicInteger(0);
       this.itemStocks
          .forEach(
-            (var3, var4) -> {
-               ScheduleManager.Item var5 = new ScheduleManager.Item(var3, var4);
+            (key, value) -> {
+               ScheduleManager.Item item = new ScheduleManager.Item(key, value);
 
                try {
-                  Date var6 = this.scheduleJob(var5);
-                  if (var6 == null) {
+                  Date date = this.scheduleJob(item);
+                  if (date == null) {
                      return;
                   }
 
-                  if (var1.containsKey(var5)) {
-                     if ((Long)var1.get(var5) <= 0L && !this.restockSchedulers.containsKey(var5)) {
-                        this.restockItem(var3, var4, var6.getTime());
+                  if (restockTimes.containsKey(item)) {
+                     if ((Long)restockTimes.get(item) <= 0L && !this.restockSchedulers.containsKey(item)) {
+                        this.restockItem(key, value, date.getTime());
                         SendMessage.infoMessage(
                            "Successfully restocked item '"
-                              + var3
+                              + key
                               + "' for "
-                              + (var4 == 1 ? "global" : "player")
+                              + (value == 1 ? "global" : "player")
                               + " stock while cron schedule ended at "
-                              + TimeUtils.getReadableTime((Long)var1.get(var5))
+                              + TimeUtils.getReadableTime((Long)restockTimes.get(item))
                               + " when server was offline"
                         );
                      }
 
-                     if ((Long)var1.get(var5) != var6.getTime()) {
-                        SendMessage.infoMessage("Detected cron schedule change for item " + var3 + ", updating schedule with next fire time at " + var6);
-                        var1.put(var5, var6.getTime());
+                     if ((Long)restockTimes.get(item) != date.getTime()) {
+                        SendMessage.infoMessage("Detected cron schedule change for item " + key + ", updating schedule with next fire time at " + date);
+                        restockTimes.put(item, date.getTime());
                      }
                   } else {
-                     var1.put(var5, var6.getTime());
+                     restockTimes.put(item, date.getTime());
                   }
 
                   SendMessage.logDebugMessage(
                      "Successfully loaded cron restock schedule for item '"
-                        + var3
+                        + key
                         + "' for "
-                        + (var4 == 1 ? "global" : "player")
+                        + (value == 1 ? "global" : "player")
                         + " stock with next schedule date at "
-                        + var6
+                        + date
                   );
-                  var2.incrementAndGet();
-               } catch (RuntimeException var7) {
-                  SendMessage.warnMessage("Invalid cron expression format with reason: '" + var7.getCause().getMessage());
-                  SendMessage.errorShops(var5.section, var5.path);
-               } catch (SchedulerException var8) {
+                  counter.incrementAndGet();
+               } catch (RuntimeException exception) {
+                  SendMessage.warnMessage("Invalid cron expression format with reason: '" + exception.getCause().getMessage());
+                  SendMessage.errorShops(item.section, item.path);
+               } catch (SchedulerException exception) {
                   SendMessage.warnMessage("A unknown error occurred while creating a new cron schedule");
-                  SendMessage.errorShops(var5.section, var5.path);
-                  var8.printStackTrace();
-               } catch (Exception var9) {
-                  var9.printStackTrace();
+                  SendMessage.errorShops(item.section, item.path);
+                  exception.printStackTrace();
+               } catch (Exception exception) {
+                  exception.printStackTrace();
                }
             }
          );
-      this.restockSchedulers = var1;
-      return var2.get();
+      this.restockSchedulers = new ConcurrentHashMap<>(restockTimes);
+      return counter.get();
    }
 
-   private Date scheduleJob(ScheduleManager.Item var1) throws SchedulerException {
-      String var2 = null;
-      if (var1.mode == 2) {
-         var2 = ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-player-frequency");
-         if (var2 == null) {
+   private Date scheduleJob(ScheduleManager.Item item) throws SchedulerException {
+      String text = null;
+      if (item.mode == 2) {
+         text = ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-player-frequency");
+         if (text == null) {
             return null;
          }
 
-         if (ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-player") != null) {
+         if (ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-player") != null) {
             SendMessage.warnMessage("A item cannot have a restock timeframe aswell as a restock frequency, using frequency as default...");
-            SendMessage.errorShops(var1.section, var1.path);
+            SendMessage.errorShops(item.section, item.path);
          }
-      } else if (var1.mode == 1) {
-         var2 = ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-global-frequency");
-         if (var2 == null) {
+      } else if (item.mode == 1) {
+         text = ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-global-frequency");
+         if (text == null) {
             return null;
          }
 
-         if (ConfigManager.getShop(var1.section).getString(this.getItemLoc(var1.getItemPath()) + ".auto-restock-global") != null) {
+         if (ConfigManager.getShop(item.section).getString(this.getItemLoc(item.getItemPath()) + ".auto-restock-global") != null) {
             SendMessage.warnMessage("A item cannot have a restock timeframe aswell as a restock frequency, using frequency as default...");
-            SendMessage.errorShops(var1.section, var1.path);
+            SendMessage.errorShops(item.section, item.path);
          }
       }
 
-      JobDetail var3 = JobBuilder.newJob(RestockItemStock.class)
-         .setJobData(new JobDataMap(ImmutableMap.of("item", var1.getItemPath(), "mode", var1.mode)))
-         .withIdentity(var1.getItemPath() + "_JOB", "ONYX_RESTOCK_ITEM_STOCK")
+      JobDetail jobDetail = JobBuilder.newJob(RestockItemStock.class)
+         .setJobData(new JobDataMap(ImmutableMap.of("item", item.getItemPath(), "mode", item.mode)))
+         .withIdentity(item.getItemPath() + "_JOB", "ONYX_RESTOCK_ITEM_STOCK")
          .build();
-      Trigger var4 = TriggerBuilder.newTrigger()
-         .withIdentity(var1.getItemPath() + "_TRIGGER", "ONYX_RESTOCK_ITEM_STOCK")
-         .withSchedule(CronScheduleBuilder.cronSchedule(var2))
+      Trigger trigger = TriggerBuilder.newTrigger()
+         .withIdentity(item.getItemPath() + "_TRIGGER", "ONYX_RESTOCK_ITEM_STOCK")
+         .withSchedule(CronScheduleBuilder.cronSchedule(text))
          .build();
-      if (!this.restockSchedulers.containsKey(var1)) {
-         this.plugin.getScheduleManager().schedule(var3, var4);
-         if (var4.getNextFireTime() == null) {
-            SendMessage.warnMessage("Failed to schedule cron expression as it will never fire again, for item " + var1 + " and schedule " + var2);
-            SendMessage.errorShops(var1.section, var1.path);
+      if (!this.restockSchedulers.containsKey(item)) {
+         this.plugin.getScheduleManager().schedule(jobDetail, trigger);
+         if (trigger.getNextFireTime() == null) {
+            SendMessage.warnMessage("Failed to schedule cron expression as it will never fire again, for item " + item + " and schedule " + text);
+            SendMessage.errorShops(item.section, item.path);
             return null;
          }
       }
 
-      return var4.getNextFireTime();
+      return trigger.getNextFireTime();
    }
 
    private Map<ScheduleManager.Item, Long> getCachedSchedulers() {
-      Object var1 = new HashMap();
+      Object value = new HashMap();
 
       try {
-         var1 = this.database.getItemStockSchedulers();
-      } catch (SQLException var3) {
+         value = this.database.getItemStockSchedulers();
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while getting item restock schedules from database");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
 
-      return (Map<ScheduleManager.Item, Long>)var1;
+      return (Map<ScheduleManager.Item, Long>)value;
    }
 
-   public int getItemStockMode(String var1) {
-      return this.itemStocks.get(var1) != null ? this.itemStocks.get(var1) : 0;
+   public int getItemStockMode(String itemId) {
+      return this.itemStocks.get(itemId) != null ? this.itemStocks.get(itemId) : 0;
    }
 
    private void loadItemStockModes() {
-      for (String var2 : ConfigManager.getShops()) {
-         for (String var4 : this.plugin.getConfigManager().getItemsRaw(var2)) {
-            if (!ConfigManager.getShop(var2)
-               .contains((this.plugin.getConfigManager().getShopType(var2) == ShopType.ROTATING ? "pages." : "") + var4 + ".action")) {
-               String var5 = var2 + "." + var4;
-               if (ConfigManager.getShop(var2).contains(this.getItemLoc(var5) + ".stock-limit-player")) {
-                  this.itemStocks.put(var5, 2);
-               } else if (ConfigManager.getShop(var2).contains(this.getItemLoc(var5) + ".stock-limit-global")) {
-                  this.itemStocks.put(var5, 1);
+      for (String itemId : ConfigManager.getShops()) {
+         for (String itemId2 : this.plugin.getConfigManager().getItemsRaw(itemId)) {
+            if (!ConfigManager.getShop(itemId)
+               .contains((this.plugin.getConfigManager().getShopType(itemId) == ShopType.ROTATING ? "pages." : "") + itemId2 + ".action")) {
+               String text = itemId + "." + itemId2;
+               if (ConfigManager.getShop(itemId).contains(this.getItemLoc(text) + ".stock-limit-player")) {
+                  this.itemStocks.put(text, 2);
+               } else if (ConfigManager.getShop(itemId).contains(this.getItemLoc(text) + ".stock-limit-global")) {
+                  this.itemStocks.put(text, 1);
                }
             }
          }
@@ -251,88 +253,88 @@ public class LimitedStockProvider {
    }
 
    private void refreshStockCache() {
-      Map<String, Integer> var1;
-      Map<String, Map<UUID, Integer>> var2;
+      Map<String, Integer> stocks;
+      Map<String, Map<UUID, Integer>> map;
       try {
-         var1 = this.database.getAllItemStocks();
-         var2 = this.database.getAllPlayerStocks();
-      } catch (SQLException var4) {
+         stocks = this.database.getAllItemStocks();
+         map = this.database.getAllPlayerStocks();
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Exception occurred while loading the item stock display cache");
-         SendMessage.errorMessage(var4.getClass().getName() + ": " + var4.getMessage());
+         SendMessage.errorMessage(exception.getClass().getName() + ": " + exception.getMessage());
          return;
       }
 
-      this.itemStocks.forEach((var3, var4x) -> {
-         if (var4x == 2) {
-            HashMap var5 = new HashMap();
+      this.itemStocks.forEach((key, value) -> {
+         if (value == 2) {
+            Map<UUID, Integer> map2 = new ConcurrentHashMap<>();
 
-            for (Entry var7 : var2.getOrDefault(var3, Collections.emptyMap()).entrySet()) {
-               var5.put((UUID)var7.getKey(), this.getPlayerStock((UUID)var7.getKey(), var3, (Integer)var7.getValue()));
+            for (Entry entry : map.getOrDefault(key, Collections.emptyMap()).entrySet()) {
+               map2.put((UUID)entry.getKey(), this.getPlayerStock((UUID)entry.getKey(), key, (Integer)entry.getValue()));
             }
 
-            this.CASHED_PLAYER_STOCK.put(var3, var5);
-         } else if (var4x == 1) {
-            Integer var8 = (Integer)var1.get(var3);
-            if (var8 == null) {
-               var8 = this.getGlobalStock(var3);
-               this.setItemStock(var3, var8);
+            this.CASHED_PLAYER_STOCK.put(key, map2);
+         } else if (value == 1) {
+            Integer value2 = (Integer)stocks.get(key);
+            if (value2 == null) {
+               value2 = this.getGlobalStock(key);
+               this.setItemStock(key, value2);
             }
 
-            this.CASHED_GLOBAL_STOCK.put(var3, this.getGlobalStock(var3, var8));
+            this.CASHED_GLOBAL_STOCK.put(key, this.getGlobalStock(key, value2));
          }
       });
    }
 
    private void reloadOriginals() {
       try {
-         Map var1 = this.database.getOriginalStocks();
-         this.itemStocks.forEach((var2x, var3) -> {
-            Integer var4 = (Integer)var1.get(var2x);
-            if (var4 != null && var4 != 0) {
-               if (var3 == 2) {
-                  int var5 = this.getPlayerStock(var2x);
-                  if (var4 != var5) {
-                     SendMessage.logDebugMessage(Lang.PLAYER_ITEM_STOCK_CHANGE.get().replace("%path%", var2x));
-                     this.database.setOriginalStock(var2x, var5);
-                     this.database.setPlayerStockAmount(var2x, var5);
+         Map originalStocks = this.database.getOriginalStocks();
+         this.itemStocks.forEach((key, value) -> {
+            Integer value2 = (Integer)originalStocks.get(key);
+            if (value2 != null && value2 != 0) {
+               if (value == 2) {
+                  int playerStock = this.getPlayerStock(key);
+                  if (value2 != playerStock) {
+                     SendMessage.logDebugMessage(Lang.PLAYER_ITEM_STOCK_CHANGE.get().replace("%path%", key));
+                     this.database.setOriginalStock(key, playerStock);
+                     this.database.setPlayerStockAmount(key, playerStock);
                      if (this.cache || this.plugin.displayCache) {
-                        HashMap var6 = new HashMap();
-                        this.CASHED_PLAYER_STOCK.get(var2x).keySet().forEach(var2xx -> var6.put(var2xx, var5));
-                        this.CASHED_PLAYER_STOCK.put(var2x, var6);
+                        HashMap map = new HashMap();
+                        this.CASHED_PLAYER_STOCK.get(key).keySet().forEach(entry -> map.put(entry, playerStock));
+                        this.CASHED_PLAYER_STOCK.put(key, map);
                      }
                   }
-               } else if (var3 == 1) {
-                  int var7 = this.getGlobalStock(var2x);
-                  if (var4 != var7) {
-                     SendMessage.logDebugMessage(Lang.GLOBAL_ITEM_STOCK_CHANGE.get().replace("%path%", var2x));
-                     this.database.setOriginalStock(var2x, var7);
-                     this.database.setItemStock(var2x, var7);
-                     this.CASHED_GLOBAL_STOCK.put(var2x, var7);
+               } else if (value == 1) {
+                  int globalStock = this.getGlobalStock(key);
+                  if (value2 != globalStock) {
+                     SendMessage.logDebugMessage(Lang.GLOBAL_ITEM_STOCK_CHANGE.get().replace("%path%", key));
+                     this.database.setOriginalStock(key, globalStock);
+                     this.database.setItemStock(key, globalStock);
+                     this.CASHED_GLOBAL_STOCK.put(key, globalStock);
                   }
                }
             } else {
-               this.database.setOriginalStock(var2x, var3 == 2 ? this.getPlayerStock(var2x) : this.getGlobalStock(var2x));
+               this.database.setOriginalStock(key, value == 2 ? this.getPlayerStock(key) : this.getGlobalStock(key));
             }
          });
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to check for stock updates:");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    private void loadRestockTimes() {
       try {
-         this.PLAYER_RESTOCK_TIMER = this.database.getPlayerRestockTimes();
-      } catch (SQLException var3) {
+         this.PLAYER_RESTOCK_TIMER = new ConcurrentHashMap<>(this.database.getPlayerRestockTimes());
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for player stock");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
 
       try {
-         this.GLOBAL_RESTOCK_TIMER = this.database.getItemRestockTime();
-      } catch (SQLException var2) {
+         this.GLOBAL_RESTOCK_TIMER = new ConcurrentHashMap<>(this.database.getItemRestockTime());
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while loading the restock times for global stock");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
@@ -340,109 +342,103 @@ public class LimitedStockProvider {
       if (this.cache) {
          this.sqlBatch.drain();
       } else {
-         long var1 = System.currentTimeMillis();
+         long startTime = System.currentTimeMillis();
          SendMessage.logDebugMessage("Saving item stock to database, please wait...");
          this.saveRestockTimes();
          this.saveSchedulers();
-         SendMessage.logDebugMessage("Finished saving limit stock to database in " + (System.currentTimeMillis() - var1) + "ms");
+         SendMessage.logDebugMessage("Finished saving limit stock to database in " + (System.currentTimeMillis() - startTime) + "ms");
       }
    }
 
    private void saveSchedulers() {
       try {
          this.database.setItemStockSchedulers(this.restockSchedulers);
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while saving the item restock schedulers");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    private void saveRestockTimes() {
       try {
          this.database.setPlayerRestockTimes(this.PLAYER_RESTOCK_TIMER);
-      } catch (SQLException var3) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while saving the player item restock times");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
 
       try {
          this.database.setItemRestockTimes(this.GLOBAL_RESTOCK_TIMER);
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Error occurred while saving the global item restock times");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   public Translatable getStockLore(ShopItem var1, Player var2, int var3) {
-      int var4 = Math.min(var3, this.getItemStock(var1, var2.getUniqueId(), true));
-      if (var4 >= 0) {
-         return Lang.ITEM_STOCK.get(var2).replace("%stock%", String.valueOf(var4));
-      } else if (var4 == -1) {
-         return Lang.RESTOCKING_ITEM_STOCK.get(var2).replace("%time%", this.getTimeLeftToRestock(var1.getItemPath()));
-      } else if (var4 == -2) {
-         return Lang.RESTOCKING_ITEM_STOCK.get(var2).replace("%time%", this.getTimeLeftToRestock(var2.getUniqueId(), var1.getItemPath()));
+   public Translatable getStockLore(ShopItem shopItem, Player player, int stock) {
+      int id = Math.min(stock, this.getItemStock(shopItem, player.getUniqueId(), true));
+      if (id >= 0) {
+         return Lang.ITEM_STOCK.get(player).replace("%stock%", String.valueOf(id));
+      } else if (id == -1) {
+         return Lang.RESTOCKING_ITEM_STOCK.get(player).replace("%time%", this.getTimeLeftToRestock(shopItem.getItemPath()));
+      } else if (id == -2) {
+         return Lang.RESTOCKING_ITEM_STOCK.get(player).replace("%time%", this.getTimeLeftToRestock(player.getUniqueId(), shopItem.getItemPath()));
       } else {
-         return var4 != -3 && var4 != -4 ? SendMessage.fromConfig("∞") : Lang.OUT_OF_STOCK.get(var2);
+         return id != -3 && id != -4 ? SendMessage.fromConfig("∞") : Lang.OUT_OF_STOCK.get(player);
       }
    }
 
-   private void restockGlobalItem(String var1) throws ParseException {
-      long var2 = TimeUtils.getTime(ConfigManager.getShop(var1.split("\\.")[0]).getString(this.getItemLoc(var1) + ".auto-restock-global"))
+   private void restockGlobalItem(String itemId) throws ParseException {
+      long restockTime = TimeUtils.getTime(ConfigManager.getShop(itemId.split("\\.")[0]).getString(this.getItemLoc(itemId) + ".auto-restock-global"))
          + System.currentTimeMillis();
-      this.GLOBAL_RESTOCK_TIMER.put(var1, var2);
+      this.GLOBAL_RESTOCK_TIMER.put(itemId, restockTime);
       if (this.cache) {
-         this.sqlBatch.addQuery(new GlobalRestockTimerQuery(var1, var2));
+         this.sqlBatch.addQuery(new GlobalRestockTimerQuery(itemId, restockTime));
       }
    }
 
-   private void restockPlayerItem(UUID var1, String var2) throws ParseException {
-      long var3 = TimeUtils.getTime(ConfigManager.getShop(var2.split("\\.")[0]).getString(this.getItemLoc(var2) + ".auto-restock-player"))
+   private void restockPlayerItem(UUID playerId, String itemId) throws ParseException {
+      long restockTime = TimeUtils.getTime(ConfigManager.getShop(itemId.split("\\.")[0]).getString(this.getItemLoc(itemId) + ".auto-restock-player"))
          + System.currentTimeMillis();
-      if (this.PLAYER_RESTOCK_TIMER.containsKey(var2)) {
-         this.PLAYER_RESTOCK_TIMER.get(var2).put(var1, var3);
-      } else {
-         HashMap var5 = new HashMap();
-         var5.put(var1, var3);
-         this.PLAYER_RESTOCK_TIMER.put(var2, var5);
-      }
+      this.PLAYER_RESTOCK_TIMER.computeIfAbsent(itemId, key -> new ConcurrentHashMap<>()).put(playerId, restockTime);
 
       if (this.cache) {
-         this.sqlBatch.addQuery(new PlayerRestockTimerQuery(var2, var1.toString(), var3));
+         this.sqlBatch.addQuery(new PlayerRestockTimerQuery(itemId, playerId.toString(), restockTime));
       }
    }
 
-   private long getLongLeftToRestock(String var1) {
-      return this.restockSchedulers.getOrDefault(new ScheduleManager.Item(var1, 1), this.GLOBAL_RESTOCK_TIMER.get(var1)) - System.currentTimeMillis();
+   private long getLongLeftToRestock(String text) {
+      return this.restockSchedulers.getOrDefault(new ScheduleManager.Item(text, 1), this.GLOBAL_RESTOCK_TIMER.get(text)) - System.currentTimeMillis();
    }
 
-   public String getTimeLeftToRestock(String var1) {
-      return TimeUtils.getReadableTime(this.getLongLeftToRestock(var1));
+   public String getTimeLeftToRestock(String text) {
+      return TimeUtils.getReadableTime(this.getLongLeftToRestock(text));
    }
 
-   private long getLongLeftToRestock(UUID var1, String var2) {
-      return this.restockSchedulers.containsKey(new ScheduleManager.Item(var2, 2))
-         ? this.restockSchedulers.get(new ScheduleManager.Item(var2, 2)) - System.currentTimeMillis()
-         : this.PLAYER_RESTOCK_TIMER.get(var2).get(var1) - System.currentTimeMillis();
+   private long getLongLeftToRestock(UUID uniqueId, String text) {
+      return this.restockSchedulers.containsKey(new ScheduleManager.Item(text, 2))
+         ? this.restockSchedulers.get(new ScheduleManager.Item(text, 2)) - System.currentTimeMillis()
+         : this.PLAYER_RESTOCK_TIMER.get(text).get(uniqueId) - System.currentTimeMillis();
    }
 
-   public String getTimeLeftToRestock(UUID var1, String var2) {
-      return TimeUtils.getReadableTime(this.getLongLeftToRestock(var1, var2));
+   public String getTimeLeftToRestock(UUID uniqueId, String text) {
+      return TimeUtils.getReadableTime(this.getLongLeftToRestock(uniqueId, text));
    }
 
-   public long getTimeLeftToRestock(ShopItem var1, UUID var2) {
-      if (var1.getLimitedStockMode() == 1) {
-         return this.getLongLeftToRestock(var1.getItemPath());
+   public long getTimeLeftToRestock(ShopItem shopItem, UUID uniqueId) {
+      if (shopItem.getLimitedStockMode() == 1) {
+         return this.getLongLeftToRestock(shopItem.getItemPath());
       } else {
-         return var1.getLimitedStockMode() == 2 ? this.getLongLeftToRestock(var2, var1.getItemPath()) : -1L;
+         return shopItem.getLimitedStockMode() == 2 ? this.getLongLeftToRestock(uniqueId, shopItem.getItemPath()) : -1L;
       }
    }
 
-   private int getGlobalStock(String var1) {
-      return ConfigManager.getShop(var1.split("\\.")[0]).getInt(this.getItemLoc(var1) + ".stock-limit-global", 0);
+   private int getGlobalStock(String itemId) {
+      return ConfigManager.getShop(itemId.split("\\.")[0]).getInt(this.getItemLoc(itemId) + ".stock-limit-global", 0);
    }
 
-   public int getPlayerStock(String var1) {
-      return ConfigManager.getShop(var1.split("\\.")[0]).getInt(this.getItemLoc(var1) + ".stock-limit-player", 0);
+   public int getPlayerStock(String playerName) {
+      return ConfigManager.getShop(playerName.split("\\.")[0]).getInt(this.getItemLoc(playerName) + ".stock-limit-player", 0);
    }
 
    public void emptyCache() {
@@ -450,169 +446,220 @@ public class LimitedStockProvider {
       this.GLOBAL_RESTOCK_TIMER.clear();
    }
 
-   private LimitedStockProvider.Snapshot loadPageStock(LoreFormatter.PageIndex var1, UUID var2) {
-      ArrayList var3 = new ArrayList();
-      ArrayList var4 = new ArrayList();
+   private LimitedStockProvider.Snapshot loadPageStock(LoreFormatter.PageIndex pageIndex, UUID uniqueId) {
+      ArrayList itemIds = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (ShopItem var6 : var1.getItems()) {
-         int var7 = var6.getLimitedStockMode();
-         if (var7 == 1) {
-            var3.add(var6.getItemPath());
-         } else if (var7 == 2) {
-            var4.add(var6.getItemPath());
+      for (ShopItem shopItem : pageIndex.getItems()) {
+         int limitedStockMode = shopItem.getLimitedStockMode();
+         if (limitedStockMode == 1) {
+            itemIds.add(shopItem.getItemPath());
+         } else if (limitedStockMode == 2) {
+            values.add(shopItem.getItemPath());
          }
       }
 
-      if (!var3.isEmpty() || !var4.isEmpty()) {
+      if (!itemIds.isEmpty() || !values.isEmpty()) {
          try {
-            HashMap var9 = new HashMap();
-            if (!var3.isEmpty()) {
-               var9.putAll(this.database.getItemStocks(var3));
+            HashMap map = new HashMap();
+            if (!itemIds.isEmpty()) {
+               map.putAll(this.database.getItemStocks(itemIds));
             }
 
-            if (!var4.isEmpty()) {
-               var9.putAll(this.database.getPlayerStockAmounts(var4, var2));
+            if (!values.isEmpty()) {
+               map.putAll(this.database.getPlayerStockAmounts(values, uniqueId));
             }
 
-            LimitedStockProvider.Snapshot var10 = new LimitedStockProvider.Snapshot(var1, var9);
-            this.PAGE_STOCK_SNAPSHOT.set(var10);
-            return var10;
-         } catch (SQLException var8) {
+            LimitedStockProvider.Snapshot snapshot = new LimitedStockProvider.Snapshot(pageIndex, map);
+            this.PAGE_STOCK_SNAPSHOT.set(snapshot);
+            return snapshot;
+         } catch (SQLException exception) {
             SendMessage.errorMessage("Failed to batch load item stock for a shop page");
-            var8.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      return new LimitedStockProvider.Snapshot(var1, Collections.EMPTY_MAP);
+      return new LimitedStockProvider.Snapshot(pageIndex, Collections.EMPTY_MAP);
    }
 
-   private void setItemStock(String var1, int var2) {
+   private void setItemStock(String itemId, int stock) {
+      this.updateCashedGlobalStock(itemId, stock);
+      this.persistItemStock(itemId, stock);
+   }
+
+   private void updateCashedGlobalStock(String itemId, int value) {
       if (this.cache || this.plugin.displayCache) {
-         this.CASHED_GLOBAL_STOCK.put(var1, var2);
+         this.CASHED_GLOBAL_STOCK.put(itemId, value);
       }
+   }
 
+   private void updateCachedGlobalStock(String itemId, int value) {
+      if (this.cache || this.plugin.displayCache) {
+         this.CASHED_GLOBAL_STOCK.put(itemId, value);
+      }
+   }
+
+   private void updateCachedPlayerStock(UUID playerId, String itemId, int value) {
+      if (this.cache || this.plugin.displayCache) {
+         this.updateCashedPlayerStock(itemId, playerId, value);
+      }
+   }
+
+   private void persistItemStock(String itemId, int stock) {
       if (this.cache) {
-         this.sqlBatch.addQuery(new ItemStockQuery(var1, var2));
+         this.sqlBatch.addQuery(new ItemStockQuery(itemId, stock));
       } else {
-         this.database.setItemStock(var1, var2);
+         this.database.setItemStock(itemId, stock);
       }
    }
 
-   public int getItemStock(String var1) {
-      return this.getItemStock(var1, false, null, null);
+   public int getItemStock(String itemId) {
+      return this.getItemStock(itemId, false, null, null);
    }
 
-   public int getItemStock(String var1, boolean var2, LoreFormatter.PageIndex var3, UUID var4) {
-      return this.getGlobalStock(var1, this.getCashedGlobalStock(var1, var2, var3, var4));
+   public int getItemStock(String itemId, boolean flag, LoreFormatter.PageIndex pageIndex, UUID uniqueId) {
+      return this.getGlobalStock(itemId, this.getCashedGlobalStock(itemId, flag, pageIndex, uniqueId));
    }
 
-   private int getGlobalStock(String var1, int var2) {
-      if (var2 <= 0) {
+   private int getGlobalStock(String itemId, int value) {
+      if (value <= 0) {
          try {
-            if (this.getLongLeftToRestock(var1) <= 0L) {
-               this.GLOBAL_RESTOCK_TIMER.remove(var1);
-               int var3 = this.getGlobalStock(var1);
-               this.setItemStock(var1, var3);
-               SendMessage.logDebugMessage(Lang.RESTOCKED_GLOBAL_ITEM_STOCK.get().replace("%path%", var1));
-               return var3;
+            if (this.getLongLeftToRestock(itemId) <= 0L) {
+               this.GLOBAL_RESTOCK_TIMER.remove(itemId);
+               int globalStock = this.getGlobalStock(itemId);
+               this.setItemStock(itemId, globalStock);
+               SendMessage.logDebugMessage(Lang.RESTOCKED_GLOBAL_ITEM_STOCK.get().replace("%path%", itemId));
+               return globalStock;
             } else {
                return -1;
             }
-         } catch (NullPointerException var7) {
+         } catch (NullPointerException exception) {
             try {
-               this.restockGlobalItem(var1);
-               SendMessage.logDebugMessage(Lang.RESTOCKING_GLOBAL_ITEM_STOCK.get().replace("%path%", var1));
+               this.restockGlobalItem(itemId);
+               SendMessage.logDebugMessage(Lang.RESTOCKING_GLOBAL_ITEM_STOCK.get().replace("%path%", itemId));
                return -1;
-            } catch (ParseException var5) {
-               SendMessage.errorMessage("Could not get the global restock time of item '" + var1 + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
+            } catch (ParseException exception2) {
+               SendMessage.errorMessage("Could not get the global restock time of item '" + itemId + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
                return -3;
-            } catch (NullPointerException var6) {
+            } catch (NullPointerException exception2) {
                return -4;
             }
          }
       } else {
-         return var2;
+         return value;
       }
    }
 
-   public void sellItems(ShopItem var1, UUID var2, int var3) {
-      if (var1.getLimitedStockMode() == 2) {
-         this.setPlayerStock(var2, var1.getItemPath(), Math.max(this.getCashedPlayerStock(var1.getItemPath(), var2, false), 0) + var3);
-      } else if (var1.getLimitedStockMode() == 1) {
-         this.setItemStock(var1.getItemPath(), Math.max(this.getCashedGlobalStock(var1.getItemPath(), false), 0) + var3);
-      }
-   }
-
-   public void buyItems(ShopItem var1, UUID var2, int var3) {
-      if (var1.getLimitedStockMode() == 2) {
-         this.setPlayerStock(var2, var1.getItemPath(), this.getCashedPlayerStock(var1.getItemPath(), var2, false) - var3);
-      } else if (var1.getLimitedStockMode() == 1) {
-         this.setItemStock(var1.getItemPath(), this.getCashedGlobalStock(var1.getItemPath(), false) - var3);
-      }
-   }
-
-   public int buyItemsSafe(ShopItem var1, UUID var2, int var3) {
-      int var4 = -5;
-      if (var1.getLimitedStockMode() == 2) {
-         var4 = this.getCashedPlayerStock(var1.getItemPath(), var2, false);
-         if (var4 < var3) {
-            var3 = var4;
+   public void sellItems(ShopItem shopItem, UUID uniqueId, int value) {
+      if (shopItem.getLimitedStockMode() == 2) {
+         int value2;
+         synchronized (this.STOCK_LOCK) {
+            value2 = Math.max(this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false), 0) + value;
+            this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2);
          }
 
-         this.setPlayerStock(var2, var1.getItemPath(), var4 - var3);
-      } else if (var1.getLimitedStockMode() == 1) {
-         var4 = this.getCashedGlobalStock(var1.getItemPath(), false);
-         if (var4 < var3) {
-            var3 = var4;
+         this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
+      } else if (shopItem.getLimitedStockMode() == 1) {
+         int value2;
+         synchronized (this.STOCK_LOCK) {
+            value2 = Math.max(this.getCashedGlobalStock(shopItem.getItemPath(), false), 0) + value;
+            this.updateCachedGlobalStock(shopItem.getItemPath(), value2);
          }
 
-         this.setItemStock(var1.getItemPath(), var4 - var3);
+         this.persistItemStock(shopItem.getItemPath(), value2);
       }
-
-      return var4;
    }
 
-   public void resetItemStock(String var1, String var2, UUID var3, int var4) {
-      if (var1 != null && var2 != null) {
-         if (var4 == 2) {
-            this.setPlayerStock(var3, var1 + "." + var2, this.getPlayerStock(var1 + "." + var2));
-            if (this.PLAYER_RESTOCK_TIMER.containsKey(var1 + "." + var2)) {
-               if (var3 == null) {
-                  this.PLAYER_RESTOCK_TIMER.remove(var1 + "." + var2);
+   public void buyItems(ShopItem shopItem, UUID uniqueId, int value) {
+      if (shopItem.getLimitedStockMode() == 2) {
+         int value2;
+         synchronized (this.STOCK_LOCK) {
+            value2 = this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false) - value;
+            this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2);
+         }
+
+         this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2);
+      } else if (shopItem.getLimitedStockMode() == 1) {
+         int value2;
+         synchronized (this.STOCK_LOCK) {
+            value2 = this.getCashedGlobalStock(shopItem.getItemPath(), false) - value;
+            this.updateCachedGlobalStock(shopItem.getItemPath(), value2);
+         }
+
+         this.persistItemStock(shopItem.getItemPath(), value2);
+      }
+   }
+
+   public int buyItemsSafe(ShopItem shopItem, UUID uniqueId, int value) {
+      int value2 = -5;
+      if (shopItem.getLimitedStockMode() == 2) {
+         synchronized (this.STOCK_LOCK) {
+            value2 = this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, false);
+            if (value2 < value) {
+               value = value2;
+            }
+
+            this.updateCachedPlayerStock(uniqueId, shopItem.getItemPath(), value2 - value);
+         }
+
+         this.persistPlayerStock(uniqueId, shopItem.getItemPath(), value2 - value);
+      } else if (shopItem.getLimitedStockMode() == 1) {
+         synchronized (this.STOCK_LOCK) {
+            value2 = this.getCashedGlobalStock(shopItem.getItemPath(), false);
+            if (value2 < value) {
+               value = value2;
+            }
+
+            this.updateCachedGlobalStock(shopItem.getItemPath(), value2 - value);
+         }
+
+         this.persistItemStock(shopItem.getItemPath(), value2 - value);
+      }
+
+      return value2;
+   }
+
+   public void resetItemStock(String itemId, String itemId2, UUID uniqueId, int value) {
+      if (itemId != null && itemId2 != null) {
+         if (value == 2) {
+            this.setPlayerStock(uniqueId, itemId + "." + itemId2, this.getPlayerStock(itemId + "." + itemId2));
+            if (this.PLAYER_RESTOCK_TIMER.containsKey(itemId + "." + itemId2)) {
+               if (uniqueId == null) {
+                  this.PLAYER_RESTOCK_TIMER.remove(itemId + "." + itemId2);
                } else {
-                  this.PLAYER_RESTOCK_TIMER.get(var1 + "." + var2).remove(var3);
+                  this.PLAYER_RESTOCK_TIMER.get(itemId + "." + itemId2).remove(uniqueId);
                }
             }
-         } else if (var4 == 1) {
-            this.setItemStock(var1 + "." + var2, this.getGlobalStock(var1 + "." + var2));
-            this.GLOBAL_RESTOCK_TIMER.remove(var1 + "." + var2);
+         } else if (value == 1) {
+            this.setItemStock(itemId + "." + itemId2, this.getGlobalStock(itemId + "." + itemId2));
+            this.GLOBAL_RESTOCK_TIMER.remove(itemId + "." + itemId2);
          }
       } else {
-         if (var1 == null) {
-            if (var4 == 2) {
-               if (var3 != null) {
-                  RemovePlayerStockQuery var12 = new RemovePlayerStockQuery(var3.toString(), null);
+         if (itemId == null) {
+            if (value == 2) {
+               if (uniqueId != null) {
+                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(uniqueId.toString(), null);
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var12);
+                     this.sqlBatch.addQuery(removePlayerStockQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.STOCK, var12);
+                     this.database.executeQuery(SQLBatch.Type.STOCK, removePlayerStockQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
-                     for (String var25 : this.CASHED_PLAYER_STOCK.keySet()) {
-                        this.CASHED_PLAYER_STOCK.get(var25).remove(var3);
+                     for (String key : this.CASHED_PLAYER_STOCK.keySet()) {
+                        this.CASHED_PLAYER_STOCK.get(key).remove(uniqueId);
                      }
                   }
 
-                  for (String var26 : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     this.PLAYER_RESTOCK_TIMER.get(var26).remove(var3);
+                  for (String text : this.PLAYER_RESTOCK_TIMER.keySet()) {
+                     this.PLAYER_RESTOCK_TIMER.get(text).remove(uniqueId);
                   }
                } else {
-                  ClearPlayerStockQuery var11 = new ClearPlayerStockQuery();
+                  ClearPlayerStockQuery clearPlayerStockQuery = new ClearPlayerStockQuery();
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var11);
+                     this.sqlBatch.addQuery(clearPlayerStockQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.STOCK, var11);
+                     this.database.executeQuery(SQLBatch.Type.STOCK, clearPlayerStockQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
@@ -621,12 +668,12 @@ public class LimitedStockProvider {
 
                   this.PLAYER_RESTOCK_TIMER.clear();
                }
-            } else if (var4 == 1) {
-               ClearStockQuery var10 = new ClearStockQuery();
+            } else if (value == 1) {
+               ClearStockQuery clearStockQuery = new ClearStockQuery();
                if (this.cache) {
-                  this.sqlBatch.addQuery(var10);
+                  this.sqlBatch.addQuery(clearStockQuery);
                } else {
-                  this.database.executeQuery(SQLBatch.Type.STOCK, var10);
+                  this.database.executeQuery(SQLBatch.Type.STOCK, clearStockQuery);
                }
 
                if (this.cache || this.plugin.displayCache) {
@@ -635,70 +682,70 @@ public class LimitedStockProvider {
 
                this.GLOBAL_RESTOCK_TIMER.clear();
             }
-         } else if (var2 == null) {
-            if (var4 == 2) {
-               if (var3 != null) {
-                  RemovePlayerStockQuery var9 = new RemovePlayerStockQuery(var3.toString(), var1);
+         } else if (itemId2 == null) {
+            if (value == 2) {
+               if (uniqueId != null) {
+                  RemovePlayerStockQuery removePlayerStockQuery = new RemovePlayerStockQuery(uniqueId.toString(), itemId);
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var9);
+                     this.sqlBatch.addQuery(removePlayerStockQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.STOCK, var9);
+                     this.database.executeQuery(SQLBatch.Type.STOCK, removePlayerStockQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
-                     for (String var23 : this.CASHED_PLAYER_STOCK.keySet()) {
-                        if (var23.split("\\.")[0].equals(var1)) {
-                           this.CASHED_PLAYER_STOCK.get(var23).remove(var3);
+                     for (String text : this.CASHED_PLAYER_STOCK.keySet()) {
+                        if (text.split("\\.")[0].equals(itemId)) {
+                           this.CASHED_PLAYER_STOCK.get(text).remove(uniqueId);
                         }
                      }
                   }
 
-                  for (String var24 : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     if (var24.split("\\.")[0].equals(var1)) {
-                        this.PLAYER_RESTOCK_TIMER.get(var24).remove(var3);
+                  for (String text : this.PLAYER_RESTOCK_TIMER.keySet()) {
+                     if (text.split("\\.")[0].equals(itemId)) {
+                        this.PLAYER_RESTOCK_TIMER.get(text).remove(uniqueId);
                      }
                   }
                } else {
-                  RemovePlayerStocksQuery var8 = new RemovePlayerStocksQuery(var1);
+                  RemovePlayerStocksQuery removePlayerStocksQuery = new RemovePlayerStocksQuery(itemId);
                   if (this.cache) {
-                     this.sqlBatch.addQuery(var8);
+                     this.sqlBatch.addQuery(removePlayerStocksQuery);
                   } else {
-                     this.database.executeQuery(SQLBatch.Type.STOCK, var8);
+                     this.database.executeQuery(SQLBatch.Type.STOCK, removePlayerStocksQuery);
                   }
 
                   if (this.cache || this.plugin.displayCache) {
-                     for (String var21 : this.CASHED_PLAYER_STOCK.keySet()) {
-                        if (var21.split("\\.")[0].equals(var1)) {
-                           this.CASHED_PLAYER_STOCK.get(var21).clear();
+                     for (String text : this.CASHED_PLAYER_STOCK.keySet()) {
+                        if (text.split("\\.")[0].equals(itemId)) {
+                           this.CASHED_PLAYER_STOCK.get(text).clear();
                         }
                      }
                   }
 
-                  for (String var22 : this.PLAYER_RESTOCK_TIMER.keySet()) {
-                     if (var22.split("\\.")[0].equals(var1)) {
-                        this.PLAYER_RESTOCK_TIMER.get(var22).clear();
+                  for (String text : this.PLAYER_RESTOCK_TIMER.keySet()) {
+                     if (text.split("\\.")[0].equals(itemId)) {
+                        this.PLAYER_RESTOCK_TIMER.get(text).clear();
                      }
                   }
                }
-            } else if (var4 == 1) {
-               RemoveStockQuery var5 = new RemoveStockQuery(var1);
+            } else if (value == 1) {
+               RemoveStockQuery removeStockQuery = new RemoveStockQuery(itemId);
                if (this.cache) {
-                  this.sqlBatch.addQuery(var5);
+                  this.sqlBatch.addQuery(removeStockQuery);
                } else {
-                  this.database.executeQuery(SQLBatch.Type.STOCK, var5);
+                  this.database.executeQuery(SQLBatch.Type.STOCK, removeStockQuery);
                }
 
                if (this.cache || this.plugin.displayCache) {
-                  for (String var7 : new ArrayList<>(this.CASHED_GLOBAL_STOCK.keySet())) {
-                     if (var7.split("\\.")[0].equals(var1)) {
-                        this.CASHED_GLOBAL_STOCK.remove(var7);
+                  for (String text : new ArrayList<>(this.CASHED_GLOBAL_STOCK.keySet())) {
+                     if (text.split("\\.")[0].equals(itemId)) {
+                        this.CASHED_GLOBAL_STOCK.remove(text);
                      }
                   }
                }
 
-               for (String var20 : new ArrayList<>(this.GLOBAL_RESTOCK_TIMER.keySet())) {
-                  if (var20.split("\\.")[0].equals(var1)) {
-                     this.GLOBAL_RESTOCK_TIMER.remove(var20);
+               for (String text : new ArrayList<>(this.GLOBAL_RESTOCK_TIMER.keySet())) {
+                  if (text.split("\\.")[0].equals(itemId)) {
+                     this.GLOBAL_RESTOCK_TIMER.remove(text);
                   }
                }
             }
@@ -710,230 +757,234 @@ public class LimitedStockProvider {
       }
    }
 
-   public void setItemStock(String var1, UUID var2, int var3, int var4) {
-      if (var3 == 2) {
-         this.setPlayerStock(var2, var1, var4);
-      } else if (var3 == 1) {
-         this.setItemStock(var1, var4);
+   public void setItemStock(String itemId, UUID uniqueId, int stock, int value) {
+      if (stock == 2) {
+         this.setPlayerStock(uniqueId, itemId, value);
+      } else if (stock == 1) {
+         this.setItemStock(itemId, value);
       }
 
-      if (var4 == 0) {
-         this.restockItems(var1, var2, var3);
+      if (value == 0) {
+         this.restockItems(itemId, uniqueId, stock);
       }
    }
 
-   public void restockItem(String var1, int var2, long var3) {
-      ScheduleManager.Item var5 = new ScheduleManager.Item(var1, var2);
-      this.restockSchedulers.put(var5, var3);
+   public void restockItem(String itemId, int restockTime, long value) {
+      ScheduleManager.Item item = new ScheduleManager.Item(itemId, restockTime);
+      this.restockSchedulers.put(item, value);
       if (this.cache) {
-         this.sqlBatch.addQuery(new RestockScheduleQuery(var5, var3));
+         this.sqlBatch.addQuery(new RestockScheduleQuery(item, value));
       }
 
-      if (var2 == 2) {
-         int var6 = this.getPlayerStock(var1);
-         this.setPlayerStock(null, var1, var6);
-      } else if (var2 == 1) {
-         int var7 = this.getGlobalStock(var1);
-         this.setItemStock(var1, var7);
+      if (restockTime == 2) {
+         int playerStock = this.getPlayerStock(itemId);
+         this.setPlayerStock(null, itemId, playerStock);
+      } else if (restockTime == 1) {
+         int globalStock = this.getGlobalStock(itemId);
+         this.setItemStock(itemId, globalStock);
       }
    }
 
-   private void restockItems(String var1, UUID var2, int var3) {
+   private void restockItems(String text, UUID uniqueId, int restockTime) {
       try {
-         if (var3 == 2) {
-            if (var2 == null) {
-               for (UUID var5 : this.CASHED_PLAYER_STOCK.get(var1).keySet()) {
-                  this.restockPlayerItem(var5, var1);
+         if (restockTime == 2) {
+            if (uniqueId == null) {
+               for (UUID uniqueId2 : this.CASHED_PLAYER_STOCK.get(text).keySet()) {
+                  this.restockPlayerItem(uniqueId2, text);
                }
             } else {
-               this.restockPlayerItem(var2, var1);
+               this.restockPlayerItem(uniqueId, text);
             }
-         } else if (var3 == 1) {
-            this.restockGlobalItem(var1);
+         } else if (restockTime == 1) {
+            this.restockGlobalItem(text);
          }
-      } catch (ParseException var6) {
-         SendMessage.errorMessage("Could not get the restock time of item '" + var1 + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
-      } catch (NullPointerException var7) {
+      } catch (ParseException exception) {
+         SendMessage.errorMessage("Could not get the restock time of item '" + text + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
+      } catch (NullPointerException exception) {
       }
    }
 
-   private void updateCashedPlayerStock(String var1, UUID var2, int var3) {
-      if (var2 == null) {
+   private void updateCashedPlayerStock(String playerName, UUID uniqueId, int stock) {
+      if (uniqueId == null) {
          try {
             if (this.cache) {
-               this.sqlBatch.addQuery(new UpdatePlayerStockQuery(var1, var3));
+               this.sqlBatch.addQuery(new UpdatePlayerStockQuery(playerName, stock));
             }
 
-            this.CASHED_PLAYER_STOCK.get(var1).replaceAll((var1x, var2x) -> var3);
-         } catch (NullPointerException var7) {
+            this.CASHED_PLAYER_STOCK.get(playerName).replaceAll((key, value) -> stock);
+         } catch (NullPointerException exception) {
          }
       } else {
          if (this.cache) {
-            this.sqlBatch.addQuery(new PlayerStockQuery(var1, var2.toString(), var3));
+            this.sqlBatch.addQuery(new PlayerStockQuery(playerName, uniqueId.toString(), stock));
          }
 
          try {
-            this.CASHED_PLAYER_STOCK.get(var1).put(var2, var3);
-         } catch (NullPointerException var6) {
-            HashMap var5 = new HashMap();
-            var5.put(var2, var3);
-            this.CASHED_PLAYER_STOCK.put(var1, var5);
+            this.CASHED_PLAYER_STOCK.get(playerName).put(uniqueId, stock);
+         } catch (NullPointerException exception) {
+            Map<UUID, Integer> map = new ConcurrentHashMap<>();
+            map.put(uniqueId, stock);
+            this.CASHED_PLAYER_STOCK.put(playerName, map);
          }
       }
    }
 
-   private int getCashedPlayerStock(String var1, UUID var2, boolean var3) {
-      return this.getCashedPlayerStock(var1, var2, var3, null);
+   private int getCashedPlayerStock(String playerName, UUID uniqueId, boolean flag) {
+      return this.getCashedPlayerStock(playerName, uniqueId, flag, null);
    }
 
-   private int getCashedPlayerStock(String var1, UUID var2, boolean var3, LoreFormatter.PageIndex var4) {
-      if (this.cache || var3 && this.plugin.displayCache) {
+   private int getCashedPlayerStock(String playerName, UUID uniqueId, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      if (this.cache || flag && this.plugin.displayCache) {
          try {
-            if (this.CASHED_PLAYER_STOCK.get(var1).containsKey(var2)) {
-               return this.CASHED_PLAYER_STOCK.get(var1).get(var2);
+            if (this.CASHED_PLAYER_STOCK.get(playerName).containsKey(uniqueId)) {
+               return this.CASHED_PLAYER_STOCK.get(playerName).get(uniqueId);
             }
-         } catch (NullPointerException var8) {
+         } catch (NullPointerException exception) {
          }
       }
 
-      if (var3 && var4 != null) {
-         LimitedStockProvider.Snapshot var5 = this.PAGE_STOCK_SNAPSHOT.get();
-         if (var5 == null || var5.pageIndex != var4) {
-            var5 = this.loadPageStock(var4, var2);
+      if (flag && pageIndex != null) {
+         LimitedStockProvider.Snapshot snapshot = this.PAGE_STOCK_SNAPSHOT.get();
+         if (snapshot == null || snapshot.pageIndex != pageIndex) {
+            snapshot = this.loadPageStock(pageIndex, uniqueId);
          }
 
-         if (var5.snapshot.containsKey(var1)) {
-            return var5.snapshot.get(var1);
-         }
-      }
-
-      try {
-         return this.database.getPlayerStockAmount(var2, var1);
-      } catch (SQLException var7) {
-         SendMessage.errorMessage("Failed to read stored player stock for " + var1 + ": " + var7.getMessage());
-         Map<UUID, Integer> var6 = this.CASHED_PLAYER_STOCK.get(var1);
-         return var6 != null && var6.containsKey(var2) ? var6.get(var2) : 0;
-      }
-   }
-
-   private int getCashedGlobalStock(String var1, boolean var2) {
-      return this.getCashedGlobalStock(var1, var2, null, null);
-   }
-
-   private int getCashedGlobalStock(String var1, boolean var2, LoreFormatter.PageIndex var3, UUID var4) {
-      if (this.cache || var2 && this.plugin.displayCache) {
-         Integer var5 = this.CASHED_GLOBAL_STOCK.get(var1);
-         if (var5 != null) {
-            return var5;
-         }
-      }
-
-      if (var2 && var3 != null) {
-         LimitedStockProvider.Snapshot var8 = this.PAGE_STOCK_SNAPSHOT.get();
-         if (var8 == null || var8.pageIndex != var3) {
-            var8 = this.loadPageStock(var3, var4);
-         }
-
-         if (var8.snapshot.containsKey(var1)) {
-            return var8.snapshot.get(var1);
+         if (snapshot.snapshot.containsKey(playerName)) {
+            return snapshot.snapshot.get(playerName);
          }
       }
 
       try {
-         return this.database.getItemStock(var1);
-      } catch (SQLException var7) {
-         SendMessage.errorMessage("Failed to read stored item stock for " + var1 + ": " + var7.getMessage());
-         Integer var6 = this.CASHED_GLOBAL_STOCK.get(var1);
-         return var6 != null ? var6 : 0;
+         return this.database.getPlayerStockAmount(uniqueId, playerName);
+      } catch (SQLException exception) {
+         SendMessage.errorMessage("Failed to read stored player stock for " + playerName + ": " + exception.getMessage());
+         Map<UUID, Integer> stocks = this.CASHED_PLAYER_STOCK.get(playerName);
+         return stocks != null && stocks.containsKey(uniqueId) ? stocks.get(uniqueId) : 0;
       }
    }
 
-   public int getItemStock(String var1, UUID var2) {
-      int var3 = this.itemStocks.get(var1);
-      if (var3 == 2) {
-         return this.getPlayerStock(var2, var1);
+   private int getCashedGlobalStock(String itemId, boolean flag) {
+      return this.getCashedGlobalStock(itemId, flag, null, null);
+   }
+
+   private int getCashedGlobalStock(String itemId, boolean flag, LoreFormatter.PageIndex pageIndex, UUID uniqueId) {
+      if (this.cache || flag && this.plugin.displayCache) {
+         Integer value = this.CASHED_GLOBAL_STOCK.get(itemId);
+         if (value != null) {
+            return value;
+         }
+      }
+
+      if (flag && pageIndex != null) {
+         LimitedStockProvider.Snapshot snapshot = this.PAGE_STOCK_SNAPSHOT.get();
+         if (snapshot == null || snapshot.pageIndex != pageIndex) {
+            snapshot = this.loadPageStock(pageIndex, uniqueId);
+         }
+
+         if (snapshot.snapshot.containsKey(itemId)) {
+            return snapshot.snapshot.get(itemId);
+         }
+      }
+
+      try {
+         return this.database.getItemStock(itemId);
+      } catch (SQLException exception) {
+         SendMessage.errorMessage("Failed to read stored item stock for " + itemId + ": " + exception.getMessage());
+         Integer value = this.CASHED_GLOBAL_STOCK.get(itemId);
+         return value != null ? value : 0;
+      }
+   }
+
+   public int getItemStock(String itemId, UUID uniqueId) {
+      int stock = this.itemStocks.get(itemId);
+      if (stock == 2) {
+         return this.getPlayerStock(uniqueId, itemId);
       } else {
-         return var3 == 1 ? this.getItemStock(var1) : 123456789;
+         return stock == 1 ? this.getItemStock(itemId) : 123456789;
       }
    }
 
-   public int getItemStock(ShopItem var1, UUID var2, boolean var3) {
-      return this.getItemStock(var1, var2, var3, false, null);
+   public int getItemStock(ShopItem shopItem, UUID uniqueId, boolean flag) {
+      return this.getItemStock(shopItem, uniqueId, flag, false, null);
    }
 
-   public int getItemStock(ShopItem var1, UUID var2, boolean var3, boolean var4, LoreFormatter.PageIndex var5) {
-      if (var1.getLimitedStockMode() == 2) {
-         return var3 ? this.getPlayerStock(var2, var1.getItemPath(), var4, var5) : this.getCashedPlayerStock(var1.getItemPath(), var2, var4);
-      } else if (var1.getLimitedStockMode() == 1) {
-         return var3 ? this.getItemStock(var1.getItemPath(), var4, var5, var2) : this.getCashedGlobalStock(var1.getItemPath(), var4);
+   public int getItemStock(ShopItem shopItem, UUID uniqueId, boolean flag, boolean flag2, LoreFormatter.PageIndex pageIndex) {
+      if (shopItem.getLimitedStockMode() == 2) {
+         return flag ? this.getPlayerStock(uniqueId, shopItem.getItemPath(), flag2, pageIndex) : this.getCashedPlayerStock(shopItem.getItemPath(), uniqueId, flag2);
+      } else if (shopItem.getLimitedStockMode() == 1) {
+         return flag ? this.getItemStock(shopItem.getItemPath(), flag2, pageIndex, uniqueId) : this.getCashedGlobalStock(shopItem.getItemPath(), flag2);
       } else {
          return 123456789;
       }
    }
 
-   private void setPlayerStock(UUID var1, String var2, int var3) {
+   private void setPlayerStock(UUID playerId, String itemId, int value) {
       if (this.cache || this.plugin.displayCache) {
-         this.updateCashedPlayerStock(var2, var1, var3);
+         this.updateCashedPlayerStock(itemId, playerId, value);
       }
 
+      this.persistPlayerStock(playerId, itemId, value);
+   }
+
+   private void persistPlayerStock(UUID playerId, String itemId, int value) {
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-         if (var1 == null) {
-            this.database.setPlayerStockAmount(var2, var3);
+         if (playerId == null) {
+            this.database.setPlayerStockAmount(itemId, value);
          } else {
-            this.database.setPlayerStockAmount(var1, var2, var3);
+            this.database.setPlayerStockAmount(playerId, itemId, value);
          }
       }
    }
 
-   public int getPlayerStock(UUID var1, String var2) {
-      return this.getPlayerStock(var1, var2, false, null);
+   public int getPlayerStock(UUID playerId, String itemId) {
+      return this.getPlayerStock(playerId, itemId, false, null);
    }
 
-   public int getPlayerStock(UUID var1, String var2, boolean var3, LoreFormatter.PageIndex var4) {
-      return this.getPlayerStock(var1, var2, this.getCashedPlayerStock(var2, var1, var3, var4));
+   public int getPlayerStock(UUID playerId, String itemId, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      return this.getPlayerStock(playerId, itemId, this.getCashedPlayerStock(itemId, playerId, flag, pageIndex));
    }
 
-   private int getPlayerStock(UUID var1, String var2, int var3) {
-      if (var3 <= 0) {
+   private int getPlayerStock(UUID playerId, String itemId, int value) {
+      if (value <= 0) {
          try {
-            if (this.getLongLeftToRestock(var1, var2) <= 0L) {
-               this.PLAYER_RESTOCK_TIMER.get(var2).remove(var1);
-               int var4 = this.getPlayerStock(var2);
-               this.setPlayerStock(var1, var2, var4);
-               SendMessage.logDebugMessage(Lang.RESTOCKED_PLAYER_ITEM_STOCK.get().replace("%path%", var2).replace("%playerUUID%", String.valueOf(var1)));
-               return var4;
+            if (this.getLongLeftToRestock(playerId, itemId) <= 0L) {
+               this.PLAYER_RESTOCK_TIMER.get(itemId).remove(playerId);
+               int playerStock = this.getPlayerStock(itemId);
+               this.setPlayerStock(playerId, itemId, playerStock);
+               SendMessage.logDebugMessage(Lang.RESTOCKED_PLAYER_ITEM_STOCK.get().replace("%path%", itemId).replace("%playerUUID%", String.valueOf(playerId)));
+               return playerStock;
             } else {
                return -2;
             }
-         } catch (NullPointerException var8) {
+         } catch (NullPointerException exception) {
             try {
-               this.restockPlayerItem(var1, var2);
-               SendMessage.logDebugMessage(Lang.RESTOCKING_PLAYER_ITEM_STOCK.get().replace("%path%", var2).replace("%playerUUID%", String.valueOf(var1)));
+               this.restockPlayerItem(playerId, itemId);
+               SendMessage.logDebugMessage(Lang.RESTOCKING_PLAYER_ITEM_STOCK.get().replace("%path%", itemId).replace("%playerUUID%", String.valueOf(playerId)));
                return -2;
-            } catch (ParseException var6) {
-               SendMessage.errorMessage("Could not get the player restock time of item '" + var2 + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
+            } catch (ParseException exception2) {
+               SendMessage.errorMessage("Could not get the player restock time of item '" + itemId + "', you need to specify a format like '00:05:00'(HH:mm:ss)");
                return -3;
-            } catch (NullPointerException var7) {
+            } catch (NullPointerException exception2) {
                return -4;
             }
          }
       } else {
-         return var3;
+         return value;
       }
    }
 
-   private String getItemLoc(String var1) {
-      String[] var2 = var1.split("\\.", 2);
-      return (this.plugin.getShopType(var2[0]) == ShopType.CATEGORY ? "pages." : "") + var2[1];
+   private String getItemLoc(String itemId) {
+      String[] values = itemId.split("\\.", 2);
+      return (this.plugin.getShopType(values[0]) == ShopType.CATEGORY ? "pages." : "") + values[1];
    }
 
    private static final class Snapshot {
       public final LoreFormatter.PageIndex pageIndex;
       public final Map<String, Integer> snapshot;
 
-      private Snapshot(LoreFormatter.PageIndex var1, Map<String, Integer> var2) {
-         this.pageIndex = var1;
-         this.snapshot = var2;
+      private Snapshot(LoreFormatter.PageIndex pageIndex, Map<String, Integer> pages) {
+         this.pageIndex = pageIndex;
+         this.snapshot = pages;
       }
    }
 }

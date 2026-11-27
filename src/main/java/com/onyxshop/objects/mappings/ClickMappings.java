@@ -14,97 +14,97 @@ import org.bukkit.event.inventory.ClickType;
 public class ClickMappings {
    private final Map<ClickType, ClickAction> mappings = new HashMap<>();
 
-   public ClickMappings(String var1) {
-      HashMap<ClickAction, ClickType> var2 = new HashMap<>();
-      ClickAction[] var10000 = new ClickAction[]{ClickAction.BUY, ClickAction.SELL, ClickAction.SELL_ALL, ClickAction.GUI_EDITOR};
-      ClickType[] var4 = new ClickType[]{ClickType.LEFT, ClickType.SHIFT_LEFT, ClickType.RIGHT, ClickType.SHIFT_RIGHT, ClickType.UNKNOWN};
-      ConfigurationSection var5 = (var1 != null ? ConfigManager.getSection(var1) : ConfigManager.getConfig()).getConfigurationSection("click-mappings");
+   public ClickMappings(String text) {
+      HashMap<ClickAction, ClickType> map = new HashMap<>();
+      ClickAction[] clickAction = new ClickAction[]{ClickAction.BUY, ClickAction.SELL, ClickAction.SELL_ALL, ClickAction.GUI_EDITOR};
+      ClickType[] clickType = new ClickType[]{ClickType.LEFT, ClickType.SHIFT_LEFT, ClickType.RIGHT, ClickType.SHIFT_RIGHT, ClickType.UNKNOWN};
+      ConfigurationSection section = (text != null ? ConfigManager.getSection(text) : ConfigManager.getConfig()).getConfigurationSection("click-mappings");
 
-      for (String var7 : var5.getKeys(false)) {
-         ClickAction var8 = null;
-         ClickType var9 = null;
+      for (String text2 : section.getKeys(false)) {
+         ClickAction clickAction2 = null;
+         ClickType clickType2 = null;
 
          try {
-            var8 = ClickAction.valueOf(var7);
-         } catch (IllegalArgumentException var14) {
+            clickAction2 = ClickAction.valueOf(text2);
+         } catch (IllegalArgumentException exception) {
             SendMessage.warnMessage(
-               Lang.INVALID_CLICK_ACTION.get().replace("%click-action%", var7).replace("%click-mapping%", var7 + ": " + var5.getString(var7))
+               Lang.INVALID_CLICK_ACTION.get().replace("%click-action%", text2).replace("%click-mapping%", text2 + ": " + section.getString(text2))
             );
-            if (var1 != null) {
-               SendMessage.errorSections(var1, "click-mappings");
+            if (text != null) {
+               SendMessage.errorSections(text, "click-mappings");
             } else {
                SendMessage.errorItemConfig("click-mappings");
             }
          }
 
          try {
-            String var10 = var5.getString(var7, "NONE");
-            if (var10.equals("NONE")) {
-               var9 = ClickType.UNKNOWN;
+            String text3 = section.getString(text2, "NONE");
+            if (text3.equals("NONE")) {
+               clickType2 = ClickType.UNKNOWN;
             } else {
-               var9 = ClickType.valueOf(var5.getString(var7, "null"));
-               ClickType var14 = var9;
-               if (Arrays.stream(var4).noneMatch(var1x -> var1x == var14)) {
+               clickType2 = ClickType.valueOf(section.getString(text2, "null"));
+               ClickType clickType3 = clickType2;
+               if (Arrays.stream(clickType).noneMatch(element -> element == clickType3)) {
                   throw new IllegalArgumentException();
                }
             }
-         } catch (IllegalArgumentException var13) {
-            var9 = null;
+         } catch (IllegalArgumentException exception) {
+            clickType2 = null;
             SendMessage.warnMessage(
                Lang.INVALID_CLICK_TYPE
                   .get()
-                  .replace("%click-type%", var5.getString(var7, "null"))
-                  .replace("%click-mapping%", var7 + ": " + var5.getString(var7))
+                  .replace("%click-type%", section.getString(text2, "null"))
+                  .replace("%click-mapping%", text2 + ": " + section.getString(text2))
             );
-            if (var1 != null) {
-               SendMessage.errorSections(var1, "click-mappings");
+            if (text != null) {
+               SendMessage.errorSections(text, "click-mappings");
             } else {
                SendMessage.errorItemConfig("click-mappings");
             }
          }
 
-         ConfigurationSection var18 = ConfigManager.getConfig().getDef().getConfigurationSection("click-mappings");
-         if (var9 == null && var8 != null) {
-            var9 = ClickType.valueOf(ConfigManager.getConfig().getDef().getString("click-mappings." + var8));
+         ConfigurationSection section2 = ConfigManager.getConfig().getDef().getConfigurationSection("click-mappings");
+         if (clickType2 == null && clickAction2 != null) {
+            clickType2 = ClickType.valueOf(ConfigManager.getConfig().getDef().getString("click-mappings." + clickAction2));
          }
 
-         if (var8 == null && var9 != null) {
-            for (String var12 : var18.getKeys(false)) {
-               if (var18.getString(var12).equals(var9.name())) {
-                  var8 = ClickAction.valueOf(var12);
+         if (clickAction2 == null && clickType2 != null) {
+            for (String text3 : section2.getKeys(false)) {
+               if (section2.getString(text3).equals(clickType2.name())) {
+                  clickAction2 = ClickAction.valueOf(text3);
                }
             }
          }
 
-         var2.put(var8, var9);
+         map.put(clickAction2, clickType2);
       }
 
-      if (!var2.containsKey(ClickAction.BUY)) {
-         var2.put(ClickAction.BUY, Arrays.stream(var4).filter(var1x -> !var2.containsValue(var1x)).findFirst().orElse(ClickType.UNKNOWN));
+      if (!map.containsKey(ClickAction.BUY)) {
+         map.put(ClickAction.BUY, Arrays.stream(clickType).filter(element -> !map.containsValue(element)).findFirst().orElse(ClickType.UNKNOWN));
       }
 
-      if (!var2.containsKey(ClickAction.SELL)) {
-         var2.put(ClickAction.SELL, Arrays.stream(var4).filter(var1x -> !var2.containsValue(var1x)).findFirst().orElse(ClickType.UNKNOWN));
+      if (!map.containsKey(ClickAction.SELL)) {
+         map.put(ClickAction.SELL, Arrays.stream(clickType).filter(element -> !map.containsValue(element)).findFirst().orElse(ClickType.UNKNOWN));
       }
 
-      if (!var2.containsKey(ClickAction.SELL_ALL)) {
-         var2.put(ClickAction.SELL_ALL, Arrays.stream(var4).filter(var1x -> !var2.containsValue(var1x)).findFirst().orElse(ClickType.UNKNOWN));
+      if (!map.containsKey(ClickAction.SELL_ALL)) {
+         map.put(ClickAction.SELL_ALL, Arrays.stream(clickType).filter(element -> !map.containsValue(element)).findFirst().orElse(ClickType.UNKNOWN));
       }
 
-      if (!var2.containsKey(ClickAction.GUI_EDITOR)) {
-         var2.put(ClickAction.GUI_EDITOR, Arrays.stream(var4).filter(var1x -> !var2.containsValue(var1x)).findFirst().orElse(ClickType.UNKNOWN));
+      if (!map.containsKey(ClickAction.GUI_EDITOR)) {
+         map.put(ClickAction.GUI_EDITOR, Arrays.stream(clickType).filter(element -> !map.containsValue(element)).findFirst().orElse(ClickType.UNKNOWN));
       }
 
-      for (Entry<ClickAction, ClickType> var16 : new HashSet<>(var2.entrySet())) {
-         if (var16.getValue() == ClickType.UNKNOWN) {
-            var2.remove(var16.getKey());
+      for (Entry<ClickAction, ClickType> entry : new HashSet<>(map.entrySet())) {
+         if (entry.getValue() == ClickType.UNKNOWN) {
+            map.remove(entry.getKey());
          }
       }
 
-      var2.forEach((var1x, var2x) -> this.mappings.put(var2x, var1x));
+      map.forEach((key, value) -> this.mappings.put(value, key));
    }
 
-   public ClickAction getAction(ClickType var1) {
-      return this.mappings.get(var1);
+   public ClickAction getAction(ClickType clickType) {
+      return this.mappings.get(clickType);
    }
 }

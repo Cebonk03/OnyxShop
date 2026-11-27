@@ -1,14 +1,14 @@
 package com.onyxshop.database.queries;
 
 public interface Query {
-   String format(String var1);
+   String format(String text);
 
    default String formatPostgres(String table) {
       return this.format(table);
    }
 
    @Override
-   boolean equals(Object var1);
+   boolean equals(Object value);
 
    @Override
    int hashCode();

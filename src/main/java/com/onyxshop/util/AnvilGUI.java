@@ -35,38 +35,38 @@ public class AnvilGUI {
    private boolean open;
 
    @Deprecated
-   public AnvilGUI(Plugin var1, Player var2, String var3, String var4, BiFunction<Player, String, String> var5) {
-      this(var1, var2, var3, var4, null, false, null, (var1x, var2x) -> {
-         String var3x = (String)var5.apply(var1x, var2x);
-         return var3x != null ? AnvilGUI.Response.text(var3x) : AnvilGUI.Response.close();
+   public AnvilGUI(Plugin plugin, Player player, String playerName, String text, BiFunction<Player, String, String> task) {
+      this(plugin, player, playerName, text, null, false, null, (element, arg2) -> {
+         String text2 = (String)task.apply(element, arg2);
+         return text2 != null ? AnvilGUI.Response.text(text2) : AnvilGUI.Response.close();
       });
    }
 
    private AnvilGUI(
-      Plugin var1,
-      Player var2,
-      String var3,
-      String var4,
-      ItemStack var5,
-      boolean var6,
-      Consumer<Player> var7,
-      BiFunction<Player, String, AnvilGUI.Response> var8
+      Plugin plugin,
+      Player player,
+      String text,
+      String text2,
+      ItemStack itemStack,
+      boolean flag,
+      Consumer<Player> task,
+      BiFunction<Player, String, AnvilGUI.Response> task2
    ) {
-      this.plugin = var1;
-      this.player = var2;
-      this.inventoryTitle = var3;
-      this.insert = var5;
-      this.preventClose = var6;
-      this.closeListener = var7;
-      this.completeFunction = var8;
-      if (var4 != null) {
-         if (var5 == null) {
+      this.plugin = plugin;
+      this.player = player;
+      this.inventoryTitle = text;
+      this.insert = itemStack;
+      this.preventClose = flag;
+      this.closeListener = task;
+      this.completeFunction = task2;
+      if (text2 != null) {
+         if (itemStack == null) {
             this.insert = new ItemStack(Material.PAPER);
          }
 
-         ItemMeta var9 = this.insert.getItemMeta();
-         var9.setDisplayName(var4);
-         this.insert.setItemMeta(var9);
+         ItemMeta itemMeta = this.insert.getItemMeta();
+         itemMeta.setDisplayName(text2);
+         this.insert.setItemMeta(itemMeta);
       }
 
       this.openInventory();
@@ -76,14 +76,14 @@ public class AnvilGUI {
       WRAPPER.handleInventoryCloseEvent(this.player);
       WRAPPER.setActiveContainerDefault(this.player);
       Bukkit.getPluginManager().registerEvents(this.listener, this.plugin);
-      VersionHandler.AnvilGUI.AnvilContainer var1 = WRAPPER.newAnvilContainer(this.player, this.inventoryTitle);
-      this.inventory = var1.getBukkitInventory();
+      VersionHandler.AnvilGUI.AnvilContainer anvilContainer = WRAPPER.newAnvilContainer(this.player, this.inventoryTitle);
+      this.inventory = anvilContainer.getBukkitInventory();
       this.inventory.setItem(0, this.insert);
-      this.containerId = WRAPPER.getNextContainerId(this.player, var1);
+      this.containerId = WRAPPER.getNextContainerId(this.player, anvilContainer);
       WRAPPER.sendPacketOpenWindow(this.player, this.containerId, this.inventoryTitle);
-      WRAPPER.setActiveContainer(this.player, var1);
-      WRAPPER.setActiveContainerId(var1, this.containerId);
-      WRAPPER.addActiveContainerSlotListener(var1, this.player);
+      WRAPPER.setActiveContainer(this.player, anvilContainer);
+      WRAPPER.setActiveContainerId(anvilContainer, this.containerId);
+      WRAPPER.addActiveContainerSlotListener(anvilContainer, this.player);
       this.open = true;
    }
 
@@ -124,67 +124,67 @@ public class AnvilGUI {
          return this;
       }
 
-      public AnvilGUI.Builder onClose(Consumer<Player> var1) {
-         Validate.notNull(var1, "closeListener cannot be null");
-         this.closeListener = var1;
+      public AnvilGUI.Builder onClose(Consumer<Player> task) {
+         Validate.notNull(task, "closeListener cannot be null");
+         this.closeListener = task;
          return this;
       }
 
-      public AnvilGUI.Builder onLeftInputClick(Consumer<Player> var1) {
-         this.inputLeftClickListener = var1;
+      public AnvilGUI.Builder onLeftInputClick(Consumer<Player> task) {
+         this.inputLeftClickListener = task;
          return this;
       }
 
-      public AnvilGUI.Builder onRightInputClick(Consumer<Player> var1) {
-         this.inputRightClickListener = var1;
+      public AnvilGUI.Builder onRightInputClick(Consumer<Player> task) {
+         this.inputRightClickListener = task;
          return this;
       }
 
-      public AnvilGUI.Builder onComplete(BiFunction<Player, String, AnvilGUI.Response> var1) {
-         Validate.notNull(var1, "Complete function cannot be null");
-         this.completeFunction = var1;
+      public AnvilGUI.Builder onComplete(BiFunction<Player, String, AnvilGUI.Response> task) {
+         Validate.notNull(task, "Complete function cannot be null");
+         this.completeFunction = task;
          return this;
       }
 
-      public AnvilGUI.Builder plugin(Plugin var1) {
-         Validate.notNull(var1, "Plugin cannot be null");
-         this.plugin = var1;
+      public AnvilGUI.Builder plugin(Plugin plugin) {
+         Validate.notNull(plugin, "Plugin cannot be null");
+         this.plugin = plugin;
          return this;
       }
 
-      public AnvilGUI.Builder text(String var1) {
-         Validate.notNull(var1, "Text cannot be null");
-         this.itemText = var1;
+      public AnvilGUI.Builder text(String text) {
+         Validate.notNull(text, "Text cannot be null");
+         this.itemText = text;
          return this;
       }
 
-      public AnvilGUI.Builder title(String var1) {
-         Validate.notNull(var1, "title cannot be null");
-         this.title = var1;
+      public AnvilGUI.Builder title(String title) {
+         Validate.notNull(title, "title cannot be null");
+         this.title = title;
          return this;
       }
 
       @Deprecated
-      public AnvilGUI.Builder item(ItemStack var1) {
-         return this.itemLeft(var1);
+      public AnvilGUI.Builder item(ItemStack itemStack) {
+         return this.itemLeft(itemStack);
       }
 
-      public AnvilGUI.Builder itemLeft(ItemStack var1) {
-         Validate.notNull(var1, "item cannot be null");
-         this.itemLeft = var1;
+      public AnvilGUI.Builder itemLeft(ItemStack itemStack) {
+         Validate.notNull(itemStack, "item cannot be null");
+         this.itemLeft = itemStack;
          return this;
       }
 
-      public AnvilGUI.Builder itemRight(ItemStack var1) {
-         this.itemRight = var1;
+      public AnvilGUI.Builder itemRight(ItemStack itemStack) {
+         this.itemRight = itemStack;
          return this;
       }
 
-      public AnvilGUI open(Player var1) {
+      public AnvilGUI open(Player player) {
          Validate.notNull(this.plugin, "Plugin cannot be null");
          Validate.notNull(this.completeFunction, "Complete function cannot be null");
-         Validate.notNull(var1, "Player cannot be null");
-         return new AnvilGUI(this.plugin, var1, this.title, this.itemText, this.itemLeft, this.preventClose, this.closeListener, this.completeFunction);
+         Validate.notNull(player, "Player cannot be null");
+         return new AnvilGUI(this.plugin, player, this.title, this.itemText, this.itemLeft, this.preventClose, this.closeListener, this.completeFunction);
       }
    }
 
@@ -193,33 +193,33 @@ public class AnvilGUI {
       }
 
       @EventHandler
-      public void onInventoryClick(InventoryClickEvent var1) {
-         if (var1.getInventory().equals(AnvilGUI.this.inventory)
+      public void onInventoryClick(InventoryClickEvent event) {
+         if (event.getInventory().equals(AnvilGUI.this.inventory)
             && (
-               var1.getRawSlot() < 3
-                  || var1.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)
-                  || var1.getRawSlot() < 3
+               event.getRawSlot() < 3
+                  || event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)
+                  || event.getRawSlot() < 3
                      && (
-                        var1.getAction().equals(InventoryAction.PLACE_ALL)
-                           || var1.getAction().equals(InventoryAction.PLACE_ONE)
-                           || var1.getAction().equals(InventoryAction.PLACE_SOME)
-                           || var1.getCursor() != null
+                        event.getAction().equals(InventoryAction.PLACE_ALL)
+                           || event.getAction().equals(InventoryAction.PLACE_ONE)
+                           || event.getAction().equals(InventoryAction.PLACE_SOME)
+                           || event.getCursor() != null
                      )
             )) {
-            var1.setCancelled(true);
-            Player var2 = (Player)var1.getWhoClicked();
-            if (var1.getRawSlot() == 2) {
-               ItemStack var3 = AnvilGUI.this.inventory.getItem(2);
-               if (var3 == null || var3.getType() == Material.AIR) {
+            event.setCancelled(true);
+            Player player = (Player)event.getWhoClicked();
+            if (event.getRawSlot() == 2) {
+               ItemStack itemStack = AnvilGUI.this.inventory.getItem(2);
+               if (itemStack == null || itemStack.getType() == Material.AIR) {
                   return;
                }
 
-               AnvilGUI.Response var4 = AnvilGUI.this.completeFunction.apply(var2, var3.hasItemMeta() ? var3.getItemMeta().getDisplayName() : "");
-               if (var4.getText() != null) {
-                  ItemMeta var5 = var3.getItemMeta();
-                  var5.setDisplayName(var4.getText());
-                  var3.setItemMeta(var5);
-                  AnvilGUI.this.inventory.setItem(0, var3);
+               AnvilGUI.Response response = AnvilGUI.this.completeFunction.apply(player, itemStack.hasItemMeta() ? itemStack.getItemMeta().getDisplayName() : "");
+               if (response.getText() != null) {
+                  ItemMeta itemMeta = itemStack.getItemMeta();
+                  itemMeta.setDisplayName(response.getText());
+                  itemStack.setItemMeta(itemMeta);
+                  AnvilGUI.this.inventory.setItem(0, itemStack);
                } else if (AnvilGUI.this.open) {
                   AnvilGUI.this.open = false;
                   AnvilGUI.WRAPPER.handleInventoryCloseEvent(AnvilGUI.this.player);
@@ -232,11 +232,11 @@ public class AnvilGUI {
       }
 
       @EventHandler
-      public void onInventoryDrag(InventoryDragEvent var1) {
-         if (var1.getInventory().equals(AnvilGUI.this.inventory)) {
-            for (int var5 : AnvilGUI.Slot.values()) {
-               if (var1.getRawSlots().contains(var5)) {
-                  var1.setCancelled(true);
+      public void onInventoryDrag(InventoryDragEvent event) {
+         if (event.getInventory().equals(AnvilGUI.this.inventory)) {
+            for (int slot : AnvilGUI.Slot.values()) {
+               if (event.getRawSlots().contains(slot)) {
+                  event.setCancelled(true);
                   break;
                }
             }
@@ -244,13 +244,13 @@ public class AnvilGUI {
       }
 
       @EventHandler
-      public void onInventoryClose(InventoryCloseEvent var1) {
-         if (AnvilGUI.this.open && var1.getInventory().equals(AnvilGUI.this.inventory)) {
+      public void onInventoryClose(InventoryCloseEvent event) {
+         if (AnvilGUI.this.open && event.getInventory().equals(AnvilGUI.this.inventory)) {
             AnvilGUI.this.closeInventory();
             if (AnvilGUI.this.preventClose) {
-               OnyxShop var10000 = OnyxShop.getInstance();
-               AnvilGUI var2 = AnvilGUI.this;
-               var10000.runTask(() -> var2.openInventory());
+               OnyxShop plugin = OnyxShop.getInstance();
+               AnvilGUI anvilGUI = AnvilGUI.this;
+               plugin.runTaskFor(() -> anvilGUI.openInventory(), AnvilGUI.this.player);
             }
          }
       }
@@ -259,8 +259,8 @@ public class AnvilGUI {
    public static class Response {
       private final String text;
 
-      private Response(String var1) {
-         this.text = var1;
+      private Response(String text) {
+         this.text = text;
       }
 
       public String getText() {
@@ -271,8 +271,8 @@ public class AnvilGUI {
          return new AnvilGUI.Response(null);
       }
 
-      public static AnvilGUI.Response text(String var0) {
-         return new AnvilGUI.Response(var0);
+      public static AnvilGUI.Response text(String text) {
+         return new AnvilGUI.Response(text);
       }
    }
 

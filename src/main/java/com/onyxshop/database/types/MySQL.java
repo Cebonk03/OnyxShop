@@ -63,8 +63,8 @@ public class MySQL implements Database {
    @Override
    public boolean connect() {
       try {
-         HikariConfig var1 = new HikariConfig();
-         var1.setJdbcUrl(
+         HikariConfig hikariConfig = new HikariConfig();
+         hikariConfig.setJdbcUrl(
             "jdbc:mysql://"
                + ConfigManager.getConfig().getString("mysql.host")
                + ":"
@@ -72,21 +72,21 @@ public class MySQL implements Database {
                + "/"
                + ConfigManager.getConfig().getString("mysql.database")
          );
-         var1.setUsername(ConfigManager.getConfig().getString("mysql.username"));
-         var1.setPassword(ConfigManager.getConfig().getString("mysql.password"));
-         var1.addDataSourceProperty("userServerPrepStmts", "true");
-         var1.addDataSourceProperty("cachePrepStmts", "true");
-         var1.addDataSourceProperty("prepStmtCacheSize", "250");
-         var1.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+         hikariConfig.setUsername(ConfigManager.getConfig().getString("mysql.username"));
+         hikariConfig.setPassword(ConfigManager.getConfig().getString("mysql.password"));
+         hikariConfig.addDataSourceProperty("userServerPrepStmts", "true");
+         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
+         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
+         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
          if (ConfigManager.getConfig().contains("mysql.pool.useSSL")) {
-            var1.addDataSourceProperty("useSSL", ConfigManager.getConfig().getBoolean("mysql.pool.useSSL"));
+            hikariConfig.addDataSourceProperty("useSSL", ConfigManager.getConfig().getBoolean("mysql.pool.useSSL"));
          }
 
          if (ConfigManager.getConfig().contains("mysql.pool.verifyServerCertificate")) {
-            var1.addDataSourceProperty("verifyServerCertificate", ConfigManager.getConfig().getBoolean("mysql.pool.verifyServerCertificate"));
+            hikariConfig.addDataSourceProperty("verifyServerCertificate", ConfigManager.getConfig().getBoolean("mysql.pool.verifyServerCertificate"));
          }
 
-         this.pool = new HikariDataSource(var1);
+         this.pool = new HikariDataSource(hikariConfig);
          this.pool.setMaxLifetime(ConfigManager.getConfig().getLong("mysql.pool.maximum-lifetime"));
          this.pool.setIdleTimeout(ConfigManager.getConfig().getLong("mysql.pool.idle-timeout"));
          this.pool.setMaximumPoolSize(ConfigManager.getConfig().getInt("mysql.pool.maximum-pool-size"));
@@ -94,295 +94,295 @@ public class MySQL implements Database {
          this.createTables();
          this.alterOriginalLimitColumn();
          return true;
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to create a connection to the MySQL database");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
 
    private void createTables() {
       try {
-         Connection var1 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var2 = var1.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var2.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.dynamicStock + " (item VARCHAR(100) NOT NULL, stock INT NOT NULL, UNIQUE(item));");
-               var2.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.maxStocks + " (item VARCHAR(100) NOT NULL, maxStock INT NOT NULL, UNIQUE(item));");
-               var2.executeUpdate(
+               statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.dynamicStock + " (item VARCHAR(100) NOT NULL, stock INT NOT NULL, UNIQUE(item));");
+               statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.maxStocks + " (item VARCHAR(100) NOT NULL, maxStock INT NOT NULL, UNIQUE(item));");
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS "
                      + this.playerstock
                      + " (item VARCHAR(100) NOT NULL, uuid VARCHAR(50) NOT NULL, amount INTEGER NOT NULL, restock TEXT, UNIQUE(item,uuid));"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS " + this.itemstock + " (item VARCHAR(100) NOT NULL, amount INT NOT NULL, restock VARCHAR(50), UNIQUE(item));"
                );
-               var2.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.originalStock + " (item VARCHAR(100) NOT NULL,amount INT NOT NULL, UNIQUE(item));");
-               var2.executeUpdate(
+               statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.originalStock + " (item VARCHAR(100) NOT NULL,amount INT NOT NULL, UNIQUE(item));");
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS "
                      + this.item_stock_schedules
                      + "(item VARCHAR(100) NOT NULL,mode INT NOT NULL,restock TEXT NOT NULL,UNIQUE(item,mode));"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS "
                      + this.rotating_shop_sync
                      + "(shop VARCHAR(100) NOT NULL,items TEXT NOT NULL,nextRotation BIGINT NOT NULL,UNIQUE(shop));"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS "
                      + this.playerSellLimits
                      + " (item VARCHAR(100) NOT NULL, uuid VARCHAR(50) NOT NULL, amount INTEGER NOT NULL, restock TEXT, UNIQUE(item,uuid));"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS " + this.sellLimits + " (item VARCHAR(100) NOT NULL, amount INT NOT NULL, restock VARCHAR(50), UNIQUE(item));"
                );
-               var2.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.originalLimits + " (item VARCHAR(100) NOT NULL,amount INT NOT NULL, UNIQUE(item));");
-               var2.executeUpdate(
+               statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + this.originalLimits + " (item VARCHAR(100) NOT NULL,amount INT NOT NULL, UNIQUE(item));");
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS "
                      + this.sell_limit_schedules
                      + "(item VARCHAR(100) NOT NULL,mode INT NOT NULL,restock TEXT NOT NULL,UNIQUE(item,mode));"
                );
-               var2.executeUpdate(
+               statement.executeUpdate(
                   "CREATE TABLE IF NOT EXISTS " + this.player_price_modifiers + " (uuid VARCHAR(36) NOT NULL, data VARCHAR(15360) NOT NULL,UNIQUE(uuid));"
                );
-            } catch (Throwable var7) {
-               if (var2 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var2.close();
-                  } catch (Throwable var6) {
-                     var7.addSuppressed(var6);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var7;
+               throw exception;
             }
 
-            if (var2 != null) {
-               var2.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var8) {
-            if (var1 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var1.close();
-               } catch (Throwable var5) {
-                  var8.addSuppressed(var5);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var1 != null) {
-            var1.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var9) {
-         var9.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    public void alterOriginalLimitColumn() {
       try {
-         Connection var1 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var2 = var1.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var2.executeUpdate("ALTER TABLE " + this.originalLimits + " DROP COLUMN restock;");
-            } catch (Throwable var7) {
-               if (var2 != null) {
+               statement.executeUpdate("ALTER TABLE " + this.originalLimits + " DROP COLUMN restock;");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var2.close();
-                  } catch (Throwable var6) {
-                     var7.addSuppressed(var6);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var7;
+               throw exception;
             }
 
-            if (var2 != null) {
-               var2.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var8) {
-            if (var1 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var1.close();
-               } catch (Throwable var5) {
-                  var8.addSuppressed(var5);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var1 != null) {
-            var1.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var9) {
+      } catch (SQLException exception) {
       }
    }
 
    @Override
-   public int removeExpiredPlayerData(long var1) throws SQLException {
-      HashSet<String> var3 = new HashSet<>();
-      int var4 = 0;
-      long var5 = new Date().getTime() - var1;
-      Connection var7 = this.pool.getConnection();
+   public int removeExpiredPlayerData(long value) throws SQLException {
+      HashSet<String> values = new HashSet<>();
+      int value2 = 0;
+      long time = new Date().getTime() - value;
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var8 = var7.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var9 = var8.executeQuery("SELECT DISTINCT uuid FROM playerstock;");
+            ResultSet resultSet = statement.executeQuery("SELECT DISTINCT uuid FROM playerstock;");
 
             try {
-               SendMessage.logDebugMessage("Checking " + var9.getFetchSize() + " player stock entries...");
+               SendMessage.logDebugMessage("Checking " + resultSet.getFetchSize() + " player stock entries...");
 
-               while (var9.next()) {
-                  String var10 = var9.getString("uuid");
-                  if (Bukkit.getOfflinePlayer(UUID.fromString(var10)).getLastPlayed() < var5) {
-                     var3.add(var10);
+               while (resultSet.next()) {
+                  String text = resultSet.getString("uuid");
+                  if (Bukkit.getOfflinePlayer(UUID.fromString(text)).getLastPlayed() < time) {
+                     values.add(text);
                   } else {
-                     var4++;
+                     value2++;
                   }
                }
-            } catch (Throwable var21) {
-               if (var9 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var9.close();
-                  } catch (Throwable var17) {
-                     var21.addSuppressed(var17);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var21;
+               throw exception;
             }
 
-            if (var9 != null) {
-               var9.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
 
-            var9 = var8.executeQuery("SELECT DISTINCT uuid FROM playerSellLimits;");
+            resultSet = statement.executeQuery("SELECT DISTINCT uuid FROM playerSellLimits;");
 
             try {
-               SendMessage.logDebugMessage("Checking " + var9.getFetchSize() + " player sell limit entries...");
+               SendMessage.logDebugMessage("Checking " + resultSet.getFetchSize() + " player sell limit entries...");
 
-               while (var9.next()) {
-                  String var28 = var9.getString("uuid");
-                  if (Bukkit.getOfflinePlayer(UUID.fromString(var28)).getLastPlayed() < var5) {
-                     var3.add(var28);
+               while (resultSet.next()) {
+                  String text = resultSet.getString("uuid");
+                  if (Bukkit.getOfflinePlayer(UUID.fromString(text)).getLastPlayed() < time) {
+                     values.add(text);
                   } else {
-                     var4++;
+                     value2++;
                   }
                }
-            } catch (Throwable var20) {
-               if (var9 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var9.close();
-                  } catch (Throwable var16) {
-                     var20.addSuppressed(var16);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var20;
+               throw exception;
             }
 
-            if (var9 != null) {
-               var9.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var22) {
-            if (var8 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var8.close();
-               } catch (Throwable var15) {
-                  var22.addSuppressed(var15);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var22;
+            throw exception;
          }
 
-         if (var8 != null) {
-            var8.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var23) {
-         if (var7 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var7.close();
-            } catch (Throwable var14) {
-               var23.addSuppressed(var14);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var23;
+         throw exception;
       }
 
-      if (var7 != null) {
-         var7.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      SendMessage.logDebugMessage("Found recent database entries for " + var4 + " players, skipping...");
+      SendMessage.logDebugMessage("Found recent database entries for " + value2 + " players, skipping...");
       SendMessage.logDebugMessage("Deleting expired entries...");
-      var7 = this.pool.getConnection();
+      connection = this.pool.getConnection();
 
       try {
-         Statement var25 = var7.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var29 : var3) {
-               var25.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + var29 + "';");
-               var25.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + var29 + "';");
-               SendMessage.logDebugMessage("Deleted expired player data for " + var29);
+            for (String playerName : values) {
+               statement.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + playerName + "';");
+               statement.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + playerName + "';");
+               SendMessage.logDebugMessage("Deleted expired player data for " + playerName);
             }
-         } catch (Throwable var18) {
-            if (var25 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var25.close();
-               } catch (Throwable var13) {
-                  var18.addSuppressed(var13);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var18;
+            throw exception;
          }
 
-         if (var25 != null) {
-            var25.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var19) {
-         if (var7 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var7.close();
-            } catch (Throwable var12) {
-               var19.addSuppressed(var12);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var19;
+         throw exception;
       }
 
-      if (var7 != null) {
-         var7.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      SendMessage.logDebugMessage("Deleted " + var3.size() + " expired unique player entries from database");
-      return var3.size();
+      SendMessage.logDebugMessage("Deleted " + values.size() + " expired unique player entries from database");
+      return values.size();
    }
 
    @Override
    public Map<String, Map<String, Set<String>>> getExpiredItemData() throws SQLException {
       SendMessage.logDebugMessage("Retrieving item indexes from database...");
-      HashMap<String, Set<String>> var1 = new HashMap<>();
-      Connection var2 = this.pool.getConnection();
+      HashMap<String, Set<String>> map = new HashMap<>();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var7 : new String[]{
+            for (String itemId : new String[]{
                "dynamicStock",
                "maxStocks",
                "original_stocks",
@@ -394,149 +394,149 @@ public class MySQL implements Database {
                "sellLimits",
                "sell_limit_schedules"
             }) {
-               ResultSet var8 = var3.executeQuery("SELECT DISTINCT item FROM " + var7 + ";");
+               ResultSet resultSet = statement.executeQuery("SELECT DISTINCT item FROM " + itemId + ";");
 
                try {
-                  while (var8.next()) {
-                     var1.computeIfAbsent(var8.getString("item"), var0 -> new HashSet<>()).add(var7);
+                  while (resultSet.next()) {
+                     map.computeIfAbsent(resultSet.getString("item"), key -> new HashSet<>()).add(itemId);
                   }
-               } catch (Throwable var14) {
-                  if (var8 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var8.close();
-                     } catch (Throwable var13) {
-                        var14.addSuppressed(var13);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var14;
+                  throw exception;
                }
 
-               if (var8 != null) {
-                  var8.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
             }
-         } catch (Throwable var15) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var12) {
-                  var15.addSuppressed(var12);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var15;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var16) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var11) {
-               var16.addSuppressed(var11);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var16;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      HashMap<String, Map<String, Set<String>>> var17 = new HashMap<>();
+      HashMap<String, Map<String, Set<String>>> map2 = new HashMap<>();
 
-      for (Entry var20 : var1.entrySet()) {
-         var17.computeIfAbsent(((String)var20.getKey()).split("\\.")[0], var0 -> new HashMap<>())
-            .put(((String)var20.getKey()).split("\\.", 2)[1], (Set)var20.getValue());
+      for (Entry entry : map.entrySet()) {
+         map2.computeIfAbsent(((String)entry.getKey()).split("\\.")[0], key -> new HashMap<>())
+            .put(((String)entry.getKey()).split("\\.", 2)[1], (Set)entry.getValue());
       }
 
       SendMessage.logDebugMessage("Checking if items still exist...");
 
-      for (String var21 : var17.keySet()) {
-         if (ConfigManager.getShops().contains(var21)) {
-            List<String> var22 = OnyxShop.getInstance().getConfigManager().getItemsRaw(var21);
-            HashMap<String, Set<String>> var23 = new HashMap<>();
+      for (String key : map2.keySet()) {
+         if (ConfigManager.getShops().contains(key)) {
+            List<String> itemsRaw = OnyxShop.getInstance().getConfigManager().getItemsRaw(key);
+            HashMap<String, Set<String>> map3 = new HashMap<>();
 
-            for (String var25 : var17.get(var21).keySet()) {
-               if (!var22.contains(var25)) {
-                  var23.put(var25, var17.get(var21).get(var25));
+            for (String text : map2.get(key).keySet()) {
+               if (!itemsRaw.contains(text)) {
+                  map3.put(text, map2.get(key).get(text));
                }
             }
 
-            var17.put(var21, var23);
+            map2.put(key, map3);
          }
       }
 
-      return var17;
+      return map2;
    }
 
    @Override
-   public void removeExpiredItemData(Map<String, Map<String, Set<String>>> var1) throws SQLException {
+   public void removeExpiredItemData(Map<String, Map<String, Set<String>>> map) throws SQLException {
       SendMessage.logDebugMessage("Removing loaded expired item data from database...");
-      Connection var2 = this.pool.getConnection();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               List<String> var6 = new ArrayList<>();
-               if (ConfigManager.getShops().contains(var5)) {
-                  var6 = OnyxShop.getInstance().getConfigManager().getItemsRaw(var5);
+            for (String itemId : map.keySet()) {
+               List<String> values = new ArrayList<>();
+               if (ConfigManager.getShops().contains(itemId)) {
+                  values = OnyxShop.getInstance().getConfigManager().getItemsRaw(itemId);
                }
 
-               for (Entry var8 : var1.get(var5).entrySet()) {
-                  if (!var6.contains(var8.getKey())) {
+               for (Entry entry : map.get(itemId).entrySet()) {
+                  if (!values.contains(entry.getKey())) {
                      SendMessage.logDebugMessage(
-                        "Removing data for item '" + var5 + "." + (String)var8.getKey() + "' from " + ((Set)var8.getValue()).size() + " tables..."
+                        "Removing data for item '" + itemId + "." + (String)entry.getKey() + "' from " + ((Set)entry.getValue()).size() + " tables..."
                      );
 
-                     for (String var10 : (Set<String>)var8.getValue()) {
-                        var3.executeUpdate("DELETE FROM " + var10 + " WHERE item = '" + (String)var8.getKey() + "';");
+                     for (String text : (Set<String>)entry.getValue()) {
+                        statement.executeUpdate("DELETE FROM " + text + " WHERE item = '" + (String)entry.getKey() + "';");
                      }
                   }
                }
             }
-         } catch (Throwable var13) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var12) {
-                  var13.addSuppressed(var12);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var13;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var14) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var11) {
-               var14.addSuppressed(var11);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var14;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
       SendMessage.logDebugMessage(
          "Successfully removed "
-            + var1.entrySet()
+            + map.entrySet()
                .stream()
-               .flatMap(var0 -> ((Map)var0.getValue()).keySet().stream().map(var1x -> (String)var0.getKey() + "." + var1x))
+               .flatMap(entry -> ((Map)entry.getValue()).keySet().stream().map(element -> (String)entry.getKey() + "." + element))
                .distinct()
                .count()
             + " non existing item entries from database"
@@ -545,140 +545,140 @@ public class MySQL implements Database {
    }
 
    public void migrateV4toV5() throws SQLException {
-      long var1 = System.currentTimeMillis();
-      OnyxShop var3 = OnyxShop.getInstance();
-      HashMap var4 = new HashMap();
+      long startTime = System.currentTimeMillis();
+      OnyxShop plugin = OnyxShop.getInstance();
+      HashMap map = new HashMap();
       SendMessage.infoMessage("Loading original stocks from database...");
-      Map<String, Integer> var5 = this.getOriginalStocks();
+      Map<String, Integer> originalStocks = this.getOriginalStocks();
       SendMessage.infoMessage("Loading global stock from database...");
-      Map<String, SimplePair<Integer, Long>> var6 = this.getGlobalStock();
+      Map<String, SimplePair<Integer, Long>> globalStock = this.getGlobalStock();
       SendMessage.infoMessage("Loading player stock from database...");
-      Map<String, Map<String, SimplePair<Integer, Long>>> var7 = this.getPlayerStock();
+      Map<String, Map<String, SimplePair<Integer, Long>>> playerStock = this.getPlayerStock();
       SendMessage.infoMessage("Loading original sell limits from database...");
-      Map<String, Integer> var8 = this.getOriginalLimits();
+      Map<String, Integer> originalLimits = this.getOriginalLimits();
       SendMessage.infoMessage("Loading global sell limits from database...");
-      Map<String, SimplePair<Integer, Long>> var9 = this.getGlobalSellLimits();
+      Map<String, SimplePair<Integer, Long>> globalSellLimits = this.getGlobalSellLimits();
       SendMessage.infoMessage("Loading player sell limits from database...");
-      Map<String, Map<String, SimplePair<Integer, Long>>> var10 = this.getPlayerSellLimits();
+      Map<String, Map<String, SimplePair<Integer, Long>>> playerSellLimits = this.getPlayerSellLimits();
       SendMessage.infoMessage("Started migration of loaded data...");
-      Connection var11 = this.pool.getConnection();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var12 = var11.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            var12.executeUpdate("DROP TABLE " + this.dynamicStock + ";");
-            var12.executeUpdate("DROP TABLE " + this.maxStocks + ";");
-            var3.getLimitedStockProvider().emptyCache();
-            var12.executeUpdate("DROP TABLE " + this.originalStock + ";");
-            var12.executeUpdate("DROP TABLE " + this.playerstock + ";");
-            var12.executeUpdate("DROP TABLE " + this.itemstock + ";");
-            var3.getLimitedSellProvider().emptyCache();
-            var12.executeUpdate("DROP TABLE " + this.originalLimits + ";");
-            var12.executeUpdate("DROP TABLE " + this.playerSellLimits + ";");
-            var12.executeUpdate("DROP TABLE " + this.sellLimits + ";");
-         } catch (Throwable var17) {
-            if (var12 != null) {
+            statement.executeUpdate("DROP TABLE " + this.dynamicStock + ";");
+            statement.executeUpdate("DROP TABLE " + this.maxStocks + ";");
+            plugin.getLimitedStockProvider().emptyCache();
+            statement.executeUpdate("DROP TABLE " + this.originalStock + ";");
+            statement.executeUpdate("DROP TABLE " + this.playerstock + ";");
+            statement.executeUpdate("DROP TABLE " + this.itemstock + ";");
+            plugin.getLimitedSellProvider().emptyCache();
+            statement.executeUpdate("DROP TABLE " + this.originalLimits + ";");
+            statement.executeUpdate("DROP TABLE " + this.playerSellLimits + ";");
+            statement.executeUpdate("DROP TABLE " + this.sellLimits + ";");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var12.close();
-               } catch (Throwable var16) {
-                  var17.addSuppressed(var16);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var17;
+            throw exception;
          }
 
-         if (var12 != null) {
-            var12.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var18) {
-         if (var11 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var11.close();
-            } catch (Throwable var15) {
-               var18.addSuppressed(var15);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var18;
+         throw exception;
       }
 
-      if (var11 != null) {
-         var11.close();
+      if (connection != null) {
+         connection.close();
       }
 
       this.createTables();
 
-      for (Entry var25 : var5.entrySet()) {
-         String var13 = this.getNewItem(var4, var3, (String)var25.getKey());
-         if (var13 != null) {
-            this.setOriginalStock(var13, (Integer)var25.getValue());
+      for (Entry entry : originalStocks.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setOriginalStock(newItem, (Integer)entry.getValue());
          }
       }
 
-      for (Entry var26 : var6.entrySet()) {
-         String var31 = this.getNewItem(var4, var3, (String)var26.getKey());
-         if (var31 != null) {
-            this.setGlobalStock(var31, (SimplePair<Integer, Long>)var26.getValue());
+      for (Entry entry : globalStock.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setGlobalStock(newItem, (SimplePair<Integer, Long>)entry.getValue());
          }
       }
 
-      for (Entry var27 : var7.entrySet()) {
-         String var32 = this.getNewItem(var4, var3, (String)var27.getKey());
-         if (var32 != null) {
-            this.setPlayerStock(var32, (Map<String, SimplePair<Integer, Long>>)var27.getValue());
+      for (Entry entry : playerStock.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setPlayerStock(newItem, (Map<String, SimplePair<Integer, Long>>)entry.getValue());
          }
       }
 
-      for (Entry var28 : var8.entrySet()) {
-         String var33 = this.getNewItem(var4, var3, (String)var28.getKey());
-         if (var33 != null) {
-            this.setOriginalLimit(var33, (Integer)var28.getValue());
+      for (Entry entry : originalLimits.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setOriginalLimit(newItem, (Integer)entry.getValue());
          }
       }
 
-      for (Entry var29 : var9.entrySet()) {
-         String var34 = this.getNewItem(var4, var3, (String)var29.getKey());
-         if (var34 != null) {
-            this.setGlobalLimit(var34, (SimplePair<Integer, Long>)var29.getValue());
+      for (Entry entry : globalSellLimits.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setGlobalLimit(newItem, (SimplePair<Integer, Long>)entry.getValue());
          }
       }
 
-      for (Entry var30 : var10.entrySet()) {
-         String var35 = this.getNewItem(var4, var3, (String)var30.getKey());
-         if (var35 != null) {
-            this.setPlayerLimit(var35, (Map<String, SimplePair<Integer, Long>>)var30.getValue());
+      for (Entry entry : playerSellLimits.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setPlayerLimit(newItem, (Map<String, SimplePair<Integer, Long>>)entry.getValue());
          }
       }
 
-      SendMessage.infoMessage("Successfully migrated loaded data into the database in " + (System.currentTimeMillis() - var1) + "ms");
+      SendMessage.infoMessage("Successfully migrated loaded data into the database in " + (System.currentTimeMillis() - startTime) + "ms");
    }
 
-   private String getNewItem(Map<String, String> var1, OnyxShop var2, String var3) {
-      String var4 = (String)var1.get(var3);
-      if (var4 != null) {
-         return var4;
+   private String getNewItem(Map<String, String> itemIds, OnyxShop plugin, String shopId) {
+      String text = (String)itemIds.get(shopId);
+      if (text != null) {
+         return text;
       } else {
-         String[] var5 = var3.split("\\.");
-         if (var5.length != 2) {
-            if (var5.length == 4) {
+         String[] values = shopId.split("\\.");
+         if (values.length != 2) {
+            if (values.length == 4) {
                return null;
             } else {
-               SendMessage.logDebugMessage("Invalid item format '" + var3 + "', skipping...");
+               SendMessage.logDebugMessage("Invalid item format '" + shopId + "', skipping...");
                return null;
             }
          } else {
-            String var6 = var5[0];
-            String var7 = var5[1];
-            var4 = var2.getConfigManager().getItemsRaw(var6).stream().filter(var1x -> var1x.split("\\.")[2].equalsIgnoreCase(var7)).findFirst().orElse(null);
-            if (var4 == null) {
-               SendMessage.logDebugMessage("Failed to migrate item '" + var3 + "' to new format because it does not exist, skipping...");
+            String text2 = values[0];
+            String text3 = values[1];
+            text = plugin.getConfigManager().getItemsRaw(text2).stream().filter(element -> element.split("\\.")[2].equalsIgnoreCase(text3)).findFirst().orElse(null);
+            if (text == null) {
+               SendMessage.logDebugMessage("Failed to migrate item '" + shopId + "' to new format because it does not exist, skipping...");
             }
 
-            var4 = var6 + "." + var4;
-            var1.put(var3, var4);
-            return var4;
+            text = text2 + "." + text;
+            itemIds.put(shopId, text);
+            return text;
          }
       }
    }
@@ -689,131 +689,131 @@ public class MySQL implements Database {
    }
 
    @Override
-   public void executeQuery(SQLBatch.Type var1, Query... var2) {
+   public void executeQuery(SQLBatch.Type type, Query... types) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               for (Query var8 : var2) {
-                  var4.executeUpdate(var8.format(this.getTable(var1, var8)));
+               for (Query query : types) {
+                  statement.executeUpdate(query.format(this.getTable(type, query)));
                }
-            } catch (Throwable var11) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var10) {
-                     var11.addSuppressed(var10);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var11;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var12) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var9) {
-                  var12.addSuppressed(var9);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var12;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var13) {
-         var13.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void executeBatch(SQLBatch.Type var1, Set<Query> var2) {
+   public void executeBatch(SQLBatch.Type type, Set<Query> values) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               for (Query var6 : var2) {
-                  var4.executeUpdate(var6.format(this.getTable(var1, var6)));
+               for (Query query : values) {
+                  statement.executeUpdate(query.format(this.getTable(type, query)));
                }
-            } catch (Throwable var9) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
-   private String getTable(SQLBatch.Type var1, Query var2) {
-      switch (var1) {
+   private String getTable(SQLBatch.Type type, Query query) {
+      switch (type) {
          case STOCK:
-            if (var2 instanceof ItemStockQuery
-               || var2 instanceof GlobalRestockTimerQuery
-               || var2 instanceof RemoveStockQuery
-               || var2 instanceof ClearStockQuery) {
+            if (query instanceof ItemStockQuery
+               || query instanceof GlobalRestockTimerQuery
+               || query instanceof RemoveStockQuery
+               || query instanceof ClearStockQuery) {
                return this.itemstock;
-            } else if (var2 instanceof PlayerStockQuery
-               || var2 instanceof UpdatePlayerStockQuery
-               || var2 instanceof PlayerRestockTimerQuery
-               || var2 instanceof RemovePlayerStockQuery
-               || var2 instanceof RemovePlayerStocksQuery
-               || var2 instanceof ClearPlayerStockQuery) {
+            } else if (query instanceof PlayerStockQuery
+               || query instanceof UpdatePlayerStockQuery
+               || query instanceof PlayerRestockTimerQuery
+               || query instanceof RemovePlayerStockQuery
+               || query instanceof RemovePlayerStocksQuery
+               || query instanceof ClearPlayerStockQuery) {
                return this.playerstock;
-            } else if (var2 instanceof RestockScheduleQuery) {
+            } else if (query instanceof RestockScheduleQuery) {
                return this.item_stock_schedules;
             }
          case SELL_LIMIT:
-            if (var2 instanceof ItemStockQuery
-               || var2 instanceof GlobalRestockTimerQuery
-               || var2 instanceof RemoveStockQuery
-               || var2 instanceof ClearStockQuery) {
+            if (query instanceof ItemStockQuery
+               || query instanceof GlobalRestockTimerQuery
+               || query instanceof RemoveStockQuery
+               || query instanceof ClearStockQuery) {
                return this.sellLimits;
-            } else if (var2 instanceof PlayerStockQuery
-               || var2 instanceof UpdatePlayerStockQuery
-               || var2 instanceof PlayerRestockTimerQuery
-               || var2 instanceof RemovePlayerStockQuery
-               || var2 instanceof RemovePlayerStocksQuery
-               || var2 instanceof ClearPlayerStockQuery) {
+            } else if (query instanceof PlayerStockQuery
+               || query instanceof UpdatePlayerStockQuery
+               || query instanceof PlayerRestockTimerQuery
+               || query instanceof RemovePlayerStockQuery
+               || query instanceof RemovePlayerStocksQuery
+               || query instanceof ClearPlayerStockQuery) {
                return this.playerSellLimits;
-            } else if (var2 instanceof RestockScheduleQuery) {
+            } else if (query instanceof RestockScheduleQuery) {
                return this.sell_limit_schedules;
             }
          default:
@@ -822,3570 +822,3570 @@ public class MySQL implements Database {
    }
 
    @Override
-   public PlayerPriceModifier loadPlayerPriceModifiers(UUID var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public PlayerPriceModifier loadPlayerPriceModifiers(UUID playerId) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
-      PlayerPriceModifier var5;
+      PlayerPriceModifier playerPriceModifier;
       try {
-         PreparedStatement var3 = var2.prepareStatement("SELECT data FROM " + this.player_price_modifiers + " WHERE uuid=?");
+         PreparedStatement statement = connection.prepareStatement("SELECT data FROM " + this.player_price_modifiers + " WHERE uuid=?");
 
          try {
-            var3.setString(1, var1.toString());
-            ResultSet var4 = var3.executeQuery();
+            statement.setString(1, playerId.toString());
+            ResultSet resultSet = statement.executeQuery();
 
             try {
-               var5 = var4.next() ? (PlayerPriceModifier)new Gson().fromJson(var4.getString(1), PlayerPriceModifier.class) : null;
-            } catch (Throwable var10) {
-               if (var4 != null) {
+               playerPriceModifier = resultSet.next() ? (PlayerPriceModifier)new Gson().fromJson(resultSet.getString(1), PlayerPriceModifier.class) : null;
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var5;
+      return playerPriceModifier;
    }
 
    @Override
-   public void savePlayerPriceModifiers(UUID var1, PlayerPriceModifier var2) throws SQLException {
-      if (var2.getSectionModifiers().isEmpty() && var2.getItemModifiers().isEmpty()) {
-         Connection var15 = this.pool.getConnection();
+   public void savePlayerPriceModifiers(UUID playerId, PlayerPriceModifier playerPriceModifier) throws SQLException {
+      if (playerPriceModifier.getSectionModifiers().isEmpty() && playerPriceModifier.getItemModifiers().isEmpty()) {
+         Connection connection = this.pool.getConnection();
 
          try {
-            PreparedStatement var16 = var15.prepareStatement("DELETE FROM " + this.player_price_modifiers + " WHERE uuid = ?;");
+            PreparedStatement statement = connection.prepareStatement("DELETE FROM " + this.player_price_modifiers + " WHERE uuid = ?;");
 
             try {
-               var16.setString(1, var1.toString());
-               var16.execute();
-            } catch (Throwable var12) {
-               if (var16 != null) {
+               statement.setString(1, playerId.toString());
+               statement.execute();
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var16.close();
-                  } catch (Throwable var10) {
-                     var12.addSuppressed(var10);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var12;
+               throw exception;
             }
 
-            if (var16 != null) {
-               var16.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var13) {
-            if (var15 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var15.close();
-               } catch (Throwable var9) {
-                  var13.addSuppressed(var9);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var13;
+            throw exception;
          }
 
-         if (var15 != null) {
-            var15.close();
+         if (connection != null) {
+            connection.close();
          }
       } else {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            PreparedStatement var4 = var3.prepareStatement("REPLACE INTO " + this.player_price_modifiers + " VALUES(?,?);");
+            PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.player_price_modifiers + " VALUES(?,?);");
 
             try {
-               var4.setString(1, var1.toString());
-               var4.setString(2, new Gson().toJson(var2));
-               var4.execute();
-            } catch (Throwable var11) {
-               if (var4 != null) {
+               statement.setString(1, playerId.toString());
+               statement.setString(2, new Gson().toJson(playerPriceModifier));
+               statement.execute();
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var11.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var11;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var14) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var14.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var14;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
       }
    }
 
    @Override
    public Map<String, Integer> loadDynamicPricingStock() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap itemIds = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.dynamicStock + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.dynamicStock + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getInt("stock"));
+               while (resultSet.next()) {
+                  itemIds.put(resultSet.getString("item"), resultSet.getInt("stock"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return itemIds;
    }
 
    @Override
-   public Integer getDynamicStock(String var1) {
-      int var2;
+   public Integer getDynamicStock(String itemId) {
+      int value;
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var5 = var4.executeQuery("SELECT stock FROM " + this.dynamicStock + " WHERE item = '" + var1 + "';");
-               var5.next();
-               var2 = var5.getInt("stock");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               ResultSet resultSet = statement.executeQuery("SELECT stock FROM " + this.dynamicStock + " WHERE item = '" + itemId + "';");
+               resultSet.next();
+               value = resultSet.getInt("stock");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
+      } catch (SQLException exception) {
          return null;
       }
 
-      return var2;
+      return value;
    }
 
    @Override
-   public Map<String, Integer> getDynamicStocks(Collection<String> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      if (var1.isEmpty()) {
-         return var2;
+   public Map<String, Integer> getDynamicStocks(Collection<String> values) throws SQLException {
+      HashMap map = new HashMap();
+      if (values.isEmpty()) {
+         return map;
       } else {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var5 = var4.executeQuery("SELECT item,stock FROM " + this.dynamicStock + " WHERE item IN ('" + String.join("','", var1) + "');");
+               ResultSet resultSet = statement.executeQuery("SELECT item,stock FROM " + this.dynamicStock + " WHERE item IN ('" + String.join("','", values) + "');");
 
                try {
-                  while (var5.next()) {
-                     var2.put(var5.getString("item"), var5.getInt("stock"));
+                  while (resultSet.next()) {
+                     map.put(resultSet.getString("item"), resultSet.getInt("stock"));
                   }
-               } catch (Throwable var11) {
-                  if (var5 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var5.close();
-                     } catch (Throwable var10) {
-                        var11.addSuppressed(var10);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var11;
+                  throw exception;
                }
 
-               if (var5 != null) {
-                  var5.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
-            } catch (Throwable var12) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var12.addSuppressed(var9);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var12;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var13) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var13.addSuppressed(var8);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var13;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var2;
+         return map;
       }
    }
 
    @Override
    public Map<String, Integer> loadDynamicMaxStocks() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.maxStocks + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.maxStocks + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getInt("maxStock"));
+               while (resultSet.next()) {
+                  map.put(resultSet.getString("item"), resultSet.getInt("maxStock"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
-   public void setDynamicMaxStock(String var1, int var2) {
+   public void setDynamicMaxStock(String itemId, int value) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var4.executeUpdate("REPLACE INTO " + this.maxStocks + " VALUES('" + var1 + "'," + var2 + ");");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.maxStocks + " VALUES('" + itemId + "'," + value + ");");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
-      }
-   }
-
-   @Override
-   public void saveDynamicStock(Map<String, Integer> var1) {
-      try {
-         Connection var2 = this.pool.getConnection();
-
-         try {
-            PreparedStatement var3 = var2.prepareStatement("REPLACE INTO " + this.dynamicStock + " VALUES(?,?);");
-
-            try {
-               for (Entry var5 : var1.entrySet()) {
-                  var3.setString(1, (String)var5.getKey());
-                  var3.setInt(2, (Integer)var5.getValue());
-                  var3.execute();
-               }
-            } catch (Throwable var8) {
-               if (var3 != null) {
-                  try {
-                     var3.close();
-                  } catch (Throwable var7) {
-                     var8.addSuppressed(var7);
-                  }
-               }
-
-               throw var8;
-            }
-
-            if (var3 != null) {
-               var3.close();
-            }
-         } catch (Throwable var9) {
-            if (var2 != null) {
-               try {
-                  var2.close();
-               } catch (Throwable var6) {
-                  var9.addSuppressed(var6);
-               }
-            }
-
-            throw var9;
-         }
-
-         if (var2 != null) {
-            var2.close();
-         }
-      } catch (SQLException var10) {
-         var10.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setDynamicStock(String var1, int var2) {
+   public void saveDynamicStock(Map<String, Integer> stocks) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.dynamicStock + " VALUES(?,?);");
 
             try {
-               var4.executeUpdate("REPLACE INTO " + this.dynamicStock + " VALUES('" + var1 + "'," + var2 + ");");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               for (Entry entry : stocks.entrySet()) {
+                  statement.setString(1, (String)entry.getKey());
+                  statement.setInt(2, (Integer)entry.getValue());
+                  statement.execute();
+               }
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
+      }
+   }
+
+   @Override
+   public void setDynamicStock(String itemId, int value) {
+      try {
+         Connection connection = this.pool.getConnection();
+
+         try {
+            Statement statement = connection.createStatement();
+
+            try {
+               statement.executeUpdate("REPLACE INTO " + this.dynamicStock + " VALUES('" + itemId + "'," + value + ");");
+            } catch (Throwable exception) {
+               if (statement != null) {
+                  try {
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
+                  }
+               }
+
+               throw exception;
+            }
+
+            if (statement != null) {
+               statement.close();
+            }
+         } catch (Throwable exception) {
+            if (connection != null) {
+               try {
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
+               }
+            }
+
+            throw exception;
+         }
+
+         if (connection != null) {
+            connection.close();
+         }
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
    public Map<String, Integer> getOriginalStocks() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.originalStock + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.originalStock + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getInt("amount"));
+               while (resultSet.next()) {
+                  map.put(resultSet.getString("item"), resultSet.getInt("amount"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
-   public int getOriginalStock(String var1) {
+   public int getOriginalStock(String itemId) {
       try {
-         Connection var2 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
-         int var5;
+         int value;
          try {
-            Statement var3 = var2.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.originalStock + " WHERE item = '" + var1 + "';");
-               var5 = var4.getInt("amount");
-            } catch (Throwable var8) {
-               if (var3 != null) {
+               ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.originalStock + " WHERE item = '" + itemId + "';");
+               value = resultSet.getInt("amount");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var3.close();
-                  } catch (Throwable var7) {
-                     var8.addSuppressed(var7);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var8;
+               throw exception;
             }
 
-            if (var3 != null) {
-               var3.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var9) {
-            if (var2 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var2.close();
-               } catch (Throwable var6) {
-                  var9.addSuppressed(var6);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var2 != null) {
-            var2.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var5;
-      } catch (SQLException var10) {
+         return value;
+      } catch (SQLException exception) {
          return 0;
       }
    }
 
    @Override
-   public void setOriginalStock(String var1, int var2) {
+   public void setOriginalStock(String itemId, int value) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var4.executeUpdate("REPLACE INTO " + this.originalStock + " VALUES('" + var1 + "'," + var2 + ");");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.originalStock + " VALUES('" + itemId + "'," + value + ");");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setItemStock(String var1, int var2) {
+   public void setItemStock(String itemId, int stock) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var4.executeUpdate("REPLACE INTO " + this.itemstock + "(item, amount) VALUES('" + var1 + "', '" + var2 + "');");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.itemstock + "(item, amount) VALUES('" + itemId + "', '" + stock + "');");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setItemStock(Map<String, Integer> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setItemStock(Map<String, Integer> stocks) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               var3.executeUpdate("REPLACE INTO " + this.itemstock + "(item, amount) VALUES('" + var5 + "', " + var1.get(var5) + ");");
+            for (String itemId : stocks.keySet()) {
+               statement.executeUpdate("REPLACE INTO " + this.itemstock + "(item, amount) VALUES('" + itemId + "', " + stocks.get(itemId) + ");");
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public void setItemRestockTimes(Map<String, Long> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setItemRestockTimes(Map<String, Long> restockTimes) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               var3.executeUpdate("REPLACE INTO " + this.itemstock + " VALUES('" + var5 + "', 0, '" + var1.get(var5) + "');");
+            for (String itemId : restockTimes.keySet()) {
+               statement.executeUpdate("REPLACE INTO " + this.itemstock + " VALUES('" + itemId + "', 0, '" + restockTimes.get(itemId) + "');");
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public int getItemStock(String var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public int getItemStock(String itemId) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
-      int var5;
+      int stock;
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT amount FROM " + this.itemstock + " WHERE item = '" + var1 + "';");
-            var4.next();
-            var5 = var4.getInt("amount");
-         } catch (Throwable var8) {
-            if (var3 != null) {
+            ResultSet resultSet = statement.executeQuery("SELECT amount FROM " + this.itemstock + " WHERE item = '" + itemId + "';");
+            resultSet.next();
+            stock = resultSet.getInt("amount");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var5;
+      return stock;
    }
 
    @Override
-   public Map<String, Integer> getItemStocks(Collection<String> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      if (var1.isEmpty()) {
-         return var2;
+   public Map<String, Integer> getItemStocks(Collection<String> itemIds) throws SQLException {
+      HashMap map = new HashMap();
+      if (itemIds.isEmpty()) {
+         return map;
       } else {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var5 = var4.executeQuery("SELECT item,amount FROM " + this.itemstock + " WHERE item IN ('" + String.join("','", var1) + "');");
+               ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM " + this.itemstock + " WHERE item IN ('" + String.join("','", itemIds) + "');");
 
                try {
-                  while (var5.next()) {
-                     var2.put(var5.getString("item"), var5.getInt("amount"));
+                  while (resultSet.next()) {
+                     map.put(resultSet.getString("item"), resultSet.getInt("amount"));
                   }
-               } catch (Throwable var11) {
-                  if (var5 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var5.close();
-                     } catch (Throwable var10) {
-                        var11.addSuppressed(var10);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var11;
+                  throw exception;
                }
 
-               if (var5 != null) {
-                  var5.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
-            } catch (Throwable var12) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var12.addSuppressed(var9);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var12;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var13) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var13.addSuppressed(var8);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var13;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var2;
+         return map;
       }
    }
 
    @Override
    public Map<String, Integer> getAllItemStocks() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap itemIds = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,amount FROM " + this.itemstock + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM " + this.itemstock + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getInt("amount"));
+               while (resultSet.next()) {
+                  itemIds.put(resultSet.getString("item"), resultSet.getInt("amount"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return itemIds;
    }
 
-   private void setOriginalStocks(Map<String, Integer> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   private void setOriginalStocks(Map<String, Integer> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (Entry var5 : var1.entrySet()) {
-               var3.executeUpdate("REPLACE INTO " + this.originalStock + " VALUES('" + (String)var5.getKey() + "', " + var5.getValue() + ");");
+            for (Entry entry : map.entrySet()) {
+               statement.executeUpdate("REPLACE INTO " + this.originalStock + " VALUES('" + (String)entry.getKey() + "', " + entry.getValue() + ");");
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    private Map<String, SimplePair<Integer, Long>> getGlobalStock() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap itemIds = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.itemstock + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.itemstock + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), new SimplePair<>(var4.getInt("amount"), var4.getLong("restock")));
+               while (resultSet.next()) {
+                  itemIds.put(resultSet.getString("item"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return itemIds;
    }
 
-   private void setGlobalStock(String var1, SimplePair<Integer, Long> var2) throws SQLException {
-      Connection var3 = this.pool.getConnection();
+   private void setGlobalStock(String itemId, SimplePair<Integer, Long> simplePair) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            var4.executeUpdate("REPLACE INTO " + this.itemstock + " VALUES('" + var1 + "', " + var2.key + ", " + var2.value + ");");
-         } catch (Throwable var9) {
-            if (var4 != null) {
+            statement.executeUpdate("REPLACE INTO " + this.itemstock + " VALUES('" + itemId + "', " + simplePair.key + ", " + simplePair.value + ");");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var10) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var7) {
-               var10.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var10;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    private Map<String, Map<String, SimplePair<Integer, Long>>> getPlayerStock() throws SQLException {
-      HashMap<String, Map<String, SimplePair<Integer, Long>>> var1 = new HashMap<>();
-      Connection var2 = this.pool.getConnection();
+      HashMap<String, Map<String, SimplePair<Integer, Long>>> map = new HashMap<>();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.playerstock + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.playerstock + ";");
 
             try {
-               while (var4.next()) {
-                  String var5 = var4.getString("item");
-                  Map var6 = var1.getOrDefault(var5, new HashMap());
-                  var6.put(var4.getString("uuid"), new SimplePair<>(var4.getInt("amount"), var4.getLong("restock")));
-                  var1.put(var5, var6);
+               while (resultSet.next()) {
+                  String text = resultSet.getString("item");
+                  Map orDefault = map.getOrDefault(text, new HashMap());
+                  orDefault.put(resultSet.getString("uuid"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
+                  map.put(text, orDefault);
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
-   private void setPlayerStock(String var1, Map<String, SimplePair<Integer, Long>> var2) throws SQLException {
-      Connection var3 = this.pool.getConnection();
+   private void setPlayerStock(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (Entry var6 : var2.entrySet()) {
-               var4.executeUpdate(
+            for (Entry entry : map.entrySet()) {
+               statement.executeUpdate(
                   "REPLACE INTO "
                      + this.playerstock
                      + " VALUES('"
-                     + var1
+                     + playerName
                      + "', '"
-                     + (String)var6.getKey()
+                     + (String)entry.getKey()
                      + "', "
-                     + ((SimplePair)var6.getValue()).key
+                     + ((SimplePair)entry.getValue()).key
                      + ", "
-                     + ((SimplePair)var6.getValue()).value
+                     + ((SimplePair)entry.getValue()).value
                      + ");"
                );
             }
-         } catch (Throwable var9) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var10) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var7) {
-               var10.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var10;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
    public Map<String, Long> getItemRestockTime() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap itemIds = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,restock FROM " + this.itemstock + " WHERE restock IS NOT NULL;");
+            ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM " + this.itemstock + " WHERE restock IS NOT NULL;");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getLong("restock"));
+               while (resultSet.next()) {
+                  itemIds.put(resultSet.getString("item"), resultSet.getLong("restock"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return itemIds;
    }
 
    @Override
-   public void setPlayerStockAmount(UUID var1, String var2, Integer var3) {
+   public void setPlayerStockAmount(UUID playerId, String itemId, Integer amount) {
       try {
-         Connection var4 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var5 = var4.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var5.executeUpdate("REPLACE INTO " + this.playerstock + "(item,uuid,amount) VALUES('" + var2 + "', '" + var1 + "', " + var3 + ");");
-            } catch (Throwable var10) {
-               if (var5 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.playerstock + "(item,uuid,amount) VALUES('" + itemId + "', '" + playerId + "', " + amount + ");");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var5.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var5 != null) {
-               var5.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var11) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var12) {
-         var12.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setPlayerStockAmount(String var1, Integer var2) {
+   public void setPlayerStockAmount(String playerName, Integer stock) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var4.executeUpdate("UPDATE " + this.playerstock + " SET amount = " + var2 + " WHERE item = '" + var1 + "';");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               statement.executeUpdate("UPDATE " + this.playerstock + " SET amount = " + stock + " WHERE item = '" + playerName + "';");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setPlayerStock(Map<String, Map<UUID, Integer>> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setPlayerStock(Map<String, Map<UUID, Integer>> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               Map<UUID, Integer> var6 = var1.get(var5);
+            for (String playerName : map.keySet()) {
+               Map<UUID, Integer> stocks = map.get(playerName);
 
-               for (UUID var8 : var6.keySet()) {
-                  var3.executeUpdate("REPLACE INTO " + this.playerstock + "(item,uuid,amount) VALUES('" + var5 + "', '" + var8 + "', " + var6.get(var8) + ");");
+               for (UUID uniqueId : stocks.keySet()) {
+                  statement.executeUpdate("REPLACE INTO " + this.playerstock + "(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + stocks.get(uniqueId) + ");");
                }
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var10) {
-                  var11.addSuppressed(var10);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var9) {
-               var12.addSuppressed(var9);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public void setPlayerRestockTimes(Map<String, Map<UUID, Long>> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setPlayerRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               Map<UUID, Long> var6 = var1.get(var5);
+            for (String playerName : map.keySet()) {
+               Map<UUID, Long> restockTimes = map.get(playerName);
 
-               for (UUID var8 : var6.keySet()) {
-                  var3.executeUpdate("REPLACE INTO " + this.playerstock + " VALUES('" + var5 + "', '" + var8 + "', 0, '" + var6.get(var8) + "');");
+               for (UUID uniqueId : restockTimes.keySet()) {
+                  statement.executeUpdate("REPLACE INTO " + this.playerstock + " VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + restockTimes.get(uniqueId) + "');");
                }
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var10) {
-                  var11.addSuppressed(var10);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var9) {
-               var12.addSuppressed(var9);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public int getPlayerStockAmount(UUID var1, String var2) throws SQLException {
-      Connection var3 = this.pool.getConnection();
+   public int getPlayerStockAmount(UUID playerId, String itemId) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
-      int var6;
+      int amount;
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var5 = var4.executeQuery("SELECT amount FROM " + this.playerstock + " WHERE item = '" + var2 + "' AND uuid = '" + var1 + "';");
-            var5.next();
-            var6 = var5.getInt("amount");
-         } catch (Throwable var9) {
-            if (var4 != null) {
+            ResultSet resultSet = statement.executeQuery("SELECT amount FROM " + this.playerstock + " WHERE item = '" + itemId + "' AND uuid = '" + playerId + "';");
+            resultSet.next();
+            amount = resultSet.getInt("amount");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var10) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var7) {
-               var10.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var10;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var6;
+      return amount;
    }
 
    @Override
    public Map<String, Map<UUID, Long>> getPlayerRestockTimes() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap playerNames = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,restock FROM " + this.playerstock + " WHERE restock IS NOT NULL;");
+            ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM " + this.playerstock + " WHERE restock IS NOT NULL;");
 
             try {
-               while (var4.next()) {
-                  HashMap var5 = new HashMap();
-                  Statement var6 = var2.createStatement();
+               while (resultSet.next()) {
+                  HashMap map = new HashMap();
+                  Statement statement2 = connection.createStatement();
 
                   try {
-                     ResultSet var7 = var6.executeQuery(
-                        "SELECT item,uuid,restock FROM " + this.playerstock + " WHERE restock IS NOT NULL AND item = '" + var4.getString("item") + "';"
+                     ResultSet resultSet2 = statement2.executeQuery(
+                        "SELECT item,uuid,restock FROM " + this.playerstock + " WHERE restock IS NOT NULL AND item = '" + resultSet.getString("item") + "';"
                      );
 
                      try {
-                        while (var7.next()) {
-                           var5.put(UUID.fromString(var7.getString("uuid")), var7.getLong("restock"));
+                        while (resultSet2.next()) {
+                           map.put(UUID.fromString(resultSet2.getString("uuid")), resultSet2.getLong("restock"));
                         }
-                     } catch (Throwable var15) {
-                        if (var7 != null) {
+                     } catch (Throwable exception) {
+                        if (resultSet2 != null) {
                            try {
-                              var7.close();
-                           } catch (Throwable var14) {
-                              var15.addSuppressed(var14);
+                              resultSet2.close();
+                           } catch (Throwable exception2) {
+                              exception.addSuppressed(exception2);
                            }
                         }
 
-                        throw var15;
+                        throw exception;
                      }
 
-                     if (var7 != null) {
-                        var7.close();
+                     if (resultSet2 != null) {
+                        resultSet2.close();
                      }
-                  } catch (Throwable var16) {
-                     if (var6 != null) {
+                  } catch (Throwable exception) {
+                     if (statement2 != null) {
                         try {
-                           var6.close();
-                        } catch (Throwable var13) {
-                           var16.addSuppressed(var13);
+                           statement2.close();
+                        } catch (Throwable exception2) {
+                           exception.addSuppressed(exception2);
                         }
                      }
 
-                     throw var16;
+                     throw exception;
                   }
 
-                  if (var6 != null) {
-                     var6.close();
+                  if (statement2 != null) {
+                     statement2.close();
                   }
 
-                  var1.put(var4.getString("item"), var5);
+                  playerNames.put(resultSet.getString("item"), map);
                }
-            } catch (Throwable var17) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var12) {
-                     var17.addSuppressed(var12);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var17;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var18) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var11) {
-                  var18.addSuppressed(var11);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var18;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var19) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var10) {
-               var19.addSuppressed(var10);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var19;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return playerNames;
    }
 
    @Override
-   public Map<String, Integer> getPlayersStock(String var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      Connection var3 = this.pool.getConnection();
+   public Map<String, Integer> getPlayersStock(String itemId) throws SQLException {
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var5 = var4.executeQuery("SELECT uuid,amount FROM " + this.playerstock + " WHERE item = '" + var1 + "';");
+            ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM " + this.playerstock + " WHERE item = '" + itemId + "';");
 
             try {
-               while (var5.next()) {
-                  String var6 = var5.getString("uuid");
-                  var2.put(var6, var5.getInt("amount"));
+               while (resultSet.next()) {
+                  String text = resultSet.getString("uuid");
+                  map.put(text, resultSet.getInt("amount"));
                }
-            } catch (Throwable var11) {
-               if (var5 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var5.close();
-                  } catch (Throwable var10) {
-                     var11.addSuppressed(var10);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var11;
+               throw exception;
             }
 
-            if (var5 != null) {
-               var5.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var12) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var9) {
-                  var12.addSuppressed(var9);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var12;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var13) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var8) {
-               var13.addSuppressed(var8);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var13;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var2;
+      return map;
    }
 
    @Override
-   public Map<String, Integer> getPlayerStockAmounts(Collection<String> var1, UUID var2) throws SQLException {
-      HashMap var3 = new HashMap();
-      if (var1.isEmpty()) {
-         return var3;
+   public Map<String, Integer> getPlayerStockAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
+      HashMap itemIds = new HashMap();
+      if (playerNames.isEmpty()) {
+         return itemIds;
       } else {
-         Connection var4 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var5 = var4.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var6 = var5.executeQuery(
-                  "SELECT item,amount FROM " + this.playerstock + " WHERE item IN ('" + String.join("','", var1) + "') AND uuid = '" + var2 + "';"
+               ResultSet resultSet = statement.executeQuery(
+                  "SELECT item,amount FROM " + this.playerstock + " WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';"
                );
 
                try {
-                  while (var6.next()) {
-                     var3.put(var6.getString("item"), var6.getInt("amount"));
+                  while (resultSet.next()) {
+                     itemIds.put(resultSet.getString("item"), resultSet.getInt("amount"));
                   }
-               } catch (Throwable var12) {
-                  if (var6 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var6.close();
-                     } catch (Throwable var11) {
-                        var12.addSuppressed(var11);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var12;
+                  throw exception;
                }
 
-               if (var6 != null) {
-                  var6.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
-            } catch (Throwable var13) {
-               if (var5 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var5.close();
-                  } catch (Throwable var10) {
-                     var13.addSuppressed(var10);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var13;
+               throw exception;
             }
 
-            if (var5 != null) {
-               var5.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var14) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var4.close();
-               } catch (Throwable var9) {
-                  var14.addSuppressed(var9);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var14;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var3;
+         return itemIds;
       }
    }
 
    @Override
    public Map<String, Map<UUID, Integer>> getAllPlayerStocks() throws SQLException {
-      HashMap<String, Map<UUID, Integer>> var1 = new HashMap<>();
-      Connection var2 = this.pool.getConnection();
+      HashMap<String, Map<UUID, Integer>> map = new HashMap<>();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,uuid,amount FROM " + this.playerstock + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT item,uuid,amount FROM " + this.playerstock + ";");
 
             try {
-               while (var4.next()) {
-                  var1.computeIfAbsent(var4.getString("item"), var0 -> new HashMap<>()).put(UUID.fromString(var4.getString("uuid")), var4.getInt("amount"));
+               while (resultSet.next()) {
+                  map.computeIfAbsent(resultSet.getString("item"), key -> new HashMap<>()).put(UUID.fromString(resultSet.getString("uuid")), resultSet.getInt("amount"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
    public boolean resetDynamicPricing() {
       try {
-         Connection var1 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
-         boolean var3;
+         boolean flag;
          try {
-            Statement var2 = var1.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var2.executeUpdate("DROP TABLE " + this.dynamicStock + ";");
-               var2.executeUpdate("DROP TABLE " + this.maxStocks + ";");
+               statement.executeUpdate("DROP TABLE " + this.dynamicStock + ";");
+               statement.executeUpdate("DROP TABLE " + this.maxStocks + ";");
                this.createTables();
-               var3 = true;
-            } catch (Throwable var7) {
-               if (var2 != null) {
+               flag = true;
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var2.close();
-                  } catch (Throwable var6) {
-                     var7.addSuppressed(var6);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var7;
+               throw exception;
             }
 
-            if (var2 != null) {
-               var2.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var8) {
-            if (var1 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var1.close();
-               } catch (Throwable var5) {
-                  var8.addSuppressed(var5);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var1 != null) {
-            var1.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var3;
-      } catch (SQLException var9) {
+         return flag;
+      } catch (SQLException exception) {
          SendMessage.warnMessage("Failed to delete DynamicPricing tables from database");
-         var9.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
 
    @Override
-   public int getOriginalLimit(String var1) {
+   public int getOriginalLimit(String text) {
       try {
-         Connection var2 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
-         int var5;
+         int limit;
          try {
-            Statement var3 = var2.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.originalLimits + " WHERE item = '" + var1 + "';");
-               var5 = var4.getInt("amount");
-            } catch (Throwable var8) {
-               if (var3 != null) {
+               ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.originalLimits + " WHERE item = '" + text + "';");
+               limit = resultSet.getInt("amount");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var3.close();
-                  } catch (Throwable var7) {
-                     var8.addSuppressed(var7);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var8;
+               throw exception;
             }
 
-            if (var3 != null) {
-               var3.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var9) {
-            if (var2 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var2.close();
-               } catch (Throwable var6) {
-                  var9.addSuppressed(var6);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var2 != null) {
-            var2.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var5;
-      } catch (SQLException var10) {
+         return limit;
+      } catch (SQLException exception) {
          return 0;
       }
    }
 
    @Override
-   public void setOriginalLimit(String var1, int var2) {
+   public void setOriginalLimit(String text, int limit) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var4.executeUpdate("REPLACE INTO " + this.originalLimits + " VALUES('" + var1 + "'," + var2 + ");");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.originalLimits + " VALUES('" + text + "'," + limit + ");");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setSellLimit(String var1, int var2) {
+   public void setSellLimit(String text, int limit) {
       try {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var4.executeUpdate("REPLACE INTO " + this.sellLimits + "(item, amount) VALUES('" + var1 + "', '" + var2 + "');");
-            } catch (Throwable var9) {
-               if (var4 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.sellLimits + "(item, amount) VALUES('" + text + "', '" + limit + "');");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var9;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var10) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var10;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setSellLimit(Map<String, Integer> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setSellLimit(Map<String, Integer> limits) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               var3.executeUpdate("REPLACE INTO " + this.sellLimits + "(item, amount) VALUES('" + var5 + "', " + var1.get(var5) + ");");
+            for (String key : limits.keySet()) {
+               statement.executeUpdate("REPLACE INTO " + this.sellLimits + "(item, amount) VALUES('" + key + "', " + limits.get(key) + ");");
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public void setSellLimitRestockTimes(Map<String, Long> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setSellLimitRestockTimes(Map<String, Long> limits) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               var3.executeUpdate("REPLACE INTO " + this.sellLimits + " VALUES('" + var5 + "', 0, '" + var1.get(var5) + "');");
+            for (String key : limits.keySet()) {
+               statement.executeUpdate("REPLACE INTO " + this.sellLimits + " VALUES('" + key + "', 0, '" + limits.get(key) + "');");
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public int getSellLimit(String var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public int getSellLimit(String text) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
-      int var5;
+      int limit;
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT amount FROM " + this.sellLimits + " WHERE item = '" + var1 + "';");
-            var4.next();
-            var5 = var4.getInt("amount");
-         } catch (Throwable var8) {
-            if (var3 != null) {
+            ResultSet resultSet = statement.executeQuery("SELECT amount FROM " + this.sellLimits + " WHERE item = '" + text + "';");
+            resultSet.next();
+            limit = resultSet.getInt("amount");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var5;
+      return limit;
    }
 
    @Override
-   public Map<String, Integer> getSellLimits(Collection<String> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      if (var1.isEmpty()) {
-         return var2;
+   public Map<String, Integer> getSellLimits(Collection<String> values) throws SQLException {
+      HashMap map = new HashMap();
+      if (values.isEmpty()) {
+         return map;
       } else {
-         Connection var3 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var4 = var3.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var5 = var4.executeQuery("SELECT item,amount FROM " + this.sellLimits + " WHERE item IN ('" + String.join("','", var1) + "');");
+               ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM " + this.sellLimits + " WHERE item IN ('" + String.join("','", values) + "');");
 
                try {
-                  while (var5.next()) {
-                     var2.put(var5.getString("item"), var5.getInt("amount"));
+                  while (resultSet.next()) {
+                     map.put(resultSet.getString("item"), resultSet.getInt("amount"));
                   }
-               } catch (Throwable var11) {
-                  if (var5 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var5.close();
-                     } catch (Throwable var10) {
-                        var11.addSuppressed(var10);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var11;
+                  throw exception;
                }
 
-               if (var5 != null) {
-                  var5.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
-            } catch (Throwable var12) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var12.addSuppressed(var9);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var12;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var13) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var13.addSuppressed(var8);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var13;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var2;
+         return map;
       }
    }
 
    @Override
    public Map<String, Integer> getAllSellLimits() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,amount FROM " + this.sellLimits + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM " + this.sellLimits + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getInt("amount"));
+               while (resultSet.next()) {
+                  map.put(resultSet.getString("item"), resultSet.getInt("amount"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
    public Map<String, Long> getSellLimitRestockTimes() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,restock FROM " + this.sellLimits + " WHERE restock IS NOT NULL;");
+            ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM " + this.sellLimits + " WHERE restock IS NOT NULL;");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getLong("restock"));
+               while (resultSet.next()) {
+                  map.put(resultSet.getString("item"), resultSet.getLong("restock"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
-   public void setPlayerSellLimit(UUID var1, String var2, Integer var3) {
+   public void setPlayerSellLimit(UUID playerId, String text, Integer limit) {
       try {
-         Connection var4 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var5 = var4.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               var5.executeUpdate("REPLACE INTO " + this.playerSellLimits + "(item,uuid,amount) VALUES('" + var2 + "', '" + var1 + "', " + var3 + ");");
-            } catch (Throwable var10) {
-               if (var5 != null) {
+               statement.executeUpdate("REPLACE INTO " + this.playerSellLimits + "(item,uuid,amount) VALUES('" + text + "', '" + playerId + "', " + limit + ");");
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var5.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var5 != null) {
-               var5.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var11) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var12) {
-         var12.printStackTrace();
-      }
-   }
-
-   @Override
-   public void setPlayerSellLimit(String var1, Integer var2) {
-      try {
-         Connection var3 = this.pool.getConnection();
-
-         try {
-            Statement var4 = var3.createStatement();
-
-            try {
-               var4.executeUpdate("UPDATE " + this.playerSellLimits + " SET amount = " + var2 + " WHERE item = '" + var1 + "';");
-            } catch (Throwable var9) {
-               if (var4 != null) {
-                  try {
-                     var4.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
-                  }
-               }
-
-               throw var9;
-            }
-
-            if (var4 != null) {
-               var4.close();
-            }
-         } catch (Throwable var10) {
-            if (var3 != null) {
-               try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var10.addSuppressed(var7);
-               }
-            }
-
-            throw var10;
-         }
-
-         if (var3 != null) {
-            var3.close();
-         }
-      } catch (SQLException var11) {
-         var11.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public void setPlayerSellLimit(Map<String, Map<UUID, Integer>> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
-
+   public void setPlayerSellLimit(String playerName, Integer limit) {
       try {
-         Statement var3 = var2.createStatement();
+         Connection connection = this.pool.getConnection();
 
          try {
-            for (String var5 : var1.keySet()) {
-               Map<UUID, Integer> var6 = var1.get(var5);
+            Statement statement = connection.createStatement();
 
-               for (UUID var8 : var6.keySet()) {
-                  var3.executeUpdate(
-                     "REPLACE INTO " + this.playerSellLimits + "(item,uuid,amount) VALUES('" + var5 + "', '" + var8 + "', " + var6.get(var8) + ");"
+            try {
+               statement.executeUpdate("UPDATE " + this.playerSellLimits + " SET amount = " + limit + " WHERE item = '" + playerName + "';");
+            } catch (Throwable exception) {
+               if (statement != null) {
+                  try {
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
+                  }
+               }
+
+               throw exception;
+            }
+
+            if (statement != null) {
+               statement.close();
+            }
+         } catch (Throwable exception) {
+            if (connection != null) {
+               try {
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
+               }
+            }
+
+            throw exception;
+         }
+
+         if (connection != null) {
+            connection.close();
+         }
+      } catch (SQLException exception) {
+         exception.printStackTrace();
+      }
+   }
+
+   @Override
+   public void setPlayerSellLimit(Map<String, Map<UUID, Integer>> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
+
+      try {
+         Statement statement = connection.createStatement();
+
+         try {
+            for (String playerName : map.keySet()) {
+               Map<UUID, Integer> limits = map.get(playerName);
+
+               for (UUID uniqueId : limits.keySet()) {
+                  statement.executeUpdate(
+                     "REPLACE INTO " + this.playerSellLimits + "(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + limits.get(uniqueId) + ");"
                   );
                }
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var10) {
-                  var11.addSuppressed(var10);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var9) {
-               var12.addSuppressed(var9);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (String var5 : var1.keySet()) {
-               Map<UUID, Long> var6 = var1.get(var5);
+            for (String playerName : map.keySet()) {
+               Map<UUID, Long> limits = map.get(playerName);
 
-               for (UUID var8 : var6.keySet()) {
-                  var3.executeUpdate("REPLACE INTO " + this.playerSellLimits + " VALUES('" + var5 + "', '" + var8 + "', 0, '" + var6.get(var8) + "');");
+               for (UUID uniqueId : limits.keySet()) {
+                  statement.executeUpdate("REPLACE INTO " + this.playerSellLimits + " VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + limits.get(uniqueId) + "');");
                }
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var10) {
-                  var11.addSuppressed(var10);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var9) {
-               var12.addSuppressed(var9);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
-   public int getPlayerSellLimit(UUID var1, String var2) throws SQLException {
-      Connection var3 = this.pool.getConnection();
+   public int getPlayerSellLimit(UUID playerId, String text) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
-      int var6;
+      int limit;
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var5 = var4.executeQuery("SELECT amount FROM " + this.playerSellLimits + " WHERE item = '" + var2 + "' AND uuid = '" + var1 + "';");
-            var5.next();
-            var6 = var5.getInt("amount");
-         } catch (Throwable var9) {
-            if (var4 != null) {
+            ResultSet resultSet = statement.executeQuery("SELECT amount FROM " + this.playerSellLimits + " WHERE item = '" + text + "' AND uuid = '" + playerId + "';");
+            resultSet.next();
+            limit = resultSet.getInt("amount");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var10) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var7) {
-               var10.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var10;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var6;
+      return limit;
    }
 
    @Override
    public Map<String, Map<UUID, Long>> getPlayerSellLimitRestockTimes() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap playerNames = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,restock FROM " + this.playerSellLimits + " WHERE restock IS NOT NULL;");
+            ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM " + this.playerSellLimits + " WHERE restock IS NOT NULL;");
 
             try {
-               while (var4.next()) {
-                  HashMap var5 = new HashMap();
-                  Statement var6 = var2.createStatement();
+               while (resultSet.next()) {
+                  HashMap map = new HashMap();
+                  Statement statement2 = connection.createStatement();
 
                   try {
-                     ResultSet var7 = var6.executeQuery(
-                        "SELECT item,uuid,restock FROM " + this.playerSellLimits + " WHERE restock IS NOT NULL AND item = '" + var4.getString("item") + "';"
+                     ResultSet resultSet2 = statement2.executeQuery(
+                        "SELECT item,uuid,restock FROM " + this.playerSellLimits + " WHERE restock IS NOT NULL AND item = '" + resultSet.getString("item") + "';"
                      );
 
                      try {
-                        while (var7.next()) {
-                           var5.put(UUID.fromString(var7.getString("uuid")), var7.getLong("restock"));
+                        while (resultSet2.next()) {
+                           map.put(UUID.fromString(resultSet2.getString("uuid")), resultSet2.getLong("restock"));
                         }
-                     } catch (Throwable var15) {
-                        if (var7 != null) {
+                     } catch (Throwable exception) {
+                        if (resultSet2 != null) {
                            try {
-                              var7.close();
-                           } catch (Throwable var14) {
-                              var15.addSuppressed(var14);
+                              resultSet2.close();
+                           } catch (Throwable exception2) {
+                              exception.addSuppressed(exception2);
                            }
                         }
 
-                        throw var15;
+                        throw exception;
                      }
 
-                     if (var7 != null) {
-                        var7.close();
+                     if (resultSet2 != null) {
+                        resultSet2.close();
                      }
-                  } catch (Throwable var16) {
-                     if (var6 != null) {
+                  } catch (Throwable exception) {
+                     if (statement2 != null) {
                         try {
-                           var6.close();
-                        } catch (Throwable var13) {
-                           var16.addSuppressed(var13);
+                           statement2.close();
+                        } catch (Throwable exception2) {
+                           exception.addSuppressed(exception2);
                         }
                      }
 
-                     throw var16;
+                     throw exception;
                   }
 
-                  if (var6 != null) {
-                     var6.close();
+                  if (statement2 != null) {
+                     statement2.close();
                   }
 
-                  var1.put(var4.getString("item"), var5);
+                  playerNames.put(resultSet.getString("item"), map);
                }
-            } catch (Throwable var17) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var12) {
-                     var17.addSuppressed(var12);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var17;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var18) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var11) {
-                  var18.addSuppressed(var11);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var18;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var19) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var10) {
-               var19.addSuppressed(var10);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var19;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return playerNames;
    }
 
    @Override
-   public Map<String, Integer> getPlayerSellLimits(String var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      Connection var3 = this.pool.getConnection();
+   public Map<String, Integer> getPlayerSellLimits(String playerName) throws SQLException {
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var5 = var4.executeQuery("SELECT uuid,amount FROM " + this.playerSellLimits + " WHERE item = '" + var1 + "';");
+            ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM " + this.playerSellLimits + " WHERE item = '" + playerName + "';");
 
             try {
-               while (var5.next()) {
-                  String var6 = var5.getString("uuid");
-                  var2.put(var6, var5.getInt("amount"));
+               while (resultSet.next()) {
+                  String text = resultSet.getString("uuid");
+                  map.put(text, resultSet.getInt("amount"));
                }
-            } catch (Throwable var11) {
-               if (var5 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var5.close();
-                  } catch (Throwable var10) {
-                     var11.addSuppressed(var10);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var11;
+               throw exception;
             }
 
-            if (var5 != null) {
-               var5.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var12) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var9) {
-                  var12.addSuppressed(var9);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var12;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var13) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var8) {
-               var13.addSuppressed(var8);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var13;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var2;
+      return map;
    }
 
    @Override
-   public Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> var1, UUID var2) throws SQLException {
-      HashMap var3 = new HashMap();
-      if (var1.isEmpty()) {
-         return var3;
+   public Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
+      HashMap map = new HashMap();
+      if (playerNames.isEmpty()) {
+         return map;
       } else {
-         Connection var4 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            Statement var5 = var4.createStatement();
+            Statement statement = connection.createStatement();
 
             try {
-               ResultSet var6 = var5.executeQuery(
-                  "SELECT item,amount FROM " + this.playerSellLimits + " WHERE item IN ('" + String.join("','", var1) + "') AND uuid = '" + var2 + "';"
+               ResultSet resultSet = statement.executeQuery(
+                  "SELECT item,amount FROM " + this.playerSellLimits + " WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';"
                );
 
                try {
-                  while (var6.next()) {
-                     var3.put(var6.getString("item"), var6.getInt("amount"));
+                  while (resultSet.next()) {
+                     map.put(resultSet.getString("item"), resultSet.getInt("amount"));
                   }
-               } catch (Throwable var12) {
-                  if (var6 != null) {
+               } catch (Throwable exception) {
+                  if (resultSet != null) {
                      try {
-                        var6.close();
-                     } catch (Throwable var11) {
-                        var12.addSuppressed(var11);
+                        resultSet.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var12;
+                  throw exception;
                }
 
-               if (var6 != null) {
-                  var6.close();
+               if (resultSet != null) {
+                  resultSet.close();
                }
-            } catch (Throwable var13) {
-               if (var5 != null) {
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var5.close();
-                  } catch (Throwable var10) {
-                     var13.addSuppressed(var10);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var13;
+               throw exception;
             }
 
-            if (var5 != null) {
-               var5.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var14) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var4.close();
-               } catch (Throwable var9) {
-                  var14.addSuppressed(var9);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var14;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var3;
+         return map;
       }
    }
 
    @Override
    public Map<String, Map<UUID, Integer>> getAllPlayerSellLimits() throws SQLException {
-      HashMap<String, Map<UUID, Integer>> var1 = new HashMap<>();
-      Connection var2 = this.pool.getConnection();
+      HashMap<String, Map<UUID, Integer>> map = new HashMap<>();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT item,uuid,amount FROM " + this.playerSellLimits + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT item,uuid,amount FROM " + this.playerSellLimits + ";");
 
             try {
-               while (var4.next()) {
-                  var1.computeIfAbsent(var4.getString("item"), var0 -> new HashMap<>()).put(UUID.fromString(var4.getString("uuid")), var4.getInt("amount"));
+               while (resultSet.next()) {
+                  map.computeIfAbsent(resultSet.getString("item"), key -> new HashMap<>()).put(UUID.fromString(resultSet.getString("uuid")), resultSet.getInt("amount"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
-   public void setItemStockSchedulers(Map<ScheduleManager.Item, Long> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setItemStockSchedulers(Map<ScheduleManager.Item, Long> stocks) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         PreparedStatement var3 = var2.prepareStatement("REPLACE INTO " + this.item_stock_schedules + " VALUES(?,?,?);");
+         PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.item_stock_schedules + " VALUES(?,?,?);");
 
          try {
-            for (Entry var5 : var1.entrySet()) {
-               var3.setString(1, ((ScheduleManager.Item)var5.getKey()).getItemPath());
-               var3.setInt(2, ((ScheduleManager.Item)var5.getKey()).mode);
-               var3.setString(3, ((Long)var5.getValue()).toString());
-               var3.execute();
+            for (Entry entry : stocks.entrySet()) {
+               statement.setString(1, ((ScheduleManager.Item)entry.getKey()).getItemPath());
+               statement.setInt(2, ((ScheduleManager.Item)entry.getKey()).mode);
+               statement.setString(3, ((Long)entry.getValue()).toString());
+               statement.execute();
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
    public Map<ScheduleManager.Item, Long> getItemStockSchedulers() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap itemIds = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.item_stock_schedules + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.item_stock_schedules + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(new ScheduleManager.Item(var4.getString("item"), var4.getInt("mode")), Long.parseLong(var4.getString("restock")));
+               while (resultSet.next()) {
+                  itemIds.put(new ScheduleManager.Item(resultSet.getString("item"), resultSet.getInt("mode")), Long.parseLong(resultSet.getString("restock")));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return itemIds;
    }
 
    @Override
-   public void setSellLimitSchedulers(Map<ScheduleManager.Item, Long> var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public void setSellLimitSchedulers(Map<ScheduleManager.Item, Long> limits) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         PreparedStatement var3 = var2.prepareStatement("REPLACE INTO " + this.sell_limit_schedules + " VALUES(?,?,?);");
+         PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.sell_limit_schedules + " VALUES(?,?,?);");
 
          try {
-            for (Entry var5 : var1.entrySet()) {
-               var3.setString(1, ((ScheduleManager.Item)var5.getKey()).getItemPath());
-               var3.setInt(2, ((ScheduleManager.Item)var5.getKey()).mode);
-               var3.setString(3, ((Long)var5.getValue()).toString());
-               var3.execute();
+            for (Entry entry : limits.entrySet()) {
+               statement.setString(1, ((ScheduleManager.Item)entry.getKey()).getItemPath());
+               statement.setInt(2, ((ScheduleManager.Item)entry.getKey()).mode);
+               statement.setString(3, ((Long)entry.getValue()).toString());
+               statement.execute();
             }
-         } catch (Throwable var8) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    @Override
    public Map<ScheduleManager.Item, Long> getSellLimitSchedulers() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.sell_limit_schedules + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.sell_limit_schedules + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(new ScheduleManager.Item(var4.getString("item"), var4.getInt("mode")), Long.parseLong(var4.getString("restock")));
+               while (resultSet.next()) {
+                  map.put(new ScheduleManager.Item(resultSet.getString("item"), resultSet.getInt("mode")), Long.parseLong(resultSet.getString("restock")));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
    public Map<String, Integer> getOriginalLimits() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.originalLimits + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.originalLimits + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), var4.getInt("amount"));
+               while (resultSet.next()) {
+                  map.put(resultSet.getString("item"), resultSet.getInt("amount"));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
    @Override
-   public void setRotatingShopItems(String var1, List<String> var2, long var3) {
+   public void setRotatingShopItems(String shopId, List<String> values, long value) {
       try {
-         Connection var5 = this.pool.getConnection();
+         Connection connection = this.pool.getConnection();
 
          try {
-            PreparedStatement var6 = var5.prepareStatement("REPLACE INTO " + this.rotating_shop_sync + " VALUES(?,?,?);");
+            PreparedStatement statement = connection.prepareStatement("REPLACE INTO " + this.rotating_shop_sync + " VALUES(?,?,?);");
 
             try {
-               var6.setString(1, var1);
-               var6.setString(2, String.join(",", var2));
-               var6.setLong(3, var3);
-               var6.execute();
-            } catch (Throwable var11) {
-               if (var6 != null) {
+               statement.setString(1, shopId);
+               statement.setString(2, String.join(",", values));
+               statement.setLong(3, value);
+               statement.execute();
+            } catch (Throwable exception) {
+               if (statement != null) {
                   try {
-                     var6.close();
-                  } catch (Throwable var10) {
-                     var11.addSuppressed(var10);
+                     statement.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var11;
+               throw exception;
             }
 
-            if (var6 != null) {
-               var6.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var12) {
-            if (var5 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var5.close();
-               } catch (Throwable var9) {
-                  var12.addSuppressed(var9);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var12;
+            throw exception;
          }
 
-         if (var5 != null) {
-            var5.close();
+         if (connection != null) {
+            connection.close();
          }
-      } catch (SQLException var13) {
-         var13.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public SimplePair<List<String>, Long> getRotatingShopItems(String var1) throws SQLException {
-      Connection var2 = this.pool.getConnection();
+   public SimplePair<List<String>, Long> getRotatingShopItems(String shopId) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
-      SimplePair var13;
+      SimplePair simplePair;
       label100: {
          try {
-            PreparedStatement var3;
+            PreparedStatement statement;
             label102: {
-               var3 = var2.prepareStatement("SELECT items,nextRotation FROM " + this.rotating_shop_sync + " WHERE shop = ?;");
+               statement = connection.prepareStatement("SELECT items,nextRotation FROM " + this.rotating_shop_sync + " WHERE shop = ?;");
 
                try {
-                  var3.setString(1, var1);
-                  ResultSet var4 = var3.executeQuery();
+                  statement.setString(1, shopId);
+                  ResultSet resultSet = statement.executeQuery();
 
                   label85: {
                      try {
-                        if (!var4.next()) {
-                           var13 = null;
+                        if (!resultSet.next()) {
+                           simplePair = null;
                            break label85;
                         }
 
-                        var13 = new SimplePair<>(Arrays.asList(var4.getString("items").split(",")), var4.getLong("nextRotation"));
-                     } catch (Throwable var10) {
-                        if (var4 != null) {
+                        simplePair = new SimplePair<>(Arrays.asList(resultSet.getString("items").split(",")), resultSet.getLong("nextRotation"));
+                     } catch (Throwable exception) {
+                        if (resultSet != null) {
                            try {
-                              var4.close();
-                           } catch (Throwable var9) {
-                              var10.addSuppressed(var9);
+                              resultSet.close();
+                           } catch (Throwable exception2) {
+                              exception.addSuppressed(exception2);
                            }
                         }
 
-                        throw var10;
+                        throw exception;
                      }
 
-                     if (var4 != null) {
-                        var4.close();
+                     if (resultSet != null) {
+                        resultSet.close();
                      }
                      break label102;
                   }
 
-                  if (var4 != null) {
-                     var4.close();
+                  if (resultSet != null) {
+                     resultSet.close();
                   }
-               } catch (Throwable var11) {
-                  if (var3 != null) {
+               } catch (Throwable exception) {
+                  if (statement != null) {
                      try {
-                        var3.close();
-                     } catch (Throwable var8) {
-                        var11.addSuppressed(var8);
+                        statement.close();
+                     } catch (Throwable exception2) {
+                        exception.addSuppressed(exception2);
                      }
                   }
 
-                  throw var11;
+                  throw exception;
                }
 
-               if (var3 != null) {
-                  var3.close();
+               if (statement != null) {
+                  statement.close();
                }
                break label100;
             }
 
-            if (var3 != null) {
-               var3.close();
+            if (statement != null) {
+               statement.close();
             }
-         } catch (Throwable var12) {
-            if (var2 != null) {
+         } catch (Throwable exception) {
+            if (connection != null) {
                try {
-                  var2.close();
-               } catch (Throwable var7) {
-                  var12.addSuppressed(var7);
+                  connection.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var12;
+            throw exception;
          }
 
-         if (var2 != null) {
-            var2.close();
+         if (connection != null) {
+            connection.close();
          }
 
-         return var13;
+         return simplePair;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var13;
+      return simplePair;
    }
 
    private Map<String, SimplePair<Integer, Long>> getGlobalSellLimits() throws SQLException {
-      HashMap var1 = new HashMap();
-      Connection var2 = this.pool.getConnection();
+      HashMap map = new HashMap();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.sellLimits + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.sellLimits + ";");
 
             try {
-               while (var4.next()) {
-                  var1.put(var4.getString("item"), new SimplePair<>(var4.getInt("amount"), var4.getLong("restock")));
+               while (resultSet.next()) {
+                  map.put(resultSet.getString("item"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
-   private void setGlobalLimit(String var1, SimplePair<Integer, Long> var2) throws SQLException {
-      Connection var3 = this.pool.getConnection();
+   private void setGlobalLimit(String text, SimplePair<Integer, Long> simplePair) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            var4.executeUpdate("REPLACE INTO " + this.sellLimits + " VALUES('" + var1 + "', " + var2.key + ", " + var2.value + ");");
-         } catch (Throwable var9) {
-            if (var4 != null) {
+            statement.executeUpdate("REPLACE INTO " + this.sellLimits + " VALUES('" + text + "', " + simplePair.key + ", " + simplePair.value + ");");
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var10) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var7) {
-               var10.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var10;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 
    private Map<String, Map<String, SimplePair<Integer, Long>>> getPlayerSellLimits() throws SQLException {
-      HashMap<String, Map<String, SimplePair<Integer, Long>>> var1 = new HashMap<>();
-      Connection var2 = this.pool.getConnection();
+      HashMap<String, Map<String, SimplePair<Integer, Long>>> map = new HashMap<>();
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var3 = var2.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            ResultSet var4 = var3.executeQuery("SELECT * FROM " + this.playerSellLimits + ";");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + this.playerSellLimits + ";");
 
             try {
-               while (var4.next()) {
-                  String var5 = var4.getString("item");
-                  Map<String, SimplePair<Integer, Long>> var6 = var1.getOrDefault(var5, new HashMap<>());
-                  var6.put(var4.getString("uuid"), new SimplePair<>(var4.getInt("amount"), var4.getLong("restock")));
-                  var1.put(var5, var6);
+               while (resultSet.next()) {
+                  String text = resultSet.getString("item");
+                  Map<String, SimplePair<Integer, Long>> orDefault = map.getOrDefault(text, new HashMap<>());
+                  orDefault.put(resultSet.getString("uuid"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
+                  map.put(text, orDefault);
                }
-            } catch (Throwable var10) {
-               if (var4 != null) {
+            } catch (Throwable exception) {
+               if (resultSet != null) {
                   try {
-                     var4.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     resultSet.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var10;
+               throw exception;
             }
 
-            if (var4 != null) {
-               var4.close();
+            if (resultSet != null) {
+               resultSet.close();
             }
-         } catch (Throwable var11) {
-            if (var3 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var11;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var12) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var2.close();
-            } catch (Throwable var7) {
-               var12.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var12;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (connection != null) {
+         connection.close();
       }
 
-      return var1;
+      return map;
    }
 
-   private void setPlayerLimit(String var1, Map<String, SimplePair<Integer, Long>> var2) throws SQLException {
-      Connection var3 = this.pool.getConnection();
+   private void setPlayerLimit(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+      Connection connection = this.pool.getConnection();
 
       try {
-         Statement var4 = var3.createStatement();
+         Statement statement = connection.createStatement();
 
          try {
-            for (Entry var6 : var2.entrySet()) {
-               var4.executeUpdate(
+            for (Entry entry : map.entrySet()) {
+               statement.executeUpdate(
                   "REPLACE INTO "
                      + this.playerSellLimits
                      + " VALUES('"
-                     + var1
+                     + playerName
                      + "', '"
-                     + (String)var6.getKey()
+                     + (String)entry.getKey()
                      + "', "
-                     + ((SimplePair)var6.getValue()).key
+                     + ((SimplePair)entry.getValue()).key
                      + ", "
-                     + ((SimplePair)var6.getValue()).value
+                     + ((SimplePair)entry.getValue()).value
                      + ");"
                );
             }
-         } catch (Throwable var9) {
-            if (var4 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var4.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var4 != null) {
-            var4.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (Throwable var10) {
-         if (var3 != null) {
+      } catch (Throwable exception) {
+         if (connection != null) {
             try {
-               var3.close();
-            } catch (Throwable var7) {
-               var10.addSuppressed(var7);
+               connection.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var10;
+         throw exception;
       }
 
-      if (var3 != null) {
-         var3.close();
+      if (connection != null) {
+         connection.close();
       }
    }
 }

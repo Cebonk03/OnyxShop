@@ -56,33 +56,33 @@ public class SQLite implements Database {
          this.createTables();
          this.migrate();
          return true;
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.errorMessage(Lang.ERROR_OCCURRED_WHILE_CONNECTING_TO_DATABASE.get());
-         var2.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
 
-   private synchronized void ensureColumn(String var1, String var2, String var3) {
+   private synchronized void ensureColumn(String tableName, String columnName, String columnDefinition) {
       try {
-         ResultSet var4 = this.conn.createStatement().executeQuery("PRAGMA table_info(" + var1 + ");");
+         ResultSet resultSet = this.conn.createStatement().executeQuery("PRAGMA table_info(" + tableName + ");");
 
          try {
-            while (var4.next()) {
-               if (var2.equalsIgnoreCase(var4.getString("name"))) {
+            while (resultSet.next()) {
+               if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
                   return;
                }
             }
          } finally {
-            var4.close();
+            resultSet.close();
          }
-      } catch (SQLException var6) {
+      } catch (SQLException exception) {
       }
 
       try {
-         this.conn.createStatement().executeUpdate("ALTER TABLE " + var1 + " ADD COLUMN " + var2 + " " + var3 + ";");
-      } catch (SQLException var5) {
-         SendMessage.warnMessage("Could not add " + var1 + "." + var2 + ": " + var5.getMessage());
+         this.conn.createStatement().executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition + ";");
+      } catch (SQLException exception) {
+         SendMessage.warnMessage("Could not add " + tableName + "." + columnName + ": " + exception.getMessage());
       }
    }
 
@@ -94,60 +94,60 @@ public class SQLite implements Database {
    }
 
    @Override
-   public synchronized int removeExpiredPlayerData(long var1) throws SQLException {
-      HashSet<String> var3 = new HashSet<>();
-      Statement var4 = this.conn.createStatement();
-      ResultSet var5 = var4.executeQuery("SELECT DISTINCT uuid FROM playerstock;");
-      int var6 = 0;
-      long var7 = new Date().getTime() - var1;
-      SendMessage.logDebugMessage("Checking " + var5.getFetchSize() + " player stock entries...");
+   public synchronized int removeExpiredPlayerData(long value) throws SQLException {
+      HashSet<String> values = new HashSet<>();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT DISTINCT uuid FROM playerstock;");
+      int value2 = 0;
+      long time = new Date().getTime() - value;
+      SendMessage.logDebugMessage("Checking " + resultSet.getFetchSize() + " player stock entries...");
 
-      while (var5.next()) {
-         String var9 = var5.getString("uuid");
-         if (Bukkit.getOfflinePlayer(UUID.fromString(var9)).getLastPlayed() < var7) {
-            var3.add(var9);
+      while (resultSet.next()) {
+         String text = resultSet.getString("uuid");
+         if (Bukkit.getOfflinePlayer(UUID.fromString(text)).getLastPlayed() < time) {
+            values.add(text);
          } else {
-            var6++;
+            value2++;
          }
       }
 
-      var5 = var4.executeQuery("SELECT DISTINCT uuid FROM playerSellLimits;");
-      SendMessage.logDebugMessage("Checking " + var5.getFetchSize() + " player sell limit entries...");
+      resultSet = statement.executeQuery("SELECT DISTINCT uuid FROM playerSellLimits;");
+      SendMessage.logDebugMessage("Checking " + resultSet.getFetchSize() + " player sell limit entries...");
 
-      while (var5.next()) {
-         String var14 = var5.getString("uuid");
-         if (Bukkit.getOfflinePlayer(UUID.fromString(var14)).getLastPlayed() < var7) {
-            var3.add(var14);
+      while (resultSet.next()) {
+         String text = resultSet.getString("uuid");
+         if (Bukkit.getOfflinePlayer(UUID.fromString(text)).getLastPlayed() < time) {
+            values.add(text);
          } else {
-            var6++;
+            value2++;
          }
       }
 
-      SendMessage.logDebugMessage("Found recent database entries for " + var6 + " players, skipping...");
+      SendMessage.logDebugMessage("Found recent database entries for " + value2 + " players, skipping...");
       SendMessage.logDebugMessage("Deleting expired entries...");
-      var4 = this.conn.createStatement();
+      statement = this.conn.createStatement();
 
-      for (String var10 : var3) {
-         var4.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + var10 + "';");
-         var4.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + var10 + "';");
+      for (String playerName : values) {
+         statement.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + playerName + "';");
+         statement.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + playerName + "';");
       }
 
-      SendMessage.logDebugMessage("Deleted " + var3.size() + " expired unique player entries from database, vacuuming...");
-      var4 = this.conn.createStatement();
-      var4.execute("VACUUM");
+      SendMessage.logDebugMessage("Deleted " + values.size() + " expired unique player entries from database, vacuuming...");
+      statement = this.conn.createStatement();
+      statement.execute("VACUUM");
       SendMessage.logDebugMessage("Vacuum completed");
-      var5.close();
-      var4.close();
-      return var3.size();
+      resultSet.close();
+      statement.close();
+      return values.size();
    }
 
    @Override
    public synchronized Map<String, Map<String, Set<String>>> getExpiredItemData() throws SQLException {
-      Statement var1 = this.conn.createStatement();
+      Statement statement = this.conn.createStatement();
       SendMessage.logDebugMessage("Retrieving item indexes from database...");
-      HashMap<String, Set<String>> var3 = new HashMap<>();
+      HashMap<String, Set<String>> map = new HashMap<>();
 
-      for (String var7 : new String[]{
+      for (String itemId : new String[]{
          "dynamicStock",
          "maxStocks",
          "original_stocks",
@@ -159,65 +159,65 @@ public class SQLite implements Database {
          "sellLimits",
          "sell_limit_schedules"
       }) {
-         ResultSet var2 = var1.executeQuery("SELECT DISTINCT item FROM " + var7 + ";");
+         ResultSet resultSet = statement.executeQuery("SELECT DISTINCT item FROM " + itemId + ";");
 
-         while (var2.next()) {
-            var3.computeIfAbsent(var2.getString("item"), var0 -> new HashSet<>()).add(var7);
+         while (resultSet.next()) {
+            map.computeIfAbsent(resultSet.getString("item"), key -> new HashSet<>()).add(itemId);
          }
       }
 
-      HashMap<String, Map<String, Set<String>>> var11 = new HashMap<>();
+      HashMap<String, Map<String, Set<String>>> map2 = new HashMap<>();
 
-      for (Entry<String, Set<String>> var14 : var3.entrySet()) {
-         var11.computeIfAbsent(var14.getKey().split("\\.")[0], var0 -> new HashMap<>())
-            .put(var14.getKey().split("\\.", 2)[1], var14.getValue());
+      for (Entry<String, Set<String>> entry : map.entrySet()) {
+         map2.computeIfAbsent(entry.getKey().split("\\.")[0], key -> new HashMap<>())
+            .put(entry.getKey().split("\\.", 2)[1], entry.getValue());
       }
 
       SendMessage.logDebugMessage("Checking if items still exist...");
 
-      for (String var15 : var11.keySet()) {
-         if (ConfigManager.getShops().contains(var15)) {
-            List<String> var16 = OnyxShop.getInstance().getConfigManager().getItemsRaw(var15);
-            HashMap<String, Set<String>> var8 = new HashMap<>();
+      for (String key : map2.keySet()) {
+         if (ConfigManager.getShops().contains(key)) {
+            List<String> itemsRaw = OnyxShop.getInstance().getConfigManager().getItemsRaw(key);
+            HashMap<String, Set<String>> map3 = new HashMap<>();
 
-            for (String var10 : var11.get(var15).keySet()) {
-               if (!var16.contains(var10)) {
-                  var8.put(var10, var11.get(var15).get(var10));
+            for (String text : map2.get(key).keySet()) {
+               if (!itemsRaw.contains(text)) {
+                  map3.put(text, map2.get(key).get(text));
                }
             }
 
-            var11.put(var15, var8);
+            map2.put(key, map3);
          }
       }
 
-      return var11;
+      return map2;
    }
 
    @Override
-   public synchronized void removeExpiredItemData(Map<String, Map<String, Set<String>>> var1) throws SQLException {
+   public synchronized void removeExpiredItemData(Map<String, Map<String, Set<String>>> map) throws SQLException {
       SendMessage.logDebugMessage("Removing loaded expired item data from database...");
-      Statement var2 = this.conn.createStatement();
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         List<String> var5 = new ArrayList<>();
-         if (ConfigManager.getShops().contains(var4)) {
-            var5 = OnyxShop.getInstance().getConfigManager().getItemsRaw(var4);
+      for (String itemId : map.keySet()) {
+         List<String> values = new ArrayList<>();
+         if (ConfigManager.getShops().contains(itemId)) {
+            values = OnyxShop.getInstance().getConfigManager().getItemsRaw(itemId);
          }
 
-         for (Entry<String, Set<String>> var7 : var1.get(var4).entrySet()) {
-            if (!var5.contains(var7.getKey())) {
+         for (Entry<String, Set<String>> entry : map.get(itemId).entrySet()) {
+            if (!values.contains(entry.getKey())) {
                SendMessage.logDebugMessage(
                   "Removing data for item '"
-                     + var4
+                     + itemId
                      + "."
-                     + (String)var7.getKey()
+                     + (String)entry.getKey()
                      + "' from "
-                     + Arrays.toString(((Set)var7.getValue()).toArray())
+                     + Arrays.toString(((Set)entry.getValue()).toArray())
                      + " tables..."
                );
 
-               for (String var9 : var7.getValue()) {
-                  var2.executeUpdate("DELETE FROM " + var9 + " WHERE item = '" + var4 + "." + (String)var7.getKey() + "';");
+               for (String text : entry.getValue()) {
+                  statement.executeUpdate("DELETE FROM " + text + " WHERE item = '" + itemId + "." + (String)entry.getKey() + "';");
                }
             }
          }
@@ -225,116 +225,116 @@ public class SQLite implements Database {
 
       SendMessage.logDebugMessage(
          "Successfully removed "
-            + var1.entrySet()
+            + map.entrySet()
                .stream()
-               .flatMap(var0 -> ((Map)var0.getValue()).keySet().stream().map(var1x -> (String)var0.getKey() + "." + var1x))
+               .flatMap(entry -> ((Map)entry.getValue()).keySet().stream().map(element -> (String)entry.getKey() + "." + element))
                .distinct()
                .count()
             + " non existing item entries from database"
       );
       SendMessage.logDebugMessage("Resizing file...");
-      var2 = this.conn.createStatement();
-      var2.execute("VACUUM");
-      var2.close();
+      statement = this.conn.createStatement();
+      statement.execute("VACUUM");
+      statement.close();
       SendMessage.logDebugMessage("Vacuum completed, database successfully cleaned from expired item entries");
    }
 
    public synchronized void migrateV4toV5() throws SQLException {
-      long var1 = System.currentTimeMillis();
-      OnyxShop var3 = OnyxShop.getInstance();
-      HashMap<String, String> var4 = new HashMap<>();
+      long startTime = System.currentTimeMillis();
+      OnyxShop plugin = OnyxShop.getInstance();
+      HashMap<String, String> map = new HashMap<>();
       SendMessage.infoMessage("Loading original stocks from database...");
-      Map<String, Integer> var5 = this.getOriginalStocks();
+      Map<String, Integer> originalStocks = this.getOriginalStocks();
       SendMessage.infoMessage("Loading global stock from database...");
-      Map<String, SimplePair<Integer, Long>> var6 = this.getGlobalStock();
+      Map<String, SimplePair<Integer, Long>> globalStock = this.getGlobalStock();
       SendMessage.infoMessage("Loading player stock from database...");
-      Map<String, Map<String, SimplePair<Integer, Long>>> var7 = this.getPlayerStock();
+      Map<String, Map<String, SimplePair<Integer, Long>>> playerStock = this.getPlayerStock();
       SendMessage.infoMessage("Loading original sell limits from database...");
-      Map<String, Integer> var8 = this.getOriginalLimits();
+      Map<String, Integer> originalLimits = this.getOriginalLimits();
       SendMessage.infoMessage("Loading global sell limits from database...");
-      Map<String, SimplePair<Integer, Long>> var9 = this.getGlobalSellLimits();
+      Map<String, SimplePair<Integer, Long>> globalSellLimits = this.getGlobalSellLimits();
       SendMessage.infoMessage("Loading player sell limits from database...");
-      Map<String, Map<String, SimplePair<Integer, Long>>> var10 = this.getPlayerSellLimits();
+      Map<String, Map<String, SimplePair<Integer, Long>>> playerSellLimits = this.getPlayerSellLimits();
       SendMessage.infoMessage("Started migration of loaded data...");
-      Statement var11 = this.conn.createStatement();
-      var11.executeUpdate("DROP TABLE dynamicStock;");
-      var11.executeUpdate("DROP TABLE maxStocks;");
-      var3.getLimitedStockProvider().emptyCache();
-      var11.executeUpdate("DROP TABLE original_stocks;");
-      var11.executeUpdate("DROP TABLE playerstock;");
-      var11.executeUpdate("DROP TABLE itemstock;");
-      var3.getLimitedSellProvider().emptyCache();
-      var11.executeUpdate("DROP TABLE original_limits;");
-      var11.executeUpdate("DROP TABLE playerSellLimits;");
-      var11.executeUpdate("DROP TABLE sellLimits;");
-      var11.close();
+      Statement statement = this.conn.createStatement();
+      statement.executeUpdate("DROP TABLE dynamicStock;");
+      statement.executeUpdate("DROP TABLE maxStocks;");
+      plugin.getLimitedStockProvider().emptyCache();
+      statement.executeUpdate("DROP TABLE original_stocks;");
+      statement.executeUpdate("DROP TABLE playerstock;");
+      statement.executeUpdate("DROP TABLE itemstock;");
+      plugin.getLimitedSellProvider().emptyCache();
+      statement.executeUpdate("DROP TABLE original_limits;");
+      statement.executeUpdate("DROP TABLE playerSellLimits;");
+      statement.executeUpdate("DROP TABLE sellLimits;");
+      statement.close();
       this.createTables();
 
-      for (Entry<String, Integer> var13 : var5.entrySet()) {
-         String var14 = this.getNewItem(var4, var3, (String)var13.getKey());
-         if (var14 != null) {
-            this.setOriginalStock(var14, (Integer)var13.getValue());
+      for (Entry<String, Integer> entry : originalStocks.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setOriginalStock(newItem, (Integer)entry.getValue());
          }
       }
 
-      for (Entry<String, SimplePair<Integer, Long>> var20 : var6.entrySet()) {
-         String var25 = this.getNewItem(var4, var3, (String)var20.getKey());
-         if (var25 != null) {
-            this.setGlobalStock(var25, (SimplePair<Integer, Long>)var20.getValue());
+      for (Entry<String, SimplePair<Integer, Long>> entry : globalStock.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setGlobalStock(newItem, (SimplePair<Integer, Long>)entry.getValue());
          }
       }
 
-      for (Entry<String, Map<String, SimplePair<Integer, Long>>> var21 : var7.entrySet()) {
-         String var26 = this.getNewItem(var4, var3, (String)var21.getKey());
-         if (var26 != null) {
-            this.setPlayerStock(var26, (Map<String, SimplePair<Integer, Long>>)var21.getValue());
+      for (Entry<String, Map<String, SimplePair<Integer, Long>>> entry : playerStock.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setPlayerStock(newItem, (Map<String, SimplePair<Integer, Long>>)entry.getValue());
          }
       }
 
-      for (Entry<String, Integer> var22 : var8.entrySet()) {
-         String var27 = this.getNewItem(var4, var3, (String)var22.getKey());
-         if (var27 != null) {
-            this.setOriginalLimit(var27, (Integer)var22.getValue());
+      for (Entry<String, Integer> entry : originalLimits.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setOriginalLimit(newItem, (Integer)entry.getValue());
          }
       }
 
-      for (Entry<String, SimplePair<Integer, Long>> var23 : var9.entrySet()) {
-         String var28 = this.getNewItem(var4, var3, (String)var23.getKey());
-         if (var28 != null) {
-            this.setGlobalLimit(var28, (SimplePair<Integer, Long>)var23.getValue());
+      for (Entry<String, SimplePair<Integer, Long>> entry : globalSellLimits.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setGlobalLimit(newItem, (SimplePair<Integer, Long>)entry.getValue());
          }
       }
 
-      for (Entry<String, Map<String, SimplePair<Integer, Long>>> var24 : var10.entrySet()) {
-         String var29 = this.getNewItem(var4, var3, (String)var24.getKey());
-         if (var29 != null) {
-            this.setPlayerLimit(var29, (Map<String, SimplePair<Integer, Long>>)var24.getValue());
+      for (Entry<String, Map<String, SimplePair<Integer, Long>>> entry : playerSellLimits.entrySet()) {
+         String newItem = this.getNewItem(map, plugin, (String)entry.getKey());
+         if (newItem != null) {
+            this.setPlayerLimit(newItem, (Map<String, SimplePair<Integer, Long>>)entry.getValue());
          }
       }
 
-      SendMessage.infoMessage("Successfully migrated loaded data into the database in " + (System.currentTimeMillis() - var1) + "ms");
+      SendMessage.infoMessage("Successfully migrated loaded data into the database in " + (System.currentTimeMillis() - startTime) + "ms");
    }
 
-   private synchronized String getNewItem(Map<String, String> var1, OnyxShop var2, String var3) {
-      String var4 = (String)var1.get(var3);
-      if (var4 != null) {
-         return var4;
+   private synchronized String getNewItem(Map<String, String> itemIds, OnyxShop plugin, String shopId) {
+      String text = (String)itemIds.get(shopId);
+      if (text != null) {
+         return text;
       } else {
-         String[] var5 = var3.split("\\.");
-         if (var5.length != 2) {
-            if (var5.length == 4) {
+         String[] values = shopId.split("\\.");
+         if (values.length != 2) {
+            if (values.length == 4) {
                return null;
             } else {
-               SendMessage.logDebugMessage("Failed to migrate item " + var3 + " to new format, skipping...");
+               SendMessage.logDebugMessage("Failed to migrate item " + shopId + " to new format, skipping...");
                return null;
             }
          } else {
-            String var6 = var5[0];
-            String var7 = var5[1];
-            var4 = var2.getConfigManager().getItemsRaw(var6).stream().filter(var1x -> var1x.split("\\.")[2].equalsIgnoreCase(var7)).findFirst().orElse(null);
-            var4 = var6 + "." + var4;
-            var1.put(var3, var4);
-            return var4;
+            String text2 = values[0];
+            String text3 = values[1];
+            text = plugin.getConfigManager().getItemsRaw(text2).stream().filter(element -> element.split("\\.")[2].equalsIgnoreCase(text3)).findFirst().orElse(null);
+            text = text2 + "." + text;
+            itemIds.put(shopId, text);
+            return text;
          }
       }
    }
@@ -343,410 +343,410 @@ public class SQLite implements Database {
    public synchronized void closeConnection() {
       try {
          this.conn.close();
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("A error occurred while closing the connection with the database");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    private synchronized void createTables() {
       try {
-         Statement var1 = this.conn.createStatement();
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS dynamicStock (item TEXT NOT NULL UNIQUE,stock INTEGER NOT NULL);");
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS maxStocks (item TEXT NOT NULL UNIQUE,maxStock INTEGER NOT NULL);");
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS original_stocks (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL);");
-         var1.executeUpdate(
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS dynamicStock (item TEXT NOT NULL UNIQUE,stock INTEGER NOT NULL);");
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS maxStocks (item TEXT NOT NULL UNIQUE,maxStock INTEGER NOT NULL);");
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS original_stocks (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL);");
+         statement.executeUpdate(
             "CREATE TABLE IF NOT EXISTS playerstock (item TEXT NOT NULL,uuid TEXT NOT NULL,amount INTEGER NOT NULL,restock TEXT,UNIQUE(item,uuid));"
          );
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS itemstock (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL,restock TEXT);");
-         var1.executeUpdate(
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemstock (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL,restock TEXT);");
+         statement.executeUpdate(
             "CREATE TABLE IF NOT EXISTS item_stock_schedules(item TEXT NOT NULL,mode INTEGER NOT NULL,restock TEXT NOT NULL,UNIQUE(item,mode));"
          );
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS original_limits (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL);");
-         var1.executeUpdate(
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS original_limits (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL);");
+         statement.executeUpdate(
             "CREATE TABLE IF NOT EXISTS playerSellLimits (item TEXT NOT NULL,uuid TEXT NOT NULL,amount INTEGER NOT NULL,restock TEXT,UNIQUE(item,uuid));"
          );
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS sellLimits (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL,restock TEXT);");
-         var1.executeUpdate(
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS sellLimits (item TEXT NOT NULL UNIQUE,amount INTEGER NOT NULL,restock TEXT);");
+         statement.executeUpdate(
             "CREATE TABLE IF NOT EXISTS sell_limit_schedules(item TEXT NOT NULL,mode INTEGER NOT NULL,restock TEXT NOT NULL,UNIQUE(item,mode));"
          );
-         var1.executeUpdate("CREATE TABLE IF NOT EXISTS player_price_modifiers (uuid TEXT NOT NULL UNIQUE, data TEXT NOT NULL);");
-         var1.close();
-      } catch (SQLException var2) {
-         var2.printStackTrace();
+         statement.executeUpdate("CREATE TABLE IF NOT EXISTS player_price_modifiers (uuid TEXT NOT NULL UNIQUE, data TEXT NOT NULL);");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
    public synchronized Map<String, Integer> loadDynamicPricingStock() throws SQLException {
-      HashMap var1 = new HashMap();
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT * FROM dynamicStock;");
+      HashMap itemIds = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM dynamicStock;");
 
-      while (var3.next()) {
-         var1.put(var3.getString("item"), var3.getInt("stock"));
+      while (resultSet.next()) {
+         itemIds.put(resultSet.getString("item"), resultSet.getInt("stock"));
       }
 
-      var3.close();
-      var2.close();
-      return var1;
+      resultSet.close();
+      statement.close();
+      return itemIds;
    }
 
    @Override
-   public synchronized Integer getDynamicStock(String var1) {
-      int var2;
+   public synchronized Integer getDynamicStock(String itemId) {
+      int value;
       try {
-         Statement var3 = this.conn.createStatement();
-         ResultSet var4 = var3.executeQuery("SELECT stock FROM dynamicStock WHERE item = '" + var1 + "';");
-         var2 = var4.getInt("stock");
-         var4.close();
-         var3.close();
-      } catch (SQLException var5) {
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT stock FROM dynamicStock WHERE item = '" + itemId + "';");
+         value = resultSet.getInt("stock");
+         resultSet.close();
+         statement.close();
+      } catch (SQLException exception) {
          return null;
       }
 
-      return var2;
+      return value;
    }
 
    @Override
-   public synchronized Map<String, Integer> getDynamicStocks(Collection<String> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      if (var1.isEmpty()) {
-         return var2;
+   public synchronized Map<String, Integer> getDynamicStocks(Collection<String> values) throws SQLException {
+      HashMap map = new HashMap();
+      if (values.isEmpty()) {
+         return map;
       } else {
-         Statement var3 = this.conn.createStatement();
-         ResultSet var4 = var3.executeQuery("SELECT item,stock FROM dynamicStock WHERE item IN ('" + String.join("','", var1) + "');");
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT item,stock FROM dynamicStock WHERE item IN ('" + String.join("','", values) + "');");
 
-         while (var4.next()) {
-            var2.put(var4.getString("item"), var4.getInt("stock"));
+         while (resultSet.next()) {
+            map.put(resultSet.getString("item"), resultSet.getInt("stock"));
          }
 
-         var4.close();
-         var3.close();
-         return var2;
+         resultSet.close();
+         statement.close();
+         return map;
       }
    }
 
    @Override
    public synchronized Map<String, Integer> loadDynamicMaxStocks() throws SQLException {
-      HashMap var1 = new HashMap();
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT * FROM maxStocks;");
+      HashMap map = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM maxStocks;");
 
-      while (var3.next()) {
-         var1.put(var3.getString("item"), var3.getInt("maxStock"));
+      while (resultSet.next()) {
+         map.put(resultSet.getString("item"), resultSet.getInt("maxStock"));
       }
 
-      var3.close();
-      var2.close();
-      return var1;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
-   public synchronized void setDynamicMaxStock(String var1, int var2) {
+   public synchronized void setDynamicMaxStock(String itemId, int value) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("REPLACE INTO maxStocks VALUES('" + var1 + "'," + var2 + ");");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO maxStocks VALUES('" + itemId + "'," + value + ");");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void saveDynamicStock(Map<String, Integer> var1) {
+   public synchronized void saveDynamicStock(Map<String, Integer> stocks) {
       try {
-         PreparedStatement var2 = this.conn.prepareStatement("REPLACE INTO dynamicStock VALUES(?,?);");
+         PreparedStatement statement = this.conn.prepareStatement("REPLACE INTO dynamicStock VALUES(?,?);");
 
          try {
-            for (Entry var4 : var1.entrySet()) {
-               var2.setString(1, (String)var4.getKey());
-               var2.setInt(2, (Integer)var4.getValue());
-               var2.execute();
+            for (Entry entry : stocks.entrySet()) {
+               statement.setString(1, (String)entry.getKey());
+               statement.setInt(2, (Integer)entry.getValue());
+               statement.execute();
             }
-         } catch (Throwable var6) {
-            if (var2 != null) {
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var2.close();
-               } catch (Throwable var5) {
-                  var6.addSuppressed(var5);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var6;
+            throw exception;
          }
 
-         if (var2 != null) {
-            var2.close();
+         if (statement != null) {
+            statement.close();
          }
-      } catch (SQLException var7) {
-         var7.printStackTrace();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setDynamicStock(String var1, int var2) {
+   public synchronized void setDynamicStock(String itemId, int value) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("REPLACE INTO dynamicStock VALUES('" + var1 + "'," + var2 + ");");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO dynamicStock VALUES('" + itemId + "'," + value + ");");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized int getOriginalStock(String var1) {
+   public synchronized int getOriginalStock(String itemId) {
       try {
-         Statement var2 = this.conn.createStatement();
-         ResultSet var3 = var2.executeQuery("SELECT * FROM original_stocks WHERE item = '" + var1 + "';");
-         int var4 = var3.getInt("amount");
-         var3.close();
-         var2.close();
-         return var4;
-      } catch (SQLException var5) {
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT * FROM original_stocks WHERE item = '" + itemId + "';");
+         int amount = resultSet.getInt("amount");
+         resultSet.close();
+         statement.close();
+         return amount;
+      } catch (SQLException exception) {
          return 0;
       }
    }
 
    @Override
-   public synchronized void setOriginalStock(String var1, int var2) {
+   public synchronized void setOriginalStock(String itemId, int value) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("REPLACE INTO original_stocks VALUES('" + var1 + "'," + var2 + ");");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO original_stocks VALUES('" + itemId + "'," + value + ");");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setItemStock(String var1, int var2) {
+   public synchronized void setItemStock(String itemId, int stock) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("REPLACE INTO itemstock(item, amount) VALUES('" + var1 + "', '" + var2 + "');");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO itemstock(item, amount) VALUES('" + itemId + "', '" + stock + "');");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setItemStock(Map<String, Integer> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setItemStock(Map<String, Integer> stocks) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         var2.executeUpdate("REPLACE INTO itemstock(item, amount) VALUES('" + var4 + "', " + var1.get(var4) + ");");
+      for (String itemId : stocks.keySet()) {
+         statement.executeUpdate("REPLACE INTO itemstock(item, amount) VALUES('" + itemId + "', " + stocks.get(itemId) + ");");
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized void setItemRestockTimes(Map<String, Long> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setItemRestockTimes(Map<String, Long> restockTimes) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         var2.executeUpdate("REPLACE INTO itemstock VALUES('" + var4 + "', 0, '" + var1.get(var4) + "');");
+      for (String itemId : restockTimes.keySet()) {
+         statement.executeUpdate("REPLACE INTO itemstock VALUES('" + itemId + "', 0, '" + restockTimes.get(itemId) + "');");
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized int getItemStock(String var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT amount FROM itemstock WHERE item = '" + var1 + "';");
-      if (!var3.next()) {
+   public synchronized int getItemStock(String itemId) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT amount FROM itemstock WHERE item = '" + itemId + "';");
+      if (!resultSet.next()) {
          throw new SQLException();
       } else {
-         int var4 = var3.getInt("amount");
-         var3.close();
-         var2.close();
-         return var4;
+         int stock = resultSet.getInt("amount");
+         resultSet.close();
+         statement.close();
+         return stock;
       }
    }
 
    @Override
-   public synchronized Map<String, Integer> getItemStocks(Collection<String> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      if (var1.isEmpty()) {
-         return var2;
+   public synchronized Map<String, Integer> getItemStocks(Collection<String> itemIds) throws SQLException {
+      HashMap map = new HashMap();
+      if (itemIds.isEmpty()) {
+         return map;
       } else {
-         Statement var3 = this.conn.createStatement();
-         ResultSet var4 = var3.executeQuery("SELECT item,amount FROM itemstock WHERE item IN ('" + String.join("','", var1) + "');");
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM itemstock WHERE item IN ('" + String.join("','", itemIds) + "');");
 
-         while (var4.next()) {
-            var2.put(var4.getString("item"), var4.getInt("amount"));
+         while (resultSet.next()) {
+            map.put(resultSet.getString("item"), resultSet.getInt("amount"));
          }
 
-         var4.close();
-         var3.close();
-         return var2;
+         resultSet.close();
+         statement.close();
+         return map;
       }
    }
 
    @Override
    public synchronized Map<String, Integer> getAllItemStocks() throws SQLException {
-      HashMap var1 = new HashMap();
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT item,amount FROM itemstock;");
+      HashMap itemIds = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM itemstock;");
 
-      while (var3.next()) {
-         var1.put(var3.getString("item"), var3.getInt("amount"));
+      while (resultSet.next()) {
+         itemIds.put(resultSet.getString("item"), resultSet.getInt("amount"));
       }
 
-      var3.close();
-      var2.close();
-      return var1;
+      resultSet.close();
+      statement.close();
+      return itemIds;
    }
 
    @Override
    public synchronized Map<String, Integer> getOriginalStocks() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM original_stocks;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM original_stocks;");
+      HashMap map = new HashMap();
 
-      while (var2.next()) {
-         var3.put(var2.getString("item"), var2.getInt("amount"));
+      while (resultSet.next()) {
+         map.put(resultSet.getString("item"), resultSet.getInt("amount"));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
-   private synchronized void setOriginalStocks(Map<String, Integer> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   private synchronized void setOriginalStocks(Map<String, Integer> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (Entry var4 : var1.entrySet()) {
-         var2.executeUpdate("REPLACE INTO original_stocks VALUES('" + (String)var4.getKey() + "', " + var4.getValue() + ");");
+      for (Entry entry : map.entrySet()) {
+         statement.executeUpdate("REPLACE INTO original_stocks VALUES('" + (String)entry.getKey() + "', " + entry.getValue() + ");");
       }
 
-      var2.close();
+      statement.close();
    }
 
    private synchronized Map<String, SimplePair<Integer, Long>> getGlobalStock() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM itemstock;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM itemstock;");
+      HashMap itemIds = new HashMap();
 
-      while (var2.next()) {
-         var3.put(var2.getString("item"), new SimplePair<>(var2.getInt("amount"), var2.getLong("restock")));
+      while (resultSet.next()) {
+         itemIds.put(resultSet.getString("item"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return itemIds;
    }
 
-   private synchronized void setGlobalStock(String var1, SimplePair<Integer, Long> var2) throws SQLException {
-      Statement var3 = this.conn.createStatement();
-      var3.executeUpdate("REPLACE INTO itemstock VALUES('" + var1 + "', " + var2.key + ", " + var2.value + ");");
-      var3.close();
+   private synchronized void setGlobalStock(String itemId, SimplePair<Integer, Long> simplePair) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      statement.executeUpdate("REPLACE INTO itemstock VALUES('" + itemId + "', " + simplePair.key + ", " + simplePair.value + ");");
+      statement.close();
    }
 
    private synchronized Map<String, Map<String, SimplePair<Integer, Long>>> getPlayerStock() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM playerstock;");
-      HashMap<String, Map<String, SimplePair<Integer, Long>>> var3 = new HashMap<>();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM playerstock;");
+      HashMap<String, Map<String, SimplePair<Integer, Long>>> map = new HashMap<>();
 
-      while (var2.next()) {
-         String var4 = var2.getString("item");
-         Map<String, SimplePair<Integer, Long>> var5 = var3.getOrDefault(var4, new HashMap<>());
-         var5.put(var2.getString("uuid"), new SimplePair<>(var2.getInt("amount"), var2.getLong("restock")));
-         var3.put(var4, var5);
+      while (resultSet.next()) {
+         String text = resultSet.getString("item");
+         Map<String, SimplePair<Integer, Long>> orDefault = map.getOrDefault(text, new HashMap<>());
+         orDefault.put(resultSet.getString("uuid"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
+         map.put(text, orDefault);
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
-   private synchronized void setPlayerStock(String var1, Map<String, SimplePair<Integer, Long>> var2) throws SQLException {
-      Statement var3 = this.conn.createStatement();
+   private synchronized void setPlayerStock(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (Entry var5 : var2.entrySet()) {
-         var3.executeUpdate(
+      for (Entry entry : map.entrySet()) {
+         statement.executeUpdate(
             "REPLACE INTO playerstock VALUES('"
-               + var1
+               + playerName
                + "', '"
-               + (String)var5.getKey()
+               + (String)entry.getKey()
                + "', "
-               + ((SimplePair)var5.getValue()).key
+               + ((SimplePair)entry.getValue()).key
                + ", "
-               + ((SimplePair)var5.getValue()).value
+               + ((SimplePair)entry.getValue()).value
                + ");"
          );
       }
 
-      var3.close();
+      statement.close();
    }
 
    @Override
-   public synchronized void executeQuery(SQLBatch.Type var1, Query... var2) {
+   public synchronized void executeQuery(SQLBatch.Type type, Query... types) {
       try {
-         Statement var3 = this.conn.createStatement();
+         Statement statement = this.conn.createStatement();
 
-         for (Query var7 : var2) {
-            var3.executeUpdate(var7.format(this.getTable(var1, var7)));
+         for (Query query : types) {
+            statement.executeUpdate(query.format(this.getTable(type, query)));
          }
 
-         var3.close();
-      } catch (SQLException var8) {
-         SendMessage.errorMessage("SQLite query batch failed: " + var8.getMessage());
-         var8.printStackTrace();
+         statement.close();
+      } catch (SQLException exception) {
+         SendMessage.errorMessage("SQLite query batch failed: " + exception.getMessage());
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void executeBatch(SQLBatch.Type var1, Set<Query> var2) {
+   public synchronized void executeBatch(SQLBatch.Type type, Set<Query> values) {
       try {
-         Statement var3 = this.conn.createStatement();
+         Statement statement = this.conn.createStatement();
 
-         for (Query var5 : var2) {
-            var3.executeUpdate(var5.format(this.getTable(var1, var5)));
+         for (Query query : values) {
+            statement.executeUpdate(query.format(this.getTable(type, query)));
          }
 
-         var3.close();
-      } catch (SQLException var6) {
-         SendMessage.errorMessage("SQLite write batch failed: " + var6.getMessage());
-         var6.printStackTrace();
+         statement.close();
+      } catch (SQLException exception) {
+         SendMessage.errorMessage("SQLite write batch failed: " + exception.getMessage());
+         exception.printStackTrace();
       }
    }
 
-   private synchronized String getTable(SQLBatch.Type var1, Query var2) {
-      switch (var1) {
+   private synchronized String getTable(SQLBatch.Type type, Query query) {
+      switch (type) {
          case STOCK:
-            if (var2 instanceof ItemStockQuery
-               || var2 instanceof GlobalRestockTimerQuery
-               || var2 instanceof RemoveStockQuery
-               || var2 instanceof ClearStockQuery) {
+            if (query instanceof ItemStockQuery
+               || query instanceof GlobalRestockTimerQuery
+               || query instanceof RemoveStockQuery
+               || query instanceof ClearStockQuery) {
                return "itemstock";
-            } else if (var2 instanceof PlayerStockQuery
-               || var2 instanceof UpdatePlayerStockQuery
-               || var2 instanceof PlayerRestockTimerQuery
-               || var2 instanceof RemovePlayerStockQuery
-               || var2 instanceof RemovePlayerStocksQuery
-               || var2 instanceof ClearPlayerStockQuery) {
+            } else if (query instanceof PlayerStockQuery
+               || query instanceof UpdatePlayerStockQuery
+               || query instanceof PlayerRestockTimerQuery
+               || query instanceof RemovePlayerStockQuery
+               || query instanceof RemovePlayerStocksQuery
+               || query instanceof ClearPlayerStockQuery) {
                return "playerstock";
-            } else if (var2 instanceof RestockScheduleQuery) {
+            } else if (query instanceof RestockScheduleQuery) {
                return "item_stock_schedules";
             }
          case SELL_LIMIT:
-            if (var2 instanceof ItemStockQuery
-               || var2 instanceof GlobalRestockTimerQuery
-               || var2 instanceof RemoveStockQuery
-               || var2 instanceof ClearStockQuery) {
+            if (query instanceof ItemStockQuery
+               || query instanceof GlobalRestockTimerQuery
+               || query instanceof RemoveStockQuery
+               || query instanceof ClearStockQuery) {
                return "sellLimits";
-            } else if (var2 instanceof PlayerStockQuery
-               || var2 instanceof UpdatePlayerStockQuery
-               || var2 instanceof PlayerRestockTimerQuery
-               || var2 instanceof RemovePlayerStockQuery
-               || var2 instanceof RemovePlayerStocksQuery
-               || var2 instanceof ClearPlayerStockQuery) {
+            } else if (query instanceof PlayerStockQuery
+               || query instanceof UpdatePlayerStockQuery
+               || query instanceof PlayerRestockTimerQuery
+               || query instanceof RemovePlayerStockQuery
+               || query instanceof RemovePlayerStocksQuery
+               || query instanceof ClearPlayerStockQuery) {
                return "playerSellLimits";
-            } else if (var2 instanceof RestockScheduleQuery) {
+            } else if (query instanceof RestockScheduleQuery) {
                return "sell_limit_schedules";
             }
          default:
@@ -755,668 +755,668 @@ public class SQLite implements Database {
    }
 
    @Override
-   public synchronized PlayerPriceModifier loadPlayerPriceModifiers(UUID var1) throws SQLException {
-      PreparedStatement var2 = this.conn.prepareStatement("SELECT data FROM player_price_modifiers WHERE uuid=?");
+   public synchronized PlayerPriceModifier loadPlayerPriceModifiers(UUID playerId) throws SQLException {
+      PreparedStatement statement = this.conn.prepareStatement("SELECT data FROM player_price_modifiers WHERE uuid=?");
 
-      PlayerPriceModifier var4;
+      PlayerPriceModifier playerPriceModifier;
       try {
-         var2.setString(1, var1.toString());
-         ResultSet var3 = var2.executeQuery();
+         statement.setString(1, playerId.toString());
+         ResultSet resultSet = statement.executeQuery();
 
          try {
-            var4 = var3.next() ? (PlayerPriceModifier)new Gson().fromJson(var3.getString(1), PlayerPriceModifier.class) : null;
-         } catch (Throwable var8) {
-            if (var3 != null) {
+            playerPriceModifier = resultSet.next() ? (PlayerPriceModifier)new Gson().fromJson(resultSet.getString(1), PlayerPriceModifier.class) : null;
+         } catch (Throwable exception) {
+            if (resultSet != null) {
                try {
-                  var3.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
+                  resultSet.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (resultSet != null) {
+            resultSet.close();
          }
-      } catch (Throwable var9) {
-         if (var2 != null) {
+      } catch (Throwable exception) {
+         if (statement != null) {
             try {
-               var2.close();
-            } catch (Throwable var6) {
-               var9.addSuppressed(var6);
+               statement.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
          }
 
-         throw var9;
+         throw exception;
       }
 
-      if (var2 != null) {
-         var2.close();
+      if (statement != null) {
+         statement.close();
       }
 
-      return var4;
+      return playerPriceModifier;
    }
 
    @Override
-   public synchronized void savePlayerPriceModifiers(UUID var1, PlayerPriceModifier var2) throws SQLException {
-      if (var2.getSectionModifiers().isEmpty() && var2.getItemModifiers().isEmpty()) {
-         PreparedStatement var10 = this.conn.prepareStatement("DELETE FROM player_price_modifiers WHERE uuid = ?;");
+   public synchronized void savePlayerPriceModifiers(UUID playerId, PlayerPriceModifier playerPriceModifier) throws SQLException {
+      if (playerPriceModifier.getSectionModifiers().isEmpty() && playerPriceModifier.getItemModifiers().isEmpty()) {
+         PreparedStatement statement = this.conn.prepareStatement("DELETE FROM player_price_modifiers WHERE uuid = ?;");
 
          try {
-            var10.setString(1, var1.toString());
-            var10.execute();
-         } catch (Throwable var9) {
-            if (var10 != null) {
+            statement.setString(1, playerId.toString());
+            statement.execute();
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var10.close();
-               } catch (Throwable var7) {
-                  var9.addSuppressed(var7);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var9;
+            throw exception;
          }
 
-         if (var10 != null) {
-            var10.close();
+         if (statement != null) {
+            statement.close();
          }
       } else {
-         PreparedStatement var3 = this.conn.prepareStatement("REPLACE INTO player_price_modifiers VALUES(?,?);");
+         PreparedStatement statement = this.conn.prepareStatement("REPLACE INTO player_price_modifiers VALUES(?,?);");
 
          try {
-            var3.setString(1, var1.toString());
-            var3.setString(2, new Gson().toJson(var2));
-            var3.execute();
-         } catch (Throwable var8) {
-            if (var3 != null) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, new Gson().toJson(playerPriceModifier));
+            statement.execute();
+         } catch (Throwable exception) {
+            if (statement != null) {
                try {
-                  var3.close();
-               } catch (Throwable var6) {
-                  var8.addSuppressed(var6);
+                  statement.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
             }
 
-            throw var8;
+            throw exception;
          }
 
-         if (var3 != null) {
-            var3.close();
+         if (statement != null) {
+            statement.close();
          }
       }
    }
 
    @Override
    public synchronized Map<String, Long> getItemRestockTime() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT item,restock FROM itemstock WHERE restock IS NOT NULL;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM itemstock WHERE restock IS NOT NULL;");
+      HashMap itemIds = new HashMap();
 
-      while (var2.next()) {
-         var3.put(var2.getString("item"), var2.getLong("restock"));
+      while (resultSet.next()) {
+         itemIds.put(resultSet.getString("item"), resultSet.getLong("restock"));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return itemIds;
    }
 
    @Override
-   public synchronized void setPlayerStockAmount(UUID var1, String var2, Integer var3) {
+   public synchronized void setPlayerStockAmount(UUID playerId, String itemId, Integer amount) {
       try {
-         Statement var4 = this.conn.createStatement();
-         var4.executeUpdate("REPLACE INTO playerstock(item,uuid,amount) VALUES('" + var2 + "', '" + var1 + "', " + var3 + ");");
-         var4.close();
-      } catch (SQLException var5) {
-         var5.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO playerstock(item,uuid,amount) VALUES('" + itemId + "', '" + playerId + "', " + amount + ");");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setPlayerStockAmount(String var1, Integer var2) {
+   public synchronized void setPlayerStockAmount(String playerName, Integer stock) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("UPDATE playerstock SET amount = " + var2 + " WHERE item = '" + var1 + "';");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("UPDATE playerstock SET amount = " + stock + " WHERE item = '" + playerName + "';");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setPlayerStock(Map<String, Map<UUID, Integer>> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setPlayerStock(Map<String, Map<UUID, Integer>> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         Map<UUID, Integer> var5 = var1.get(var4);
+      for (String playerName : map.keySet()) {
+         Map<UUID, Integer> stocks = map.get(playerName);
 
-         for (UUID var7 : var5.keySet()) {
-            var2.executeUpdate("REPLACE INTO playerstock(item,uuid,amount) VALUES('" + var4 + "', '" + var7 + "', " + var5.get(var7) + ");");
+         for (UUID uniqueId : stocks.keySet()) {
+            statement.executeUpdate("REPLACE INTO playerstock(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + stocks.get(uniqueId) + ");");
          }
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized void setPlayerRestockTimes(Map<String, Map<UUID, Long>> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setPlayerRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         Map<UUID, Long> var5 = var1.get(var4);
+      for (String playerName : map.keySet()) {
+         Map<UUID, Long> restockTimes = map.get(playerName);
 
-         for (UUID var7 : var5.keySet()) {
-            var2.executeUpdate("REPLACE INTO playerstock VALUES('" + var4 + "', '" + var7 + "', 0, '" + var5.get(var7) + "');");
+         for (UUID uniqueId : restockTimes.keySet()) {
+            statement.executeUpdate("REPLACE INTO playerstock VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + restockTimes.get(uniqueId) + "');");
          }
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized int getPlayerStockAmount(UUID var1, String var2) throws SQLException {
-      Statement var3 = this.conn.createStatement();
-      ResultSet var4 = var3.executeQuery("SELECT amount FROM playerstock WHERE item = '" + var2 + "' AND uuid = '" + var1 + "';");
-      if (!var4.next()) {
+   public synchronized int getPlayerStockAmount(UUID playerId, String itemId) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT amount FROM playerstock WHERE item = '" + itemId + "' AND uuid = '" + playerId + "';");
+      if (!resultSet.next()) {
          throw new SQLException();
       } else {
-         int var5 = var4.getInt("amount");
-         var4.close();
-         var3.close();
-         return var5;
+         int amount = resultSet.getInt("amount");
+         resultSet.close();
+         statement.close();
+         return amount;
       }
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayerStockAmounts(Collection<String> var1, UUID var2) throws SQLException {
-      HashMap var3 = new HashMap();
-      if (var1.isEmpty()) {
-         return var3;
+   public synchronized Map<String, Integer> getPlayerStockAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
+      HashMap itemIds = new HashMap();
+      if (playerNames.isEmpty()) {
+         return itemIds;
       } else {
-         Statement var4 = this.conn.createStatement();
-         ResultSet var5 = var4.executeQuery("SELECT item,amount FROM playerstock WHERE item IN ('" + String.join("','", var1) + "') AND uuid = '" + var2 + "';");
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM playerstock WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';");
 
-         while (var5.next()) {
-            var3.put(var5.getString("item"), var5.getInt("amount"));
+         while (resultSet.next()) {
+            itemIds.put(resultSet.getString("item"), resultSet.getInt("amount"));
          }
 
-         var5.close();
-         var4.close();
-         return var3;
+         resultSet.close();
+         statement.close();
+         return itemIds;
       }
    }
 
    @Override
    public synchronized Map<String, Map<UUID, Integer>> getAllPlayerStocks() throws SQLException {
-      HashMap<String, Map<UUID, Integer>> var1 = new HashMap<>();
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT item,uuid,amount FROM playerstock;");
+      HashMap<String, Map<UUID, Integer>> map = new HashMap<>();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,uuid,amount FROM playerstock;");
 
-      while (var3.next()) {
-         var1.computeIfAbsent(var3.getString("item"), var0 -> new HashMap<>()).put(UUID.fromString(var3.getString("uuid")), var3.getInt("amount"));
+      while (resultSet.next()) {
+         map.computeIfAbsent(resultSet.getString("item"), key -> new HashMap<>()).put(UUID.fromString(resultSet.getString("uuid")), resultSet.getInt("amount"));
       }
 
-      var3.close();
-      var2.close();
-      return var1;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
    public synchronized Map<String, Map<UUID, Long>> getPlayerRestockTimes() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT item,restock FROM playerstock WHERE restock IS NOT NULL;");
-      HashMap<String, Map<UUID, Long>> var3 = new HashMap<>();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM playerstock WHERE restock IS NOT NULL;");
+      HashMap<String, Map<UUID, Long>> map = new HashMap<>();
 
-      while (var2.next()) {
-         Statement var4 = this.conn.createStatement();
-         ResultSet var5 = var4.executeQuery("SELECT item,uuid,restock FROM playerstock WHERE restock IS NOT NULL AND item = '" + var2.getString("item") + "';");
-         HashMap<UUID, Long> var6 = new HashMap<>();
+      while (resultSet.next()) {
+         Statement statement2 = this.conn.createStatement();
+         ResultSet resultSet2 = statement2.executeQuery("SELECT item,uuid,restock FROM playerstock WHERE restock IS NOT NULL AND item = '" + resultSet.getString("item") + "';");
+         HashMap<UUID, Long> map2 = new HashMap<>();
 
-         while (var5.next()) {
-            var6.put(UUID.fromString(var5.getString("uuid")), var5.getLong("restock"));
+         while (resultSet2.next()) {
+            map2.put(UUID.fromString(resultSet2.getString("uuid")), resultSet2.getLong("restock"));
          }
 
-         var5.close();
-         var4.close();
-         var3.put(var2.getString("item"), var6);
+         resultSet2.close();
+         statement2.close();
+         map.put(resultSet.getString("item"), map2);
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayersStock(String var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT uuid,amount FROM playerstock WHERE item = '" + var1 + "';");
-      HashMap var4 = new HashMap();
+   public synchronized Map<String, Integer> getPlayersStock(String itemId) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM playerstock WHERE item = '" + itemId + "';");
+      HashMap map = new HashMap();
 
-      while (var3.next()) {
-         String var5 = var3.getString("uuid");
-         var4.put(var5, var3.getInt("amount"));
+      while (resultSet.next()) {
+         String text = resultSet.getString("uuid");
+         map.put(text, resultSet.getInt("amount"));
       }
 
-      var3.close();
-      var2.close();
-      return var4;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
    public synchronized boolean resetDynamicPricing() {
       try {
-         Statement var1 = this.conn.createStatement();
-         var1.executeUpdate("DROP TABLE dynamicStock;");
-         var1.executeUpdate("DROP TABLE maxStocks;");
-         var1.close();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("DROP TABLE dynamicStock;");
+         statement.executeUpdate("DROP TABLE maxStocks;");
+         statement.close();
          this.createTables();
          return true;
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.warnMessage("Failed to delete table from database");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
 
    @Override
-   public synchronized int getOriginalLimit(String var1) {
+   public synchronized int getOriginalLimit(String text) {
       try {
-         Statement var2 = this.conn.createStatement();
-         ResultSet var3 = var2.executeQuery("SELECT * FROM original_limits WHERE item = '" + var1 + "';");
-         int var4 = var3.getInt("amount");
-         var3.close();
-         var2.close();
-         return var4;
-      } catch (SQLException var5) {
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT * FROM original_limits WHERE item = '" + text + "';");
+         int limit = resultSet.getInt("amount");
+         resultSet.close();
+         statement.close();
+         return limit;
+      } catch (SQLException exception) {
          return 0;
       }
    }
 
    @Override
-   public synchronized void setOriginalLimit(String var1, int var2) {
+   public synchronized void setOriginalLimit(String text, int limit) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("REPLACE INTO original_limits VALUES('" + var1 + "'," + var2 + ");");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO original_limits VALUES('" + text + "'," + limit + ");");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setSellLimit(String var1, int var2) {
+   public synchronized void setSellLimit(String text, int limit) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("REPLACE INTO sellLimits(item, amount) VALUES('" + var1 + "', '" + var2 + "');");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO sellLimits(item, amount) VALUES('" + text + "', '" + limit + "');");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setSellLimit(Map<String, Integer> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setSellLimit(Map<String, Integer> limits) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         var2.executeUpdate("REPLACE INTO sellLimits(item, amount) VALUES('" + var4 + "', " + var1.get(var4) + ");");
+      for (String key : limits.keySet()) {
+         statement.executeUpdate("REPLACE INTO sellLimits(item, amount) VALUES('" + key + "', " + limits.get(key) + ");");
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized void setSellLimitRestockTimes(Map<String, Long> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setSellLimitRestockTimes(Map<String, Long> limits) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         var2.executeUpdate("REPLACE INTO sellLimits VALUES('" + var4 + "', 0, '" + var1.get(var4) + "');");
+      for (String key : limits.keySet()) {
+         statement.executeUpdate("REPLACE INTO sellLimits VALUES('" + key + "', 0, '" + limits.get(key) + "');");
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized int getSellLimit(String var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT amount FROM sellLimits WHERE item = '" + var1 + "';");
-      if (!var3.next()) {
+   public synchronized int getSellLimit(String text) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT amount FROM sellLimits WHERE item = '" + text + "';");
+      if (!resultSet.next()) {
          throw new SQLException();
       } else {
-         int var4 = var3.getInt("amount");
-         var3.close();
-         var2.close();
-         return var4;
+         int limit = resultSet.getInt("amount");
+         resultSet.close();
+         statement.close();
+         return limit;
       }
    }
 
    @Override
-   public synchronized Map<String, Integer> getSellLimits(Collection<String> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      if (var1.isEmpty()) {
-         return var2;
+   public synchronized Map<String, Integer> getSellLimits(Collection<String> values) throws SQLException {
+      HashMap map = new HashMap();
+      if (values.isEmpty()) {
+         return map;
       } else {
-         Statement var3 = this.conn.createStatement();
-         ResultSet var4 = var3.executeQuery("SELECT item,amount FROM sellLimits WHERE item IN ('" + String.join("','", var1) + "');");
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM sellLimits WHERE item IN ('" + String.join("','", values) + "');");
 
-         while (var4.next()) {
-            var2.put(var4.getString("item"), var4.getInt("amount"));
+         while (resultSet.next()) {
+            map.put(resultSet.getString("item"), resultSet.getInt("amount"));
          }
 
-         var4.close();
-         var3.close();
-         return var2;
+         resultSet.close();
+         statement.close();
+         return map;
       }
    }
 
    @Override
    public synchronized Map<String, Integer> getAllSellLimits() throws SQLException {
-      HashMap var1 = new HashMap();
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT item,amount FROM sellLimits;");
+      HashMap map = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM sellLimits;");
 
-      while (var3.next()) {
-         var1.put(var3.getString("item"), var3.getInt("amount"));
+      while (resultSet.next()) {
+         map.put(resultSet.getString("item"), resultSet.getInt("amount"));
       }
 
-      var3.close();
-      var2.close();
-      return var1;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
    public synchronized Map<String, Long> getSellLimitRestockTimes() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT item,restock FROM sellLimits WHERE restock IS NOT NULL;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM sellLimits WHERE restock IS NOT NULL;");
+      HashMap map = new HashMap();
 
-      while (var2.next()) {
-         var3.put(var2.getString("item"), var2.getLong("restock"));
+      while (resultSet.next()) {
+         map.put(resultSet.getString("item"), resultSet.getLong("restock"));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
-   public synchronized void setPlayerSellLimit(UUID var1, String var2, Integer var3) {
+   public synchronized void setPlayerSellLimit(UUID playerId, String text, Integer limit) {
       try {
-         Statement var4 = this.conn.createStatement();
-         var4.executeUpdate("REPLACE INTO playerSellLimits(item,uuid,amount) VALUES('" + var2 + "', '" + var1 + "', " + var3 + ");");
-         var4.close();
-      } catch (SQLException var5) {
-         var5.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("REPLACE INTO playerSellLimits(item,uuid,amount) VALUES('" + text + "', '" + playerId + "', " + limit + ");");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setPlayerSellLimit(String var1, Integer var2) {
+   public synchronized void setPlayerSellLimit(String playerName, Integer limit) {
       try {
-         Statement var3 = this.conn.createStatement();
-         var3.executeUpdate("UPDATE playerSellLimits SET amount = " + var2 + " WHERE item = '" + var1 + "';");
-         var3.close();
-      } catch (SQLException var4) {
-         var4.printStackTrace();
+         Statement statement = this.conn.createStatement();
+         statement.executeUpdate("UPDATE playerSellLimits SET amount = " + limit + " WHERE item = '" + playerName + "';");
+         statement.close();
+      } catch (SQLException exception) {
+         exception.printStackTrace();
       }
    }
 
    @Override
-   public synchronized void setPlayerSellLimit(Map<String, Map<UUID, Integer>> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setPlayerSellLimit(Map<String, Map<UUID, Integer>> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         Map<UUID, Integer> var5 = var1.get(var4);
+      for (String playerName : map.keySet()) {
+         Map<UUID, Integer> limits = map.get(playerName);
 
-         for (UUID var7 : var5.keySet()) {
-            var2.executeUpdate("REPLACE INTO playerSellLimits(item,uuid,amount) VALUES('" + var4 + "', '" + var7 + "', " + var5.get(var7) + ");");
+         for (UUID uniqueId : limits.keySet()) {
+            statement.executeUpdate("REPLACE INTO playerSellLimits(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + limits.get(uniqueId) + ");");
          }
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
+   public synchronized void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (String var4 : var1.keySet()) {
-         Map<UUID, Long> var5 = var1.get(var4);
+      for (String playerName : map.keySet()) {
+         Map<UUID, Long> limits = map.get(playerName);
 
-         for (UUID var7 : var5.keySet()) {
-            var2.executeUpdate("REPLACE INTO playerSellLimits VALUES('" + var4 + "', '" + var7 + "', 0, '" + var5.get(var7) + "');");
+         for (UUID uniqueId : limits.keySet()) {
+            statement.executeUpdate("REPLACE INTO playerSellLimits VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + limits.get(uniqueId) + "');");
          }
       }
 
-      var2.close();
+      statement.close();
    }
 
    @Override
-   public synchronized int getPlayerSellLimit(UUID var1, String var2) throws SQLException {
-      Statement var3 = this.conn.createStatement();
-      ResultSet var4 = var3.executeQuery("SELECT amount FROM playerSellLimits WHERE item = '" + var2 + "' AND uuid = '" + var1 + "';");
-      if (!var4.next()) {
+   public synchronized int getPlayerSellLimit(UUID playerId, String text) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT amount FROM playerSellLimits WHERE item = '" + text + "' AND uuid = '" + playerId + "';");
+      if (!resultSet.next()) {
          throw new SQLException();
       } else {
-         int var5 = var4.getInt("amount");
-         var4.close();
-         var3.close();
-         return var5;
+         int limit = resultSet.getInt("amount");
+         resultSet.close();
+         statement.close();
+         return limit;
       }
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> var1, UUID var2) throws SQLException {
-      HashMap var3 = new HashMap();
-      if (var1.isEmpty()) {
-         return var3;
+   public synchronized Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
+      HashMap map = new HashMap();
+      if (playerNames.isEmpty()) {
+         return map;
       } else {
-         Statement var4 = this.conn.createStatement();
-         ResultSet var5 = var4.executeQuery(
-            "SELECT item,amount FROM playerSellLimits WHERE item IN ('" + String.join("','", var1) + "') AND uuid = '" + var2 + "';"
+         Statement statement = this.conn.createStatement();
+         ResultSet resultSet = statement.executeQuery(
+            "SELECT item,amount FROM playerSellLimits WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';"
          );
 
-         while (var5.next()) {
-            var3.put(var5.getString("item"), var5.getInt("amount"));
+         while (resultSet.next()) {
+            map.put(resultSet.getString("item"), resultSet.getInt("amount"));
          }
 
-         var5.close();
-         var4.close();
-         return var3;
+         resultSet.close();
+         statement.close();
+         return map;
       }
    }
 
    @Override
    public synchronized Map<String, Map<UUID, Long>> getPlayerSellLimitRestockTimes() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT item,restock FROM playerSellLimits WHERE restock IS NOT NULL;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM playerSellLimits WHERE restock IS NOT NULL;");
+      HashMap playerNames = new HashMap();
 
-      while (var2.next()) {
-         Statement var4 = this.conn.createStatement();
-         ResultSet var5 = var4.executeQuery(
-            "SELECT item,uuid,restock FROM playerSellLimits WHERE restock IS NOT NULL AND item = '" + var2.getString("item") + "';"
+      while (resultSet.next()) {
+         Statement statement2 = this.conn.createStatement();
+         ResultSet resultSet2 = statement2.executeQuery(
+            "SELECT item,uuid,restock FROM playerSellLimits WHERE restock IS NOT NULL AND item = '" + resultSet.getString("item") + "';"
          );
-         HashMap var6 = new HashMap();
+         HashMap map = new HashMap();
 
-         while (var5.next()) {
-            var6.put(UUID.fromString(var5.getString("uuid")), var5.getLong("restock"));
+         while (resultSet2.next()) {
+            map.put(UUID.fromString(resultSet2.getString("uuid")), resultSet2.getLong("restock"));
          }
 
-         var5.close();
-         var4.close();
-         var3.put(var2.getString("item"), var6);
+         resultSet2.close();
+         statement2.close();
+         playerNames.put(resultSet.getString("item"), map);
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return playerNames;
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayerSellLimits(String var1) throws SQLException {
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT uuid,amount FROM playerSellLimits WHERE item = '" + var1 + "';");
-      HashMap var4 = new HashMap();
+   public synchronized Map<String, Integer> getPlayerSellLimits(String playerName) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM playerSellLimits WHERE item = '" + playerName + "';");
+      HashMap map = new HashMap();
 
-      while (var3.next()) {
-         String var5 = var3.getString("uuid");
-         var4.put(var5, var3.getInt("amount"));
+      while (resultSet.next()) {
+         String text = resultSet.getString("uuid");
+         map.put(text, resultSet.getInt("amount"));
       }
 
-      var3.close();
-      var2.close();
-      return var4;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
    public synchronized Map<String, Map<UUID, Integer>> getAllPlayerSellLimits() throws SQLException {
-      HashMap<String, Map<UUID, Integer>> var1 = new HashMap<>();
-      Statement var2 = this.conn.createStatement();
-      ResultSet var3 = var2.executeQuery("SELECT item,uuid,amount FROM playerSellLimits;");
+      HashMap<String, Map<UUID, Integer>> map = new HashMap<>();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT item,uuid,amount FROM playerSellLimits;");
 
-      while (var3.next()) {
-         var1.computeIfAbsent(var3.getString("item"), var0 -> new HashMap<>()).put(UUID.fromString(var3.getString("uuid")), var3.getInt("amount"));
+      while (resultSet.next()) {
+         map.computeIfAbsent(resultSet.getString("item"), key -> new HashMap<>()).put(UUID.fromString(resultSet.getString("uuid")), resultSet.getInt("amount"));
       }
 
-      var3.close();
-      var2.close();
-      return var1;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
-   public synchronized void setItemStockSchedulers(Map<ScheduleManager.Item, Long> var1) throws SQLException {
-      PreparedStatement var2 = this.conn.prepareStatement("REPLACE INTO item_stock_schedules VALUES(?,?,?);");
+   public synchronized void setItemStockSchedulers(Map<ScheduleManager.Item, Long> stocks) throws SQLException {
+      PreparedStatement statement = this.conn.prepareStatement("REPLACE INTO item_stock_schedules VALUES(?,?,?);");
 
-      for (Entry var4 : var1.entrySet()) {
-         var2.setString(1, ((ScheduleManager.Item)var4.getKey()).getItemPath());
-         var2.setInt(2, ((ScheduleManager.Item)var4.getKey()).mode);
-         var2.setString(3, ((Long)var4.getValue()).toString());
-         var2.execute();
+      for (Entry entry : stocks.entrySet()) {
+         statement.setString(1, ((ScheduleManager.Item)entry.getKey()).getItemPath());
+         statement.setInt(2, ((ScheduleManager.Item)entry.getKey()).mode);
+         statement.setString(3, ((Long)entry.getValue()).toString());
+         statement.execute();
       }
    }
 
    @Override
    public synchronized Map<ScheduleManager.Item, Long> getItemStockSchedulers() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM item_stock_schedules;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM item_stock_schedules;");
+      HashMap itemIds = new HashMap();
 
-      while (var2.next()) {
-         var3.put(new ScheduleManager.Item(var2.getString("item"), var2.getInt("mode")), Long.parseLong(var2.getString("restock")));
+      while (resultSet.next()) {
+         itemIds.put(new ScheduleManager.Item(resultSet.getString("item"), resultSet.getInt("mode")), Long.parseLong(resultSet.getString("restock")));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return itemIds;
    }
 
    @Override
-   public synchronized void setSellLimitSchedulers(Map<ScheduleManager.Item, Long> var1) throws SQLException {
-      PreparedStatement var2 = this.conn.prepareStatement("REPLACE INTO sell_limit_schedules VALUES(?,?,?);");
+   public synchronized void setSellLimitSchedulers(Map<ScheduleManager.Item, Long> limits) throws SQLException {
+      PreparedStatement statement = this.conn.prepareStatement("REPLACE INTO sell_limit_schedules VALUES(?,?,?);");
 
-      for (Entry var4 : var1.entrySet()) {
-         var2.setString(1, ((ScheduleManager.Item)var4.getKey()).getItemPath());
-         var2.setInt(2, ((ScheduleManager.Item)var4.getKey()).mode);
-         var2.setString(3, ((Long)var4.getValue()).toString());
-         var2.execute();
+      for (Entry entry : limits.entrySet()) {
+         statement.setString(1, ((ScheduleManager.Item)entry.getKey()).getItemPath());
+         statement.setInt(2, ((ScheduleManager.Item)entry.getKey()).mode);
+         statement.setString(3, ((Long)entry.getValue()).toString());
+         statement.execute();
       }
    }
 
    @Override
    public synchronized Map<ScheduleManager.Item, Long> getSellLimitSchedulers() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM sell_limit_schedules;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM sell_limit_schedules;");
+      HashMap map = new HashMap();
 
-      while (var2.next()) {
-         var3.put(new ScheduleManager.Item(var2.getString("item"), var2.getInt("mode")), Long.parseLong(var2.getString("restock")));
+      while (resultSet.next()) {
+         map.put(new ScheduleManager.Item(resultSet.getString("item"), resultSet.getInt("mode")), Long.parseLong(resultSet.getString("restock")));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    @Override
    public synchronized Map<String, Integer> getOriginalLimits() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM original_limits;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM original_limits;");
+      HashMap map = new HashMap();
 
-      while (var2.next()) {
-         var3.put(var2.getString("item"), var2.getInt("amount"));
+      while (resultSet.next()) {
+         map.put(resultSet.getString("item"), resultSet.getInt("amount"));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
    private synchronized Map<String, SimplePair<Integer, Long>> getGlobalSellLimits() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM sellLimits;");
-      HashMap var3 = new HashMap();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM sellLimits;");
+      HashMap map = new HashMap();
 
-      while (var2.next()) {
-         var3.put(var2.getString("item"), new SimplePair<>(var2.getInt("amount"), var2.getLong("restock")));
+      while (resultSet.next()) {
+         map.put(resultSet.getString("item"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
-   private synchronized void setGlobalLimit(String var1, SimplePair<Integer, Long> var2) throws SQLException {
-      Statement var3 = this.conn.createStatement();
-      var3.executeUpdate("REPLACE INTO sellLimits VALUES('" + var1 + "', " + var2.key + ", " + var2.value + ");");
-      var3.close();
+   private synchronized void setGlobalLimit(String text, SimplePair<Integer, Long> simplePair) throws SQLException {
+      Statement statement = this.conn.createStatement();
+      statement.executeUpdate("REPLACE INTO sellLimits VALUES('" + text + "', " + simplePair.key + ", " + simplePair.value + ");");
+      statement.close();
    }
 
    private synchronized Map<String, Map<String, SimplePair<Integer, Long>>> getPlayerSellLimits() throws SQLException {
-      Statement var1 = this.conn.createStatement();
-      ResultSet var2 = var1.executeQuery("SELECT * FROM playerSellLimits;");
-      HashMap<String, Map<String, SimplePair<Integer, Long>>> var3 = new HashMap<>();
+      Statement statement = this.conn.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM playerSellLimits;");
+      HashMap<String, Map<String, SimplePair<Integer, Long>>> map = new HashMap<>();
 
-      while (var2.next()) {
-         String var4 = var2.getString("item");
-         Map<String, SimplePair<Integer, Long>> var5 = var3.getOrDefault(var4, new HashMap<>());
-         var5.put(var2.getString("uuid"), new SimplePair<>(var2.getInt("amount"), var2.getLong("restock")));
-         var3.put(var4, var5);
+      while (resultSet.next()) {
+         String text = resultSet.getString("item");
+         Map<String, SimplePair<Integer, Long>> orDefault = map.getOrDefault(text, new HashMap<>());
+         orDefault.put(resultSet.getString("uuid"), new SimplePair<>(resultSet.getInt("amount"), resultSet.getLong("restock")));
+         map.put(text, orDefault);
       }
 
-      var2.close();
-      var1.close();
-      return var3;
+      resultSet.close();
+      statement.close();
+      return map;
    }
 
-   private synchronized void setPlayerLimit(String var1, Map<String, SimplePair<Integer, Long>> var2) throws SQLException {
-      Statement var3 = this.conn.createStatement();
+   private synchronized void setPlayerLimit(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+      Statement statement = this.conn.createStatement();
 
-      for (Entry var5 : var2.entrySet()) {
-         var3.executeUpdate(
+      for (Entry entry : map.entrySet()) {
+         statement.executeUpdate(
             "REPLACE INTO playerSellLimits VALUES('"
-               + var1
+               + playerName
                + "', '"
-               + (String)var5.getKey()
+               + (String)entry.getKey()
                + "', "
-               + ((SimplePair)var5.getValue()).key
+               + ((SimplePair)entry.getValue()).key
                + ", "
-               + ((SimplePair)var5.getValue()).value
+               + ((SimplePair)entry.getValue()).value
                + ");"
          );
       }
 
-      var3.close();
+      statement.close();
    }
 
    @Override
-   public synchronized void setRotatingShopItems(String var1, List<String> var2, long var3) {
+   public synchronized void setRotatingShopItems(String shopId, List<String> values, long value) {
    }
 
    @Override
-   public synchronized SimplePair<List<String>, Long> getRotatingShopItems(String var1) {
+   public synchronized SimplePair<List<String>, Long> getRotatingShopItems(String shopId) {
       return null;
    }
 }

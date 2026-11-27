@@ -5,7 +5,7 @@ import com.onyxshop.api.events.CustomEvent;
 public class ProvidersLoadEvent extends CustomEvent {
    final boolean wait;
 
-   public ProvidersLoadEvent(boolean var1) {
-      this.wait = var1;
+   public ProvidersLoadEvent(boolean flag) {
+      this.wait = flag;
    }
 }

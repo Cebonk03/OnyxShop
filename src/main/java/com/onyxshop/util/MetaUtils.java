@@ -12,81 +12,81 @@ import org.bukkit.inventory.meta.ItemMeta;
 public interface MetaUtils {
    void update();
 
-   void send(Player var1, Translatable var2);
+   void send(Player player, Translatable text);
 
-   void send(Object var1, Translatable var2);
+   void send(Object value, Translatable text);
 
-   void send(Translatable var1);
+   void send(Translatable text);
 
-   void sendLegacy(Player var1, String var2);
+   void sendLegacy(Player player, String playerName);
 
-   void sendLegacy(Object var1, String var2);
+   void sendLegacy(Object value, String text);
 
-   void sendLegacy(String var1);
+   void sendLegacy(String text);
 
-   void sendTransactionMessage(Player var1, int var2, double var3, ShopItem var5, Transaction.Mode var6, Transaction.Type var7, boolean var8);
+   void sendTransactionMessage(Player player, int value, double amount, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag);
 
-   void sendTransactionMessage(Player var1, int var2, Map<EcoType, Double> var3, ShopItem var4, Transaction.Mode var5, Transaction.Type var6, boolean var7);
+   void sendTransactionMessage(Player player, int value, Map<EcoType, Double> map, ShopItem shopItem, Transaction.Mode mode, Transaction.Type type, boolean flag);
 
-   void sendTransactionMessage(Player var1, int var2, Map<EcoType, Double> var3, Map<ShopItem, Integer> var4, Transaction.Type var5);
+   void sendTransactionMessage(Player player, int value, Map<EcoType, Double> map, Map<ShopItem, Integer> map2, Transaction.Type type);
 
-   Inventory createInventory(InventoryHolder var1, int var2, Translatable var3);
+   Inventory createInventory(InventoryHolder holder, int value, Translatable text);
 
-   void setRawDisplayName(ItemMeta var1, String var2);
+   void setRawDisplayName(ItemMeta itemMeta, String name);
 
-   void setDisplayName(ItemMeta var1, Translatable var2);
+   void setDisplayName(ItemMeta itemMeta, Translatable text);
 
-   String getRawDisplayName(ItemMeta var1);
+   String getRawDisplayName(ItemMeta itemMeta);
 
-   Translatable getDisplayName(ItemMeta var1);
+   Translatable getDisplayName(ItemMeta itemMeta);
 
-   String getRawItemName(ItemMeta var1);
+   String getRawItemName(ItemMeta itemMeta);
 
-   void setRawLore(ItemMeta var1, List<String> var2);
+   void setRawLore(ItemMeta itemMeta, List<String> lores);
 
-   void setLore(ItemMeta var1, List<Translatable> var2);
+   void setLore(ItemMeta itemMeta, List<Translatable> values);
 
-   void addLore(ItemMeta var1, Translatable var2);
+   void addLore(ItemMeta itemMeta, Translatable text);
 
-   List<String> getRawLore(ItemMeta var1);
+   List<String> getRawLore(ItemMeta itemMeta);
 
-   List<Translatable> getLore(ItemMeta var1);
+   List<Translatable> getLore(ItemMeta itemMeta);
 
-   void broadcast(Translatable var1);
+   void broadcast(Translatable text);
 
-   void logDevDebugMessage(Translatable var1);
+   void logDevDebugMessage(Translatable text);
 
-   void logPlayerTransaction(Translatable var1);
+   void logPlayerTransaction(Translatable text);
 
-   void logPlayerTransaction(String var1);
+   void logPlayerTransaction(String playerName);
 
-   void infoMessage(Translatable var1);
+   void infoMessage(Translatable text);
 
-   void logDebugMessage(Translatable var1);
+   void logDebugMessage(Translatable text);
 
-   void warnMessage(Translatable var1);
+   void warnMessage(Translatable text);
 
-   void errorMessage(Translatable var1);
+   void errorMessage(Translatable text);
 
-   void infoLegacyMessage(String var1);
+   void infoLegacyMessage(String message);
 
-   void logLegacyDebugMessage(String var1);
+   void logLegacyDebugMessage(String message);
 
-   void warnLegacyMessage(String var1);
+   void warnLegacyMessage(String message);
 
-   void errorLegacyMessage(String var1);
+   void errorLegacyMessage(String message);
 
-   void infoMessage(Object var1, Translatable var2);
+   void infoMessage(Object value, Translatable text);
 
-   void warnMessage(Object var1, Translatable var2);
+   void warnMessage(Object value, Translatable text);
 
-   void errorMessage(Object var1, Translatable var2);
+   void errorMessage(Object value, Translatable text);
 
-   void infoLegacyMessage(Object var1, String var2);
+   void infoLegacyMessage(Object value, String message);
 
-   void infoLegacyMessageWithoutPrefix(Object var1, String var2);
+   void infoLegacyMessageWithoutPrefix(Object value, String message);
 
-   void warnLegacyMessage(Object var1, String var2);
+   void warnLegacyMessage(Object value, String message);
 
-   void errorLegacyMessage(Object var1, String var2);
+   void errorLegacyMessage(Object value, String message);
 }

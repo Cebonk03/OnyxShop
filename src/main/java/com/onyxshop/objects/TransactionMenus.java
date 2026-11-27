@@ -17,18 +17,18 @@ public class TransactionMenus {
    public TransactionMenus() {
    }
 
-   public static void load(OnyxShop var0) {
-      buyScreen = var0.createItem.getTransactionScreen(Transaction.Type.BUY_SCREEN);
-      sellScreen = var0.createItem.getTransactionScreen(Transaction.Type.SELL_SCREEN);
-      buyStacksScreen = var0.createItem.getTransactionScreen(Transaction.Type.BUY_STACKS_SCREEN);
-      if (var0.shopStands) {
-         shopStandBuy = var0.createItem.getTransactionScreen(Transaction.Type.SHOPSTAND_BUY_SCREEN);
-         shopStandSell = var0.createItem.getTransactionScreen(Transaction.Type.SHOPSTAND_SELL_SCREEN);
+   public static void load(OnyxShop plugin) {
+      buyScreen = plugin.createItem.getTransactionScreen(Transaction.Type.BUY_SCREEN);
+      sellScreen = plugin.createItem.getTransactionScreen(Transaction.Type.SELL_SCREEN);
+      buyStacksScreen = plugin.createItem.getTransactionScreen(Transaction.Type.BUY_STACKS_SCREEN);
+      if (plugin.shopStands) {
+         shopStandBuy = plugin.createItem.getTransactionScreen(Transaction.Type.SHOPSTAND_BUY_SCREEN);
+         shopStandSell = plugin.createItem.getTransactionScreen(Transaction.Type.SHOPSTAND_SELL_SCREEN);
       }
    }
 
-   public static List<TransactionItem> getItems(Transaction.Type var0) {
-      switch (var0) {
+   public static List<TransactionItem> getItems(Transaction.Type type) {
+      switch (type) {
          case BUY_STACKS_SCREEN:
             return buyStacksScreen.getItems();
          case BUY_SCREEN:
@@ -44,40 +44,40 @@ public class TransactionMenus {
       }
    }
 
-   public static CreateItem.TransactionItemAction getActionFromSlot(Transaction.Type var0, int var1) {
+   public static CreateItem.TransactionItemAction getActionFromSlot(Transaction.Type type, int slot) {
       try {
-         TransactionItem var2 = getItems(var0)
+         TransactionItem transactionItem = getItems(type)
             .stream()
-            .filter(var1x -> var1x.getSlots().contains(var1) && var1x.getAction() != CreateItem.TransactionItemAction.NONE)
+            .filter(element -> element.getSlots().contains(slot) && element.getAction() != CreateItem.TransactionItemAction.NONE)
             .findFirst()
             .orElse(null);
-         if (var2 != null) {
-            return var2.getAction();
+         if (transactionItem != null) {
+            return transactionItem.getAction();
          }
-      } catch (NullPointerException var3) {
+      } catch (NullPointerException exception) {
       }
 
       return CreateItem.TransactionItemAction.NONE;
    }
 
-   public static TransactionItem getItemFromSlot(Transaction.Type var0, int var1) {
-      return getItems(var0).stream().filter(var1x -> var1x.getSlots().contains(var1)).findFirst().orElse(null);
+   public static TransactionItem getItemFromSlot(Transaction.Type type, int slot) {
+      return getItems(type).stream().filter(element -> element.getSlots().contains(slot)).findFirst().orElse(null);
    }
 
-   public static TransactionItem getItemByType(Transaction.Type var0, CreateItem.TransactionItemType var1) {
-      return getItems(var0).stream().filter(var1x -> var1x.getType() == var1).findFirst().orElse(null);
+   public static TransactionItem getItemByType(Transaction.Type type, CreateItem.TransactionItemType transactionItemType) {
+      return getItems(type).stream().filter(element -> element.getType() == transactionItemType).findFirst().orElse(null);
    }
 
-   public static List<TransactionItem> getItemsByType(Transaction.Type var0, CreateItem.TransactionItemType var1) {
-      return getItems(var0).stream().filter(var1x -> var1x.getType() == var1).collect(Collectors.toList());
+   public static List<TransactionItem> getItemsByType(Transaction.Type type, CreateItem.TransactionItemType transactionItemType) {
+      return getItems(type).stream().filter(element -> element.getType() == transactionItemType).collect(Collectors.toList());
    }
 
-   public static List<TransactionItem> getItemsByAction(Transaction.Type var0, CreateItem.TransactionItemActionType... var1) {
-      return getItems(var0).stream().filter(var1x -> Arrays.stream(var1).anyMatch(var1xx -> var1x.getAction().type == var1xx)).collect(Collectors.toList());
+   public static List<TransactionItem> getItemsByAction(Transaction.Type type, CreateItem.TransactionItemActionType... itemIds) {
+      return getItems(type).stream().filter(element -> Arrays.stream(itemIds).anyMatch(element2 -> element.getAction().type == element2)).collect(Collectors.toList());
    }
 
-   public static int getSize(Transaction.Type var0) {
-      switch (var0) {
+   public static int getSize(Transaction.Type type) {
+      switch (type) {
          case BUY_STACKS_SCREEN:
             return buyStacksScreen.getSize();
          case BUY_SCREEN:

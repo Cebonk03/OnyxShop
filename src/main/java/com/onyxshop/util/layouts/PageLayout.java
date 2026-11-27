@@ -14,67 +14,67 @@ public class PageLayout implements ItemLayout {
    private final HashMap<Integer, String> staticItems = new HashMap<>();
    private final List<String> softItems = new LinkedList<>();
 
-   public PageLayout(String var1) {
-      this.section = var1;
+   public PageLayout(String text) {
+      this.section = text;
    }
 
    @Override
-   public boolean containsKey(int var1) {
-      return this.staticItems.containsKey(var1);
+   public boolean containsKey(int value) {
+      return this.staticItems.containsKey(value);
    }
 
    @Override
-   public void add(String var1) {
-      this.softItems.add(var1);
+   public void add(String text) {
+      this.softItems.add(text);
    }
 
    @Override
-   public void set(int var1, String var2) {
-      this.staticItems.put(var1, var2);
+   public void set(int value, String text) {
+      this.staticItems.put(value, text);
    }
 
    @Override
-   public List<String> build(Integer var1, int var2) {
-      int var3 = Math.max(9, Math.min((int)Math.ceil((this.softItems.size() + this.staticItems.size()) / 9.0) * 9, var2));
-      int var4 = var1 == null ? var3 : var1 - (OnyxShop.getInstance().navBar.isEnabled(this.section) ? 9 : 0);
-      ArrayList var5 = new ArrayList();
+   public List<String> build(Integer value, int value2) {
+      int size = Math.max(9, Math.min((int)Math.ceil((this.softItems.size() + this.staticItems.size()) / 9.0) * 9, value2));
+      int value3 = value == null ? size : value - (OnyxShop.getInstance().navBar.isEnabled(this.section) ? 9 : 0);
+      ArrayList values = new ArrayList();
 
-      for (int var6 = 0; var6 < Math.min(this.softItems.size(), var4); var6++) {
-         var5.add(this.softItems.get(var6));
+      for (int index = 0; index < Math.min(this.softItems.size(), value3); index++) {
+         values.add(this.softItems.get(index));
       }
 
-      this.softItems.removeAll(var5);
-      ArrayList<Integer> var9 = new ArrayList<>(this.staticItems.keySet());
-      Collections.sort(var9);
+      this.softItems.removeAll(values);
+      ArrayList<Integer> values2 = new ArrayList<>(this.staticItems.keySet());
+      Collections.sort(values2);
 
-      for (Integer var8 : var9) {
-         if (var8 <= var4) {
-            while (var5.size() < var8) {
-               var5.add(null);
+      for (Integer value4 : values2) {
+         if (value4 <= value3) {
+            while (values.size() < value4) {
+               values.add(null);
             }
 
-            var5.add(var8, this.staticItems.remove(var8));
+            values.add(value4, this.staticItems.remove(value4));
          }
       }
 
       this.softItems.addAll(this.staticItems.values());
 
-      while (var5.size() < var4) {
-         var5.add(null);
+      while (values.size() < value3) {
+         values.add(null);
       }
 
       if (!this.softItems.isEmpty()) {
-         for (String var11 : this.softItems) {
-            if (var11 != null) {
+         for (String text : this.softItems) {
+            if (text != null) {
                SendMessage.warnMessage(
                   "Cannot load item '%itemPath%' because it is out of range for page size %size%"
-                     .replace("%itemPath%", this.section + "." + var11)
-                     .replace("%size%", String.valueOf(var4))
+                     .replace("%itemPath%", this.section + "." + text)
+                     .replace("%size%", String.valueOf(value3))
                );
             }
          }
       }
 
-      return var5;
+      return values;
    }
 }

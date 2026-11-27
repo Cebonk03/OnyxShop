@@ -15,25 +15,25 @@ public interface NavItem {
 
    boolean isOnlyGeyser();
 
-   boolean isStatic(int var1, int var2);
+   boolean isStatic(int value, int value2);
 
    NavBar.ItemAction getAction();
 
-   NavBar.ItemAction getAction(int var1, int var2);
+   NavBar.ItemAction getAction(int value, int value2);
 
    List<String> getCommands();
 
-   List<String> getCommands(int var1);
+   List<String> getCommands(int value);
 
-   ItemStack getItem(Player var1);
+   ItemStack getItem(Player player);
 
-   ItemStack getItem(Player var1, EcoType var2, int var3, int var4);
+   ItemStack getItem(Player player, EcoType ecoType, int value, int value2);
 
-   ItemStack getItem(Player var1, Transaction.Mode var2, ShopItem var3, EcoType var4);
+   ItemStack getItem(Player player, Transaction.Mode mode, ShopItem shopItem, EcoType ecoType);
 
-   ItemStack getItem(Player var1, EcoType var2, ShopSearch.QueryMethod var3, int var4, int var5);
+   ItemStack getItem(Player player, EcoType ecoType, ShopSearch.QueryMethod queryMethod, int value, int value2);
 
    String getBedrockTexture();
 
-   String getBedrockTexture(int var1, int var2);
+   String getBedrockTexture(int value, int value2);
 }

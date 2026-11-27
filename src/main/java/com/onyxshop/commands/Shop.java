@@ -30,147 +30,147 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 
 public class Shop extends PluginCommands {
-   public Shop(OnyxShop var1, List<String> var2, List<String> var3) {
-      super(var1, (String)var2.get(0), "Opens the server shop", "/" + (String)var2.remove(0) + " <section/search>", "OnyxShop.shop", var2, var3);
+   public Shop(OnyxShop plugin, List<String> shopIds, List<String> values) {
+      super(plugin, (String)shopIds.get(0), "Opens the server shop", "/" + (String)shopIds.remove(0) + " <section/search>", "OnyxShop.shop", shopIds, values);
    }
 
    @Override
-   public boolean execute(CommandSender var1, String var2, String[] var3) {
+   public boolean execute(CommandSender sender, String command, String[] values) {
       if (ConfigManager.badYaml != null) {
-         SendMessage.sendMessage(var1, ChatColor.DARK_RED + "This command cannot be executed now, please fix the configuration formatting first!");
+         SendMessage.sendMessage(sender, ChatColor.DARK_RED + "This command cannot be executed now, please fix the configuration formatting first!");
          return true;
       } else {
-         if (var1 instanceof Player) {
-            Player var4 = (Player)var1;
-            if (this.canUse(var4)) {
-               if (var3.length == 0) {
-                  MainMenu.open(var4);
-                  this.plugin.getSoundEffects().openMainMenu(var4);
-               } else if (this.plugin.shopSearch && var3[0].equalsIgnoreCase("search")) {
-                  if (PermissionsCache.hasPermission(var4, "OnyxShop.shop.search")) {
-                     if (var3.length == 1) {
+         if (sender instanceof Player) {
+            Player player = (Player)sender;
+            if (this.canUse(player)) {
+               if (values.length == 0) {
+                  MainMenu.open(player);
+                  this.plugin.getSoundEffects().openMainMenu(player);
+               } else if (this.plugin.shopSearch && values[0].equalsIgnoreCase("search")) {
+                  if (PermissionsCache.hasPermission(player, "OnyxShop.shop.search")) {
+                     if (values.length == 1) {
                         new AnvilGUI.Builder()
-                           .onComplete((var0, var1x) -> {
-                              new ShopSearch(var0, var1x);
+                           .onComplete((player2, input) -> {
+                              new ShopSearch(player2, input);
                               return AnvilGUI.Response.close();
                            })
-                           .onClose(var1x -> OnyxShop.getInstance().runTaskLater(var4::updateInventory, 1L))
+                           .onClose(player2 -> OnyxShop.getInstance().runTaskLaterFor(player::updateInventory, player, 1L))
                            .itemLeft(new ItemStack(Material.NAME_TAG))
-                           .text(Lang.SHOPSEARCH_PRE_ENTERED_VALUE.get(var4).getLegacy())
-                           .title(TitleManager.get(TitleManager.Menu.SHOPSEARCH, var4).getLegacy())
+                           .text(Lang.SHOPSEARCH_PRE_ENTERED_VALUE.get(player).getLegacy())
+                           .title(TitleManager.get(TitleManager.Menu.SHOPSEARCH, player).getLegacy())
                            .plugin(OnyxShop.getInstance())
-                           .open(var4);
+                           .open(player);
                      } else {
-                        new ShopSearch(var4, var3[1]);
+                        new ShopSearch(player, values[1]);
                      }
                   } else {
-                     SendMessage.chatToPlayer(var4, Lang.NO_PERMISSIONS.get(var4));
+                     SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS.get(player));
                   }
-               } else if (this.plugin.getShopSections().contains(var3[0]) && !this.plugin.getSection(var3[0]).isSubSection()) {
-                  if (PermissionsCache.hasPermission(var4, "OnyxShop.shop." + var3[0])) {
-                     if (var3.length == 2) {
+               } else if (this.plugin.getShopSections().contains(values[0]) && !this.plugin.getSection(values[0]).isSubSection()) {
+                  if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + values[0])) {
+                     if (values.length == 2) {
                         try {
-                           int var5 = Integer.parseInt(var3[1]);
-                           ShopSection var6 = this.plugin.getSection(var3[0]);
-                           if (var6.getShopPageItems(var5) == null) {
+                           int value = Integer.parseInt(values[1]);
+                           ShopSection section = this.plugin.getSection(values[0]);
+                           if (section.getShopPageItems(value) == null) {
                               throw new NumberFormatException();
                            }
 
-                           var6.openShopSection(var4, var5, BackButton.DIRECT);
-                        } catch (NumberFormatException var9) {
-                           SendMessage.warnMessage(var4, Lang.NO_SHOP_PAGE_FOUND.get(var4).replace("%page%", var3[1]));
+                           section.openShopSection(player, value, BackButton.DIRECT);
+                        } catch (NumberFormatException exception) {
+                           SendMessage.warnMessage(player, Lang.NO_SHOP_PAGE_FOUND.get(player).replace("%page%", values[1]));
                         }
                      } else {
-                        this.plugin.getSection(var3[0]).openShopSection(var4, BackButton.DIRECT);
+                        this.plugin.getSection(values[0]).openShopSection(player, BackButton.DIRECT);
                      }
                   } else {
-                     SendMessage.chatToPlayer(var4, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(var4));
+                     SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(player));
                   }
                } else {
-                  SendMessage.chatToPlayer(var4, Lang.NO_SHOP_FOUND.get(var4));
+                  SendMessage.chatToPlayer(player, Lang.NO_SHOP_FOUND.get(player));
                }
             }
-         } else if (var1 instanceof ConsoleCommandSender || var1 instanceof BlockCommandSender || var1 instanceof RemoteConsoleCommandSender) {
-            if (var3.length == 0) {
-               SendMessage.warnMessage(var1, ChatColor.RED + "Not enough params: /shop <section/search> <player> [page/searchParam]");
-            } else if (var3.length == 1) {
-               Player var10 = this.plugin.getServer().getPlayer(var3[0]);
-               if (var10 != null) {
-                  MainMenu.open(var10);
-                  this.plugin.getSoundEffects().openMainMenu(var10);
+         } else if (sender instanceof ConsoleCommandSender || sender instanceof BlockCommandSender || sender instanceof RemoteConsoleCommandSender) {
+            if (values.length == 0) {
+               SendMessage.warnMessage(sender, ChatColor.RED + "Not enough params: /shop <section/search> <player> [page/searchParam]");
+            } else if (values.length == 1) {
+               Player player = this.plugin.getServer().getPlayer(values[0]);
+               if (player != null) {
+                  MainMenu.open(player);
+                  this.plugin.getSoundEffects().openMainMenu(player);
                } else {
-                  SendMessage.warnMessage(var1, Lang.PLAYER_NOT_ONLINE.get());
+                  SendMessage.warnMessage(sender, Lang.PLAYER_NOT_ONLINE.get());
                }
             } else {
-               if (var3.length < 2) {
+               if (values.length < 2) {
                   return false;
                }
 
-               Player var11 = this.plugin.getServer().getPlayer(var3[1]);
-               if (var11 != null) {
-                  if (this.plugin.shopSearch && var3[0].equalsIgnoreCase("search")) {
-                     if (var3.length == 2) {
+               Player player = this.plugin.getServer().getPlayer(values[1]);
+               if (player != null) {
+                  if (this.plugin.shopSearch && values[0].equalsIgnoreCase("search")) {
+                     if (values.length == 2) {
                         new AnvilGUI.Builder()
-                           .onComplete((var0, var1x) -> {
-                              new ShopSearch(var0, var1x);
+                           .onComplete((player2, input) -> {
+                              new ShopSearch(player2, input);
                               return AnvilGUI.Response.close();
                            })
-                           .onClose(var0 -> OnyxShop.getInstance().runTaskLater(var0::updateInventory, 1L))
+                           .onClose(player2 -> OnyxShop.getInstance().runTaskLaterFor(player2::updateInventory, player2, 1L))
                            .itemLeft(new ItemStack(Material.NAME_TAG))
-                           .text(Lang.SHOPSEARCH_PRE_ENTERED_VALUE.get(var11).getLegacy())
-                           .title(TitleManager.get(TitleManager.Menu.SHOPSEARCH, var11).getLegacy())
+                           .text(Lang.SHOPSEARCH_PRE_ENTERED_VALUE.get(player).getLegacy())
+                           .title(TitleManager.get(TitleManager.Menu.SHOPSEARCH, player).getLegacy())
                            .plugin(OnyxShop.getInstance())
-                           .open(var11);
+                           .open(player);
                      } else {
-                        new ShopSearch(var11, var3[2]);
+                        new ShopSearch(player, values[2]);
                      }
-                  } else if (this.plugin.getShopSections().contains(var3[0])) {
-                     if (var3.length >= 3) {
-                        if (var3[2].matches("-?\\d+")) {
+                  } else if (this.plugin.getShopSections().contains(values[0])) {
+                     if (values.length >= 3) {
+                        if (values[2].matches("-?\\d+")) {
                            try {
-                              int var12 = Integer.parseInt(var3[2]);
-                              ShopSection var14 = this.plugin.getSection(var3[0]);
-                              if (var14.getShopPageItems(var12) == null) {
+                              int value = Integer.parseInt(values[2]);
+                              ShopSection section = this.plugin.getSection(values[0]);
+                              if (section.getShopPageItems(value) == null) {
                                  throw new NumberFormatException();
                               }
 
-                              var14.openShopSection(var11, var12, BackButton.DIRECT_CONSOLE);
-                           } catch (NumberFormatException var8) {
-                              SendMessage.warnMessage(var1, Lang.NO_SHOP_PAGE_FOUND.get().replace("%page%", var3[2]));
+                              section.openShopSection(player, value, BackButton.DIRECT_CONSOLE);
+                           } catch (NumberFormatException exception) {
+                              SendMessage.warnMessage(sender, Lang.NO_SHOP_PAGE_FOUND.get().replace("%page%", values[2]));
                            }
-                        } else if (this.plugin.getSection(var3[0]).getItemLocs().contains(var3[2])) {
-                           if (var3.length >= 4) {
+                        } else if (this.plugin.getSection(values[0]).getItemLocs().contains(values[2])) {
+                           if (values.length >= 4) {
                               try {
-                                 Transaction.Mode var13 = Transaction.Mode.valueOf(var3[3].toUpperCase());
+                                 Transaction.Mode mode = Transaction.Mode.valueOf(values[3].toUpperCase());
                                  new TransactionMenu(
-                                       var11,
-                                       this.plugin.getShopItem(var3[0], var3[2]),
+                                       player,
+                                       this.plugin.getShopItem(values[0], values[2]),
                                        null,
                                        BackButton.DIRECT_CONSOLE,
-                                       var13,
-                                       var13 == Transaction.Mode.BUY ? Transaction.Type.BUY_SCREEN : Transaction.Type.SELL_SCREEN,
+                                       mode,
+                                       mode == Transaction.Mode.BUY ? Transaction.Type.BUY_SCREEN : Transaction.Type.SELL_SCREEN,
                                        1
                                     )
                                     .open(false);
-                              } catch (IllegalArgumentException var7) {
-                                 SendMessage.warnMessage(var1, ChatColor.RED + "Invalid transaction mode, should be buy/sell");
+                              } catch (IllegalArgumentException exception) {
+                                 SendMessage.warnMessage(sender, ChatColor.RED + "Invalid transaction mode, should be buy/sell");
                               }
                            } else {
-                              SendMessage.warnMessage(var1, ChatColor.RED + "/shop <section> <player> <item> <buy/sell>");
+                              SendMessage.warnMessage(sender, ChatColor.RED + "/shop <section> <player> <item> <buy/sell>");
                            }
                         } else {
                            SendMessage.warnMessage(
-                              var1, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", var3[0]).replace("%itemLoc%", var3[2])
+                              sender, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", values[0]).replace("%itemLoc%", values[2])
                            );
                         }
                      } else {
-                        this.plugin.getSection(var3[0]).openShopSection(var11, BackButton.DIRECT_CONSOLE);
+                        this.plugin.getSection(values[0]).openShopSection(player, BackButton.DIRECT_CONSOLE);
                      }
                   } else {
-                     SendMessage.warnMessage(var1, Lang.NO_SHOP_FOUND.get());
+                     SendMessage.warnMessage(sender, Lang.NO_SHOP_FOUND.get());
                   }
                } else {
-                  SendMessage.warnMessage(var1, Lang.PLAYER_NOT_ONLINE.get());
+                  SendMessage.warnMessage(sender, Lang.PLAYER_NOT_ONLINE.get());
                }
             }
          }
@@ -180,36 +180,36 @@ public class Shop extends PluginCommands {
    }
 
    @Override
-   public List<String> tabComplete(CommandSender var1, String var2, String[] var3) {
-      if (!PermissionsCache.hasPermission(var1, "OnyxShop.shop")) {
+   public List<String> tabComplete(CommandSender sender, String command, String[] values) {
+      if (!PermissionsCache.hasPermission(sender, "OnyxShop.shop")) {
          return Collections.emptyList();
-      } else if (var3.length == 1) {
-         List var6 = this.plugin
+      } else if (values.length == 1) {
+         List values2 = this.plugin
             .getSections()
             .values()
             .stream()
             .filter(
-               var1x -> !var1x.isSubSection() && !var1x.isCommandItem() && PermissionsCache.hasPermission(var1, "OnyxShop.shop." + var1x.getSection())
+               element -> !element.isSubSection() && !element.isCommandItem() && PermissionsCache.hasPermission(sender, "OnyxShop.shop." + element.getSection())
             )
             .map(ShopSection::getSection)
             .collect(Collectors.toList());
          if (this.plugin.shopSearch) {
-            var6.add("search");
+            values2.add("search");
          }
 
-         if (!var3[0].isEmpty()) {
-            ArrayList var5 = new ArrayList();
-            StringUtil.copyPartialMatches(var3[0], var6, var5);
-            Collections.sort(var5);
-            return var5;
+         if (!values[0].isEmpty()) {
+            ArrayList values3 = new ArrayList();
+            StringUtil.copyPartialMatches(values[0], values2, values3);
+            Collections.sort(values3);
+            return values3;
          } else {
-            return var6;
+            return values2;
          }
       } else {
-         if (var3.length == 2 && !var3[0].equalsIgnoreCase("search")) {
-            ShopSection var4 = this.plugin.getSection(var3[0]);
-            if (var4 != null) {
-               return IntStream.rangeClosed(1, var4.getPages()).mapToObj(String::valueOf).collect(Collectors.toList());
+         if (values.length == 2 && !values[0].equalsIgnoreCase("search")) {
+            ShopSection section = this.plugin.getSection(values[0]);
+            if (section != null) {
+               return IntStream.rangeClosed(1, section.getPages()).mapToObj(String::valueOf).collect(Collectors.toList());
             }
          }
 

@@ -16,112 +16,112 @@ public class MessageSerializer {
    public MessageSerializer() {
    }
 
-   public String serializeToJson(String var1) {
-      return this.toComponent(var1).serialize().toJSONString();
+   public String serializeToJson(String text) {
+      return this.toComponent(text).serialize().toJSONString();
    }
 
-   public String serializeToJson(List<String> var1) {
-      ListComponent var2 = new ListComponent();
+   public String serializeToJson(List<String> values) {
+      ListComponent listComponent = new ListComponent();
 
-      for (String var4 : var1) {
-         var2.addComponent(this.toComponent(var4));
+      for (String text : values) {
+         listComponent.addComponent(this.toComponent(text));
       }
 
-      return var2.serialize().toJSONString();
+      return listComponent.serialize().toJSONString();
    }
 
-   public StringComponent toComponent(String var1) {
-      StringComponent var2 = new StringComponent();
-      if (var1.contains("§")) {
-         if (!var1.startsWith("§")) {
-            String var3 = var1.substring(0, var1.indexOf("§"));
-            var2.addComponent(new TextComponent(var3));
-            var1 = var1.substring(var1.indexOf("§"));
-            return this.formatString(var2, var1);
+   public StringComponent toComponent(String text) {
+      StringComponent stringComponent = new StringComponent();
+      if (text.contains("§")) {
+         if (!text.startsWith("§")) {
+            String text2 = text.substring(0, text.indexOf("§"));
+            stringComponent.addComponent(new TextComponent(text2));
+            text = text.substring(text.indexOf("§"));
+            return this.formatString(stringComponent, text);
          } else {
-            return this.formatString(var1);
+            return this.formatString(text);
          }
       } else {
-         var2.addComponent(new TextComponent(var1));
-         return var2;
+         stringComponent.addComponent(new TextComponent(text));
+         return stringComponent;
       }
    }
 
-   private StringComponent formatString(String var1) {
-      return this.formatString(new StringComponent(), var1);
+   private StringComponent formatString(String text) {
+      return this.formatString(new StringComponent(), text);
    }
 
-   private StringComponent formatString(StringComponent var1, String var2) {
-      FormatComponent var3 = new FormatComponent(0);
-      MessageSerializer.Line var4 = new MessageSerializer.Line();
-      boolean var5 = false;
-      int var6 = 0;
-      int var7 = 0;
+   private StringComponent formatString(StringComponent stringComponent, String text) {
+      FormatComponent formatComponent = new FormatComponent(0);
+      MessageSerializer.Line line = new MessageSerializer.Line();
+      boolean flag = false;
+      int value = 0;
+      int value2 = 0;
 
-      for (Matcher var8 = formatPattern.matcher(var2); var8.find(); var7 = var8.end()) {
-         String var9 = var8.group();
-         var6++;
-         var4.append(var2.substring(var7, var8.start()));
-         if (var9.charAt(1) == 'x') {
-            if (var3.isReset() || var5) {
-               var3.setText(var4.get());
-               var1.addComponent(var3);
-               var3 = new FormatComponent(var6);
+      for (Matcher matcher = formatPattern.matcher(text); matcher.find(); value2 = matcher.end()) {
+         String text2 = matcher.group();
+         value++;
+         line.append(text.substring(value2, matcher.start()));
+         if (text2.charAt(1) == 'x') {
+            if (formatComponent.isReset() || flag) {
+               formatComponent.setText(line.get());
+               stringComponent.addComponent(formatComponent);
+               formatComponent = new FormatComponent(value);
             }
 
-            var3.useItalic();
-            var3.setHex(var9.substring(2).replace("§", ""));
-            var5 = true;
+            formatComponent.useItalic();
+            formatComponent.setHex(text2.substring(2).replace("§", ""));
+            flag = true;
          } else {
-            ChatColor var10 = ChatColor.getByChar(var9.charAt(1));
-            if (var10.isColor()) {
-               if (var3.isReset() || var5) {
-                  var3.setText(var4.get());
-                  var1.addComponent(var3);
-                  var3 = new FormatComponent(var6);
+            ChatColor chatColor = ChatColor.getByChar(text2.charAt(1));
+            if (chatColor.isColor()) {
+               if (formatComponent.isReset() || flag) {
+                  formatComponent.setText(line.get());
+                  stringComponent.addComponent(formatComponent);
+                  formatComponent = new FormatComponent(value);
                }
 
-               var3.useItalic();
-               var3.setColor(var10.name().toLowerCase(Locale.ENGLISH));
-               var5 = true;
-            } else if (var10.isFormat()) {
-               if (var3.isReset()) {
-                  var3.setText(var4.get());
-                  var1.addComponent(var3);
-                  var3 = new FormatComponent(var6);
+               formatComponent.useItalic();
+               formatComponent.setColor(chatColor.name().toLowerCase(Locale.ENGLISH));
+               flag = true;
+            } else if (chatColor.isFormat()) {
+               if (formatComponent.isReset()) {
+                  formatComponent.setText(line.get());
+                  stringComponent.addComponent(formatComponent);
+                  formatComponent = new FormatComponent(value);
                }
 
-               var5 = true;
-               switch (var10) {
+               flag = true;
+               switch (chatColor) {
                   case BOLD:
-                     var3.setBold();
+                     formatComponent.setBold();
                      break;
                   case MAGIC:
-                     var3.setObfuscated();
+                     formatComponent.setObfuscated();
                      break;
                   case ITALIC:
-                     var3.setItalic();
+                     formatComponent.setItalic();
                      break;
                   case UNDERLINE:
-                     var3.setUnderlined();
+                     formatComponent.setUnderlined();
                      break;
                   case STRIKETHROUGH:
-                     var3.setStrikethrough();
+                     formatComponent.setStrikethrough();
                }
-            } else if (var10 == ChatColor.RESET) {
-               var3.setText(var4.get());
-               var1.addComponent(var3);
-               var3 = new FormatComponent(var6);
-               var3.setReset();
-               var5 = true;
+            } else if (chatColor == ChatColor.RESET) {
+               formatComponent.setText(line.get());
+               stringComponent.addComponent(formatComponent);
+               formatComponent = new FormatComponent(value);
+               formatComponent.setReset();
+               flag = true;
             }
          }
       }
 
-      var4.append(var2.substring(var7));
-      var3.setText(var4.get());
-      var1.addComponent(var3);
-      return var1;
+      line.append(text.substring(value2));
+      formatComponent.setText(line.get());
+      stringComponent.addComponent(formatComponent);
+      return stringComponent;
    }
 
    private static final class Line {
@@ -130,14 +130,14 @@ public class MessageSerializer {
       public Line() {
       }
 
-      public void append(String var1) {
-         this.text.append(var1);
+      public void append(String text) {
+         this.text.append(text);
       }
 
       public String get() {
-         String var1 = this.text.toString();
+         String text = this.text.toString();
          this.text = new StringBuilder();
-         return var1;
+         return text;
       }
    }
 }

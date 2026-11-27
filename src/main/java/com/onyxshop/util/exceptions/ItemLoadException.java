@@ -4,11 +4,11 @@ import com.onyxshop.files.Translatable;
 import org.bukkit.ChatColor;
 
 public class ItemLoadException extends CustomException {
-   public ItemLoadException(String var1) {
-      super(var1);
+   public ItemLoadException(String itemId) {
+      super(itemId);
    }
 
-   public ItemLoadException(Translatable var1) {
-      super(ChatColor.stripColor(var1.getLegacy()));
+   public ItemLoadException(Translatable text) {
+      super(ChatColor.stripColor(text.getLegacy()));
    }
 }

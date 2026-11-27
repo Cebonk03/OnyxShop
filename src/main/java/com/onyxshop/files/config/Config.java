@@ -19,31 +19,31 @@ public class Config extends YamlConfiguration {
    private final Path path;
    public Configuration defaults;
 
-   public Config(File var1) throws ConfigLoadException {
-      this.path = var1.toPath();
-      this.loadConfig(var1);
+   public Config(File file) throws ConfigLoadException {
+      this.path = file.toPath();
+      this.loadConfig(file);
    }
 
-   private void loadConfig(File var1) throws ConfigLoadException {
+   private void loadConfig(File file) throws ConfigLoadException {
       try {
-         this.load(var1);
-      } catch (IOException var3) {
-         throw new ConfigLoadException("A unknown IOE Exception occurred while loading " + var1.getName() + "\n" + this.stackTraceToString(var3));
-      } catch (InvalidConfigurationException var4) {
+         this.load(file);
+      } catch (IOException exception) {
+         throw new ConfigLoadException("A unknown IOE Exception occurred while loading " + file.getName() + "\n" + this.stackTraceToString(exception));
+      } catch (InvalidConfigurationException exception) {
          throw new ConfigLoadException(
             "Invalid Yaml syntax while loading "
-               + var1.getName()
+               + file.getName()
                + " config, use a online Yaml parser to validate the config and fix any errors.\n"
-               + this.stackTraceToString(var4)
+               + this.stackTraceToString(exception)
          );
       }
    }
 
-   private String stackTraceToString(Exception var1) {
-      StringWriter var2 = new StringWriter();
-      PrintWriter var3 = new PrintWriter(var2);
-      var1.printStackTrace(var3);
-      return var2.toString();
+   private String stackTraceToString(Exception exception) {
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter printWriter = new PrintWriter(stringWriter);
+      exception.printStackTrace(printWriter);
+      return stringWriter.toString();
    }
 
    public void reload() throws ConfigLoadException {
@@ -52,14 +52,14 @@ public class Config extends YamlConfiguration {
 
    public void save() throws ConfigSaveException {
       try {
-         File var6 = new File(this.path.toString() + ".tmp");
-         this.save(var6);
+         File file = new File(this.path.toString() + ".tmp");
+         this.save(file);
          java.nio.file.Files.move(
-            var6.toPath(), this.path, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE
+            file.toPath(), this.path, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE
          );
-      } catch (IOException var2) {
+      } catch (IOException exception) {
          throw new ConfigSaveException(
-            Lang.COULD_NOT_SAVE_CONFIG.get().replace("%fileName%", this.path.getFileName().toString()) + "\n" + this.stackTraceToString(var2)
+            Lang.COULD_NOT_SAVE_CONFIG.get().replace("%fileName%", this.path.getFileName().toString()) + "\n" + this.stackTraceToString(exception)
          );
       }
    }
@@ -68,14 +68,14 @@ public class Config extends YamlConfiguration {
       try {
          this.save();
          this.reload();
-      } catch (ConfigLoadException | ConfigSaveException var2) {
-         SendMessage.errorMessage(var2.getMessage());
+      } catch (ConfigLoadException | ConfigSaveException exception) {
+         SendMessage.errorMessage(exception.getMessage());
          ConfigManager.badYaml = this.path.getFileName().toString();
       }
    }
 
-   public void setDef(@NotNull Configuration var1) {
-      this.defaults = var1;
+   public void setDef(@NotNull Configuration configuration) {
+      this.defaults = configuration;
    }
 
    public Configuration getDef() {

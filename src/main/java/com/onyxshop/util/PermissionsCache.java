@@ -13,36 +13,36 @@ public class PermissionsCache {
    private static final LoadingCache<PermissionHolder, Boolean> PERMISSIONS_CACHE = CacheBuilder.newBuilder()
       .expireAfterWrite(10L, TimeUnit.SECONDS)
       .build(new CacheLoader<PermissionHolder, Boolean>() {
-         public Boolean load(PermissionHolder var1) {
-            Player var2 = Bukkit.getPlayer(var1.getOwner());
-            return var2 != null && var2.hasPermission(var1.getPermission());
+         public Boolean load(PermissionHolder permissionHolder) {
+            Player player = Bukkit.getPlayer(permissionHolder.getOwner());
+            return player != null && player.hasPermission(permissionHolder.getPermission());
          }
       });
 
    public PermissionsCache() {
    }
 
-   public static boolean hasPermission(Player var0, String var1) {
+   public static boolean hasPermission(Player player, String permission) {
       try {
-         return (Boolean)PERMISSIONS_CACHE.get(new PermissionHolder(var0, var1));
-      } catch (ExecutionException var3) {
-         return var0.hasPermission(var1);
+         return (Boolean)PERMISSIONS_CACHE.get(new PermissionHolder(player, permission));
+      } catch (ExecutionException exception) {
+         return player.hasPermission(permission);
       }
    }
 
-   public static boolean hasPermission(CommandSender var0, String var1) {
+   public static boolean hasPermission(CommandSender sender, String permission) {
       try {
-         return !(var0 instanceof Player) || (Boolean)PERMISSIONS_CACHE.get(new PermissionHolder((Player)var0, var1));
-      } catch (ExecutionException var3) {
-         return var0.hasPermission(var1);
+         return !(sender instanceof Player) || (Boolean)PERMISSIONS_CACHE.get(new PermissionHolder((Player)sender, permission));
+      } catch (ExecutionException exception) {
+         return sender.hasPermission(permission);
       }
    }
 
-   public static boolean hasPermission(Object var0, String var1) {
+   public static boolean hasPermission(Object value, String permission) {
       try {
-         return !(var0 instanceof Player) || (Boolean)PERMISSIONS_CACHE.get(new PermissionHolder((Player)var0, var1));
-      } catch (ExecutionException var3) {
-         return ((CommandSender)var0).hasPermission(var1);
+         return !(value instanceof Player) || (Boolean)PERMISSIONS_CACHE.get(new PermissionHolder((Player)value, permission));
+      } catch (ExecutionException exception) {
+         return ((CommandSender)value).hasPermission(permission);
       }
    }
 }

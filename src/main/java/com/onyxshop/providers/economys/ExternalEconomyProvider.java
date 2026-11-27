@@ -17,14 +17,14 @@ public class ExternalEconomyProvider implements EconomyProvider {
    }
 
    @Override
-   public final void setup(OnyxShop var1) throws EconomyLoadException {
-      String var2 = "currency-formats." + this.getType().getType().name() + ":" + this.getName();
-      String var3 = this.getCurrencyName() != null ? ConfigManager.getPathIgnoreCase(var2 + ":" + this.getCurrencyName()) : null;
-      if (var3 == null || !ConfigManager.getConfig().contains(var3)) {
-         var3 = ConfigManager.getPathIgnoreCase(var2);
+   public final void setup(OnyxShop plugin) throws EconomyLoadException {
+      String type = "currency-formats." + this.getType().getType().name() + ":" + this.getName();
+      String name = this.getCurrencyName() != null ? ConfigManager.getPathIgnoreCase(type + ":" + this.getCurrencyName()) : null;
+      if (name == null || !ConfigManager.getConfig().contains(name)) {
+         name = ConfigManager.getPathIgnoreCase(type);
       }
 
-      this.formatter = PriceFormatter.getFormatter(var3);
+      this.formatter = PriceFormatter.getFormatter(name);
       SendMessage.infoMessage(
          "Successfully registered economy provider EXTERNAL:"
             + this.getName()
@@ -33,16 +33,16 @@ public class ExternalEconomyProvider implements EconomyProvider {
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
+   public double getBalance(OfflinePlayer offlinePlayer) {
       return 0.0;
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
       return true;
    }
 
@@ -85,13 +85,13 @@ public class ExternalEconomyProvider implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.formatter.round(var1);
+   public double round(double amount) {
+      return this.formatter.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.formatter.format(this, var1);
+   public String formatPrice(double price) {
+      return this.formatter.format(this, price);
    }
 
    @Override

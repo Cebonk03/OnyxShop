@@ -63,21 +63,21 @@ public class RotatingShop implements ShopSection {
       && Bukkit.getPluginManager().getPlugin("EcoEnchants") == null;
    public final List<String> itemLocs = new ArrayList<>();
 
-   public void setProvider(RotatingShopProvider var1) {
-      this.provider = var1;
+   public void setProvider(RotatingShopProvider rotatingShopProvider) {
+      this.provider = rotatingShopProvider;
    }
 
-   public RotatingShop(OnyxShop var1, String var2) {
-      this.plugin = var1;
-      this.section = var2;
-      this.title = new ShopTitle(this.plugin.getSectionTitle(var2), this.plugin.getBedrockSectionTitle(var2));
+   public RotatingShop(OnyxShop plugin, String shopId) {
+      this.plugin = plugin;
+      this.section = shopId;
+      this.title = new ShopTitle(this.plugin.getSectionTitle(shopId), this.plugin.getBedrockSectionTitle(shopId));
       this.subSection = ConfigManager.getSection(this.section).getBoolean("sub-section");
       this.hidden = ConfigManager.getSection(this.section).getBoolean("hidden");
-      this.dynamicLore = var1.dynamicPricing;
+      this.dynamicLore = plugin.dynamicPricing;
       this.navBar = this.plugin.navBar.isEnabled(this.section);
       this.updateInterval = this.loadUpdateInterval();
       this.itemLocs.addAll(this.plugin.getConfigManager().getRotatingItemsRaw(this.section));
-      this.mappings = ConfigManager.getSection(this.section).contains("click-mappings") ? new ClickMappings(var2) : var1.getClickMappings();
+      this.mappings = ConfigManager.getSection(this.section).contains("click-mappings") ? new ClickMappings(shopId) : plugin.getClickMappings();
       if (!(this.clickCommands = ConfigManager.getSection(this.section).getStringList("click-commands")).isEmpty()) {
          this.closeMenu = ConfigManager.getSection(this.section).getBoolean("close-menu");
       } else {
@@ -91,13 +91,13 @@ public class RotatingShop implements ShopSection {
    }
 
    @Override
-   public DisplayItem getDisplayItem(String var1) {
-      return this.displayItems.get(var1);
+   public DisplayItem getDisplayItem(String itemId) {
+      return this.displayItems.get(itemId);
    }
 
    @Override
-   public boolean isActionItem(String var1, String var2) {
-      return this.displayItems.get(var1 + "." + var2) instanceof ActionItem;
+   public boolean isActionItem(String itemId, String text) {
+      return this.displayItems.get(itemId + "." + text) instanceof ActionItem;
    }
 
    @Override
@@ -105,15 +105,15 @@ public class RotatingShop implements ShopSection {
       return this.displayItems
          .values()
          .stream()
-         .filter(var0 -> ShopItem.class.equals(var0.getClass()))
+         .filter(element -> ShopItem.class.equals(element.getClass()))
          .map(ShopItem.class::cast)
          .collect(Collectors.toCollection(ArrayList::new));
    }
 
    @Override
-   public ShopItem getShopItem(String var1) {
-      DisplayItem var2 = this.displayItems.get(var1);
-      return var2 instanceof ShopItem ? (ShopItem)var2 : null;
+   public ShopItem getShopItem(String shopId) {
+      DisplayItem displayItem = this.displayItems.get(shopId);
+      return displayItem instanceof ShopItem ? (ShopItem)displayItem : null;
    }
 
    @Override
@@ -122,12 +122,12 @@ public class RotatingShop implements ShopSection {
    }
 
    @Override
-   public ShopPageItems getShopPageItems(int var1) {
-      return this.provider.getPage(var1);
+   public ShopPageItems getShopPageItems(int page) {
+      return this.provider.getPage(page);
    }
 
-   public Map<Integer, DisplayItem> getStaticItems(int var1) {
-      return this.staticItems.get(var1);
+   public Map<Integer, DisplayItem> getStaticItems(int value) {
+      return this.staticItems.get(value);
    }
 
    @Override
@@ -172,7 +172,7 @@ public class RotatingShop implements ShopSection {
 
    @Override
    public List<String> getShopItemLocs() {
-      return this.displayItems.values().stream().filter(var0 -> ShopItem.class.equals(var0.getClass())).map(DisplayItem::itemLoc).collect(Collectors.toList());
+      return this.displayItems.values().stream().filter(element -> ShopItem.class.equals(element.getClass())).map(DisplayItem::itemLoc).collect(Collectors.toList());
    }
 
    @Override
@@ -181,21 +181,21 @@ public class RotatingShop implements ShopSection {
    }
 
    @Override
-   public ClickAction getClickAction(ClickType var1) {
-      return this.mappings.getAction(var1);
+   public ClickAction getClickAction(ClickType clickType) {
+      return this.mappings.getAction(clickType);
    }
 
    public Collection<ShopItem> getItemsInRotation() {
       if (this.provider.getCurrentItems() == null) {
          return null;
       } else {
-         ArrayList var1 = new ArrayList();
+         ArrayList values = new ArrayList();
 
-         for (String var3 : this.provider.getCurrentItems()) {
-            var1.add((ShopItem)this.displayItems.get(var3));
+         for (String text : this.provider.getCurrentItems()) {
+            values.add((ShopItem)this.displayItems.get(text));
          }
 
-         return var1;
+         return values;
       }
    }
 
@@ -203,8 +203,8 @@ public class RotatingShop implements ShopSection {
       this.provider.stopCurrent();
    }
 
-   public void forceRotate(boolean var1) {
-      this.provider.loadNextRotation(var1);
+   public void forceRotate(boolean flag) {
+      this.provider.loadNextRotation(flag);
    }
 
    public String getNextRotation() {
@@ -212,51 +212,51 @@ public class RotatingShop implements ShopSection {
    }
 
    @Override
-   public int getPageForShopItem(String var1) {
-      return this.provider.getPageForShopItem(var1);
+   public int getPageForShopItem(String shopId) {
+      return this.provider.getPageForShopItem(shopId);
    }
 
    @Override
-   public List<ShopItem> getPageItems(int var1) {
-      List var2 = this.provider
-         .getPage(var1)
+   public List<ShopItem> getPageItems(int page) {
+      List values = this.provider
+         .getPage(page)
          .getItemOrder()
          .stream()
          .filter(Objects::nonNull)
-         .map(var1x -> this.displayItems.get(this.section + "." + var1x))
-         .filter(var0 -> var0 instanceof ShopItem)
-         .map(var0 -> (ShopItem)var0)
+         .map(element -> this.displayItems.get(this.section + "." + element))
+         .filter(element -> element instanceof ShopItem)
+         .map(element -> (ShopItem)element)
          .collect(Collectors.toCollection(ArrayList::new));
-      if (this.staticItems.containsKey(var1)) {
-         this.staticItems.get(var1).values().stream().filter(var0 -> var0 instanceof ShopItem).map(var0 -> (ShopItem)var0).forEach(var2::add);
+      if (this.staticItems.containsKey(page)) {
+         this.staticItems.get(page).values().stream().filter(element -> element instanceof ShopItem).map(element -> (ShopItem)element).forEach(values::add);
       }
 
-      return var2;
+      return values;
    }
 
    private void loadShopItems() {
       try {
-         ArrayList var1 = new ArrayList();
+         ArrayList shopIds = new ArrayList();
 
-         for (String var3 : this.itemLocs) {
-            Object var4 = ConfigManager.getShop(this.section).contains(var3 + ".action")
-               ? new ActionItem(this.plugin, this, var3)
-               : new ShopItem(this.plugin, this, var3);
-            if (ConfigManager.getShop(this.section).contains(var3 + ".slot")) {
-               var1.add(var3);
+         for (String itemId : this.itemLocs) {
+            Object value = ConfigManager.getShop(this.section).contains(itemId + ".action")
+               ? new ActionItem(this.plugin, this, itemId)
+               : new ShopItem(this.plugin, this, itemId);
+            if (ConfigManager.getShop(this.section).contains(itemId + ".slot")) {
+               shopIds.add(itemId);
 
-               for (Integer var6 : this.plugin.calculateAmount.getSlots(ConfigManager.getShop(this.section).getString(var3 + ".slot"))) {
-                  Map var7 = this.staticItems.computeIfAbsent(var6 / 54 + 1, var0 -> new HashMap<>());
-                  var7.put(var6 - var6 / 54 * 54, var4);
+               for (Integer amount : this.plugin.calculateAmount.getSlots(ConfigManager.getShop(this.section).getString(itemId + ".slot"))) {
+                  Map map = this.staticItems.computeIfAbsent(amount / 54 + 1, key -> new HashMap<>());
+                  map.put(amount - amount / 54 * 54, value);
                }
             }
 
-            this.displayItems.put(this.section + "." + var3, (DisplayItem)var4);
+            this.displayItems.put(this.section + "." + itemId, (DisplayItem)value);
          }
 
-         this.itemLocs.removeAll(var1);
-      } catch (NullPointerException var8) {
-         var8.printStackTrace();
+         this.itemLocs.removeAll(shopIds);
+      } catch (NullPointerException exception) {
+         exception.printStackTrace();
       }
 
       if (ConfigManager.getSection(this.section).get("fill-item") != null) {
@@ -265,13 +265,13 @@ public class RotatingShop implements ShopSection {
    }
 
    private long loadUpdateInterval() {
-      String var1 = ConfigManager.getSection(this.section).getString("update-interval");
-      if (var1 == null) {
+      String text = ConfigManager.getSection(this.section).getString("update-interval");
+      if (text == null) {
          return 0L;
       } else {
          try {
-            return TimeUtils.getTime(var1) / 1000L * 20L;
-         } catch (Exception var3) {
+            return TimeUtils.getTime(text) / 1000L * 20L;
+         } catch (Exception exception) {
             SendMessage.warnMessage("Invalid update-interval for shop '" + this.section + "', disabling periodic item updates...");
             return 0L;
          }
@@ -281,74 +281,74 @@ public class RotatingShop implements ShopSection {
    private void loadFillItem() {
       try {
          this.fillItem = this.plugin.createItem.loadSectionItem(this.section, "fill-item");
-      } catch (ItemLoadException var2) {
+      } catch (ItemLoadException exception) {
          SendMessage.errorMessage(Lang.EXCEPTION_LOADING_FILL_ITEM.get().replace("%section%", this.section));
-         SendMessage.warnMessage(var2.getMessage());
+         SendMessage.warnMessage(exception.getMessage());
       }
    }
 
    @Override
-   public void openShopSection(Player var1, boolean var2) {
-      this.openShopSection(var1, 1, var2);
+   public void openShopSection(Player player, boolean flag) {
+      this.openShopSection(player, 1, flag);
    }
 
    @Override
-   public void openShopSection(Player var1, boolean var2, String var3) {
-      this.openShopSection(var1, 1, var2, var3);
+   public void openShopSection(Player player, boolean flag, String shopId) {
+      this.openShopSection(player, 1, flag, shopId);
    }
 
    @Override
-   public void openShopSection(Player var1, int var2, boolean var3) {
-      this.openShopSection(var1, var2, var3, null);
+   public void openShopSection(Player player, int value, boolean flag) {
+      this.openShopSection(player, value, flag, null);
    }
 
    @Override
-   public void openShopSection(Player var1, int var2, boolean var3, @Nullable String var4) {
-      ShopPageItems var5 = this.provider.getPage(var2);
-      Map var6 = var5.getItems();
-      if (this.staticItems.containsKey(var2)) {
-         this.staticItems.get(var2).forEach((var1x, var2x) -> var6.put(var1x, var2x.getShopItem()));
+   public void openShopSection(Player player, int value, boolean flag, @Nullable String shopId) {
+      ShopPageItems shopPageItems = this.provider.getPage(value);
+      Map items = shopPageItems.getItems();
+      if (this.staticItems.containsKey(value)) {
+         this.staticItems.get(value).forEach((key, value2) -> items.put(key, value2.getShopItem()));
       }
 
-      User var7 = UserManager.getUser(var1);
-      boolean var8 = PermissionsCache.hasPermission(var1, "OnyxShop.itemindexes");
-      boolean var9 = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
-      boolean var10 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
+      User user = UserManager.getUser(player);
+      boolean permission = PermissionsCache.hasPermission(player, "OnyxShop.itemindexes");
+      boolean flag2 = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
+      boolean flag3 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
       this.updateLore(
-         var6, var1, var7.isPr(), var7.isBedrock(), var9, var10, this.plugin.itemStockLore, this.plugin.sellLimits, false, var8, this.plugin.seasonalLore, var2
+         items, player, user.isPr(), user.isBedrock(), flag2, flag3, this.plugin.itemStockLore, this.plugin.sellLimits, false, permission, this.plugin.seasonalLore, value
       );
-      if (this.plugin.bedrock && this.plugin.bedrockMenus && var7.isBedrock() && this.plugin.getBedrockInventorys().isEnabledFor(var1)) {
+      if (this.plugin.bedrock && this.plugin.bedrockMenus && user.isBedrock() && this.plugin.getBedrockInventorys().isEnabledFor(player)) {
          this.plugin
             .getBedrockInventorys()
-            .openShopSection(var1, this, var2, var3, var4, var6, var5.getItemOrder(), this.fillItem, this.getTitle(var1, var2), var5.getSize(), this.navBar);
+            .openShopSection(player, this, value, flag, shopId, items, shopPageItems.getItemOrder(), this.fillItem, this.getTitle(player, value), shopPageItems.getSize(), this.navBar);
       } else {
-         int var11 = this.plugin.resizeGUI && var7.isBedrock() ? 54 : var5.getSize();
-         InventoryHolder var12 = InventoryUtil.getTopHolder(var1);
-         if (var12 instanceof ShopPage) {
-            ShopPage var13 = (ShopPage)var12;
-            if (this.section.equals(var13.getSection()) && var11 == var13.getSize()) {
-               var13.updateContents(this.plugin, var1, var6, var5.getItemOrder(), this.fillItem, var2, this.navBar);
-               this.plugin.versionHandler.updateInventoryTitle(var1, this.getTitle(var1, var2));
+         int size = this.plugin.resizeGUI && user.isBedrock() ? 54 : shopPageItems.getSize();
+         InventoryHolder holder = InventoryUtil.getTopHolder(player);
+         if (holder instanceof ShopPage) {
+            ShopPage shopPage = (ShopPage)holder;
+            if (this.section.equals(shopPage.getSection()) && size == shopPage.getSize()) {
+               shopPage.updateContents(this.plugin, player, items, shopPageItems.getItemOrder(), this.fillItem, value, this.navBar);
+               this.plugin.versionHandler.updateInventoryTitle(player, this.getTitle(player, value));
                return;
             }
          }
 
-         var7.setOpenNewGUI(true);
-         var1.openInventory(
+         user.setOpenNewGUI(true);
+         player.openInventory(
             new ShopPage(
                   this.plugin,
-                  var6,
-                  var5.getItemOrder(),
+                  items,
+                  shopPageItems.getItemOrder(),
                   this.fillItem,
-                  var1,
-                  this.getTitle(var1, var2),
+                  player,
+                  this.getTitle(player, value),
                   this.section,
-                  var2,
+                  value,
                   this.provider.getPageSize(),
-                  var3,
+                  flag,
                   this.navBar,
-                  var11,
-                  var4
+                  size,
+                  shopId
                )
                .getInventory()
          );
@@ -356,53 +356,57 @@ public class RotatingShop implements ShopSection {
    }
 
    public void reopen() {
-      for (Player var2 : Bukkit.getOnlinePlayers()) {
-         InventoryHolder var3 = InventoryUtil.getTopHolder(var2);
-         if (var3 instanceof ShopPage || var3 instanceof TransactionMenu) {
-            if (var3 instanceof ShopPage) {
-               ShopPage var4 = (ShopPage)var3;
-               if (this.section.equals(var4.getSection())) {
-                  this.openShopSection(var2, var4.getPage(), var4.isDisabledBackButton(), var4.getRootSection());
-               }
-            } else {
-               TransactionMenu var5 = (TransactionMenu)var3;
-               if (this.section.equals(var5.getShopItem().section)) {
-                  this.openShopSection(var2, 1, var5.isDisabledBackButton(), var5.getRootSection());
-               }
+      for (Player player : Bukkit.getOnlinePlayers()) {
+         OnyxShop.getInstance().runTaskFor(() -> this.reopenFor(player), player);
+      }
+   }
+
+   private void reopenFor(Player player) {
+      InventoryHolder holder = InventoryUtil.getTopHolder(player);
+      if (holder instanceof ShopPage || holder instanceof TransactionMenu) {
+         if (holder instanceof ShopPage) {
+            ShopPage shopPage = (ShopPage)holder;
+            if (this.section.equals(shopPage.getSection())) {
+               this.openShopSection(player, shopPage.getPage(), shopPage.isDisabledBackButton(), shopPage.getRootSection());
+            }
+         } else {
+            TransactionMenu transactionMenu = (TransactionMenu)holder;
+            if (this.section.equals(transactionMenu.getShopItem().section)) {
+               this.openShopSection(player, 1, transactionMenu.isDisabledBackButton(), transactionMenu.getRootSection());
             }
          }
       }
    }
 
    private void updateLore(
-      Map<Integer, ItemStack> var1,
-      Player var2,
-      boolean var3,
-      boolean var4,
-      boolean var5,
-      boolean var6,
-      boolean var7,
-      boolean var8,
-      boolean var9,
-      boolean var10,
-      boolean var11,
-      int var12
+      Map<Integer, ItemStack> map,
+      Player player,
+      boolean flag,
+      boolean flag2,
+      boolean flag3,
+      boolean flag4,
+      boolean flag5,
+      boolean flag6,
+      boolean flag7,
+      boolean flag8,
+      boolean flag9,
+      int value
    ) {
-      LoreFormatter.PageIndex var13 = new LoreFormatter.PageIndex(this.section, var12);
-      var1.replaceAll(
-         (var13x, var14) -> {
-            if (var14.getType().equals(Material.AIR)) {
-               return (ItemStack)var14;
+      LoreFormatter.PageIndex pageIndex = new LoreFormatter.PageIndex(this.section, value);
+      map.replaceAll(
+         (key, value2) -> {
+            if (value2.getType().equals(Material.AIR)) {
+               return (ItemStack)value2;
             } else {
-               String var15 = this.provider.getPage(var12).getItem(var13x);
-               if (var15 != null) {
-                  DisplayItem var16 = this.displayItems.get(this.section + "." + var15);
-                  return var16 instanceof ShopItem
-                     ? this.updateLore(var13, (ShopItem)var16, var14, var2, var3, var4, var5, var6, var7, var8, var9, var10, var11, var12)
-                     : this.updateLore((ActionItem)var16, var14, var2, var3 || var4, false, var10, var12);
+               String item = this.provider.getPage(value).getItem(key);
+               if (item != null) {
+                  DisplayItem displayItem = this.displayItems.get(this.section + "." + item);
+                  return displayItem instanceof ShopItem
+                     ? this.updateLore(pageIndex, (ShopItem)displayItem, value2, player, flag, flag2, flag3, flag4, flag5, flag6, flag7, flag8, flag9, value)
+                     : this.updateLore((ActionItem)displayItem, value2, player, flag || flag2, false, flag8, value);
                } else {
                   return this.updateLore(
-                     var13, (ShopItem)this.staticItems.get(var12).get(var13x), var14, var2, var3, var4, var5, var6, var7, var8, var9, var10, var11, var12
+                     pageIndex, (ShopItem)this.staticItems.get(value).get(key), value2, player, flag, flag2, flag3, flag4, flag5, flag6, flag7, flag8, flag9, value
                   );
                }
             }
@@ -411,103 +415,103 @@ public class RotatingShop implements ShopSection {
    }
 
    private ItemStack updateLore(
-      LoreFormatter.PageIndex var1,
-      ShopItem var2,
-      ItemStack var3,
-      Player var4,
-      boolean var5,
-      boolean var6,
-      boolean var7,
-      boolean var8,
-      boolean var9,
-      boolean var10,
-      boolean var11,
-      boolean var12,
-      boolean var13,
-      int var14
+      LoreFormatter.PageIndex pageIndex,
+      ShopItem shopItem,
+      ItemStack itemStack,
+      Player player,
+      boolean flag,
+      boolean flag2,
+      boolean flag3,
+      boolean flag4,
+      boolean flag5,
+      boolean flag6,
+      boolean flag7,
+      boolean flag8,
+      boolean flag9,
+      int value
    ) {
       try {
          return this.plugin
             .getLoreFormatter()
             .format(
-               var1,
-               var2,
-               var3,
-               var4,
+               pageIndex,
+               shopItem,
+               itemStack,
+               player,
                this.section,
-               this.nms && !var2.rgb,
-               var5,
-               var6,
-               var7,
-               var8,
-               var9,
-               var10,
-               var11,
-               var12,
-               var2.hasPermission(var4, "shop", true),
+               this.nms && !shopItem.rgb,
+               flag,
+               flag2,
+               flag3,
+               flag4,
+               flag5,
+               flag6,
+               flag7,
+               flag8,
+               shopItem.hasPermission(player, "shop", true),
                this.dynamicLore,
-               var13 && var2.hasSeasonModifier(var4.getWorld().getName()),
-               var14,
+               flag9 && shopItem.hasSeasonModifier(player.getWorld().getName()),
+               value,
                this.getPages()
             );
-      } catch (Exception var16) {
-         SendMessage.logDebugMessage("Error occurred while updating shop lore of item '" + var2.getItemPath() + "'");
-         var16.printStackTrace();
-         return var3;
+      } catch (Exception exception) {
+         SendMessage.logDebugMessage("Error occurred while updating shop lore of item '" + shopItem.getItemPath() + "'");
+         exception.printStackTrace();
+         return itemStack;
       }
    }
 
-   private ItemStack updateLore(ActionItem var1, ItemStack var2, Player var3, boolean var4, boolean var5, boolean var6, int var7) {
+   private ItemStack updateLore(ActionItem actionItem, ItemStack itemStack, Player player, boolean flag, boolean flag2, boolean flag3, int value) {
       try {
          return this.plugin
             .getLoreFormatter()
             .format(
-               var1, var2, var3, this.plugin.getEcoHandler().getEcon(this.section).getType(), this.section, this.nms, var4, var5, var6, var7, this.getPages()
+               actionItem, itemStack, player, this.plugin.getEcoHandler().getEcon(this.section).getType(), this.section, this.nms, flag, flag2, flag3, value, this.getPages()
             );
-      } catch (Exception var9) {
-         SendMessage.logDebugMessage("Error occurred while updating shop lore of action item '" + var1.getItemPath() + "'");
-         var9.printStackTrace();
-         return var2;
+      } catch (Exception exception) {
+         SendMessage.logDebugMessage("Error occurred while updating shop lore of action item '" + actionItem.getItemPath() + "'");
+         exception.printStackTrace();
+         return itemStack;
       }
    }
 
-   private Translatable getTitle(Player var1, int var2) {
-      return this.pageTitles.get(var2).getTitle(var1, var2, this.provider.getPageSize());
+   private Translatable getTitle(Player player, int value) {
+      return this.pageTitles.get(value).getTitle(player, value, this.provider.getPageSize());
    }
 
    @Override
-   public ItemStack updateItem(Player var1, ShopItem var2) {
-      ItemStack var3 = new ItemStack(var2.getShopItem());
-      boolean var4 = PermissionsCache.hasPermission(var1, "OnyxShop.itemindexes");
-      boolean var5 = PermissionsCache.hasPermission(var1, "OnyxShop.editshop.editor");
-      boolean var6 = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
-      boolean var7 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
+   public ItemStack updateItem(Player player, ShopItem shopItem) {
+      ItemStack itemStack = new ItemStack(shopItem.getShopItem());
+      boolean permission = PermissionsCache.hasPermission(player, "OnyxShop.itemindexes");
+      boolean permission2 = PermissionsCache.hasPermission(player, "OnyxShop.editshop.editor");
+      boolean flag = this.plugin.discountsActive && this.plugin.hasDiscount(this.section);
+      boolean flag2 = this.plugin.multipliers && this.plugin.hasMultiplier(this.section);
       return this.updateLore(
          (LoreFormatter.PageIndex)null,
-         var2,
-         var3,
-         var1,
-         UserManager.getUser(var1).isPr(),
-         UserManager.getUser(var1).isBedrock(),
-         var6,
-         var7,
+         shopItem,
+         itemStack,
+         player,
+         UserManager.getUser(player).isPr(),
+         UserManager.getUser(player).isBedrock(),
+         flag,
+         flag2,
          this.plugin.itemStockLore,
          this.plugin.sellLimits,
-         var5,
-         var4,
+         permission2,
+         permission,
          this.plugin.seasonalLore,
-         this.getPageForShopItem(var2.itemLoc)
+         this.getPageForShopItem(shopItem.itemLoc)
       );
    }
 
    @Override
-   public void reloadItem(String var1) {
-      ShopItem var2 = new ShopItem(this.plugin, this, var1.split("\\.", 2)[1]);
-      this.displayItems.put(var1, var2);
-      this.provider.getPage(this.getPageForShopItem(var2.itemLoc)).setItem(var2.itemLoc, var2.getShopItem());
+   public void reloadItem(String itemId) {
+      ShopItem shopItem = new ShopItem(this.plugin, this, itemId.split("\\.", 2)[1]);
+      this.displayItems.put(itemId, shopItem);
+      this.provider.getPage(this.getPageForShopItem(shopItem.itemLoc)).setItem(shopItem.itemLoc, shopItem.getShopItem());
    }
 
    @Override
-   public void addNewItem(String var1) {
+   public void addNewItem(String itemId) {
    }
 }

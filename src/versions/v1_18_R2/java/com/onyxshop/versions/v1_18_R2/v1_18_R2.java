@@ -40,11 +40,11 @@ import org.bukkit.potion.PotionEffect;
 
 public final class v1_18_R2 implements VersionHandler {
    @Override
-   public boolean hasData(ItemStack var1, String var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(new ItemStack(var1));
-      if (var3.s()) {
-         NBTTagCompound var4 = var3.u();
-         return var4.e(var2);
+   public boolean hasData(ItemStack itemStack, String itemId) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(new ItemStack(itemStack));
+      if (itemStack2.s()) {
+         NBTTagCompound nbtTagCompound = itemStack2.u();
+         return nbtTagCompound.e(itemId);
       } else {
          return false;
       }
@@ -56,531 +56,531 @@ public final class v1_18_R2 implements VersionHandler {
    }
 
    @Override
-   public String toNBT(String var1) {
-      return CraftChatMessage.fromStringToJSON(var1, true);
+   public String toNBT(String text) {
+      return CraftChatMessage.fromStringToJSON(text, true);
    }
 
    @Override
-   public ItemStack setDisplayname(ItemStack var1, String var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(new ItemStack(var1));
-      if (var3.s()) {
-         NBTTagCompound var4 = var3.u();
-         if (!var4.e("display")) {
-            var4.a("display", new NBTTagCompound());
+   public ItemStack setDisplayname(ItemStack itemStack, String itemId) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(new ItemStack(itemStack));
+      if (itemStack2.s()) {
+         NBTTagCompound nbtTagCompound = itemStack2.u();
+         if (!nbtTagCompound.e("display")) {
+            nbtTagCompound.a("display", new NBTTagCompound());
          }
 
-         var4.p("display").a("Name", NBTTagString.a(this.toNBT(var2)));
+         nbtTagCompound.p("display").a("Name", NBTTagString.a(this.toNBT(itemId)));
       }
 
-      return CraftItemStack.asBukkitCopy(var3);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public String getNBTDataAsString(ItemStack var1, boolean var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      if (var3.s() && !var3.t().f()) {
-         NBTTagCompound var4 = var3.t();
-         if (!var2) {
-            var4.r("Enchantments");
-            var4.r("StoredEnchantments");
-            var4.r("Recipes");
-            var4.r("Fireworks");
-            var4.r("ONYX");
-            var4.r("SkullOwner");
+   public String getNBTDataAsString(ItemStack itemStack, boolean flag) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      if (itemStack2.s() && !itemStack2.t().f()) {
+         NBTTagCompound nbtTagCompound = itemStack2.t();
+         if (!flag) {
+            nbtTagCompound.r("Enchantments");
+            nbtTagCompound.r("StoredEnchantments");
+            nbtTagCompound.r("Recipes");
+            nbtTagCompound.r("Fireworks");
+            nbtTagCompound.r("ONYX");
+            nbtTagCompound.r("SkullOwner");
          }
 
-         return var4.toString().equals("{}") ? null : var4.toString();
+         return nbtTagCompound.toString().equals("{}") ? null : nbtTagCompound.toString();
       } else {
          return null;
       }
    }
 
    @Override
-   public String getLoreAsNBT(ItemStack var1) {
-      String var2 = ((NBTBase)CraftItemStack.asNMSCopy(new ItemStack(var1)).t().p("display").c("Lore", 8).get(0)).toString();
-      return var2.substring(1).substring(0, var2.length() - 1);
+   public String getLoreAsNBT(ItemStack itemStack) {
+      String lore = ((NBTBase)CraftItemStack.asNMSCopy(new ItemStack(itemStack)).t().p("display").c("Lore", 8).get(0)).toString();
+      return lore.substring(1).substring(0, lore.length() - 1);
    }
 
    @Override
-   public Object getNMSLore(ItemStack var1) {
-      net.minecraft.world.item.ItemStack var2 = CraftItemStack.asNMSCopy(new ItemStack(var1));
-      if (var2.s()) {
-         NBTTagCompound var3 = var2.t();
-         NBTTagCompound var4 = var3.e("display") ? var3.p("display") : new NBTTagCompound();
-         return var4.e("Lore") ? var4.c("Lore", 8) : new NBTTagList();
+   public Object getNMSLore(ItemStack itemStack) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(new ItemStack(itemStack));
+      if (itemStack2.s()) {
+         NBTTagCompound nbtTagCompound = itemStack2.t();
+         NBTTagCompound nbtTagCompound2 = nbtTagCompound.e("display") ? nbtTagCompound.p("display") : new NBTTagCompound();
+         return nbtTagCompound2.e("Lore") ? nbtTagCompound2.c("Lore", 8) : new NBTTagList();
       } else {
          return new NBTTagList();
       }
    }
 
    @Override
-   public ItemStack applyNMSLore(ItemStack var1, Object var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(new ItemStack(var1));
-      if (var3.s()) {
-         NBTTagCompound var4 = var3.t();
-         if (!var4.e("display")) {
-            var4.a("display", new NBTTagCompound());
+   public ItemStack applyNMSLore(ItemStack itemStack, Object value) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(new ItemStack(itemStack));
+      if (itemStack2.s()) {
+         NBTTagCompound nbtTagCompound = itemStack2.t();
+         if (!nbtTagCompound.e("display")) {
+            nbtTagCompound.a("display", new NBTTagCompound());
          }
 
-         var4.p("display").a("Lore", (NBTTagList)var2);
+         nbtTagCompound.p("display").a("Lore", (NBTTagList)value);
       }
 
-      return CraftItemStack.asBukkitCopy(var3);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public void setItemLore(Object var1, String var2, int var3) {
-      ((NBTTagList)var1).set(var3, NBTTagString.a(var2));
+   public void setItemLore(Object value, String itemId, int value2) {
+      ((NBTTagList)value).set(value2, NBTTagString.a(itemId));
    }
 
    @Override
-   public void addItemLore(Object var1, String var2, int var3) {
-      ((NBTTagList)var1).add(var3, NBTTagString.a(var2));
+   public void addItemLore(Object value, String itemId, int value2) {
+      ((NBTTagList)value).add(value2, NBTTagString.a(itemId));
    }
 
    @Override
-   public void addItemLore(Object var1, String var2) {
-      ((NBTTagList)var1).add(NBTTagString.a(var2));
+   public void addItemLore(Object value, String itemId) {
+      ((NBTTagList)value).add(NBTTagString.a(itemId));
    }
 
    @Override
-   public void updateInventoryTitle(Player var1, Translatable var2) {
-      EntityPlayer var3 = ((CraftPlayer)var1).getHandle();
-      var3.b
+   public void updateInventoryTitle(Player player, Translatable text) {
+      EntityPlayer entityPlayer = ((CraftPlayer)player).getHandle();
+      entityPlayer.b
          .a(
             new PacketPlayOutOpenWindow(
-               var3.bU.j,
-               var3.bU.a(),
-               ServerInfo.supportsPaper() ? (IChatBaseComponent)AdventureUtil.asVanilla(var2) : CraftChatMessage.fromStringOrNull(var2.getLegacy())
+               entityPlayer.bU.j,
+               entityPlayer.bU.a(),
+               ServerInfo.supportsPaper() ? (IChatBaseComponent)AdventureUtil.asVanilla(text) : CraftChatMessage.fromStringOrNull(text.getLegacy())
             )
          );
-      var1.updateInventory();
+      player.updateInventory();
    }
 
    @Override
-   public ItemStack setNBTString(ItemStack var1, String var2, String var3) {
-      net.minecraft.world.item.ItemStack var4 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var5 = var4.s() ? var4.t() : new NBTTagCompound();
-      String[] var6 = var2.split("::");
-      NBTTagCompound var7 = var5;
+   public ItemStack setNBTString(ItemStack itemStack, String itemId, String text) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+      String[] values = itemId.split("::");
+      NBTTagCompound nbtTagCompound2 = nbtTagCompound;
 
-      for (int var8 = 0; var8 < var6.length - 1; var8++) {
-         String var9 = var6[var8];
-         NBTTagCompound var10;
-         if (var7.e(var9)) {
-            var10 = var7.p(var9);
+      for (int index = 0; index < values.length - 1; index++) {
+         String text2 = values[index];
+         NBTTagCompound nbtTagCompound3;
+         if (nbtTagCompound2.e(text2)) {
+            nbtTagCompound3 = nbtTagCompound2.p(text2);
          } else {
-            var10 = new NBTTagCompound();
-            var7.a(var9, var10);
+            nbtTagCompound3 = new NBTTagCompound();
+            nbtTagCompound2.a(text2, nbtTagCompound3);
          }
 
-         var7 = var10;
+         nbtTagCompound2 = nbtTagCompound3;
       }
 
-      var7.a(var6[var6.length - 1], var3);
-      var4.c(var5);
-      return CraftItemStack.asBukkitCopy(var4);
+      nbtTagCompound2.a(values[values.length - 1], text);
+      itemStack2.c(nbtTagCompound);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public String getNBTString(ItemStack var1, String var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var4 = var3.s() ? var3.t() : new NBTTagCompound();
-      String[] var5 = var2.split("::");
+   public String getNBTString(ItemStack itemStack, String itemId) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+      String[] values = itemId.split("::");
 
-      for (int var6 = 0; var6 < var5.length - 1; var6++) {
-         if (!var4.e(var5[var6])) {
+      for (int index = 0; index < values.length - 1; index++) {
+         if (!nbtTagCompound.e(values[index])) {
             return null;
          }
 
-         var4 = var4.p(var5[var6]);
+         nbtTagCompound = nbtTagCompound.p(values[index]);
       }
 
-      return var4.e(var5[var5.length - 1]) ? var4.l(var5[var5.length - 1]) : null;
+      return nbtTagCompound.e(values[values.length - 1]) ? nbtTagCompound.l(values[values.length - 1]) : null;
    }
 
    @Override
-   public ItemStack setNBTInt(ItemStack var1, String var2, Integer var3) {
-      net.minecraft.world.item.ItemStack var4 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var5 = var4.s() ? var4.t() : new NBTTagCompound();
-      if (var2.contains("::")) {
-         NBTTagCompound var6 = var5.e(var2.split("::")[0]) ? var5.p(var2.split("::")[0]) : new NBTTagCompound();
-         var6.a(var2.split("::")[1], var3);
-         var5.a(var2.split("::")[0], var6);
+   public ItemStack setNBTInt(ItemStack itemStack, String itemId, Integer value) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+      if (itemId.contains("::")) {
+         NBTTagCompound nbtTagCompound2 = nbtTagCompound.e(itemId.split("::")[0]) ? nbtTagCompound.p(itemId.split("::")[0]) : new NBTTagCompound();
+         nbtTagCompound2.a(itemId.split("::")[1], value);
+         nbtTagCompound.a(itemId.split("::")[0], nbtTagCompound2);
       } else {
-         var5.a(var2, var3);
+         nbtTagCompound.a(itemId, value);
       }
 
-      var4.c(var5);
-      return CraftItemStack.asBukkitCopy(var4);
+      itemStack2.c(nbtTagCompound);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public Integer getNBTInt(ItemStack var1, String var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var4 = var3.s() ? var3.t() : new NBTTagCompound();
-      return var4.e(var2) ? var4.h(var2) : null;
+   public Integer getNBTInt(ItemStack itemStack, String itemId) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+      return nbtTagCompound.e(itemId) ? nbtTagCompound.h(itemId) : null;
    }
 
    @Override
-   public ItemStack setPages(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      var3.a("Pages", var2);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack setPages(ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("Pages", itemId);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getPages(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.l("Pages");
+   public String getPages(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.l("Pages");
    }
 
    @Override
-   public ItemStack setOnyxNbtString(ItemStack var1, String var2, String var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      var4.a(var2, var3);
-      return this.setOnyxCompound(var1, var4);
+   public ItemStack setOnyxNbtString(ItemStack itemStack, String itemId, String text) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a(itemId, text);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getOnyxNbtString(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      return var3.e(var2) ? var3.l(var2) : null;
+   public String getOnyxNbtString(ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e(itemId) ? nbtTagCompound.l(itemId) : null;
    }
 
    @Override
-   public ItemStack setOnyxNbtInt(ItemStack var1, String var2, Integer var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      var4.a(var2, var3);
-      return this.setOnyxCompound(var1, var4);
+   public ItemStack setOnyxNbtInt(ItemStack itemStack, String itemId, Integer value) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a(itemId, value);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public Integer getOnyxNbtInt(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      return var3.e(var2) ? var3.h(var2) : null;
+   public Integer getOnyxNbtInt(ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e(itemId) ? nbtTagCompound.h(itemId) : null;
    }
 
    @Override
-   public ItemStack setIndex(ItemStack var1, Integer var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      var3.a("Index", var2);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack setIndex(ItemStack itemStack, Integer index) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("Index", index);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public Integer getIndex(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.e("Index") ? var2.h("Index") : -1;
+   public Integer getIndex(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e("Index") ? nbtTagCompound.h("Index") : -1;
    }
 
    @Override
-   public ItemStack setAction(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      var3.a("Action", var2);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack setAction(ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("Action", itemId);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getAction(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.e("Action") ? var2.l("Action") : null;
+   public String getAction(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e("Action") ? nbtTagCompound.l("Action") : null;
    }
 
    @Override
-   public ItemStack setEditOption(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      var3.a("EditOption", var2);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack setEditOption(ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("EditOption", itemId);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getEditOption(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.e("EditOption") ? var2.l("EditOption") : null;
+   public String getEditOption(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e("EditOption") ? nbtTagCompound.l("EditOption") : null;
    }
 
    @Override
-   public ItemStack getShopAdminItem(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      var2.a("AdminItem", true);
-      return this.setOnyxCompound(var1, var2);
+   public ItemStack getShopAdminItem(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("AdminItem", true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public boolean isShopAdminItem(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.q("AdminItem");
+   public boolean isShopAdminItem(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.q("AdminItem");
    }
 
    @Override
-   public ItemStack addNBTtag(ItemStack var1, String var2, boolean var3) throws ItemLoadException {
-      net.minecraft.world.item.ItemStack var4 = CraftItemStack.asNMSCopy(var1);
+   public ItemStack addNBTtag(ItemStack itemStack, String itemId, boolean flag) throws ItemLoadException {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
 
       try {
-         NBTTagCompound var5 = MojangsonParser.a(var2);
-         if (var3 && var5.e("display")) {
-            var5.r("display");
+         NBTTagCompound nbtTagCompound = MojangsonParser.a(itemId);
+         if (flag && nbtTagCompound.e("display")) {
+            nbtTagCompound.r("display");
          }
 
-         NBTTagCompound var9 = var4.s() ? var4.t() : new NBTTagCompound();
-         var9.a(var5);
-         var4.c(var9);
-         return CraftItemStack.asBukkitCopy(var4);
-      } catch (CommandSyntaxException var8) {
-         StringWriter var6 = new StringWriter();
-         PrintWriter var7 = new PrintWriter(var6);
-         var8.printStackTrace(var7);
-         SendMessage.logDebugMessage(var6.toString());
+         NBTTagCompound nbtTagCompound2 = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+         nbtTagCompound2.a(nbtTagCompound);
+         itemStack2.c(nbtTagCompound2);
+         return CraftItemStack.asBukkitCopy(itemStack2);
+      } catch (CommandSyntaxException exception) {
+         StringWriter stringWriter = new StringWriter();
+         PrintWriter printWriter = new PrintWriter(stringWriter);
+         exception.printStackTrace(printWriter);
+         SendMessage.logDebugMessage(stringWriter.toString());
          throw new ItemLoadException(Lang.CANNOT_GET_NBTDATA.get());
       }
    }
 
    @Override
-   public ItemStack addNBTCommands(ItemStack var1, List<String> var2, CommandType var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      NBTTagList var5 = var4.e(var3.getCompound()) ? var4.c(var3.getCompound(), 8) : new NBTTagList();
-      var2.forEach(var1x -> var5.add(NBTTagString.a(var1x.startsWith("/") ? var1x.substring(1) : var1x)));
-      var4.a(var3.getCompound(), var5);
-      return this.setOnyxCompound(var1, var4);
+   public ItemStack addNBTCommands(ItemStack itemStack, List<String> itemIds, CommandType commandType) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagList nbtTagList = nbtTagCompound.e(commandType.getCompound()) ? nbtTagCompound.c(commandType.getCompound(), 8) : new NBTTagList();
+      itemIds.forEach(entry -> nbtTagList.add(NBTTagString.a(entry.startsWith("/") ? entry.substring(1) : entry)));
+      nbtTagCompound.a(commandType.getCompound(), nbtTagList);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public boolean hasNBTCommand(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.e("buy-commands") && !var2.c("buy-commands", 8).isEmpty() ? true : var2.e("sell-commands") && !var2.c("sell-commands", 8).isEmpty();
+   public boolean hasNBTCommand(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e("buy-commands") && !nbtTagCompound.c("buy-commands", 8).isEmpty() ? true : nbtTagCompound.e("sell-commands") && !nbtTagCompound.c("sell-commands", 8).isEmpty();
    }
 
    @Override
-   public List<String> getNBTCommands(ItemStack var1, CommandType var2) {
-      NBTTagList var3 = this.getOnyxCompound(var1).c(var2.getCompound(), 8);
-      return var3.stream().<String>map(NBTBase::toString).collect(Collectors.toList());
+   public List<String> getNBTCommands(ItemStack itemStack, CommandType commandType) {
+      NBTTagList nbtTagList = this.getOnyxCompound(itemStack).c(commandType.getCompound(), 8);
+      return nbtTagList.stream().<String>map(NBTBase::toString).collect(Collectors.toList());
    }
 
-   private NBTTagCompound getOnyxCompound(ItemStack var1) {
-      net.minecraft.world.item.ItemStack var2 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var3 = var2.s() ? var2.t() : new NBTTagCompound();
-      return var3.e("ONYX") ? var3.p("ONYX") : new NBTTagCompound();
+   private NBTTagCompound getOnyxCompound(ItemStack itemStack) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+      return nbtTagCompound.e("ONYX") ? nbtTagCompound.p("ONYX") : new NBTTagCompound();
    }
 
-   private ItemStack setOnyxCompound(ItemStack var1, NBTTagCompound var2) {
-      net.minecraft.world.item.ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var4 = var3.s() ? var3.t() : new NBTTagCompound();
-      var4.a("ONYX", var2);
-      var3.c(var4);
-      return CraftItemStack.asBukkitCopy(var3);
+   private ItemStack setOnyxCompound(ItemStack itemStack, NBTTagCompound nbtTagCompound) {
+      net.minecraft.world.item.ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound2 = itemStack2.s() ? itemStack2.t() : new NBTTagCompound();
+      nbtTagCompound2.a("ONYX", nbtTagCompound);
+      itemStack2.c(nbtTagCompound2);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public String getTitle(Inventory var1) {
+   public String getTitle(Inventory inventory) {
       return "";
    }
 
    @Override
-   public ItemStack setDisabledBackButton(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      var2.a("disabledBackButton", true);
-      return this.setOnyxCompound(var1, var2);
+   public ItemStack setDisabledBackButton(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("disabledBackButton", true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public boolean isDisabledBackButton(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.e("disabledBackButton") && var2.q("disabledBackButton");
+   public boolean isDisabledBackButton(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e("disabledBackButton") && nbtTagCompound.q("disabledBackButton");
    }
 
    @Override
-   public ItemStack addNBTPrices(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      NBTTagCompound var4 = var3.e("Prices") ? var3.p("Prices") : new NBTTagCompound();
-      var4.a("buy", ConfigManager.getShop(var2.split("\\.")[0]).getDouble(var2 + ".buy"));
-      var4.a("sell", ConfigManager.getShop(var2.split("\\.")[0]).getDouble(var2 + ".sell"));
-      var3.a("Prices", var4);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack addNBTPrices(ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagCompound nbtTagCompound2 = nbtTagCompound.e("Prices") ? nbtTagCompound.p("Prices") : new NBTTagCompound();
+      nbtTagCompound2.a("buy", ConfigManager.getShop(itemId.split("\\.")[0]).getDouble(itemId + ".buy"));
+      nbtTagCompound2.a("sell", ConfigManager.getShop(itemId.split("\\.")[0]).getDouble(itemId + ".sell"));
+      nbtTagCompound.a("Prices", nbtTagCompound2);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public double getBuyPrice(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      NBTTagCompound var3 = var2.p("Prices");
-      return var3.k("buy");
+   public double getBuyPrice(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagCompound nbtTagCompound2 = nbtTagCompound.p("Prices");
+      return nbtTagCompound2.k("buy");
    }
 
    @Override
-   public double getSellPrice(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      NBTTagCompound var3 = var2.p("Prices");
-      return var3.k("sell");
+   public double getSellPrice(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagCompound nbtTagCompound2 = nbtTagCompound.p("Prices");
+      return nbtTagCompound2.k("sell");
    }
 
    @Override
-   public ItemStack setItemErrorToItem(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      var2.a("ItemError", true);
-      return this.setOnyxCompound(var1, var2);
+   public ItemStack setItemErrorToItem(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("ItemError", true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public ItemStack getItemInHand(Player var1) {
-      return var1.getInventory().getItemInMainHand();
+   public ItemStack getItemInHand(Player player) {
+      return player.getInventory().getItemInMainHand();
    }
 
    @Override
-   public ItemStack setSpawnerType(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      var3.a("SpawnerType", var2);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack setSpawnerType(ItemStack itemStack, String type) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("SpawnerType", type);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public ItemStack setPotionType(ItemStack var1, PotionTypes var2) {
-      PotionMeta var3 = (PotionMeta)var1.getItemMeta();
-      if (var3.getBasePotionData().getType().getEffectType() == null) {
-         var3.setBasePotionData(new PotionData(var2.parsePotionType(), var2.isExtended(), var2.isUpgraded()));
+   public ItemStack setPotionType(ItemStack itemStack, PotionTypes potionTypes) {
+      PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
+      if (potionMeta.getBasePotionData().getType().getEffectType() == null) {
+         potionMeta.setBasePotionData(new PotionData(potionTypes.parsePotionType(), potionTypes.isExtended(), potionTypes.isUpgraded()));
       } else {
-         if (!var2.hasEffect()) {
-            return var1;
+         if (!potionTypes.hasEffect()) {
+            return itemStack;
          }
 
-         var3.addCustomEffect(new PotionEffect(var2.parsePotionEffectType(), var2.getDuration(), var2.getAmplifier(), false, true, true), false);
+         potionMeta.addCustomEffect(new PotionEffect(potionTypes.parsePotionEffectType(), potionTypes.getDuration(), potionTypes.getAmplifier(), false, true, true), false);
       }
 
-      var1.setItemMeta(var3);
-      return var1;
+      itemStack.setItemMeta(potionMeta);
+      return itemStack;
    }
 
    @Override
-   public Optional<PotionTypes> getBasePotion(ItemStack var1) {
-      PotionMeta var2 = (PotionMeta)var1.getItemMeta();
-      if (var2.getBasePotionData().getType().getEffectType() != null) {
-         PotionData var3 = var2.getBasePotionData();
-         return PotionTypes.matchPotionDataLegacy(var3.getType(), var3.isExtended(), var3.isUpgraded());
+   public Optional<PotionTypes> getBasePotion(ItemStack itemStack) {
+      PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
+      if (potionMeta.getBasePotionData().getType().getEffectType() != null) {
+         PotionData potionData = potionMeta.getBasePotionData();
+         return PotionTypes.matchPotionDataLegacy(potionData.getType(), potionData.isExtended(), potionData.isUpgraded());
       } else {
          return Optional.empty();
       }
    }
 
    @Override
-   public ItemStack setPathToItem(ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      var3.a("PathToItem", var2);
-      return this.setOnyxCompound(var1, var3);
+   public ItemStack setPathToItem(ItemStack itemStack, String path) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("PathToItem", path);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public ItemStack getSpawnerToGive(EntityType var1) {
-      ItemStack var2 = OnyxShop.getInstance().createItem.createSpawner(var1);
-      NBTTagCompound var3 = this.getOnyxCompound(var2);
-      var3.a("SpawnerType", var1.toString());
-      return this.setOnyxCompound(var2, var3);
+   public ItemStack getSpawnerToGive(EntityType entityType) {
+      ItemStack itemStack = OnyxShop.getInstance().createItem.createSpawner(entityType);
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      nbtTagCompound.a("SpawnerType", entityType.toString());
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getPathToItem(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.l("PathToItem");
+   public String getPathToItem(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.l("PathToItem");
    }
 
    @Override
-   public Boolean hasItemError(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return !var2.e("ItemError") ? false : var2.q("ItemError");
+   public Boolean hasItemError(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return !nbtTagCompound.e("ItemError") ? false : nbtTagCompound.q("ItemError");
    }
 
    @Override
-   public String getSpawnerType(ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return var2.e("SpawnerType") && !var2.l("SpawnerType").isEmpty() ? var2.l("SpawnerType") : null;
+   public String getSpawnerType(ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return nbtTagCompound.e("SpawnerType") && !nbtTagCompound.l("SpawnerType").isEmpty() ? nbtTagCompound.l("SpawnerType") : null;
    }
 
    @Override
-   public boolean isSimilar(ItemStack var1, ItemStack var2, List<String> var3) {
-      net.minecraft.world.item.ItemStack var4 = CraftItemStack.asNMSCopy(new ItemStack(var1));
-      net.minecraft.world.item.ItemStack var5 = CraftItemStack.asNMSCopy(new ItemStack(var2));
-      if (!var4.s() && !var5.s()) {
-         return var1.isSimilar(var2);
+   public boolean isSimilar(ItemStack itemStack, ItemStack itemStack2, List<String> itemIds) {
+      net.minecraft.world.item.ItemStack itemStack3 = CraftItemStack.asNMSCopy(new ItemStack(itemStack));
+      net.minecraft.world.item.ItemStack itemStack4 = CraftItemStack.asNMSCopy(new ItemStack(itemStack2));
+      if (!itemStack3.s() && !itemStack4.s()) {
+         return itemStack.isSimilar(itemStack2);
       } else {
-         for (String var7 : var3) {
-            String[] var8 = var7.split("::");
-            if (var8.length >= 2) {
-               NBTTagCompound var9 = var4.t();
-               if (var9 != null) {
-                  for (int var10 = 0; var10 < var8.length; var10++) {
-                     var9 = var9.p(var8[var10]);
-                     if (var10 == var8.length - 2) {
-                        var9.r(var8[var10 + 1]);
+         for (String text : itemIds) {
+            String[] values = text.split("::");
+            if (values.length >= 2) {
+               NBTTagCompound nbtTagCompound = itemStack3.t();
+               if (nbtTagCompound != null) {
+                  for (int index = 0; index < values.length; index++) {
+                     nbtTagCompound = nbtTagCompound.p(values[index]);
+                     if (index == values.length - 2) {
+                        nbtTagCompound.r(values[index + 1]);
                      }
                   }
                }
 
-               NBTTagCompound var12 = var5.t();
-               if (var12 != null) {
-                  for (int var11 = 0; var11 < var8.length; var11++) {
-                     var12 = var12.p(var8[var11]);
-                     if (var11 == var8.length - 2) {
-                        var12.r(var8[var11 + 1]);
+               NBTTagCompound nbtTagCompound2 = itemStack4.t();
+               if (nbtTagCompound2 != null) {
+                  for (int index = 0; index < values.length; index++) {
+                     nbtTagCompound2 = nbtTagCompound2.p(values[index]);
+                     if (index == values.length - 2) {
+                        nbtTagCompound2.r(values[index + 1]);
                      }
                   }
                }
             } else {
-               var4.c(var7);
-               var5.c(var7);
+               itemStack3.c(text);
+               itemStack4.c(text);
             }
          }
 
-         return var1.getType().equals(Material.PLAYER_HEAD) && !var3.contains("SkullOwner") && !this.isSimilarSkull(var4, var5)
+         return itemStack.getType().equals(Material.PLAYER_HEAD) && !itemIds.contains("SkullOwner") && !this.isSimilarSkull(itemStack3, itemStack4)
             ? false
-            : CraftItemStack.asBukkitCopy(var4).isSimilar(CraftItemStack.asBukkitCopy(var5));
+            : CraftItemStack.asBukkitCopy(itemStack3).isSimilar(CraftItemStack.asBukkitCopy(itemStack4));
       }
    }
 
-   private boolean isSimilarSkull(net.minecraft.world.item.ItemStack var1, net.minecraft.world.item.ItemStack var2) {
-      if (var1.s() && var2.s()) {
+   private boolean isSimilarSkull(net.minecraft.world.item.ItemStack itemStack, net.minecraft.world.item.ItemStack itemStack2) {
+      if (itemStack.s() && itemStack2.s()) {
          try {
-            String var3 = null;
-            String var4 = null;
-            NBTTagList var5 = var1.t().p("SkullOwner").p("Properties").c("textures", 10);
-            if (var5 != null && !var5.isEmpty()) {
-               for (int var6 = 0; var6 < var5.size(); var6++) {
-                  NBTTagCompound var7 = var5.a(var6);
-                  if (var7.e("Value")) {
-                     var3 = var7.l("Value");
+            String text = null;
+            String text2 = null;
+            NBTTagList nbtTagList = itemStack.t().p("SkullOwner").p("Properties").c("textures", 10);
+            if (nbtTagList != null && !nbtTagList.isEmpty()) {
+               for (int size = 0; size < nbtTagList.size(); size++) {
+                  NBTTagCompound nbtTagCompound = nbtTagList.a(size);
+                  if (nbtTagCompound.e("Value")) {
+                     text = nbtTagCompound.l("Value");
                   }
                }
 
-               if (var3 == null) {
+               if (text == null) {
                   return false;
                }
             }
 
-            NBTTagList var10 = var2.t().p("SkullOwner").p("Properties").c("textures", 10);
-            if (var10 != null && !var10.isEmpty()) {
-               for (int var11 = 0; var11 < var10.size(); var11++) {
-                  NBTTagCompound var8 = var10.a(var11);
-                  if (var8.e("Value")) {
-                     var4 = var8.l("Value");
+            NBTTagList nbtTagList2 = itemStack2.t().p("SkullOwner").p("Properties").c("textures", 10);
+            if (nbtTagList2 != null && !nbtTagList2.isEmpty()) {
+               for (int index = 0; index < nbtTagList2.size(); index++) {
+                  NBTTagCompound nbtTagCompound = nbtTagList2.a(index);
+                  if (nbtTagCompound.e("Value")) {
+                     text2 = nbtTagCompound.l("Value");
                   }
                }
 
-               if (var4 == null) {
+               if (text2 == null) {
                   return false;
                }
             }
 
-            boolean var12 = false;
-            if (var1.u().p("SkullOwner").e("Name")
-               && var2.u().p("SkullOwner").e("Name")
-               && var1.u().p("SkullOwner").l("Name").equalsIgnoreCase(var2.u().p("SkullOwner").l("Name"))) {
-               var1.u().r("SkullOwner");
-               var2.u().r("SkullOwner");
-               var12 = true;
+            boolean flag = false;
+            if (itemStack.u().p("SkullOwner").e("Name")
+               && itemStack2.u().p("SkullOwner").e("Name")
+               && itemStack.u().p("SkullOwner").l("Name").equalsIgnoreCase(itemStack2.u().p("SkullOwner").l("Name"))) {
+               itemStack.u().r("SkullOwner");
+               itemStack2.u().r("SkullOwner");
+               flag = true;
             }
 
-            return var12 && var3 == null && var4 == null
-               || var3 != null && var4 != null && (var3.equals(var4) || SkullUtil.getTextureURL(var3).equals(SkullUtil.getTextureURL(var4)));
-         } catch (NullPointerException var9) {
+            return flag && text == null && text2 == null
+               || text != null && text2 != null && (text.equals(text2) || SkullUtil.getTextureURL(text).equals(SkullUtil.getTextureURL(text2)));
+         } catch (NullPointerException exception) {
             SendMessage.errorMessage("Error occurred while comparing skulls");
-            var9.printStackTrace();
+            exception.printStackTrace();
             return false;
          }
       } else {

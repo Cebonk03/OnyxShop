@@ -17,9 +17,9 @@ public class DeleteSection extends SubCommad {
    private final OnyxShop plugin;
    private String section;
 
-   public DeleteSection(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public DeleteSection(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -38,31 +38,31 @@ public class DeleteSection extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 1) {
-         this.section = this.methods.getSection(var1, var2[1]);
+   public void perform(Object value, String[] values) {
+      if (values.length > 1) {
+         this.section = this.methods.getSection(value, values[1]);
          if (this.section != null) {
-            this.deleteSection(var1);
+            this.deleteSection(value);
          }
       } else {
-         SendMessage.warnMessage(var1, this.getSyntax());
+         SendMessage.warnMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 2:
-            if (!var1[1].isEmpty()) {
-               ArrayList var2 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[1], this.plugin.getShopSections(), var2);
-               Collections.sort(var2);
-               return var2;
+            if (!values[1].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[1], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
@@ -71,11 +71,11 @@ public class DeleteSection extends SubCommad {
       }
    }
 
-   private void deleteSection(Object var1) {
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_REMOVING_SECTION.get());
+   private void deleteSection(Object value) {
+      SendMessage.sendMessage(value, Lang.EDITSHOP_REMOVING_SECTION.get());
       this.plugin.getConfigManager().deleteSection(this.section);
       this.plugin.getConfigManager().deleteShopsConfig(this.section);
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_REMOVED_SECTION.get().replace("%itemPath%", "ShopSections." + this.section));
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
+      SendMessage.sendMessage(value, Lang.EDITSHOP_REMOVED_SECTION.get().replace("%itemPath%", "ShopSections." + this.section));
+      SendMessage.sendMessage(value, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
    }
 }

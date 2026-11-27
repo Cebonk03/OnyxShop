@@ -14,24 +14,24 @@ public class SaveTask {
    public SaveTask() {
    }
 
-   public static void addSaveTask(ConfigManager.CFile var0) {
-      if (tasks.getIfPresent(var0) == null) {
-         tasks.put(var0, new SaveTask.DelayedTask(var0, SaveTask.TaskType.SAVE));
+   public static void addSaveTask(ConfigManager.CFile cFile) {
+      if (tasks.getIfPresent(cFile) == null) {
+         tasks.put(cFile, new SaveTask.DelayedTask(cFile, SaveTask.TaskType.SAVE));
       }
    }
 
-   public static void addBackupTask(ConfigManager.CFile var0) {
-      if (tasks.getIfPresent(var0) == null) {
-         tasks.put(var0, new SaveTask.DelayedTask(var0, SaveTask.TaskType.BACKUP));
+   public static void addBackupTask(ConfigManager.CFile cFile) {
+      if (tasks.getIfPresent(cFile) == null) {
+         tasks.put(cFile, new SaveTask.DelayedTask(cFile, SaveTask.TaskType.BACKUP));
       }
    }
 
    public static final class DelayedTask {
-      public DelayedTask(ConfigManager.CFile var1, SaveTask.TaskType var2) {
-         if (var2 == SaveTask.TaskType.SAVE) {
-            OnyxShop.getInstance().runKillableTaskLater(var1::save, 20L);
-         } else if (var2 == SaveTask.TaskType.BACKUP) {
-            ConfigUtil.createBackup(var1.getName(), true);
+      public DelayedTask(ConfigManager.CFile cFile, SaveTask.TaskType taskType) {
+         if (taskType == SaveTask.TaskType.SAVE) {
+            OnyxShop.getInstance().runKillableTaskLater(cFile::save, 20L);
+         } else if (taskType == SaveTask.TaskType.BACKUP) {
+            ConfigUtil.createBackup(cFile.getName(), true);
          }
       }
    }

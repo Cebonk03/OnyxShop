@@ -29,20 +29,20 @@ public enum RequirementType {
    private final String lorePath;
    private final Class<? extends ItemRequirement> clazz;
 
-   private RequirementType(Class<? extends ItemRequirement> nullxx, String nullxxx) {
-      this.clazz = nullxx;
-      this.lorePath = "display-lore-layout.item-requirements." + nullxxx;
+   private RequirementType(Class<? extends ItemRequirement> type, String type2) {
+      this.clazz = type;
+      this.lorePath = "display-lore-layout.item-requirements." + type2;
    }
 
    public Class<? extends ItemRequirement> getClazz() {
       return this.clazz;
    }
 
-   public String getLorePath(String var1) {
+   public String getLorePath(String lore) {
       if (this == PLACEHOLDER) {
-         PlaceholderRequirement.ComparisonOperator var2 = PlaceholderRequirement.ComparisonOperator.fromOperator(var1);
-         if (var2 != null) {
-            return var2.getType().lorePath;
+         PlaceholderRequirement.ComparisonOperator comparisonOperator = PlaceholderRequirement.ComparisonOperator.fromOperator(lore);
+         if (comparisonOperator != null) {
+            return comparisonOperator.getType().lorePath;
          }
       }
 

@@ -23,19 +23,19 @@ public class ExecutableItemsHook implements ItemProvider, Listener {
    private final OnyxShop plugin;
    private boolean isReady = false;
 
-   public ExecutableItemsHook(OnyxShop var1) {
-      this.plugin = var1;
+   public ExecutableItemsHook(OnyxShop plugin) {
+      this.plugin = plugin;
       if (Bukkit.getPluginManager().getPlugin("ExecutableItems").isEnabled()) {
          SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "ExecutableItems"));
          this.isReady = true;
          this.plugin.getItemManager().check();
       } else {
-         var1.getServer().getPluginManager().registerEvents(this, var1);
+         plugin.getServer().getPluginManager().registerEvents(this, plugin);
       }
    }
 
    @EventHandler
-   public void onItemsLoad(ExecutableItemsPostLoadEvent var1) {
+   public void onItemsLoad(ExecutableItemsPostLoadEvent event) {
       SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "ExecutableItems"));
       this.isReady = true;
       this.plugin.getItemManager().check();
@@ -53,34 +53,34 @@ public class ExecutableItemsHook implements ItemProvider, Listener {
    }
 
    @Override
-   public ItemStack getItem(String var1) throws ItemLoadException {
-      Optional var2 = ExecutableItemsAPI.getExecutableItemsManager().getExecutableItem(var1);
-      if (var2.isPresent()) {
-         ItemStack var3 = ((ExecutableItemInterface)var2.get()).buildItem(1, Optional.empty(), Optional.empty());
-         if (var3 == null) {
-            throw new ItemLoadException(Lang.ERROR_CREATING_THIRD_PARTY_ITEM.get().replace("%id%", var1).replace("%plugin%", "ExecutableItems"));
+   public ItemStack getItem(String itemId) throws ItemLoadException {
+      Optional optional = ExecutableItemsAPI.getExecutableItemsManager().getExecutableItem(itemId);
+      if (optional.isPresent()) {
+         ItemStack itemStack = ((ExecutableItemInterface)optional.get()).buildItem(1, Optional.empty(), Optional.empty());
+         if (itemStack == null) {
+            throw new ItemLoadException(Lang.ERROR_CREATING_THIRD_PARTY_ITEM.get().replace("%id%", itemId).replace("%plugin%", "ExecutableItems"));
          } else {
-            return var3;
+            return itemStack;
          }
       } else {
-         throw new ItemLoadException(Lang.UNKNOWN_THIRD_PARTY_ITEM.get().replace("%id%", var1).replace("%plugin%", "ExecutableItems"));
+         throw new ItemLoadException(Lang.UNKNOWN_THIRD_PARTY_ITEM.get().replace("%id%", itemId).replace("%plugin%", "ExecutableItems"));
       }
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      Optional var2 = ExecutableItemsAPI.getExecutableItemsManager().getExecutableItem(var1);
-      return !var2.isPresent() ? null : ((ExecutableItemInterface)var2.get()).getId();
+   public String getItem(ItemStack itemStack) {
+      Optional optional = ExecutableItemsAPI.getExecutableItemsManager().getExecutableItem(itemStack);
+      return !optional.isPresent() ? null : ((ExecutableItemInterface)optional.get()).getId();
    }
 
-   public static ItemStack tag(ItemStack var0, Player var1) {
-      Optional var2 = ExecutableItemsAPI.getExecutableItemsManager().getExecutableItem(var0);
-      if (var2.isPresent()) {
-         return ((ExecutableItemInterface)var2.get()).addExecutableItemInfos(var0, Optional.of(var1));
+   public static ItemStack tag(ItemStack itemStack, Player player) {
+      Optional optional = ExecutableItemsAPI.getExecutableItemsManager().getExecutableItem(itemStack);
+      if (optional.isPresent()) {
+         return ((ExecutableItemInterface)optional.get()).addExecutableItemInfos(itemStack, Optional.of(player));
       } else {
-         AddItemInPlayerInventoryEvent var3 = new AddItemInPlayerInventoryEvent(var1, var0, var1.getInventory().firstEmpty());
-         Bukkit.getPluginManager().callEvent(var3);
-         return var0;
+         AddItemInPlayerInventoryEvent addItemInPlayerInventoryEvent = new AddItemInPlayerInventoryEvent(player, itemStack, player.getInventory().firstEmpty());
+         Bukkit.getPluginManager().callEvent(addItemInPlayerInventoryEvent);
+         return itemStack;
       }
    }
 }

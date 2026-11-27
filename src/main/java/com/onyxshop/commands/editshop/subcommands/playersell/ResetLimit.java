@@ -22,9 +22,9 @@ public class ResetLimit extends SubCommad {
    String itemLoc;
    String playerName;
 
-   public ResetLimit(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public ResetLimit(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -43,18 +43,18 @@ public class ResetLimit extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.playersell." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.playersell." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         this.playerName = var2[2].equals("*") ? null : var2[2];
-         if (var2.length > 3) {
-            String var3 = var2[3].equals("*") ? null : var2[3];
-            if (var3 != null) {
-               this.section = this.methods.getSection(var1, var3);
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         this.playerName = values[2].equals("*") ? null : values[2];
+         if (values.length > 3) {
+            String text = values[3].equals("*") ? null : values[3];
+            if (text != null) {
+               this.section = this.methods.getSection(value, text);
                if (this.section == null) {
                   return;
                }
@@ -63,20 +63,20 @@ public class ResetLimit extends SubCommad {
             }
 
             if (this.section != null) {
-               if (var2.length <= 4) {
-                  SendMessage.sendMessage(var1, this.getSyntax());
+               if (values.length <= 4) {
+                  SendMessage.sendMessage(value, this.getSyntax());
                   return;
                }
 
-               var3 = var2[4].equals("*") ? null : var2[4];
-               if (var3 != null) {
-                  this.itemLoc = this.methods.getShopItemLoc(var1, this.section, var3);
+               text = values[4].equals("*") ? null : values[4];
+               if (text != null) {
+                  this.itemLoc = this.methods.getShopItemLoc(value, this.section, text);
                   if (this.itemLoc == null) {
                      return;
                   }
 
                   if (this.plugin.getLimitedSellProvider().getSellLimitMode(this.section + "." + this.itemLoc) != 2) {
-                     SendMessage.warnMessage(var1, "This item does not have any player sell limits");
+                     SendMessage.warnMessage(value, "This item does not have any player sell limits");
                      return;
                   }
                } else {
@@ -85,66 +85,66 @@ public class ResetLimit extends SubCommad {
             }
 
             try {
-               long var7 = System.currentTimeMillis();
+               long startTime = System.currentTimeMillis();
                this.plugin
                   .getLimitedSellProvider()
                   .resetItemLinit(this.section, this.itemLoc, this.playerName == null ? null : Bukkit.getOfflinePlayer(this.playerName).getUniqueId(), 2);
-               SendMessage.infoMessage(var1, Lang.STOCK_LIMIT_RESET_SUCCESSFUL.get().replace("%time%", String.valueOf(System.currentTimeMillis() - var7)));
-            } catch (Exception var5) {
-               SendMessage.warnMessage(var1, "Failed to reset stock limit, see console for details");
-               var5.printStackTrace();
+               SendMessage.infoMessage(value, Lang.STOCK_LIMIT_RESET_SUCCESSFUL.get().replace("%time%", String.valueOf(System.currentTimeMillis() - startTime)));
+            } catch (Exception exception) {
+               SendMessage.warnMessage(value, "Failed to reset stock limit, see console for details");
+               exception.printStackTrace();
             }
          } else {
-            SendMessage.sendMessage(var1, this.getSyntax());
+            SendMessage.sendMessage(value, this.getSyntax());
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               List var8 = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-               var8.add("*");
-               ArrayList var3 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], var8, var3);
-               Collections.sort(var3);
-               return var3;
+            if (!values[2].isEmpty()) {
+               List playerNames = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+               playerNames.add("*");
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], playerNames, values2);
+               Collections.sort(values2);
+               return values2;
             }
 
-            List var7 = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-            var7.add("*");
-            return var7;
+            List names = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+            names.add("*");
+            return names;
          case 4:
-            if (!var1[3].isEmpty()) {
-               ArrayList var6 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[3], this.plugin.getShopSections(), var6);
-               Collections.sort(var6);
-               var6.add("*");
-               return var6;
+            if (!values[3].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[3], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               values2.add("*");
+               return values2;
             }
 
-            ArrayList var5 = new ArrayList<>(this.plugin.getShopSections());
-            var5.add("*");
-            return var5;
+            ArrayList values2 = new ArrayList<>(this.plugin.getShopSections());
+            values2.add("*");
+            return values2;
          case 5:
-            if (var1[3].equals("*") && !this.plugin.getShopSections().contains(var1[3])) {
+            if (values[3].equals("*") && !this.plugin.getShopSections().contains(values[3])) {
                return null;
             } else {
-               if (!var1[4].isEmpty()) {
-                  ArrayList var4 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[4], this.plugin.getSection(var1[3]).getShopItemLocs(), var4);
-                  Collections.sort(var4);
-                  var4.add("*");
-                  return var4;
+               if (!values[4].isEmpty()) {
+                  ArrayList values3 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[4], this.plugin.getSection(values[3]).getShopItemLocs(), values3);
+                  Collections.sort(values3);
+                  values3.add("*");
+                  return values3;
                }
 
-               List var2 = this.plugin.getSection(var1[3]).getShopItemLocs();
-               var2.add("*");
-               return var2;
+               List shopItemLocs = this.plugin.getSection(values[3]).getShopItemLocs();
+               shopItemLocs.add("*");
+               return shopItemLocs;
             }
          default:
             return null;

@@ -9,10 +9,10 @@ public class PermissionHolder {
    final String world;
    final String permission;
 
-   public PermissionHolder(Player var1, String var2) {
-      this.uuid = var1.getUniqueId();
-      this.world = var1.getWorld().getName();
-      this.permission = var2;
+   public PermissionHolder(Player player, String permission) {
+      this.uuid = player.getUniqueId();
+      this.world = player.getWorld().getName();
+      this.permission = permission;
    }
 
    public UUID getOwner() {
@@ -28,12 +28,12 @@ public class PermissionHolder {
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         PermissionHolder var2 = (PermissionHolder)var1;
-         return this.uuid.equals(var2.getOwner()) && this.permission.equals(var2.getPermission()) && this.world.equals(var2.getWorld());
+      } else if (value != null && this.getClass() == value.getClass()) {
+         PermissionHolder permissionHolder = (PermissionHolder)value;
+         return this.uuid.equals(permissionHolder.getOwner()) && this.permission.equals(permissionHolder.getPermission()) && this.world.equals(permissionHolder.getWorld());
       } else {
          return false;
       }

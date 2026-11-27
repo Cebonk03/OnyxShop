@@ -15,37 +15,37 @@ public class DelayedLoadListener implements Listener {
    private final Set<DelayedLoadListener.Type> loaded = new HashSet<>();
    private final Set<DelayedLoadListener.Type> waitFor = new HashSet<>();
 
-   public DelayedLoadListener(OnyxShop var1, Runnable var2, boolean var3, boolean var4, boolean var5, boolean var6) {
+   public DelayedLoadListener(OnyxShop plugin, Runnable task, boolean flag, boolean flag2, boolean flag3, boolean flag4) {
       SendMessage.infoMessage("Providers not enabled yet, waiting...");
-      this.onComplete = var2;
-      if (var3) {
+      this.onComplete = task;
+      if (flag) {
          this.waitFor.add(DelayedLoadListener.Type.ITEMS);
       }
 
-      if (var4) {
+      if (flag2) {
          this.waitFor.add(DelayedLoadListener.Type.SPAWNERS);
       }
 
-      if (var5) {
+      if (flag3) {
          this.waitFor.add(DelayedLoadListener.Type.ECONOMY);
       }
 
-      if (var6) {
+      if (flag4) {
          this.waitFor.add(DelayedLoadListener.Type.PLACEHOLDERS);
       }
 
-      var1.runTaskLater(this::fallBack, 100L);
+      plugin.runTaskLater(this::fallBack, 100L);
    }
 
    @EventHandler
-   public void onLoad(ProviderLoadEvent var1) {
-      this.loaded.add(var1.getProviderType());
+   public void onLoad(ProviderLoadEvent event) {
+      this.loaded.add(event.getProviderType());
       if (this.loaded.containsAll(this.waitFor)) {
          this.enabled = true;
          this.onComplete.run();
          this.unregister();
       } else {
-         SendMessage.logDebugMessage(var1.getProviderType().name() + " provider loaded, waiting...");
+         SendMessage.logDebugMessage(event.getProviderType().name() + " provider loaded, waiting...");
       }
    }
 
@@ -57,7 +57,7 @@ public class DelayedLoadListener implements Listener {
       if (!this.enabled) {
          SendMessage.warnMessage(
             "Provider(s) "
-               + Arrays.toString(this.waitFor.stream().filter(var1 -> !this.loaded.contains(var1)).toArray())
+               + Arrays.toString(this.waitFor.stream().filter(element -> !this.loaded.contains(element)).toArray())
                + " not enabled yet after waiting for server to finish, loading now..."
          );
          this.onComplete.run();

@@ -39,104 +39,104 @@ public class ShopPage extends ShopInventory {
       return this.section;
    }
 
-   public String getItem(int var1) {
-      return this.itemOrder.get(var1);
+   public String getItem(int value) {
+      return this.itemOrder.get(value);
    }
 
    public ShopPage(
-      OnyxShop var1,
-      Map<Integer, ItemStack> var2,
-      List<String> var3,
-      ItemStack var4,
-      Player var5,
-      Translatable var6,
-      String var7,
-      int var8,
-      int var9,
-      boolean var10,
-      boolean var11,
-      int var12,
-      @Nullable String var13
+      OnyxShop plugin,
+      Map<Integer, ItemStack> map,
+      List<String> values,
+      ItemStack itemStack,
+      Player player,
+      Translatable text,
+      String text2,
+      int value,
+      int value2,
+      boolean flag,
+      boolean flag2,
+      int value3,
+      @Nullable String text3
    ) {
-      this.page = var8;
-      this.itemOrder = var3;
-      this.allPages = var9;
-      this.section = var7;
-      this.disabledBackButton = var10;
-      this.size = var12;
-      this.rootSection = var13;
-      this.player = var5;
-      this.inventory = var1.getMetaUtils().createInventory(this, var12, var6);
-      this.init(var1, var5, var2, var4, var11);
-      this.startUpdateTask(var1);
+      this.page = value;
+      this.itemOrder = values;
+      this.allPages = value2;
+      this.section = text2;
+      this.disabledBackButton = flag;
+      this.size = value3;
+      this.rootSection = text3;
+      this.player = player;
+      this.inventory = plugin.getMetaUtils().createInventory(this, value3, text);
+      this.init(plugin, player, map, itemStack, flag2);
+      this.startUpdateTask(plugin);
    }
 
-   private void startUpdateTask(OnyxShop var1) {
-      long var2 = var1.getSection(this.section).getUpdateInterval();
-      if (var2 > 0L) {
-         this.updateTask = var1.runTaskTimer(() -> {
+   private void startUpdateTask(OnyxShop plugin) {
+      long updateInterval = plugin.getSection(this.section).getUpdateInterval();
+      if (updateInterval > 0L) {
+         this.updateTask = plugin.runTaskTimer(() -> {
             if (this.inventory.getViewers().isEmpty()) {
                this.updateTask.cancel();
             } else {
-               this.updateItems(var1);
+               this.updateItems(plugin);
             }
-         }, var2, var2);
+         }, updateInterval, updateInterval);
       }
    }
 
-   private void updateItems(OnyxShop var1) {
-      ShopSection var2 = var1.getSection(this.section);
+   private void updateItems(OnyxShop plugin) {
+      ShopSection section = plugin.getSection(this.section);
 
-      for (int var3 = 0; var3 < this.itemOrder.size(); var3++) {
-         if (!this.fillItems.contains(var3)) {
-            String var4 = this.itemOrder.get(var3);
-            ShopItem var5 = var4 == null ? null : var2.getShopItem(this.section + "." + var4);
-            if (var5 != null
+      for (int size = 0; size < this.itemOrder.size(); size++) {
+         if (!this.fillItems.contains(size)) {
+            String itemId = this.itemOrder.get(size);
+            ShopItem shopItem = itemId == null ? null : section.getShopItem(this.section + "." + itemId);
+            if (shopItem != null
                && (
-                  var5.isDynamicPricing()
-                     || var5.getLimitedStockMode() != 0
-                     || var5.getLimitedSellMode() != 0
-                     || !var5.getPlaceholders().isEmpty()
-                     || !var5.getItgPlaceholders().isEmpty()
+                  shopItem.isDynamicPricing()
+                     || shopItem.getLimitedStockMode() != 0
+                     || shopItem.getLimitedSellMode() != 0
+                     || !shopItem.getPlaceholders().isEmpty()
+                     || !shopItem.getItgPlaceholders().isEmpty()
                )) {
-               this.inventory.setItem(var3, var2.updateItem(this.player, var5));
+               this.inventory.setItem(size, section.updateItem(this.player, shopItem));
             }
          }
       }
    }
 
-   private void init(OnyxShop var1, Player var2, Map<Integer, ItemStack> var3, ItemStack var4, boolean var5) {
-      for (int var6 = 0; var6 < (var5 ? this.size - 9 : this.size); var6++) {
-         if (var3.containsKey(var6)) {
-            this.inventory.setItem(var6, (ItemStack)var3.get(var6));
-         } else if (var4 != null) {
-            this.inventory.setItem(var6, var4);
-            this.fillItems.add(var6);
+   private void init(OnyxShop plugin, Player player, Map<Integer, ItemStack> map, ItemStack itemStack, boolean flag) {
+      for (int size = 0; size < (flag ? this.size - 9 : this.size); size++) {
+         if (map.containsKey(size)) {
+            this.inventory.setItem(size, (ItemStack)map.get(size));
+         } else if (itemStack != null) {
+            this.inventory.setItem(size, itemStack);
+            this.fillItems.add(size);
          } else {
-            this.inventory.setItem(var6, new ItemStack(Material.AIR));
+            this.inventory.setItem(size, new ItemStack(Material.AIR));
          }
       }
 
-      var1.navBar.addShopsNavBar(this.inventory, var2, this.section, this.page, this.allPages);
+      plugin.navBar.addShopsNavBar(this.inventory, player, this.section, this.page, this.allPages);
    }
 
-   public void updateContents(OnyxShop var1, Player var2, Map<Integer, ItemStack> var3, List<String> var4, ItemStack var5, int var6, boolean var7) {
-      this.page = var6;
-      this.itemOrder = var4;
+   public void updateContents(OnyxShop plugin, Player player, Map<Integer, ItemStack> map, List<String> shopIds, ItemStack itemStack, int value, boolean flag) {
+      this.page = value;
+      this.itemOrder = shopIds;
 
-      for (int var8 = 0; var8 < (var7 ? this.size - 9 : this.size); var8++) {
-         if (var3.containsKey(var8)) {
-            this.inventory.setItem(var8, (ItemStack)var3.get(var8));
-         } else if (var5 != null) {
-            if (!this.fillItems.contains(var8)) {
-               this.inventory.setItem(var8, var5);
+      for (int size = 0; size < (flag ? this.size - 9 : this.size); size++) {
+         if (map.containsKey(size)) {
+            this.inventory.setItem(size, (ItemStack)map.get(size));
+         } else if (itemStack != null) {
+            if (!this.fillItems.contains(size)) {
+               this.inventory.setItem(size, itemStack);
             }
          } else {
-            this.inventory.setItem(var8, new ItemStack(Material.AIR));
+            this.inventory.setItem(size, new ItemStack(Material.AIR));
          }
       }
 
-      var1.navBar.updateShopsNavBar(this.inventory, var2, this.section, var6, this.allPages);
+      plugin.navBar.updateShopsNavBar(this.inventory, player, this.section, value, this.allPages);
    }
 
    public int getPage() {

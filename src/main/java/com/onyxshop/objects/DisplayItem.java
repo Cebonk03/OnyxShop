@@ -26,17 +26,17 @@ public interface DisplayItem {
 
    Requirements getRequirements();
 
-   boolean meetsRequirements(Player var1, boolean var2);
+   boolean meetsRequirements(Player player, boolean flag);
 
-   boolean hasItemRequirement(RequirementType var1);
+   boolean hasItemRequirement(RequirementType requirementType);
 
-   void addItemRequirement(ItemRequirement var1);
+   void addItemRequirement(ItemRequirement itemRequirement);
 
-   void removeItemRequirement(ItemRequirement var1);
+   void removeItemRequirement(ItemRequirement itemRequirement);
 
-   void addItemRequirements(Collection<? extends ItemRequirement> var1);
+   void addItemRequirements(Collection<? extends ItemRequirement> values);
 
-   void removeItemRequirements(Collection<? extends ItemRequirement> var1);
+   void removeItemRequirements(Collection<? extends ItemRequirement> values);
 
    boolean hasItemError();
 
@@ -48,13 +48,13 @@ public interface DisplayItem {
 
    boolean isClickCommand();
 
-   boolean canPurchase(Player var1, String var2, boolean var3);
+   boolean canPurchase(Player player, String playerName, boolean flag);
 
-   void updateSkullTexture(Object var1, boolean var2);
+   void updateSkullTexture(Object value, boolean flag);
 
    DisplayItem.DynamicLore getLore();
 
    public interface DynamicLore {
-      String[] get(boolean var1, boolean var2);
+      String[] get(boolean flag, boolean flag2);
    }
 }

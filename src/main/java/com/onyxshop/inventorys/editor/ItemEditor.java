@@ -17,15 +17,15 @@ public class ItemEditor implements InventoryHolder {
       return this.inv;
    }
 
-   public void open(Player var1) {
-      var1.openInventory(this.inv);
+   public void open(Player player) {
+      player.openInventory(this.inv);
    }
 
    public void fillInventory() {
       if (OnyxShop.getInstance().createItem.fillItem != null) {
-         for (int var1 = 0; var1 < this.inv.getSize() - 9; var1++) {
-            if (this.inv.getItem(var1) == null) {
-               this.inv.setItem(var1, OnyxShop.getInstance().createItem.fillItem);
+         for (int size = 0; size < this.inv.getSize() - 9; size++) {
+            if (this.inv.getItem(size) == null) {
+               this.inv.setItem(size, OnyxShop.getInstance().createItem.fillItem);
             }
          }
       }

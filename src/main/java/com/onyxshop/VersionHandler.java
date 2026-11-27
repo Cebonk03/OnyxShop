@@ -12,126 +12,126 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public interface VersionHandler {
-   boolean hasData(ItemStack var1, String var2);
+   boolean hasData(ItemStack itemStack, String itemId);
 
    Object emptyList();
 
-   ItemStack setOnyxNbtString(ItemStack var1, String var2, String var3);
+   ItemStack setOnyxNbtString(ItemStack itemStack, String itemId, String text);
 
-   String getOnyxNbtString(ItemStack var1, String var2);
+   String getOnyxNbtString(ItemStack itemStack, String itemId);
 
-   ItemStack setOnyxNbtInt(ItemStack var1, String var2, Integer var3);
+   ItemStack setOnyxNbtInt(ItemStack itemStack, String itemId, Integer value);
 
-   Integer getOnyxNbtInt(ItemStack var1, String var2);
+   Integer getOnyxNbtInt(ItemStack itemStack, String itemId);
 
-   ItemStack setNBTString(ItemStack var1, String var2, String var3);
+   ItemStack setNBTString(ItemStack itemStack, String itemId, String text);
 
-   String getNBTString(ItemStack var1, String var2);
+   String getNBTString(ItemStack itemStack, String itemId);
 
-   ItemStack setNBTInt(ItemStack var1, String var2, Integer var3);
+   ItemStack setNBTInt(ItemStack itemStack, String itemId, Integer value);
 
-   Integer getNBTInt(ItemStack var1, String var2);
+   Integer getNBTInt(ItemStack itemStack, String itemId);
 
-   String getNBTDataAsString(ItemStack var1, boolean var2);
+   String getNBTDataAsString(ItemStack itemStack, boolean flag);
 
-   String toNBT(String var1);
+   String toNBT(String text);
 
-   ItemStack setIndex(ItemStack var1, Integer var2);
+   ItemStack setIndex(ItemStack itemStack, Integer index);
 
-   String getLoreAsNBT(ItemStack var1);
+   String getLoreAsNBT(ItemStack itemStack);
 
-   Object getNMSLore(ItemStack var1);
+   Object getNMSLore(ItemStack itemStack);
 
-   ItemStack applyNMSLore(ItemStack var1, Object var2);
+   ItemStack applyNMSLore(ItemStack itemStack, Object value);
 
-   ItemStack setDisplayname(ItemStack var1, String var2);
+   ItemStack setDisplayname(ItemStack itemStack, String itemId);
 
-   void setItemLore(Object var1, String var2, int var3);
+   void setItemLore(Object value, String itemId, int value2);
 
-   void addItemLore(Object var1, String var2, int var3);
+   void addItemLore(Object value, String itemId, int value2);
 
-   void addItemLore(Object var1, String var2);
+   void addItemLore(Object value, String itemId);
 
-   Integer getIndex(ItemStack var1);
+   Integer getIndex(ItemStack itemStack);
 
-   ItemStack setAction(ItemStack var1, String var2);
+   ItemStack setAction(ItemStack itemStack, String itemId);
 
-   String getAction(ItemStack var1);
+   String getAction(ItemStack itemStack);
 
-   ItemStack setEditOption(ItemStack var1, String var2);
+   ItemStack setEditOption(ItemStack itemStack, String itemId);
 
-   String getEditOption(ItemStack var1);
+   String getEditOption(ItemStack itemStack);
 
-   ItemStack getShopAdminItem(ItemStack var1);
+   ItemStack getShopAdminItem(ItemStack itemStack);
 
-   boolean isShopAdminItem(ItemStack var1);
+   boolean isShopAdminItem(ItemStack itemStack);
 
-   ItemStack addNBTtag(ItemStack var1, String var2, boolean var3) throws ItemLoadException;
+   ItemStack addNBTtag(ItemStack itemStack, String itemId, boolean flag) throws ItemLoadException;
 
-   ItemStack addNBTCommands(ItemStack var1, List<String> var2, CommandType var3);
+   ItemStack addNBTCommands(ItemStack itemStack, List<String> itemIds, CommandType commandType);
 
-   boolean hasNBTCommand(ItemStack var1);
+   boolean hasNBTCommand(ItemStack itemStack);
 
-   List<String> getNBTCommands(ItemStack var1, CommandType var2);
+   List<String> getNBTCommands(ItemStack itemStack, CommandType commandType);
 
-   ItemStack setDisabledBackButton(ItemStack var1);
+   ItemStack setDisabledBackButton(ItemStack itemStack);
 
-   boolean isDisabledBackButton(ItemStack var1);
+   boolean isDisabledBackButton(ItemStack itemStack);
 
-   double getBuyPrice(ItemStack var1);
+   double getBuyPrice(ItemStack itemStack);
 
-   double getSellPrice(ItemStack var1);
+   double getSellPrice(ItemStack itemStack);
 
-   ItemStack addNBTPrices(ItemStack var1, String var2);
+   ItemStack addNBTPrices(ItemStack itemStack, String itemId);
 
-   ItemStack setSpawnerType(ItemStack var1, String var2);
+   ItemStack setSpawnerType(ItemStack itemStack, String type);
 
-   ItemStack setPathToItem(ItemStack var1, String var2);
+   ItemStack setPathToItem(ItemStack itemStack, String path);
 
-   ItemStack setItemErrorToItem(ItemStack var1);
+   ItemStack setItemErrorToItem(ItemStack itemStack);
 
-   ItemStack setPotionType(ItemStack var1, PotionTypes var2);
+   ItemStack setPotionType(ItemStack itemStack, PotionTypes potionTypes);
 
-   Optional<PotionTypes> getBasePotion(ItemStack var1);
+   Optional<PotionTypes> getBasePotion(ItemStack itemStack);
 
-   ItemStack getSpawnerToGive(EntityType var1);
+   ItemStack getSpawnerToGive(EntityType entityType);
 
-   String getPathToItem(ItemStack var1);
+   String getPathToItem(ItemStack itemStack);
 
-   Boolean hasItemError(ItemStack var1);
+   Boolean hasItemError(ItemStack itemStack);
 
-   String getSpawnerType(ItemStack var1);
+   String getSpawnerType(ItemStack itemStack);
 
-   ItemStack getItemInHand(Player var1);
+   ItemStack getItemInHand(Player player);
 
-   String getTitle(Inventory var1);
+   String getTitle(Inventory inventory);
 
-   boolean isSimilar(ItemStack var1, ItemStack var2, List<String> var3);
+   boolean isSimilar(ItemStack itemStack, ItemStack itemStack2, List<String> itemIds);
 
-   ItemStack setPages(ItemStack var1, String var2);
+   ItemStack setPages(ItemStack itemStack, String itemId);
 
-   String getPages(ItemStack var1);
+   String getPages(ItemStack itemStack);
 
-   void updateInventoryTitle(Player var1, Translatable var2);
+   void updateInventoryTitle(Player player, Translatable text);
 
    public interface AnvilGUI {
-      VersionHandler.AnvilGUI.AnvilContainer newAnvilContainer(Player var1, String var2);
+      VersionHandler.AnvilGUI.AnvilContainer newAnvilContainer(Player player, String playerName);
 
-      int getNextContainerId(Player var1, Object var2);
+      int getNextContainerId(Player player, Object value);
 
-      void handleInventoryCloseEvent(Player var1);
+      void handleInventoryCloseEvent(Player player);
 
-      void sendPacketOpenWindow(Player var1, int var2, String var3);
+      void sendPacketOpenWindow(Player player, int value, String playerName);
 
-      void sendPacketCloseWindow(Player var1, int var2);
+      void sendPacketCloseWindow(Player player, int value);
 
-      void setActiveContainerDefault(Player var1);
+      void setActiveContainerDefault(Player player);
 
-      void setActiveContainer(Player var1, Object var2);
+      void setActiveContainer(Player player, Object value);
 
-      void setActiveContainerId(Object var1, int var2);
+      void setActiveContainerId(Object value, int id);
 
-      void addActiveContainerSlotListener(Object var1, Player var2);
+      void addActiveContainerSlotListener(Object value, Player player);
 
       public interface AnvilContainer {
          Inventory getBukkitInventory();

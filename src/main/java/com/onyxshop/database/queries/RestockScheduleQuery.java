@@ -8,28 +8,28 @@ public class RestockScheduleQuery implements Query {
    private final ScheduleManager.Item item;
    private final long next;
 
-   public RestockScheduleQuery(ScheduleManager.Item var1, long var2) {
-      this.item = var1;
-      this.next = var2;
+   public RestockScheduleQuery(ScheduleManager.Item item, long restockTime) {
+      this.item = item;
+      this.next = restockTime;
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.SAVE_RESTOCK_SCHEDULE.init(var1, this.item.getItemPath(), this.item.mode, this.next);
+   public String format(String text) {
+      return SQLQueries.SAVE_RESTOCK_SCHEDULE.init(text, this.item.getItemPath(), this.item.mode, this.next);
    }
 
    @Override
-   public String formatPostgres(String var1) {
-      return SQLQueries.SAVE_RESTOCK_SCHEDULE_PG.init(var1, this.item.getItemPath(), this.item.mode, this.next);
+   public String formatPostgres(String text) {
+      return SQLQueries.SAVE_RESTOCK_SCHEDULE_PG.init(text, this.item.getItemPath(), this.item.mode, this.next);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         RestockScheduleQuery var2 = (RestockScheduleQuery)var1;
-         return this.item.equals(var2.item);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         RestockScheduleQuery restockScheduleQuery = (RestockScheduleQuery)value;
+         return this.item.equals(restockScheduleQuery.item);
       } else {
          return false;
       }

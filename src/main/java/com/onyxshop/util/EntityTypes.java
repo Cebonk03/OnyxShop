@@ -8,21 +8,21 @@ public class EntityTypes {
    public EntityTypes() {
    }
 
-   public static Optional<EntityType> matchEntityType(String var0) {
-      var0 = var0.replace(" ", "_").toUpperCase(Locale.ENGLISH);
+   public static Optional<EntityType> matchEntityType(String type) {
+      type = type.replace(" ", "_").toUpperCase(Locale.ENGLISH);
       if (ServerInfo.supportsComponents()) {
-         switch (var0) {
+         switch (type) {
             case "MUSHROOM_COW":
-               var0 = "MOOSHROOM";
+               type = "MOOSHROOM";
                break;
             case "SNOWMAN":
-               var0 = "SNOW_GOLEM";
+               type = "SNOW_GOLEM";
          }
       }
 
       try {
-         return Optional.of(EntityType.valueOf(var0));
-      } catch (IllegalArgumentException var3) {
+         return Optional.of(EntityType.valueOf(type));
+      } catch (IllegalArgumentException exception) {
          return Optional.empty();
       }
    }

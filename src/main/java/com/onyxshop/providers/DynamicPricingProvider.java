@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -37,8 +38,8 @@ public class DynamicPricingProvider {
    private final Database database;
    private final OnyxShop plugin;
    private DynamicPricingProvider.PriceRestoration priceRestorationTicker;
-   private Map<String, Integer> EXPIRED_STOCK;
-   private Map<String, Integer> CASHED_STOCK = new HashMap<>();
+   private volatile ConcurrentHashMap<String, Integer> EXPIRED_STOCK = new ConcurrentHashMap<>();
+   private volatile ConcurrentHashMap<String, Integer> CASHED_STOCK = new ConcurrentHashMap<>();
    private Map<String, Integer> maxStocks = new HashMap<>();
    private final DynamicPricingCache settingsCache;
    private Map<String, Integer> buyPriceScaling;
@@ -50,12 +51,12 @@ public class DynamicPricingProvider {
    private int minStock;
    private final int magicNumber;
 
-   public DynamicPricingProvider(OnyxShop var1, Database var2) {
-      this.plugin = var1;
+   public DynamicPricingProvider(OnyxShop plugin, Database database) {
+      this.plugin = plugin;
       SendMessage.infoMessage(Lang.LOADING_DYNAMIC_PRICING.get());
-      this.database = var2;
-      this.settingsCache = new DynamicPricingCache(var1);
-      this.cache = var2 instanceof SQLite;
+      this.database = database;
+      this.settingsCache = new DynamicPricingCache(plugin);
+      this.cache = database instanceof SQLite;
       this.magicNumber = this.maxStock * 2;
       this.initStocks();
       if (this.cache) {
@@ -75,667 +76,669 @@ public class DynamicPricingProvider {
       this.buyPriceScaling = this.getBuyPriceScaling();
       this.sellPriceScaling = this.getSellPriceScaling();
       this.loadCashedStock();
-      Map var1 = this.loadPrices();
-      this.checkForMaxStockUpdates(var1);
-      this.loadReversibleMaxStocks(var1);
+      Map map = this.loadPrices();
+      this.checkForMaxStockUpdates(map);
+      this.loadReversibleMaxStocks(map);
    }
 
-   private void checkForMaxStockUpdates(Map<String, Integer> var1) {
-      int var2 = 2000;
+   private void checkForMaxStockUpdates(Map<String, Integer> stocks) {
+      int value = 2000;
 
       try {
-         var2 = Integer.parseInt(ConfigManager.getConfig().getString("config-version", "2.0.0.0").replace(".", ""));
-      } catch (NumberFormatException var10) {
+         value = Integer.parseInt(ConfigManager.getConfig().getString("config-version", "2.0.0.0").replace(".", ""));
+      } catch (NumberFormatException exception) {
       }
 
-      if (var2 == 2024) {
+      if (value == 2024) {
          try {
-            this.updateOldMaxStocks(var1);
+            this.updateOldMaxStocks(stocks);
             this.maxStock = 250;
             ConfigManager.getConfig().set("dynamic-pricing.max-stock", 250);
             ConfigManager.getConfig().set("config-version", "2.0.3.0");
             ConfigManager.saveConfig();
-         } catch (Exception var9) {
+         } catch (Exception exception) {
             SendMessage.errorMessage("Exception while updating maxStock entries with current DynamicPricing");
-            var9.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      Set<String> var3 = new HashSet<>();
+      Set<String> values = new HashSet<>();
 
-      for (String var5 : ConfigManager.getShops()) {
-         int var6 = this.getStaticMaxStock(var5, null, 0);
-         if (var6 > 0) {
-            Integer var7 = this.settingsCache.getCachedMaxStock(var5);
-            if (var7 == null || var7 != var6) {
-               this.settingsCache.saveCachedMaxStock(var5, var6);
-               var3.add(var5);
+      for (String text : ConfigManager.getShops()) {
+         int staticMaxStock = this.getStaticMaxStock(text, null, 0);
+         if (staticMaxStock > 0) {
+            Integer cachedMaxStock = this.settingsCache.getCachedMaxStock(text);
+            if (cachedMaxStock == null || cachedMaxStock != staticMaxStock) {
+               this.settingsCache.saveCachedMaxStock(text, staticMaxStock);
+               values.add(text);
             }
-         } else if (this.settingsCache.getCachedMaxStock(var5) != null) {
-            this.settingsCache.removeCachedMaxStock(var5);
+         } else if (this.settingsCache.getCachedMaxStock(text) != null) {
+            this.settingsCache.removeCachedMaxStock(text);
          }
 
-         int var12 = this.getMaxPrice(var1, var5);
-         if (var12 != -1) {
-            Integer var8 = this.settingsCache.getCachedMaxPrice(var5);
-            if (var8 == null || var8 != var12) {
-               this.settingsCache.saveCachedMaxPrice(var5, var12);
-               var3.add(var5);
+         int maxPrice = this.getMaxPrice(stocks, text);
+         if (maxPrice != -1) {
+            Integer cachedMaxPrice = this.settingsCache.getCachedMaxPrice(text);
+            if (cachedMaxPrice == null || cachedMaxPrice != maxPrice) {
+               this.settingsCache.saveCachedMaxPrice(text, maxPrice);
+               values.add(text);
             }
-         } else if (this.settingsCache.getCachedMaxPrice(var5) != null) {
-            this.settingsCache.removeCachedMaxPrice(var5);
+         } else if (this.settingsCache.getCachedMaxPrice(text) != null) {
+            this.settingsCache.removeCachedMaxPrice(text);
          }
       }
 
-      Integer var11 = this.settingsCache.getCachedMaxStock(null);
-      if (var11 == null || var11 != this.maxStock) {
+      Integer cachedMaxStock = this.settingsCache.getCachedMaxStock(null);
+      if (cachedMaxStock == null || cachedMaxStock != this.maxStock) {
          this.settingsCache.saveCachedMaxStock(null, this.maxStock);
-         var3 = ConfigManager.getShops();
+         values = ConfigManager.getShops();
       }
 
-      if (!var3.isEmpty()) {
-         this.updateMaxStocks(var1, (Set<String>)var3);
+      if (!values.isEmpty()) {
+         this.updateMaxStocks(stocks, (Set<String>)values);
       }
    }
 
-   private void updateMaxStocks(Map<String, Integer> var1, Set<String> var2) {
+   private void updateMaxStocks(Map<String, Integer> map, Set<String> values) {
       SendMessage.infoMessage("Detected maxStock change, automatically updating dynamic pricing from database with new maxStock data...");
 
       try {
-         Map var3 = !this.cache && !this.plugin.displayCache ? this.database.loadDynamicPricingStock() : this.CASHED_STOCK;
-         Map var4 = this.database.loadDynamicMaxStocks();
+         Map itemIds = !this.cache && !this.plugin.displayCache ? this.database.loadDynamicPricingStock() : this.CASHED_STOCK;
+         Map map2 = this.database.loadDynamicMaxStocks();
 
-         for (String var6 : var2) {
-            int var7 = this.getStaticMaxStock(var6, null, 0);
-            if (var7 <= 0) {
-               Map<String, Integer> var8 = this.getInvertedStocks(var1, var6);
+         for (String text : values) {
+            int staticMaxStock = this.getStaticMaxStock(text, null, 0);
+            if (staticMaxStock <= 0) {
+               Map<String, Integer> invertedStocks = this.getInvertedStocks(map, text);
 
-               for (String var10 : var8.keySet()) {
-                  int var11 = this.getStaticMaxStock(var6, var10.split("\\.", 2)[1], 0);
-                  if (var11 <= 0) {
-                     int var12 = (Integer)var8.get(var10);
-                     if (var3.containsKey(var10) && var4.containsKey(var10) && !((Integer)var4.get(var10)).equals(var12)) {
-                        this.database.setDynamicMaxStock(var10, var12);
-                        double var13 = ((Integer)var3.get(var10)).intValue() * 200.0 / ((Integer)var4.get(var10)).intValue();
-                        if (var13 > 200.0 || var13 < 0.0) {
-                           var13 = 100.0;
+               for (String key : invertedStocks.keySet()) {
+                  int staticMaxStock2 = this.getStaticMaxStock(text, key.split("\\.", 2)[1], 0);
+                  if (staticMaxStock2 <= 0) {
+                     int value = (Integer)invertedStocks.get(key);
+                     if (itemIds.containsKey(key) && map2.containsKey(key) && !((Integer)map2.get(key)).equals(value)) {
+                        this.database.setDynamicMaxStock(key, value);
+                        double amount = ((Integer)itemIds.get(key)).intValue() * 200.0 / ((Integer)map2.get(key)).intValue();
+                        if (amount > 200.0 || amount < 0.0) {
+                           amount = 100.0;
                         }
 
-                        int var15 = (int)Math.round(var12 / 200.0 * var13);
-                        this.setDynamicStock(var10, Math.max(0, Math.min(var12, var15)));
+                        int value2 = (int)Math.round(value / 200.0 * amount);
+                        this.setDynamicStock(key, Math.max(0, Math.min(value, value2)));
                      }
                   }
                }
             }
          }
-      } catch (SQLException var16) {
+      } catch (SQLException exception) {
          SendMessage.warnMessage("Failed to automatically update dynamic pricing with new maxStock data, resetting dynamic pricing instead...");
-         var16.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private void updateOldMaxStocks(Map<String, Integer> var1) throws SQLException {
+   private void updateOldMaxStocks(Map<String, Integer> map) throws SQLException {
       SendMessage.infoMessage("Automatically updating current DynamicPricing from database with new maxStock data...");
       OnyxShop.getInstance().createFileBackup("database.db");
-      Map var2 = this.database.loadDynamicPricingStock();
-      Map var3 = this.getMaxStocksOld(var2);
+      Map itemIds = this.database.loadDynamicPricingStock();
+      Map maxStocksOld = this.getMaxStocksOld(itemIds);
 
-      for (String var5 : ConfigManager.getShops()) {
-         Map<String, Integer> var6 = this.getInvertedStocks(var1, var5);
+      for (String text : ConfigManager.getShops()) {
+         Map<String, Integer> invertedStocks = this.getInvertedStocks(map, text);
 
-         for (String var8 : var6.keySet()) {
-            int var9 = this.getStaticMaxStock(var5, var8.split("\\.", 2)[1], 0);
-            if (var9 >= 0 && var9 <= 0) {
-               int var10 = (Integer)var6.get(var8);
-               if (var2.containsKey(var8) && var3.containsKey(var8) && !((Integer)var3.get(var8)).equals(var10)) {
-                  this.database.setDynamicMaxStock(var8, var10);
-                  double var11 = ((Integer)var2.get(var8)).intValue() * 200.0 / ((Integer)var3.get(var8)).intValue();
-                  if (var11 > 200.0 || var11 < 0.0) {
-                     var11 = 100.0;
+         for (String key : invertedStocks.keySet()) {
+            int staticMaxStock = this.getStaticMaxStock(text, key.split("\\.", 2)[1], 0);
+            if (staticMaxStock >= 0 && staticMaxStock <= 0) {
+               int value = (Integer)invertedStocks.get(key);
+               if (itemIds.containsKey(key) && maxStocksOld.containsKey(key) && !((Integer)maxStocksOld.get(key)).equals(value)) {
+                  this.database.setDynamicMaxStock(key, value);
+                  double amount = ((Integer)itemIds.get(key)).intValue() * 200.0 / ((Integer)maxStocksOld.get(key)).intValue();
+                  if (amount > 200.0 || amount < 0.0) {
+                     amount = 100.0;
                   }
 
-                  int var13 = (int)Math.round(var10 / 200.0 * var11);
-                  this.setDynamicStock(var8, Math.max(0, Math.min(var10, var13)));
+                  int value2 = (int)Math.round(value / 200.0 * amount);
+                  this.setDynamicStock(key, Math.max(0, Math.min(value, value2)));
                }
             }
          }
       }
    }
 
-   private int getMaxPrice(Map<String, Integer> var1, String var2) {
-      return var1.entrySet()
+   private int getMaxPrice(Map<String, Integer> prices, String text) {
+      return prices.entrySet()
          .stream()
-         .filter(var1x -> ((String)var1x.getKey()).split("\\.")[0].equals(var2))
+         .filter(entry -> ((String)entry.getKey()).split("\\.")[0].equals(text))
          .map(Entry::getValue)
          .mapToInt(Integer::intValue)
          .max()
          .orElse(-1);
    }
 
-   private void setDynamicStockSafe(String var1, int var2) {
+   private void setDynamicStockSafe(String itemId, int value) {
       if (this.cache || this.plugin.displayCache) {
-         this.CASHED_STOCK.put(var1, Math.max(0, Math.min(this.maxStocks.get(var1) / 2, var2)));
+         this.CASHED_STOCK.put(itemId, Math.max(0, Math.min(this.maxStocks.get(itemId) / 2, value)));
       }
 
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-         this.database.setDynamicStock(var1, Math.max(0, Math.min(this.maxStocks.get(var1) / 2, var2)));
+         this.database.setDynamicStock(itemId, Math.max(0, Math.min(this.maxStocks.get(itemId) / 2, value)));
       }
    }
 
-   private void setDynamicStock(String var1, int var2) {
+   private void setDynamicStock(String itemId, int value) {
       if (this.cache || this.plugin.displayCache) {
-         this.CASHED_STOCK.put(var1, var2);
+         this.CASHED_STOCK.put(itemId, value);
       }
 
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-         this.database.setDynamicStock(var1, var2);
+         this.database.setDynamicStock(itemId, value);
       }
    }
 
    private Map<String, Integer> loadPrices() {
-      HashMap var1 = new HashMap();
+      HashMap map = new HashMap();
 
-      for (String var3 : ConfigManager.getShops()) {
-         for (String var5 : this.plugin.getConfigManager().getItemsRaw(var3)) {
-            if (!ConfigManager.getShop(var3)
-               .contains((this.plugin.getConfigManager().getShopType(var3) == ShopType.ROTATING ? "pages." : "") + var5 + ".action")) {
-               double var6 = this.getItemPrice(var3, var5);
-               if (!(var6 <= 0.0)) {
-                  var1.put(var3 + "." + var5, (int)(Math.log(var6 + 1.0) * 100.0));
+      for (String text : ConfigManager.getShops()) {
+         for (String text2 : this.plugin.getConfigManager().getItemsRaw(text)) {
+            if (!ConfigManager.getShop(text)
+               .contains((this.plugin.getConfigManager().getShopType(text) == ShopType.ROTATING ? "pages." : "") + text2 + ".action")) {
+               double itemPrice = this.getItemPrice(text, text2);
+               if (!(itemPrice <= 0.0)) {
+                  map.put(text + "." + text2, (int)(Math.log(itemPrice + 1.0) * 100.0));
                }
             }
          }
       }
 
-      return var1;
+      return map;
    }
 
    private Map<String, Integer> getBuyPriceScaling() {
-      int var1 = ConfigManager.getConfig().getInt("dynamic-pricing.buyPriceScaling");
-      if (var1 > 100 || var1 < 0) {
-         Translatable var10000 = Lang.INVALID_BUY_PRICE_SCALING.get().replace("%scale%", String.valueOf(var1));
-         var1 = 30;
-         SendMessage.warnMessage(var10000.replace("%default%", String.valueOf(30)));
+      int price = ConfigManager.getConfig().getInt("dynamic-pricing.buyPriceScaling");
+      if (price > 100 || price < 0) {
+         Translatable text = Lang.INVALID_BUY_PRICE_SCALING.get().replace("%scale%", String.valueOf(price));
+         price = 30;
+         SendMessage.warnMessage(text.replace("%default%", String.valueOf(30)));
       }
 
-      HashMap var2 = new HashMap();
+      HashMap map = new HashMap();
 
-      for (String var4 : ConfigManager.getSections()) {
-         int var5 = ConfigManager.getSection(var4).getInt("dynamic-pricing.buyPriceScaling", var1);
-         if (var5 > 100 || var5 < 0) {
-            Translatable var6 = Lang.INVALID_BUY_PRICE_SCALING.get().replace("%scale%", String.valueOf(var1));
-            var5 = var1;
-            SendMessage.warnMessage(var6.replace("%default%", String.valueOf(var1)));
+      for (String text : ConfigManager.getSections()) {
+         int value = ConfigManager.getSection(text).getInt("dynamic-pricing.buyPriceScaling", price);
+         if (value > 100 || value < 0) {
+            Translatable text2 = Lang.INVALID_BUY_PRICE_SCALING.get().replace("%scale%", String.valueOf(price));
+            value = price;
+            SendMessage.warnMessage(text2.replace("%default%", String.valueOf(price)));
          }
 
-         var2.put(var4, var5);
+         map.put(text, value);
       }
 
-      return var2;
+      return map;
    }
 
    private Map<String, Integer> getSellPriceScaling() {
-      int var1 = ConfigManager.getConfig().getInt("dynamic-pricing.sellPriceScaling");
-      if (var1 > 100 || var1 < 0) {
-         Translatable var10000 = Lang.INVALID_SELL_PRICE_SCALING.get().replace("%scale%", String.valueOf(var1));
-         var1 = 20;
-         SendMessage.warnMessage(var10000.replace("%default%", String.valueOf(20)));
+      int price = ConfigManager.getConfig().getInt("dynamic-pricing.sellPriceScaling");
+      if (price > 100 || price < 0) {
+         Translatable text = Lang.INVALID_SELL_PRICE_SCALING.get().replace("%scale%", String.valueOf(price));
+         price = 20;
+         SendMessage.warnMessage(text.replace("%default%", String.valueOf(20)));
       }
 
-      HashMap var2 = new HashMap();
+      HashMap map = new HashMap();
 
-      for (String var4 : ConfigManager.getSections()) {
-         int var5 = ConfigManager.getSection(var4).getInt("dynamic-pricing.sellPriceScaling", var1);
-         if (var5 > 100 || var5 < 0) {
-            Translatable var6 = Lang.INVALID_BUY_PRICE_SCALING.get().replace("%scale%", String.valueOf(var1));
-            var5 = var1;
-            SendMessage.warnMessage(var6.replace("%default%", String.valueOf(var1)));
+      for (String text : ConfigManager.getSections()) {
+         int value = ConfigManager.getSection(text).getInt("dynamic-pricing.sellPriceScaling", price);
+         if (value > 100 || value < 0) {
+            Translatable text2 = Lang.INVALID_BUY_PRICE_SCALING.get().replace("%scale%", String.valueOf(price));
+            value = price;
+            SendMessage.warnMessage(text2.replace("%default%", String.valueOf(price)));
          }
 
-         var2.put(var4, var5);
+         map.put(text, value);
       }
 
-      return var2;
+      return map;
    }
 
    private void startSaveTask() {
-      long var1;
+      long value;
       try {
-         var1 = TimeUtils.getTime(ConfigManager.getConfig().getString("dynamic-pricing.save-period", "1h")) / 1000L * 20L;
-      } catch (ParseException var4) {
-         var1 = 72000L;
+         value = TimeUtils.getTime(ConfigManager.getConfig().getString("dynamic-pricing.save-period", "1h")) / 1000L * 20L;
+      } catch (ParseException exception) {
+         value = 72000L;
       }
 
-      this.task = this.plugin.runTaskAsyncTimer(this::saveDynamicStock, var1, var1);
+      this.task = this.plugin.runTaskAsyncTimer(this::saveDynamicStock, value, value);
    }
 
    public void saveDynamicStock() {
       SendMessage.infoMessage(Lang.SAVING_DYNAMIC_PRICING.get());
-      long var1 = System.currentTimeMillis();
+      long startTime = System.currentTimeMillis();
+      Map<String, Integer> map = new HashMap<>(this.CASHED_STOCK);
       this.database
          .saveDynamicStock(
-            this.CASHED_STOCK
-               .entrySet()
+            map.entrySet()
                .stream()
-               .filter(var1x -> !Objects.equals(this.EXPIRED_STOCK.get(var1x.getKey()), var1x.getValue()))
+               .filter(entry -> !Objects.equals(this.EXPIRED_STOCK.get(entry.getKey()), entry.getValue()))
                .collect(Collectors.toMap(Entry::getKey, Entry::getValue))
          );
-      this.EXPIRED_STOCK = new HashMap<>(this.CASHED_STOCK);
-      SendMessage.logDebugMessage(Lang.SAVED_DYNAMIC_PRICING.get().replace("%millis%", String.valueOf(System.currentTimeMillis() - var1)));
+      this.EXPIRED_STOCK = new ConcurrentHashMap<>(map);
+      SendMessage.logDebugMessage(Lang.SAVED_DYNAMIC_PRICING.get().replace("%millis%", String.valueOf(System.currentTimeMillis() - startTime)));
    }
 
    private void loadCashedStock() {
       try {
-         this.CASHED_STOCK = this.database.loadDynamicPricingStock();
+         this.CASHED_STOCK.clear();
+         this.CASHED_STOCK.putAll(this.database.loadDynamicPricingStock());
          if (this.cache) {
-            this.EXPIRED_STOCK = new HashMap<>(this.CASHED_STOCK);
+            this.EXPIRED_STOCK = new ConcurrentHashMap<>(this.CASHED_STOCK);
          }
-      } catch (SQLException var2) {
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Exception while loading the DynamicPricing from database");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    public void reloadDisplayCache() {
       try {
-         this.CASHED_STOCK = this.database.loadDynamicPricingStock();
-      } catch (SQLException var2) {
+         this.CASHED_STOCK.clear();
+         this.CASHED_STOCK.putAll(this.database.loadDynamicPricingStock());
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Exception while reloading the DynamicPricing display cache from database");
-         var2.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   public double getBuyPrice(String var1, double var2, boolean var4) {
-      return this.getBuyPrice(var1, var2, 1, var4);
+   public double getBuyPrice(String price, double amount, boolean flag) {
+      return this.getBuyPrice(price, amount, 1, flag);
    }
 
-   public double getBuyPrice(String var1, double var2, int var4, boolean var5) {
-      return this.getBuyPrice(var1, var2, var4, var5, null);
+   public double getBuyPrice(String price, double amount, int value, boolean flag) {
+      return this.getBuyPrice(price, amount, value, flag, null);
    }
 
-   public double getBuyPrice(String var1, double var2, int var4, boolean var5, LoreFormatter.PageIndex var6) {
-      double var7 = this.getBuyPriceDifference(var1, var2);
-      double var9 = 0.0;
-      int var11 = this.getStock(var1, var5, var6);
+   public double getBuyPrice(String price, double page, int index, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      double buyPriceDifference = this.getBuyPriceDifference(price, page);
+      double amount = 0.0;
+      int stock = this.getStock(price, flag, pageIndex);
 
-      for (int var12 = 0; var12 < var4; var12++) {
-         var9 += var2 + var7 / 100.0 * (100.0 - this.getStockScaleMin(var1, var11--));
+      for (int index2 = 0; index2 < index; index2++) {
+         amount += page + buyPriceDifference / 100.0 * (100.0 - this.getStockScaleMin(price, stock--));
       }
 
-      return var9;
+      return amount;
    }
 
-   public void buyItem(String var1, int var2) {
-      this.setDynamicStock(var1, Math.max(this.getStock(var1, false) - var2, 0));
+   public void buyItem(String itemId, int value) {
+      this.setDynamicStock(itemId, Math.max(this.getStock(itemId, false) - value, 0));
    }
 
-   public double getSellPrice(String var1, double var2, boolean var4) {
-      return this.getSellPrice(var1, var2, 0, 1, var4);
+   public double getSellPrice(String price, double amount, boolean flag) {
+      return this.getSellPrice(price, amount, 0, 1, flag);
    }
 
-   public double getSellPrice(String var1, double var2, int var4, int var5, boolean var6) {
-      return this.getSellPrice(var1, var2, var4, var5, var6, null);
+   public double getSellPrice(String price, double amount, int value, int value2, boolean flag) {
+      return this.getSellPrice(price, amount, value, value2, flag, null);
    }
 
-   public double getSellPrice(String var1, double var2, int var4, int var5, boolean var6, LoreFormatter.PageIndex var7) {
-      double var8 = this.getSellPriceDifference(var1, var2);
-      double var10 = 0.0;
-      int var12 = this.getStock(var1, var6, var7);
+   public double getSellPrice(String price, double page, int index, int value, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      double sellPriceDifference = this.getSellPriceDifference(price, page);
+      double amount = 0.0;
+      int stock = this.getStock(price, flag, pageIndex);
 
-      for (int var13 = 0; var13 < var4; var13++) {
-         var10 += var2 + var8 / 100.0 * (100.0 - this.getStockScaleAdd(var1, var5 + var12++));
+      for (int index2 = 0; index2 < index; index2++) {
+         amount += page + sellPriceDifference / 100.0 * (100.0 - this.getStockScaleAdd(price, value + stock++));
       }
 
-      return var10;
+      return amount;
    }
 
-   public void sellItem(String var1, int var2) {
-      this.setDynamicStock(var1, Math.min(this.getStock(var1, false) + var2, this.maxStocks.get(var1)));
+   public void sellItem(String itemId, int value) {
+      this.setDynamicStock(itemId, Math.min(this.getStock(itemId, false) + value, this.maxStocks.get(itemId)));
    }
 
-   private double getBuyPriceDifference(String var1, double var2) {
-      return var2 / 100.0 * this.buyPriceScaling.get(var1.split("\\.", 2)[0]).intValue();
+   private double getBuyPriceDifference(String price, double amount) {
+      return amount / 100.0 * this.buyPriceScaling.get(price.split("\\.", 2)[0]).intValue();
    }
 
-   private double getSellPriceDifference(String var1, double var2) {
-      return var2 / 100.0 * this.sellPriceScaling.get(var1.split("\\.", 2)[0]).intValue();
+   private double getSellPriceDifference(String price, double amount) {
+      return amount / 100.0 * this.sellPriceScaling.get(price.split("\\.", 2)[0]).intValue();
    }
 
-   private double getStockScaleAdd(String var1, int var2) {
-      return Math.min(var2 * 200.0 / this.maxStocks.get(var1).intValue(), 200.0);
+   private double getStockScaleAdd(String itemId, int value) {
+      return Math.min(value * 200.0 / this.maxStocks.get(itemId).intValue(), 200.0);
    }
 
-   private double getStockScaleMin(String var1, int var2) {
-      return Math.max(var2 * 200.0 / this.maxStocks.get(var1).intValue(), 0.0);
+   private double getStockScaleMin(String itemId, int value) {
+      return Math.max(value * 200.0 / this.maxStocks.get(itemId).intValue(), 0.0);
    }
 
-   private int getStock(String var1, boolean var2) {
-      return this.getStock(var1, var2, null);
+   private int getStock(String itemId, boolean flag) {
+      return this.getStock(itemId, flag, null);
    }
 
-   private int getStock(String var1, boolean var2, LoreFormatter.PageIndex var3) {
-      if (!this.cache && (!var2 || !this.plugin.displayCache)) {
-         if (var2 && var3 != null) {
-            DynamicPricingProvider.Snapshot var5 = this.PAGE_STOCK_SNAPSHOT.get();
-            if (var5 == null || var5.pageIndex != var3) {
-               var5 = this.loadPageStock(var3);
+   private int getStock(String itemId, boolean flag, LoreFormatter.PageIndex pageIndex) {
+      if (!this.cache && (!flag || !this.plugin.displayCache)) {
+         if (flag && pageIndex != null) {
+            DynamicPricingProvider.Snapshot snapshot = this.PAGE_STOCK_SNAPSHOT.get();
+            if (snapshot == null || snapshot.pageIndex != pageIndex) {
+               snapshot = this.loadPageStock(pageIndex);
             }
 
-            if (var5.snapshot.containsKey(var1)) {
-               return var5.snapshot.get(var1);
+            if (snapshot.snapshot.containsKey(itemId)) {
+               return snapshot.snapshot.get(itemId);
             }
          }
 
-         Integer var6 = this.database.getDynamicStock(var1);
-         return var6 == null ? this.loadStockForItem(var1) : var6;
+         Integer dynamicStock = this.database.getDynamicStock(itemId);
+         return dynamicStock == null ? this.loadStockForItem(itemId) : dynamicStock;
       } else {
-         Integer var4 = this.CASHED_STOCK.get(var1);
-         return var4 == null ? this.loadStockForItem(var1) : var4;
+         Integer value = this.CASHED_STOCK.get(itemId);
+         return value == null ? this.loadStockForItem(itemId) : value;
       }
    }
 
-   private DynamicPricingProvider.Snapshot loadPageStock(LoreFormatter.PageIndex var1) {
-      ArrayList var2 = new ArrayList();
+   private DynamicPricingProvider.Snapshot loadPageStock(LoreFormatter.PageIndex pageIndex) {
+      ArrayList itemIds = new ArrayList();
 
-      for (ShopItem var4 : var1.getItems()) {
-         if (var4.isDynamicPricing()) {
-            var2.add(var4.getItemPath());
+      for (ShopItem shopItem : pageIndex.getItems()) {
+         if (shopItem.isDynamicPricing()) {
+            itemIds.add(shopItem.getItemPath());
          }
       }
 
-      if (!var2.isEmpty()) {
+      if (!itemIds.isEmpty()) {
          try {
-            DynamicPricingProvider.Snapshot var7 = new DynamicPricingProvider.Snapshot(var1, this.database.getDynamicStocks(var2));
-            this.PAGE_STOCK_SNAPSHOT.set(var7);
-            return var7;
-         } catch (SQLException var5) {
+            DynamicPricingProvider.Snapshot snapshot = new DynamicPricingProvider.Snapshot(pageIndex, this.database.getDynamicStocks(itemIds));
+            this.PAGE_STOCK_SNAPSHOT.set(snapshot);
+            return snapshot;
+         } catch (SQLException exception) {
             SendMessage.errorMessage("Failed to batch load dynamic pricing stock for a shop page");
-            var5.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      DynamicPricingProvider.Snapshot var6 = new DynamicPricingProvider.Snapshot(var1, Collections.EMPTY_MAP);
-      this.PAGE_STOCK_SNAPSHOT.set(var6);
-      return var6;
+      DynamicPricingProvider.Snapshot snapshot = new DynamicPricingProvider.Snapshot(pageIndex, Collections.EMPTY_MAP);
+      this.PAGE_STOCK_SNAPSHOT.set(snapshot);
+      return snapshot;
    }
 
-   private double getItemPrice(String var1, String var2) {
-      if (this.plugin.getConfigManager().getShopType(var1) == ShopType.CATEGORY) {
-         var2 = "pages." + var2;
+   private double getItemPrice(String itemId, String price) {
+      if (this.plugin.getConfigManager().getShopType(itemId) == ShopType.CATEGORY) {
+         price = "pages." + price;
       }
 
       try {
-         if (ConfigManager.getShop(var1).getDouble(var2 + ".buy", -1.0) > 0.0) {
-            return ConfigManager.getShop(var1).getDouble(var2 + ".buy", -1.0);
-         } else if (!ConfigManager.getShop(var1).getStringList(var2 + ".buy-prices.prices").isEmpty()) {
-            return ConfigManager.getShop(var1).getBoolean(var2 + ".buy-prices.require-all")
-               ? ConfigManager.getShop(var1)
-                  .getStringList(var2 + ".buy-prices.prices")
+         if (ConfigManager.getShop(itemId).getDouble(price + ".buy", -1.0) > 0.0) {
+            return ConfigManager.getShop(itemId).getDouble(price + ".buy", -1.0);
+         } else if (!ConfigManager.getShop(itemId).getStringList(price + ".buy-prices.prices").isEmpty()) {
+            return ConfigManager.getShop(itemId).getBoolean(price + ".buy-prices.require-all")
+               ? ConfigManager.getShop(itemId)
+                  .getStringList(price + ".buy-prices.prices")
                   .stream()
-                  .mapToDouble(var0 -> Double.parseDouble(var0.split("::")[1]))
+                  .mapToDouble(value -> Double.parseDouble(value.split("::")[1]))
                   .sum()
-               : Double.parseDouble(((String)ConfigManager.getShop(var1).getStringList(var2 + ".buy-prices.prices").get(0)).split("::")[1]);
-         } else if (ConfigManager.getShop(var1).getDouble(var2 + ".sell", -1.0) > 0.0) {
-            return ConfigManager.getShop(var1).getDouble(var2 + ".sell");
-         } else if (!ConfigManager.getShop(var1).getStringList(var2 + ".sell-prices.prices").isEmpty()) {
-            return ConfigManager.getShop(var1).getBoolean(var2 + ".sell-prices.give-all")
-               ? ConfigManager.getShop(var1)
-                  .getStringList(var2 + ".sell-prices.prices")
+               : Double.parseDouble(((String)ConfigManager.getShop(itemId).getStringList(price + ".buy-prices.prices").get(0)).split("::")[1]);
+         } else if (ConfigManager.getShop(itemId).getDouble(price + ".sell", -1.0) > 0.0) {
+            return ConfigManager.getShop(itemId).getDouble(price + ".sell");
+         } else if (!ConfigManager.getShop(itemId).getStringList(price + ".sell-prices.prices").isEmpty()) {
+            return ConfigManager.getShop(itemId).getBoolean(price + ".sell-prices.give-all")
+               ? ConfigManager.getShop(itemId)
+                  .getStringList(price + ".sell-prices.prices")
                   .stream()
-                  .mapToDouble(var0 -> Double.parseDouble(var0.split("::")[1]))
+                  .mapToDouble(value -> Double.parseDouble(value.split("::")[1]))
                   .sum()
-               : Double.parseDouble(((String)ConfigManager.getShop(var1).getStringList(var2 + ".sell-prices.prices").get(0)).split("::")[1]);
+               : Double.parseDouble(((String)ConfigManager.getShop(itemId).getStringList(price + ".sell-prices.prices").get(0)).split("::")[1]);
          } else {
             return 0.0;
          }
-      } catch (NumberFormatException var4) {
-         SendMessage.warnMessage("Failed to load dynamic pricing for item '" + var2 + "' for section '" + var1 + "' while loading prices, skipping...");
-         var4.printStackTrace();
+      } catch (NumberFormatException exception) {
+         SendMessage.warnMessage("Failed to load dynamic pricing for item '" + price + "' for section '" + itemId + "' while loading prices, skipping...");
+         exception.printStackTrace();
          return 0.0;
       }
    }
 
-   private double getItemPriceOld(String var1, String var2) {
-      if (this.plugin.getConfigManager().getShopType(var1) == ShopType.CATEGORY) {
-         var2 = "pages." + var2;
+   private double getItemPriceOld(String itemId, String price) {
+      if (this.plugin.getConfigManager().getShopType(itemId) == ShopType.CATEGORY) {
+         price = "pages." + price;
       }
 
-      double var3 = ConfigManager.getShop(var1).getDouble(var2 + ".buy", -1.0);
-      if (var3 <= 0.0) {
+      double amount = ConfigManager.getShop(itemId).getDouble(price + ".buy", -1.0);
+      if (amount <= 0.0) {
          try {
-            if (!ConfigManager.getShop(var1).getStringList(var2 + ".buy-prices.prices").isEmpty()) {
-               if (ConfigManager.getShop(var1).getBoolean(var2 + ".buy-prices.require-all")) {
-                  var3 = ConfigManager.getShop(var1)
-                     .getStringList(var2 + ".buy-prices.prices")
+            if (!ConfigManager.getShop(itemId).getStringList(price + ".buy-prices.prices").isEmpty()) {
+               if (ConfigManager.getShop(itemId).getBoolean(price + ".buy-prices.require-all")) {
+                  amount = ConfigManager.getShop(itemId)
+                     .getStringList(price + ".buy-prices.prices")
                      .stream()
-                     .map(var0 -> Double.parseDouble(var0.split("::")[1]))
+                     .map(element -> Double.parseDouble(element.split("::")[1]))
                      .count();
                } else {
-                  var3 = Double.parseDouble(((String)ConfigManager.getShop(var1).getStringList(var2 + ".buy-prices.prices").get(0)).split("::")[1]);
+                  amount = Double.parseDouble(((String)ConfigManager.getShop(itemId).getStringList(price + ".buy-prices.prices").get(0)).split("::")[1]);
                }
-            } else if (ConfigManager.getShop(var1).getDouble(var2 + ".sell", -1.0) >= 0.0) {
-               var3 = ConfigManager.getShop(var1).getDouble(var2 + ".sell");
-            } else if (!ConfigManager.getShop(var1).getStringList(var2 + ".sell-prices.prices").isEmpty()) {
-               if (ConfigManager.getShop(var1).getBoolean(var2 + ".sell-prices.give-all")) {
-                  var3 = ConfigManager.getShop(var1)
-                     .getStringList(var2 + ".sell-prices.prices")
+            } else if (ConfigManager.getShop(itemId).getDouble(price + ".sell", -1.0) >= 0.0) {
+               amount = ConfigManager.getShop(itemId).getDouble(price + ".sell");
+            } else if (!ConfigManager.getShop(itemId).getStringList(price + ".sell-prices.prices").isEmpty()) {
+               if (ConfigManager.getShop(itemId).getBoolean(price + ".sell-prices.give-all")) {
+                  amount = ConfigManager.getShop(itemId)
+                     .getStringList(price + ".sell-prices.prices")
                      .stream()
-                     .map(var0 -> Double.parseDouble(var0.split("::")[1]))
+                     .map(element -> Double.parseDouble(element.split("::")[1]))
                      .count();
                } else {
-                  var3 = Double.parseDouble(((String)ConfigManager.getShop(var1).getStringList(var2 + ".sell-prices.prices").get(0)).split("::")[1]);
+                  amount = Double.parseDouble(((String)ConfigManager.getShop(itemId).getStringList(price + ".sell-prices.prices").get(0)).split("::")[1]);
                }
             }
-         } catch (NumberFormatException var6) {
-            SendMessage.warnMessage("Failed to load dynamic pricing for item '" + var2 + "' for section '" + var1 + "' while loading prices, skipping...");
-            var6.printStackTrace();
+         } catch (NumberFormatException exception) {
+            SendMessage.warnMessage("Failed to load dynamic pricing for item '" + price + "' for section '" + itemId + "' while loading prices, skipping...");
+            exception.printStackTrace();
             return 0.0;
          }
       }
 
-      return var3;
+      return amount;
    }
 
-   private Integer getCachedStock(String var1) {
-      Integer var2 = this.CASHED_STOCK.get(var1);
-      if (var2 == null) {
-         var2 = this.database.getDynamicStock(var1);
-         if (var2 != null) {
-            this.CASHED_STOCK.put(var1, var2);
+   private Integer getCachedStock(String itemId) {
+      Integer value = this.CASHED_STOCK.get(itemId);
+      if (value == null) {
+         value = this.database.getDynamicStock(itemId);
+         if (value != null) {
+            this.CASHED_STOCK.put(itemId, value);
          }
       }
 
-      return var2;
+      return value;
    }
 
-   private int loadStockForItem(String var1) {
-      int var2 = this.maxStocks.get(var1) / 2;
+   private int loadStockForItem(String itemId) {
+      int value = this.maxStocks.get(itemId) / 2;
       if (this.cache || this.plugin.displayCache) {
-         this.CASHED_STOCK.put(var1, var2);
+         this.CASHED_STOCK.put(itemId, value);
       }
 
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-         this.database.setDynamicStock(var1, var2);
+         this.database.setDynamicStock(itemId, value);
       }
 
-      return var2;
+      return value;
    }
 
-   private Map<String, Integer> reverse(Map<String, Integer> var1) {
-      HashMap var2 = new HashMap();
-      ArrayList var3 = new ArrayList(var1.values());
-      Collections.reverse(var3);
-      int var4 = 0;
+   private Map<String, Integer> reverse(Map<String, Integer> map) {
+      HashMap map2 = new HashMap();
+      ArrayList values = new ArrayList(map.values());
+      Collections.reverse(values);
+      int value = 0;
 
-      for (String var6 : var1.keySet()) {
-         var2.put(var6, (Integer)var3.get(var4));
-         var4++;
+      for (String key : map.keySet()) {
+         map2.put(key, (Integer)values.get(value));
+         value++;
       }
 
-      return var2;
+      return map2;
    }
 
-   private Map<String, Integer> sortValues(Map<String, Integer> var1) {
-      LinkedList<Entry<String, Integer>> var2 = new LinkedList<>(var1.entrySet());
-      var2.sort((var0, var1x) -> ((Comparable)((Entry)var0).getValue()).compareTo(((Entry)var1x).getValue()));
-      LinkedHashMap var3 = new LinkedHashMap();
+   private Map<String, Integer> sortValues(Map<String, Integer> map) {
+      LinkedList<Entry<String, Integer>> values = new LinkedList<>(map.entrySet());
+      values.sort((element, arg2) -> ((Comparable)((Entry)element).getValue()).compareTo(((Entry)arg2).getValue()));
+      LinkedHashMap map2 = new LinkedHashMap();
 
-      for (Entry var5 : var2) {
-         var3.put((String)var5.getKey(), (Integer)var5.getValue());
+      for (Entry entry : values) {
+         map2.put((String)entry.getKey(), (Integer)entry.getValue());
       }
 
-      return var3;
+      return map2;
    }
 
-   public Map<String, Integer> getMaxStocksOld(Map<String, Integer> var1) throws SQLException {
-      HashMap var2 = new HashMap();
-      HashMap var3 = new HashMap();
-      Map var4 = this.database.loadDynamicMaxStocks();
+   public Map<String, Integer> getMaxStocksOld(Map<String, Integer> map) throws SQLException {
+      HashMap map2 = new HashMap();
+      HashMap map3 = new HashMap();
+      Map map4 = this.database.loadDynamicMaxStocks();
 
-      for (String var6 : ConfigManager.getShops()) {
-         int var7 = this.getStaticMaxStock(var6, null, 0);
+      for (String text : ConfigManager.getShops()) {
+         int staticMaxStock = this.getStaticMaxStock(text, null, 0);
 
-         for (String var9 : this.plugin.getConfigManager().getItemsRaw(var6)) {
-            String var10 = var6 + "." + var9;
-            if (!(this.getItemPriceOld(var6, var9) <= 0.0)) {
-               int var11 = this.getStaticMaxStock(var6, var9, var7);
-               if (var11 > 0) {
-                  if (var4.containsKey(var10) && !((Integer)var4.get(var10)).equals(var11)) {
-                     SendMessage.warnMessage(Lang.DYNAMIC_PRICING_MAX_STOCK_CHANGE.get().replace("%path%", var10).replace("%shop%", var6));
-                     var1.put(var10, var11 / 2);
+         for (String text2 : this.plugin.getConfigManager().getItemsRaw(text)) {
+            String text3 = text + "." + text2;
+            if (!(this.getItemPriceOld(text, text2) <= 0.0)) {
+               int staticMaxStock2 = this.getStaticMaxStock(text, text2, staticMaxStock);
+               if (staticMaxStock2 > 0) {
+                  if (map4.containsKey(text3) && !((Integer)map4.get(text3)).equals(staticMaxStock2)) {
+                     SendMessage.warnMessage(Lang.DYNAMIC_PRICING_MAX_STOCK_CHANGE.get().replace("%path%", text3).replace("%shop%", text));
+                     map.put(text3, staticMaxStock2 / 2);
                   }
 
-                  var3.put(var10, var11);
+                  map3.put(text3, staticMaxStock2);
                } else {
-                  int var12 = this.getMaxStockForPrice(this.getItemPriceOld(var6, var9));
-                  if (var4.containsKey(var10) && !((Integer)var4.get(var10)).equals(var12)) {
-                     SendMessage.warnMessage(Lang.DYNAMIC_PRICING_PRICE_CHANGE.get().replace("%path%", var10).replace("%shop%", var6));
-                     var1.put(var10, var12 / 2);
+                  int maxStockForPrice = this.getMaxStockForPrice(this.getItemPriceOld(text, text2));
+                  if (map4.containsKey(text3) && !((Integer)map4.get(text3)).equals(maxStockForPrice)) {
+                     SendMessage.warnMessage(Lang.DYNAMIC_PRICING_PRICE_CHANGE.get().replace("%path%", text3).replace("%shop%", text));
+                     map.put(text3, maxStockForPrice / 2);
                   }
 
-                  var2.put(var10, var12);
+                  map2.put(text3, maxStockForPrice);
                }
             }
          }
       }
 
-      var3.putAll(this.reverse(this.sortValues(var2)));
-      return var3;
+      map3.putAll(this.reverse(this.sortValues(map2)));
+      return map3;
    }
 
-   public void loadReversibleMaxStocks(Map<String, Integer> var1) {
+   public void loadReversibleMaxStocks(Map<String, Integer> map) {
       try {
-         Map var2 = !this.cache && !this.plugin.displayCache ? this.database.loadDynamicPricingStock() : this.CASHED_STOCK;
-         Map var3 = this.database.loadDynamicMaxStocks();
+         Map itemIds = !this.cache && !this.plugin.displayCache ? this.database.loadDynamicPricingStock() : this.CASHED_STOCK;
+         Map map2 = this.database.loadDynamicMaxStocks();
 
-         for (String var5 : ConfigManager.getShops()) {
-            int var6 = this.getStaticMaxStock(var5, null, 0);
-            Map<String, Integer> var7 = this.getInvertedStocks(var1, var5);
+         for (String text : ConfigManager.getShops()) {
+            int staticMaxStock = this.getStaticMaxStock(text, null, 0);
+            Map<String, Integer> invertedStocks = this.getInvertedStocks(map, text);
 
-            for (String var9 : var7.keySet()) {
-               int var10 = this.getStaticMaxStock(var5, var9.split("\\.", 2)[1], var6);
-               if (var10 > 0) {
-                  if (var3.containsKey(var9)) {
-                     if (!((Integer)var3.get(var9)).equals(var10)) {
-                        SendMessage.warnMessage(Lang.DYNAMIC_PRICING_MAX_STOCK_CHANGE.get().replace("%path%", var9).replace("%shop%", var5));
-                        this.database.setDynamicMaxStock(var9, var10);
-                        this.setDynamicStock(var9, var10 / 2);
+            for (String key : invertedStocks.keySet()) {
+               int staticMaxStock2 = this.getStaticMaxStock(text, key.split("\\.", 2)[1], staticMaxStock);
+               if (staticMaxStock2 > 0) {
+                  if (map2.containsKey(key)) {
+                     if (!((Integer)map2.get(key)).equals(staticMaxStock2)) {
+                        SendMessage.warnMessage(Lang.DYNAMIC_PRICING_MAX_STOCK_CHANGE.get().replace("%path%", key).replace("%shop%", text));
+                        this.database.setDynamicMaxStock(key, staticMaxStock2);
+                        this.setDynamicStock(key, staticMaxStock2 / 2);
                      }
-                  } else if (var2.containsKey(var9)) {
-                     this.database.setDynamicMaxStock(var9, var10);
+                  } else if (itemIds.containsKey(key)) {
+                     this.database.setDynamicMaxStock(key, staticMaxStock2);
                   }
 
-                  this.maxStocks.put(var9, var10);
+                  this.maxStocks.put(key, staticMaxStock2);
                } else {
-                  int var11 = (Integer)var7.get(var9);
-                  if (var3.containsKey(var9)) {
-                     if (!((Integer)var3.get(var9)).equals(var11)) {
-                        SendMessage.warnMessage(Lang.DYNAMIC_PRICING_PRICE_CHANGE.get().replace("%path%", var9).replace("%shop%", var5));
-                        this.database.setDynamicMaxStock(var9, var11);
-                        this.setDynamicStock(var9, var11 / 2);
+                  int value = (Integer)invertedStocks.get(key);
+                  if (map2.containsKey(key)) {
+                     if (!((Integer)map2.get(key)).equals(value)) {
+                        SendMessage.warnMessage(Lang.DYNAMIC_PRICING_PRICE_CHANGE.get().replace("%path%", key).replace("%shop%", text));
+                        this.database.setDynamicMaxStock(key, value);
+                        this.setDynamicStock(key, value / 2);
                      }
-                  } else if (var2.containsKey(var9)) {
-                     this.database.setDynamicMaxStock(var9, var11);
+                  } else if (itemIds.containsKey(key)) {
+                     this.database.setDynamicMaxStock(key, value);
                   }
 
-                  this.maxStocks.put(var9, var11);
+                  this.maxStocks.put(key, value);
                }
             }
          }
 
-         this.validateStock(var2);
-      } catch (SQLException var12) {
+         this.validateStock(itemIds);
+      } catch (SQLException exception) {
          SendMessage.errorMessage("Exception while loading the Dynamic Stock from database");
-         var12.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private void validateStock(Map<String, Integer> var1) {
-      this.maxStocks.forEach((var2, var3) -> {
-         if (var1.containsKey(var2) && ((Integer)var1.get(var2) > var3 || (Integer)var1.get(var2) < 0)) {
-            this.CASHED_STOCK.remove(var2);
+   private void validateStock(Map<String, Integer> stocks) {
+      this.maxStocks.forEach((key, value) -> {
+         if (stocks.containsKey(key) && ((Integer)stocks.get(key) > value || (Integer)stocks.get(key) < 0)) {
+            this.CASHED_STOCK.remove(key);
             if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-               this.database.setDynamicStock(var2, var3 / 2);
+               this.database.setDynamicStock(key, value / 2);
             }
          }
       });
    }
 
-   private Map<String, Integer> getInvertedStocks(Map<String, Integer> var1, String var2) {
-      HashMap var3 = new HashMap();
-      boolean var4 = false;
-      int var5 = Math.min(this.minStock, this.maxStock - 10);
-      double var6 = Math.max(
+   private Map<String, Integer> getInvertedStocks(Map<String, Integer> map, String text) {
+      HashMap map2 = new HashMap();
+      boolean flag = false;
+      int stock = Math.min(this.minStock, this.maxStock - 10);
+      double amount = Math.max(
             1,
-            var1.entrySet()
+            map.entrySet()
                .stream()
-               .filter(var1x -> ((String)var1x.getKey()).split("\\.")[0].equals(var2))
+               .filter(entry -> ((String)entry.getKey()).split("\\.")[0].equals(text))
                .map(Entry::getValue)
                .mapToInt(Integer::intValue)
                .min()
                .orElse(10)
          )
          - 1;
-      double var8 = var1.entrySet()
+      double amount2 = map.entrySet()
          .stream()
-         .filter(var1x -> ((String)var1x.getKey()).split("\\.")[0].equals(var2))
+         .filter(entry -> ((String)entry.getKey()).split("\\.")[0].equals(text))
          .map(Entry::getValue)
          .mapToInt(Integer::intValue)
          .max()
          .orElse(this.maxStock);
 
-      for (Entry var11 : var1.entrySet().stream().filter(var1x -> ((String)var1x.getKey()).split("\\.")[0].equals(var2)).collect(Collectors.toList())) {
-         int var12 = (int)((((Integer)var11.getValue()).intValue() - var6) / (var8 - var6) * (this.maxStock - var5 - 0) + 0.0);
-         int var13 = this.maxStock - var12;
-         var3.put((String)var11.getKey(), var13 % 2 == 0 ? var13 : var13 + 1);
+      for (Entry entry : map.entrySet().stream().filter(entry2 -> ((String)entry2.getKey()).split("\\.")[0].equals(text)).collect(Collectors.toList())) {
+         int value = (int)((((Integer)entry.getValue()).intValue() - amount) / (amount2 - amount) * (this.maxStock - stock - 0) + 0.0);
+         int value2 = this.maxStock - value;
+         map2.put((String)entry.getKey(), value2 % 2 == 0 ? value2 : value2 + 1);
       }
 
-      return var3;
+      return map2;
    }
 
-   public String getStatus(ShopItem var1, Player var2, boolean var3) {
-      double var4 = var3
+   public String getStatus(ShopItem shopItem, Player player, boolean flag) {
+      double amount = flag
          ? (
-            var1.isABuyPricing()
-               ? var1.getABuyPrice().getFirstPrice(var2, var1.getStackSize(), var1.getBuyModifiers(), true)
-               : var1.getBuyPrice(var2, var1.getStackSize(), true)
+            shopItem.isABuyPricing()
+               ? shopItem.getABuyPrice().getFirstPrice(player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
+               : shopItem.getBuyPrice(player, shopItem.getStackSize(), true)
          )
          : (
-            var1.isASellPricing()
-               ? var1.getASellPrice().getFirstPrice(var2, var1.getStackSize(), var1.getSellModifiers(), true)
-               : var1.getSellPrice(var2, var1.getStackSize(), true)
+            shopItem.isASellPricing()
+               ? shopItem.getASellPrice().getFirstPrice(player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+               : shopItem.getSellPrice(player, shopItem.getStackSize(), true)
          );
-      double var6 = var3
-         ? (var1.isABuyPricing() ? var1.getABuyPrice().getFirstPrice() : var1.getBuyPrice())
-         : (var1.isASellPricing() ? var1.getASellPrice().getFirstPrice() : var1.getSellPrice());
-      double var8 = (var4 - var6) / var6 * 100.0;
-      return var8 >= 0.0
-         ? Lang.RISING_DYNAMIC_PRICE_PREFIX.get(var2).getLegacy().replace("%percent%", String.format("%.2f", var8))
-         : Lang.DROPPING_DYNAMIC_PRICE_PREFIX.get(var2).getLegacy().replace("%percent%", String.format("%.2f", Math.abs(var8)));
+      double amount2 = flag
+         ? (shopItem.isABuyPricing() ? shopItem.getABuyPrice().getFirstPrice() : shopItem.getBuyPrice())
+         : (shopItem.isASellPricing() ? shopItem.getASellPrice().getFirstPrice() : shopItem.getSellPrice());
+      double amount3 = (amount - amount2) / amount2 * 100.0;
+      return amount3 >= 0.0
+         ? Lang.RISING_DYNAMIC_PRICE_PREFIX.get(player).getLegacy().replace("%percent%", String.format("%.2f", amount3))
+         : Lang.DROPPING_DYNAMIC_PRICE_PREFIX.get(player).getLegacy().replace("%percent%", String.format("%.2f", Math.abs(amount3)));
    }
 
-   public int getMaxStock(String var1) {
-      return this.maxStocks.get(var1);
+   public int getMaxStock(String itemId) {
+      return this.maxStocks.get(itemId);
    }
 
    public void reload() {
@@ -754,35 +757,35 @@ public class DynamicPricingProvider {
       }
    }
 
-   public void resetDynamicPricing(String var1) {
+   public void resetDynamicPricing(String text) {
       if (this.cache || this.plugin.displayCache) {
-         this.CASHED_STOCK.put(var1, this.maxStocks.get(var1) / 2);
+         this.CASHED_STOCK.put(text, this.maxStocks.get(text) / 2);
       }
 
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {
-         this.database.setDynamicStock(var1, this.maxStocks.get(var1) / 2);
+         this.database.setDynamicStock(text, this.maxStocks.get(text) / 2);
       }
    }
 
-   private int getMaxStockForPrice(double var1) {
-      int var3 = (int)(var1 * 100.0);
-      if (var3 <= 0) {
+   private int getMaxStockForPrice(double stock) {
+      int value = (int)(stock * 100.0);
+      if (value <= 0) {
          return 0;
-      } else if (var3 > this.maxStock) {
+      } else if (value > this.maxStock) {
          return this.maxStock;
       } else {
-         return var3 % 2 == 0 ? var3 : var3 + 1;
+         return value % 2 == 0 ? value : value + 1;
       }
    }
 
-   private int getStaticMaxStock(String var1, String var2, int var3) {
-      if (var2 != null && this.plugin.getConfigManager().getShopType(var1) == ShopType.CATEGORY) {
-         var2 = "pages." + var2;
+   private int getStaticMaxStock(String itemId, String text, int value) {
+      if (text != null && this.plugin.getConfigManager().getShopType(itemId) == ShopType.CATEGORY) {
+         text = "pages." + text;
       }
 
-      return var2 != null
-         ? ConfigManager.getShop(var1).getInt(var2 + ".dynamic-pricing.max-stock", var3)
-         : ConfigManager.getSection(var1).getInt("dynamic-pricing.max-stock", var3);
+      return text != null
+         ? ConfigManager.getShop(itemId).getInt(text + ".dynamic-pricing.max-stock", value)
+         : ConfigManager.getSection(itemId).getInt("dynamic-pricing.max-stock", value);
    }
 
    public void stop() {
@@ -808,13 +811,13 @@ public class DynamicPricingProvider {
 
       public PriceRestoration() {
          try {
-            String var2 = ConfigManager.getConfig().getString("dynamic-pricing.price-restoration.frequency");
-            if (var2 == null) {
+            String text = ConfigManager.getConfig().getString("dynamic-pricing.price-restoration.frequency");
+            if (text == null) {
                SendMessage.errorMessage("Cannot enable dynamic price restoration because no frequency defined in config.yml");
                return;
             }
 
-            this.frequency = TimeUtils.getTime(var2) / 1000L * 20L;
+            this.frequency = TimeUtils.getTime(text) / 1000L * 20L;
             this.percent = ConfigManager.getConfig().getDouble("dynamic-pricing.price-restoration.percent");
             this.logging = ConfigManager.getConfig().getBoolean("dynamic-pricing.price-restoration.logging", false);
             this.loadItemRestorations();
@@ -835,78 +838,78 @@ public class DynamicPricingProvider {
                   this.frequency,
                   this.frequency
                );
-            SendMessage.infoMessage("Enabled dynamic pricing restoration timer with a frequency of " + var2 + "...");
-         } catch (ParseException var3) {
-            SendMessage.errorMessage("Failed to parse dynamic price restoration frequency with reason: " + var3.getMessage());
-         } catch (Exception var4) {
+            SendMessage.infoMessage("Enabled dynamic pricing restoration timer with a frequency of " + text + "...");
+         } catch (ParseException exception) {
+            SendMessage.errorMessage("Failed to parse dynamic price restoration frequency with reason: " + exception.getMessage());
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to enable dynamic price restoration timer");
-            var4.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      private Runnable restorePrices(Set<String> var1) {
+      private Runnable restorePrices(Set<String> values) {
          return () -> {
-            for (String var3 : var1) {
-               int var4 = DynamicPricingProvider.this.getStock(var3, false);
-               int var5 = DynamicPricingProvider.this.getMaxStock(var3) / 2;
-               int var6 = this.itemRestoration.getOrDefault(var3, var5);
-               if (var4 != var6) {
-                  int var7 = (int)Math.max(1.0, Math.ceil(var5 / 100.0 * this.percent));
-                  int var8 = var4 - var6;
-                  if (var8 >= 0) {
-                     var4 -= Math.min(var7, var8);
+            for (String text : values) {
+               int stock = DynamicPricingProvider.this.getStock(text, false);
+               int stock2 = DynamicPricingProvider.this.getMaxStock(text) / 2;
+               int orDefault = this.itemRestoration.getOrDefault(text, stock2);
+               if (stock != orDefault) {
+                  int value = (int)Math.max(1.0, Math.ceil(stock2 / 100.0 * this.percent));
+                  int value2 = stock - orDefault;
+                  if (value2 >= 0) {
+                     stock -= Math.min(value, value2);
                   } else {
-                     var4 += Math.min(var7, Math.abs(var8));
+                     stock += Math.min(value, Math.abs(value2));
                   }
 
-                  if (this.logging && var4 == var6) {
-                     SendMessage.infoMessage("Completed DynamicPricing restoration for item " + var3);
+                  if (this.logging && stock == orDefault) {
+                     SendMessage.infoMessage("Completed DynamicPricing restoration for item " + text);
                   }
 
-                  DynamicPricingProvider.this.setDynamicStock(var3, var4);
+                  DynamicPricingProvider.this.setDynamicStock(text, stock);
                }
             }
          };
       }
 
       private void loadItemRestorations() {
-         for (String var2 : ConfigManager.getShops()) {
-            Config var3 = ConfigManager.getShop(var2);
+         for (String itemId : ConfigManager.getShops()) {
+            Config config = ConfigManager.getShop(itemId);
 
-            for (String var5 : OnyxShop.getInstance().getConfigManager().getItemsRaw(var2)) {
-               if (var3.contains("pages." + var5 + ".dynamic-pricing.price-restoration.target-value")) {
-                  String var6 = var3.getString("pages." + var5 + ".dynamic-pricing.price-restoration.target-value");
+            for (String shopId : OnyxShop.getInstance().getConfigManager().getItemsRaw(itemId)) {
+               if (config.contains("pages." + shopId + ".dynamic-pricing.price-restoration.target-value")) {
+                  String text = config.getString("pages." + shopId + ".dynamic-pricing.price-restoration.target-value");
 
                   try {
-                     int var7 = Integer.parseInt(var6.replace("%", ""));
-                     if (var7 < -100 || var7 > 100) {
+                     int value = Integer.parseInt(text.replace("%", ""));
+                     if (value < -100 || value > 100) {
                         SendMessage.errorMessage("Dynamic pricing restoration target should be lower as 100% and higher as -100%");
-                        SendMessage.errorItemShops(var2 + "." + var5);
+                        SendMessage.errorItemShops(itemId + "." + shopId);
                      }
 
-                     if (var7 > 0) {
-                        var7 = -1 * var7;
-                     } else if (var7 < 0) {
-                        var7 = Math.abs(var7);
+                     if (value > 0) {
+                        value = -1 * value;
+                     } else if (value < 0) {
+                        value = Math.abs(value);
                      }
 
-                     int var8 = DynamicPricingProvider.this.getMaxStock(var2 + "." + var5) / 2;
-                     int var9 = (int)Math.round(var8 + var8 / 100.0 * var7);
-                     this.itemRestoration.put(var2 + "." + var5, var9);
+                     int stock = DynamicPricingProvider.this.getMaxStock(itemId + "." + shopId) / 2;
+                     int value2 = (int)Math.round(stock + stock / 100.0 * value);
+                     this.itemRestoration.put(itemId + "." + shopId, value2);
                      SendMessage.logDebugMessage(
                         "Successfully loaded dynamic pricing restoration target for item "
-                           + var2
+                           + itemId
                            + "."
-                           + var5
+                           + shopId
                            + " with default value of '"
-                           + var8
+                           + stock
                            + "' and a overridden target value of '"
-                           + var9
+                           + value2
                            + "'"
                      );
-                  } catch (NumberFormatException var10) {
-                     SendMessage.errorMessage("Invalid dynamic pricing price restoration value found for " + var6);
-                     SendMessage.errorItemShops(var2 + "." + var5);
+                  } catch (NumberFormatException exception) {
+                     SendMessage.errorMessage("Invalid dynamic pricing price restoration value found for " + text);
+                     SendMessage.errorItemShops(itemId + "." + shopId);
                   }
                }
             }
@@ -922,9 +925,9 @@ public class DynamicPricingProvider {
       public final LoreFormatter.PageIndex pageIndex;
       public final Map<String, Integer> snapshot;
 
-      private Snapshot(LoreFormatter.PageIndex var1, Map<String, Integer> var2) {
-         this.pageIndex = var1;
-         this.snapshot = var2;
+      private Snapshot(LoreFormatter.PageIndex pageIndex, Map<String, Integer> pages) {
+         this.pageIndex = pageIndex;
+         this.snapshot = pages;
       }
    }
 }

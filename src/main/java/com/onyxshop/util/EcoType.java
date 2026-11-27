@@ -7,14 +7,14 @@ public class EcoType {
    private final EconomyType type;
    private final String currency;
 
-   public EcoType(EconomyType var1) {
-      this.type = var1;
+   public EcoType(EconomyType economyType) {
+      this.type = economyType;
       this.currency = null;
    }
 
-   public EcoType(EconomyType var1, String var2) {
-      this.type = var1;
-      this.currency = var2;
+   public EcoType(EconomyType economyType, String type) {
+      this.type = economyType;
+      this.currency = type;
    }
 
    public EconomyType getType() {
@@ -32,12 +32,12 @@ public class EcoType {
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         EcoType var2 = (EcoType)var1;
-         return this.type.equals(var2.type) && Objects.equals(this.currency, var2.currency);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         EcoType ecoType = (EcoType)value;
+         return this.type.equals(ecoType.type) && Objects.equals(this.currency, ecoType.currency);
       } else {
          return false;
       }

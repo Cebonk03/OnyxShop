@@ -3,9 +3,9 @@ package com.onyxshop.providers.requirements;
 import org.bukkit.entity.Player;
 
 public interface ItemRequirement {
-   boolean isMet(Player var1);
+   boolean isMet(Player player);
 
-   String[] getLore(Player var1, boolean var2, boolean var3);
+   String[] getLore(Player player, boolean flag, boolean flag2);
 
-   void sendNotMetMessage(Player var1);
+   void sendNotMetMessage(Player player);
 }

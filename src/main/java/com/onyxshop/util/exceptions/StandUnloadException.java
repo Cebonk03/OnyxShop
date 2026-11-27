@@ -4,11 +4,11 @@ import com.onyxshop.files.Translatable;
 import org.bukkit.ChatColor;
 
 public class StandUnloadException extends Exception {
-   public StandUnloadException(String var1) {
-      super(var1);
+   public StandUnloadException(String text) {
+      super(text);
    }
 
-   public StandUnloadException(Translatable var1) {
-      super(ChatColor.stripColor(var1.getLegacy()));
+   public StandUnloadException(Translatable text) {
+      super(ChatColor.stripColor(text.getLegacy()));
    }
 }

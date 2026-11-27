@@ -5,12 +5,12 @@ import org.bukkit.entity.Player;
 public class KeyedSound implements Sound {
    private final String sound;
 
-   public KeyedSound(String var1) {
-      this.sound = var1;
+   public KeyedSound(String text) {
+      this.sound = text;
    }
 
    @Override
-   public void play(Player var1, float var2, float var3) {
-      var1.playSound(var1.getLocation(), this.sound, var2, var3);
+   public void play(Player player, float amount, float amount2) {
+      player.playSound(player.getLocation(), this.sound, amount, amount2);
    }
 }

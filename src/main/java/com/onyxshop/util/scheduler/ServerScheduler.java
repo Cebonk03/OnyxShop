@@ -4,25 +4,27 @@ import com.onyxshop.OnyxShop;
 import org.bukkit.entity.Player;
 
 public interface ServerScheduler {
-   ScheduledTask runTask(OnyxShop var1, Runnable var2);
+   ScheduledTask runTask(OnyxShop plugin, Runnable task);
 
-   ScheduledTask runTaskFor(OnyxShop var1, Runnable var2, Player var3);
+   ScheduledTask runTaskFor(OnyxShop plugin, Runnable task, Player player);
 
-   ScheduledTask runTaskLater(OnyxShop var1, Runnable var2, long var3);
+   ScheduledTask runTaskLater(OnyxShop plugin, Runnable task, long value);
 
-   ScheduledTask runTaskTimer(OnyxShop var1, Runnable var2, long var3, long var5);
+   ScheduledTask runTaskLaterFor(OnyxShop plugin, Runnable task, Player player, long value);
 
-   ScheduledTask runTaskAsync(OnyxShop var1, Runnable var2);
+   ScheduledTask runTaskTimer(OnyxShop plugin, Runnable task, long time, long value);
 
-   ScheduledTask runTaskLaterAsync(OnyxShop var1, Runnable var2, long var3);
+   ScheduledTask runTaskAsync(OnyxShop plugin, Runnable task);
 
-   ScheduledTask runTaskAsyncTimer(OnyxShop var1, Runnable var2, long var3, long var5);
+   ScheduledTask runTaskLaterAsync(OnyxShop plugin, Runnable task, long value);
 
-   void runKillableTask(Runnable var1);
+   ScheduledTask runTaskAsyncTimer(OnyxShop plugin, Runnable task, long time, long value);
 
-   ScheduledTask runKillableTaskLater(Runnable var1, long var2);
+   void runKillableTask(Runnable task);
 
-   ScheduledTask runKillableTaskTimer(Runnable var1, long var2, long var4);
+   ScheduledTask runKillableTaskLater(Runnable task, long value);
 
-   void cancelTasks(OnyxShop var1);
+   ScheduledTask runKillableTaskTimer(Runnable task, long time, long value);
+
+   void cancelTasks(OnyxShop plugin);
 }

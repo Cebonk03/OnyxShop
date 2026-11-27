@@ -241,7 +241,7 @@ public final class OnyxShop extends JavaPlugin {
    }
 
    public void onEnable() {
-      long var1 = System.currentTimeMillis();
+      long startTime = System.currentTimeMillis();
       instance = this;
       this.loadMetaUtils();
       this.getConfigManager().loadConfig();
@@ -279,12 +279,12 @@ public final class OnyxShop extends JavaPlugin {
             this.startupReload.loadItems(false);
             this.soundEffects.reload();
             this.registerPermissions();
-            SendMessage.infoMessage(Lang.DONE.get().replace("%millis%", String.valueOf(System.currentTimeMillis() - var1)));
+            SendMessage.infoMessage(Lang.DONE.get().replace("%millis%", String.valueOf(System.currentTimeMillis() - startTime)));
          } else {
-            DelayedLoadListener var3 = new DelayedLoadListener(
+            DelayedLoadListener delayedLoadListener = new DelayedLoadListener(
                this, this::loadDelayed, this.itemManager.doWait(), this.spawnerManager.doWait(), this.ecoHandler.doWait(), this.papiHook.doWait()
             );
-            this.getServer().getPluginManager().registerEvents(var3, this);
+            this.getServer().getPluginManager().registerEvents(delayedLoadListener, this);
          }
 
          this.updateChecker = new UpdateChecker();
@@ -293,9 +293,9 @@ public final class OnyxShop extends JavaPlugin {
       }
 
       if (this.checkForGson()) {
-         int var5 = ConfigManager.getConfig().getInt("metrics.bstats-id", 0);
-         if (var5 > 0) {
-            new Metrics(this, (short)var5);
+         int id = ConfigManager.getConfig().getInt("metrics.bstats-id", 0);
+         if (id > 0) {
+            new Metrics(this, (short)id);
          }
       }
 
@@ -345,28 +345,28 @@ public final class OnyxShop extends JavaPlugin {
       SendMessage.logDebugMessage("Completed disable tasks, shutting down...");
    }
 
-   public ShopItem getShopItem(String var1) {
-      ShopSection var2 = this.sections.get(var1.split("\\.")[0]);
-      return var2 == null ? null : var2.getShopItem(var1);
+   public ShopItem getShopItem(String shopId) {
+      ShopSection section = this.sections.get(shopId.split("\\.")[0]);
+      return section == null ? null : section.getShopItem(shopId);
    }
 
-   public ShopItem getShopItem(String var1, String var2) {
-      ShopSection var3 = this.sections.get(var1);
-      return var3 == null ? null : var3.getShopItem(var1 + "." + var2);
+   public ShopItem getShopItem(String shopId, String itemId) {
+      ShopSection section = this.sections.get(shopId);
+      return section == null ? null : section.getShopItem(shopId + "." + itemId);
    }
 
-   public DisplayItem getDisplayItem(String var1) {
-      ShopSection var2 = this.sections.get(var1.split("\\.")[0]);
-      return var2 == null ? null : var2.getDisplayItem(var1);
+   public DisplayItem getDisplayItem(String itemId) {
+      ShopSection section = this.sections.get(itemId.split("\\.")[0]);
+      return section == null ? null : section.getDisplayItem(itemId);
    }
 
-   public DisplayItem getDisplayItem(String var1, String var2) {
-      ShopSection var3 = this.sections.get(var1);
-      return var3 == null ? null : var3.getDisplayItem(var1 + "." + var2);
+   public DisplayItem getDisplayItem(String itemId, String text) {
+      ShopSection section = this.sections.get(itemId);
+      return section == null ? null : section.getDisplayItem(itemId + "." + text);
    }
 
-   public void resetDynamicPricing(Object var1) {
-      this.providerManager.resetDynamicPricing(var1);
+   public void resetDynamicPricing(Object value) {
+      this.providerManager.resetDynamicPricing(value);
    }
 
    public TransactionLog getTransactionLog() {
@@ -393,49 +393,49 @@ public final class OnyxShop extends JavaPlugin {
       return this.mainMenuItemSlots;
    }
 
-   public String getMainMenuSectionForSlot(int var1) {
-      return this.mainMenuItemSlots.get(var1);
+   public String getMainMenuSectionForSlot(int slot) {
+      return this.mainMenuItemSlots.get(slot);
    }
 
-   public void setMainMenuItemSlots(Map<Integer, String> var1) {
-      this.mainMenuItemSlots = var1;
+   public void setMainMenuItemSlots(Map<Integer, String> itemIds) {
+      this.mainMenuItemSlots = itemIds;
    }
 
    public Map<String, SectionItem> getSectionItems() {
       return this.sectionItems;
    }
 
-   public void setSectionItems(Map<String, SectionItem> var1) {
-      this.sectionItems = var1;
+   public void setSectionItems(Map<String, SectionItem> map) {
+      this.sectionItems = map;
    }
 
-   public SectionItem getSectionItem(String var1) {
-      return this.sectionItems.get(var1);
+   public SectionItem getSectionItem(String sectionId) {
+      return this.sectionItems.get(sectionId);
    }
 
-   public void addSection(String var1, ShopSection var2) {
-      this.sections.put(var1, var2);
+   public void addSection(String sectionId, ShopSection section) {
+      this.sections.put(sectionId, section);
    }
 
    public Map<String, ShopSection> getSections() {
       return this.sections;
    }
 
-   public ShopSection getSection(String var1) {
-      return this.sections.get(var1);
+   public ShopSection getSection(String sectionId) {
+      return this.sections.get(sectionId);
    }
 
-   public ShopType getShopType(String var1) {
-      ShopSection var2 = this.sections.get(var1);
-      return var2 != null ? var2.getType() : this.configManager.getShopType(var1);
+   public ShopType getShopType(String shopId) {
+      ShopSection section = this.sections.get(shopId);
+      return section != null ? section.getType() : this.configManager.getShopType(shopId);
    }
 
-   public void setShopSections(List<String> var1) {
-      this.shopSections = var1;
+   public void setShopSections(List<String> shopIds) {
+      this.shopSections = shopIds;
    }
 
-   public void removeShopSection(String var1) {
-      this.shopSections.remove(var1);
+   public void removeShopSection(String shopId) {
+      this.shopSections.remove(shopId);
    }
 
    public List<String> getShopSections() {
@@ -450,28 +450,28 @@ public final class OnyxShop extends JavaPlugin {
       return this.supportedItems;
    }
 
-   public void addSpawnerName(EntityType var1, Translatable var2) {
-      this.spawnerNames.put(var1, var2);
+   public void addSpawnerName(EntityType entityType, Translatable text) {
+      this.spawnerNames.put(entityType, text);
    }
 
-   public Translatable getSpawnerName(EntityType var1) {
-      return this.spawnerNames.get(var1);
+   public Translatable getSpawnerName(EntityType entityType) {
+      return this.spawnerNames.get(entityType);
    }
 
    public boolean isSeasonalPricing() {
       return this.modifierManager.hasSeasonalPrices();
    }
 
-   private void setModifierManager(ModifierManager var1) {
-      this.modifierManager = var1;
+   private void setModifierManager(ModifierManager modifierManager) {
+      this.modifierManager = modifierManager;
    }
 
    public void reloadModifiers() {
       this.modifierManager.reloadModifiers();
    }
 
-   public void setPapiHook(PlaceholderAPIHook var1) {
-      this.papiHook = var1;
+   public void setPapiHook(PlaceholderAPIHook placeholderAPIHook) {
+      this.papiHook = placeholderAPIHook;
    }
 
    public PlaceholderAPIHook getPapiHook() {
@@ -486,12 +486,12 @@ public final class OnyxShop extends JavaPlugin {
       return this.scheduleCache;
    }
 
-   private void setScheduleCache(ScheduleCache var1) {
-      this.scheduleCache = var1;
+   private void setScheduleCache(ScheduleCache scheduleCache) {
+      this.scheduleCache = scheduleCache;
    }
 
-   public void setStandProvider(StandProvider var1) {
-      this.standProvider = var1;
+   public void setStandProvider(StandProvider standProvider) {
+      this.standProvider = standProvider;
    }
 
    public StandProvider getStandProvider() {
@@ -532,94 +532,94 @@ public final class OnyxShop extends JavaPlugin {
       }
    }
 
-   public HashMap<String, Double> getDiscounts(String var1) {
-      return this.discounts.get(var1);
+   public HashMap<String, Double> getDiscounts(String text) {
+      return this.discounts.get(text);
    }
 
-   public void setDiscounts(HashMap<String, HashMap<String, Double>> var1) {
+   public void setDiscounts(HashMap<String, HashMap<String, Double>> map) {
       if (!this.discounts.isEmpty()) {
          this.discounts.clear();
       }
 
-      this.discounts.putAll(var1);
+      this.discounts.putAll(map);
    }
 
-   public boolean hasDiscount(String var1) {
-      return this.discounts.containsKey(var1);
+   public boolean hasDiscount(String text) {
+      return this.discounts.containsKey(text);
    }
 
-   public HashMap<String, Double> getMultipliers(String var1) {
-      return this.sellMultipliers.get(var1);
+   public HashMap<String, Double> getMultipliers(String text) {
+      return this.sellMultipliers.get(text);
    }
 
-   public boolean hasMultiplier(String var1) {
-      return this.sellMultipliers.containsKey(var1);
+   public boolean hasMultiplier(String text) {
+      return this.sellMultipliers.containsKey(text);
    }
 
-   public void setSellMultipliers(HashMap<String, HashMap<String, Double>> var1) {
+   public void setSellMultipliers(HashMap<String, HashMap<String, Double>> map) {
       if (!this.sellMultipliers.isEmpty()) {
          this.sellMultipliers.clear();
       }
 
-      this.sellMultipliers.putAll(var1);
+      this.sellMultipliers.putAll(map);
    }
 
    public Map<String, Translatable> getSectionTitles() {
       return this.sectionTitles;
    }
 
-   public void setSectionTitles(HashMap<String, Translatable> var1) {
-      this.sectionTitles = var1;
+   public void setSectionTitles(HashMap<String, Translatable> map) {
+      this.sectionTitles = map;
    }
 
-   public Translatable getSectionTitle(String var1) {
-      return this.sectionTitles.get(var1);
+   public Translatable getSectionTitle(String sectionId) {
+      return this.sectionTitles.get(sectionId);
    }
 
    public Map<String, Translatable> getBedrockSectionTitles() {
       return this.bedrockSectionTitles;
    }
 
-   public void setBedrockSectionTitles(HashMap<String, Translatable> var1) {
-      this.bedrockSectionTitles = var1;
+   public void setBedrockSectionTitles(HashMap<String, Translatable> map) {
+      this.bedrockSectionTitles = map;
    }
 
-   public Translatable getBedrockSectionTitle(String var1) {
-      return this.bedrockSectionTitles.get(var1);
+   public Translatable getBedrockSectionTitle(String sectionId) {
+      return this.bedrockSectionTitles.get(sectionId);
    }
 
    public ConfigManager getConfigManager() {
       return this.configManager;
    }
 
-   public void setLoreFormatter(LoreFormatter var1) {
-      this.loreFormatter = var1;
+   public void setLoreFormatter(LoreFormatter loreFormatter) {
+      this.loreFormatter = loreFormatter;
    }
 
    public LoreFormatter getLoreFormatter() {
       return this.loreFormatter;
    }
 
-   public String getDisplayName(Player var1, String var2) {
+   public String getDisplayName(Player player, String name) {
       try {
          return this.chat != null && this.prefixSuffix
-            ? this.getPlayerPrefix(var1) + ChatColor.getLastColors(var2.split("%player_displayname%")[0]) + var1.getDisplayName() + this.getPlayerSuffix(var1)
-            : var1.getDisplayName();
-      } catch (ArrayIndexOutOfBoundsException var4) {
-         return this.getPlayerPrefix(var1) + var1.getDisplayName() + this.getPlayerSuffix(var1);
+            ? this.getPlayerPrefix(player) + ChatColor.getLastColors(name.split("%player_displayname%")[0]) + player.getDisplayName() + this.getPlayerSuffix(player)
+            : player.getDisplayName();
+      } catch (ArrayIndexOutOfBoundsException exception) {
+         return this.getPlayerPrefix(player) + player.getDisplayName() + this.getPlayerSuffix(player);
       }
    }
 
-   public String getDisplayName(Player var1) {
-      return this.chat != null && this.prefixSuffix ? this.getPlayerPrefix(var1) + var1.getDisplayName() + this.getPlayerSuffix(var1) : var1.getDisplayName();
+   public String getDisplayName(Player player) {
+      return this.chat != null && this.prefixSuffix ? this.getPlayerPrefix(player) + player.getDisplayName() + this.getPlayerSuffix(player) : player.getDisplayName();
    }
 
-   private String getPlayerPrefix(Player var1) {
-      return !this.chat.getPlayerPrefix(var1).isEmpty() ? ChatUtil.formatColors(this.chat.getPlayerPrefix(var1) + "&r ").replace("&", "") : "";
+   private String getPlayerPrefix(Player player) {
+      return !this.chat.getPlayerPrefix(player).isEmpty() ? ChatUtil.formatColors(this.chat.getPlayerPrefix(player) + "&r ").replace("&", "") : "";
    }
 
-   private String getPlayerSuffix(Player var1) {
-      return !this.chat.getPlayerSuffix(var1).isEmpty() ? ChatUtil.formatColors("&r " + this.chat.getPlayerSuffix(var1)).replace("&", "") : "";
+   private String getPlayerSuffix(Player player) {
+      return !this.chat.getPlayerSuffix(player).isEmpty() ? ChatUtil.formatColors("&r " + this.chat.getPlayerSuffix(player)).replace("&", "") : "";
    }
 
    public RequirementManager getRequirementManager() {
@@ -642,8 +642,8 @@ public final class OnyxShop extends JavaPlugin {
       return this.ecoHandler;
    }
 
-   private void setPermManager(PermissionManager var1) {
-      this.permissionManager = var1;
+   private void setPermManager(PermissionManager permissionManager) {
+      this.permissionManager = permissionManager;
    }
 
    public PermissionManager getPermissionManager() {
@@ -686,51 +686,51 @@ public final class OnyxShop extends JavaPlugin {
          this.registerPermission("sellallhand", "Allows players to sell items to every shop section with the /sellall hand command");
          this.registerPermission("sellgui", "Allows players to sell items to every shop section with the SellGUI screen");
 
-         for (ShopSection var2 : this.sections.values()) {
-            this.registerItemPermissions(var2);
+         for (ShopSection section : this.sections.values()) {
+            this.registerItemPermissions(section);
          }
-      } catch (IllegalArgumentException var3) {
+      } catch (IllegalArgumentException exception) {
          SendMessage.logDebugMessage("Failed to register permissions, ignore this if you reloaded the plugin.");
-         SendMessage.logDebugMessage(var3.getMessage());
+         SendMessage.logDebugMessage(exception.getMessage());
       }
    }
 
-   private void registerPermission(String var1, String var2) {
-      org.bukkit.permissions.Permission var3 = new org.bukkit.permissions.Permission(
-         "OnyxShop." + var1 + ".all", var2, PermissionDefault.TRUE, this.getChildren(var1)
+   private void registerPermission(String permission, String text) {
+      org.bukkit.permissions.Permission permission2 = new org.bukkit.permissions.Permission(
+         "OnyxShop." + permission + ".all", text, PermissionDefault.TRUE, this.getChildren(permission)
       );
-      this.getServer().getPluginManager().addPermission(var3);
+      this.getServer().getPluginManager().addPermission(permission2);
    }
 
-   private Map<String, Boolean> getChildren(String var1) {
-      HashMap var2 = new HashMap();
+   private Map<String, Boolean> getChildren(String text) {
+      HashMap map = new HashMap();
 
-      for (ShopSection var4 : this.sections.values()) {
-         var2.put("OnyxShop." + var1 + "." + var4.getSection().toLowerCase(Locale.ENGLISH), true);
+      for (ShopSection section : this.sections.values()) {
+         map.put("OnyxShop." + text + "." + section.getSection().toLowerCase(Locale.ENGLISH), true);
       }
 
-      return var2;
+      return map;
    }
 
-   private void registerItemPermissions(ShopSection var1) {
-      for (ShopItem var3 : var1.getShopItems()) {
+   private void registerItemPermissions(ShopSection section) {
+      for (ShopItem shopItem : section.getShopItems()) {
          try {
-            if (var3.getPermission() != null && !var3.getPermission().isEmpty()) {
-               HashMap var4 = new HashMap();
+            if (shopItem.getPermission() != null && !shopItem.getPermission().isEmpty()) {
+               HashMap itemIds = new HashMap();
 
-               for (String var8 : new String[]{"sellall", "sellallitem", "sellallhand", "sellgui"}) {
-                  var4.put("OnyxShop." + var8 + "." + var1.getSection().toLowerCase(Locale.ENGLISH) + ".item." + var3.getPermission(), true);
+               for (String text : new String[]{"sellall", "sellallitem", "sellallhand", "sellgui"}) {
+                  itemIds.put("OnyxShop." + text + "." + section.getSection().toLowerCase(Locale.ENGLISH) + ".item." + shopItem.getPermission(), true);
                }
 
                this.getServer()
                   .getPluginManager()
                   .addPermission(
                      new org.bukkit.permissions.Permission(
-                        "OnyxShop.shop." + var1.getSection().toLowerCase(Locale.ENGLISH) + ".item." + var3.getPermission(), PermissionDefault.FALSE, var4
+                        "OnyxShop.shop." + section.getSection().toLowerCase(Locale.ENGLISH) + ".item." + shopItem.getPermission(), PermissionDefault.FALSE, itemIds
                      )
                   );
             }
-         } catch (IllegalArgumentException var9) {
+         } catch (IllegalArgumentException exception) {
          }
       }
    }
@@ -752,61 +752,61 @@ public final class OnyxShop extends JavaPlugin {
 
    private void registerCommands() {
       try {
-         Field var1 = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-         var1.setAccessible(true);
-         CommandMap var2 = (CommandMap)var1.get(Bukkit.getServer());
+         Field field = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+         field.setAccessible(true);
+         CommandMap commandMap = (CommandMap)field.get(Bukkit.getServer());
          if (ConfigManager.badYaml != null || ConfigManager.getConfig().getBoolean("commands.shopgive", true)) {
-            var2.register("onyxshop", new ShopGive(this, this.getDisabledWorlds("shopgive")));
+            commandMap.register("onyxshop", new ShopGive(this, this.getDisabledWorlds("shopgive")));
          }
 
          if (ConfigManager.badYaml != null || ConfigManager.getConfig().getBoolean("commands.editshop", true)) {
-            var2.register("onyxshop", new CommandManager(this, this.getDisabledWorlds("editshop")));
+            commandMap.register("onyxshop", new CommandManager(this, this.getDisabledWorlds("editshop")));
          }
 
          if (ConfigManager.badYaml != null || ConfigManager.getConfig().getBoolean("commands.sreload", true)) {
-            var2.register("onyxshop", new Sreload(this, this.getDisabledWorlds("sreload")));
+            commandMap.register("onyxshop", new Sreload(this, this.getDisabledWorlds("sreload")));
          }
 
          if (ConfigManager.badYaml != null || ConfigManager.getConfig().getBoolean("commands.shop", true)) {
-            List<String> var3 = ConfigManager.badYaml != null ? new ArrayList<>() : ConfigManager.getConfig().getStringList("shop-commands");
-            if (var3.isEmpty()) {
-               var3.add("shop");
+            List<String> shopIds = ConfigManager.badYaml != null ? new ArrayList<>() : ConfigManager.getConfig().getStringList("shop-commands");
+            if (shopIds.isEmpty()) {
+               shopIds.add("shop");
             }
 
-            var2.register("onyxshop", new Shop(this, (List<String>)var3, this.getDisabledWorlds("shop")));
+            commandMap.register("onyxshop", new Shop(this, (List<String>)shopIds, this.getDisabledWorlds("shop")));
          }
 
          if (ConfigManager.badYaml != null || ConfigManager.getConfig().getBoolean("commands.sellall", true)) {
-            List<String> var5 = ConfigManager.badYaml != null ? new ArrayList<>() : ConfigManager.getConfig().getStringList("sellall-commands");
-            if (var5.isEmpty()) {
-               var5.add("sellall");
+            List<String> values = ConfigManager.badYaml != null ? new ArrayList<>() : ConfigManager.getConfig().getStringList("sellall-commands");
+            if (values.isEmpty()) {
+               values.add("sellall");
             }
 
             if (ConfigManager.badYaml == null && Bukkit.getPluginManager().isPluginEnabled("Essentials")) {
                this.overrideSellCommand(ConfigManager.getConfig().getBoolean("override-sell-command", true));
             }
 
-            var2.register("onyxshop", new Sellall(this, (List<String>)var5, this.getDisabledWorlds("sellall")));
+            commandMap.register("onyxshop", new Sellall(this, (List<String>)values, this.getDisabledWorlds("sellall")));
          }
 
          if (ConfigManager.badYaml != null || ConfigManager.getConfig().getBoolean("commands.sellgui", true)) {
-            List<String> var6 = ConfigManager.badYaml != null ? new ArrayList<>() : ConfigManager.getConfig().getStringList("sellgui-commands");
-            if (var6.isEmpty()) {
-               var6.add("sellgui");
+            List<String> values = ConfigManager.badYaml != null ? new ArrayList<>() : ConfigManager.getConfig().getStringList("sellgui-commands");
+            if (values.isEmpty()) {
+               values.add("sellgui");
             }
 
-            var2.register("onyxshop", new SellGUI(this, (List<String>)var6, this.getDisabledWorlds("sellgui")));
+            commandMap.register("onyxshop", new SellGUI(this, (List<String>)values, this.getDisabledWorlds("sellgui")));
          }
-      } catch (IllegalAccessException | NoSuchFieldException var4) {
+      } catch (IllegalAccessException | NoSuchFieldException exception) {
          SendMessage.errorMessage("Error registering commands.");
-         var4.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    public void stopRotatingShops() {
-      for (ShopSection var2 : this.sections.values()) {
-         if (var2.getType() == ShopType.ROTATING) {
-            ((RotatingShop)var2).stopCurrent();
+      for (ShopSection section : this.sections.values()) {
+         if (section.getType() == ShopType.ROTATING) {
+            ((RotatingShop)section).stopCurrent();
          }
       }
    }
@@ -817,16 +817,16 @@ public final class OnyxShop extends JavaPlugin {
       }
    }
 
-   private List<String> getDisabledWorlds(String var1) {
+   private List<String> getDisabledWorlds(String text) {
       return (List<String>)(ConfigManager.badYaml == null && ConfigManager.getConfig().getBoolean("enable-disabled-worlds", false)
-         ? ConfigManager.getConfig().getStringList("disabled-worlds-per-command." + var1)
+         ? ConfigManager.getConfig().getStringList("disabled-worlds-per-command." + text)
          : new ArrayList<>());
    }
 
    public void loadChat() {
-      RegisteredServiceProvider var1 = this.getServer().getServicesManager().getRegistration(Chat.class);
-      if (var1 != null) {
-         this.chat = (Chat)var1.getProvider();
+      RegisteredServiceProvider registeredServiceProvider = this.getServer().getServicesManager().getRegistration(Chat.class);
+      if (registeredServiceProvider != null) {
+         this.chat = (Chat)registeredServiceProvider.getProvider();
       }
    }
 
@@ -848,170 +848,170 @@ public final class OnyxShop extends JavaPlugin {
       }
    }
 
-   public String initLore(String var1) {
-      ItemStack var2 = new ItemStack(Material.BARRIER);
-      ItemMeta var3 = var2.getItemMeta();
-      var3.setLore(Collections.singletonList(var1));
-      var2.setItemMeta(var3);
-      return this.versionHandler.getLoreAsNBT(var2);
+   public String initLore(String lore) {
+      ItemStack itemStack = new ItemStack(Material.BARRIER);
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      itemMeta.setLore(Collections.singletonList(lore));
+      itemStack.setItemMeta(itemMeta);
+      return this.versionHandler.getLoreAsNBT(itemStack);
    }
 
-   public YamlConfiguration loadConfiguration(File var1) throws ConfigLoadException {
-      Validate.notNull(var1, "Cannot load " + var1.getName() + " config file.");
-      YamlConfiguration var2 = new YamlConfiguration();
+   public YamlConfiguration loadConfiguration(File file) throws ConfigLoadException {
+      Validate.notNull(file, "Cannot load " + file.getName() + " config file.");
+      YamlConfiguration config = new YamlConfiguration();
 
       try {
-         var2.load(new InputStreamReader(new FileInputStream(var1), StandardCharsets.UTF_8));
-         if (ConfigManager.badYaml != null && ConfigManager.badYaml.equals(var1.getName())) {
+         config.load(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+         if (ConfigManager.badYaml != null && ConfigManager.badYaml.equals(file.getName())) {
             ConfigManager.badYaml = null;
          }
 
-         return var2;
-      } catch (FileNotFoundException var6) {
-      } catch (IOException var7) {
-         var7.printStackTrace();
-      } catch (InvalidConfigurationException var8) {
-         StringWriter var4 = new StringWriter();
-         PrintWriter var5 = new PrintWriter(var4);
-         var8.printStackTrace(var5);
+         return config;
+      } catch (FileNotFoundException exception) {
+      } catch (IOException exception) {
+         exception.printStackTrace();
+      } catch (InvalidConfigurationException exception) {
+         StringWriter stringWriter = new StringWriter();
+         PrintWriter printWriter = new PrintWriter(stringWriter);
+         exception.printStackTrace(printWriter);
          throw new ConfigLoadException(
             "Cannot read "
-               + var1.getName()
+               + file.getName()
                + " config because it is mis-configured, use a online Yaml parser with the error underneath here to find out the cause of the problem and to solve it.\n"
-               + var4.toString()
+               + stringWriter.toString()
          );
       }
 
-      ConfigManager.badYaml = var1.getName();
+      ConfigManager.badYaml = file.getName();
       return null;
    }
 
-   public YamlConfiguration loadConfiguration(File var1, String var2) {
-      return this.loadConfiguration(var1, var2, false);
+   public YamlConfiguration loadConfiguration(File file, String text) {
+      return this.loadConfiguration(file, text, false);
    }
 
-   public YamlConfiguration loadConfiguration(File var1, String var2, boolean var3) {
-      Validate.notNull(var1, "Cannot load " + var2 + " config file.");
-      YamlConfiguration var4 = new YamlConfiguration();
+   public YamlConfiguration loadConfiguration(File file, String text, boolean flag) {
+      Validate.notNull(file, "Cannot load " + text + " config file.");
+      YamlConfiguration config = new YamlConfiguration();
 
       try {
-         var4.load(new InputStreamReader(new FileInputStream(var1), StandardCharsets.UTF_8));
-         if (!var3 && ConfigManager.badYaml != null && ConfigManager.badYaml.equals(var2)) {
+         config.load(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+         if (!flag && ConfigManager.badYaml != null && ConfigManager.badYaml.equals(text)) {
             ConfigManager.badYaml = null;
          }
 
-         return var4;
-      } catch (FileNotFoundException var6) {
-      } catch (IOException var7) {
-         var7.printStackTrace();
-      } catch (InvalidConfigurationException var8) {
-         if (!var3) {
+         return config;
+      } catch (FileNotFoundException exception) {
+      } catch (IOException exception) {
+         exception.printStackTrace();
+      } catch (InvalidConfigurationException exception) {
+         if (!flag) {
             SendMessage.errorMessage(
                "Cannot read "
-                  + var2
+                  + text
                   + " config because it is mis-configured, use a online Yaml parser with the error underneath here to find out the cause of the problem and to solve it."
             );
-            var8.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      if (!var3) {
-         ConfigManager.badYaml = var2;
+      if (!flag) {
+         ConfigManager.badYaml = text;
       }
 
       return null;
    }
 
-   public YamlConfiguration loadConfiguration(BufferedReader var1, String var2) {
-      return this.loadConfiguration(var1, var2, false);
+   public YamlConfiguration loadConfiguration(BufferedReader bufferedReader, String text) {
+      return this.loadConfiguration(bufferedReader, text, false);
    }
 
-   public YamlConfiguration loadConfiguration(BufferedReader var1, String var2, boolean var3) {
-      Validate.notNull(var1, "Cannot load " + var2 + " config file.");
-      YamlConfiguration var4 = new YamlConfiguration();
+   public YamlConfiguration loadConfiguration(BufferedReader bufferedReader, String text, boolean flag) {
+      Validate.notNull(bufferedReader, "Cannot load " + text + " config file.");
+      YamlConfiguration config = new YamlConfiguration();
 
       try {
-         var4.load(var1);
-         if (!var3 && ConfigManager.badYaml != null && ConfigManager.badYaml.equals(var2)) {
+         config.load(bufferedReader);
+         if (!flag && ConfigManager.badYaml != null && ConfigManager.badYaml.equals(text)) {
             ConfigManager.badYaml = null;
          }
 
-         return var4;
-      } catch (FileNotFoundException var6) {
-      } catch (IOException var7) {
-         var7.printStackTrace();
-      } catch (InvalidConfigurationException var8) {
-         if (!var3) {
+         return config;
+      } catch (FileNotFoundException exception) {
+      } catch (IOException exception) {
+         exception.printStackTrace();
+      } catch (InvalidConfigurationException exception) {
+         if (!flag) {
             SendMessage.errorMessage(
                "Cannot read "
-                  + var2
+                  + text
                   + " config because it is mis-configured, use a online Yaml parser with the error underneath here to find out the cause of the problem and to solve it."
             );
-            var8.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
-      if (!var3) {
-         ConfigManager.badYaml = var2;
+      if (!flag) {
+         ConfigManager.badYaml = text;
       }
 
       return null;
    }
 
-   public void createConfigBackup(String var1) {
-      SendMessage.infoMessage(Lang.CREATING_BACKUP.get().replace("%fileName%", var1));
-      DateTimeFormatter var2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss");
-      LocalDateTime var3 = LocalDateTime.now();
-      Path var4 = Paths.get(getInstance().getDataFolder() + "/backups/");
-      if (!Files.exists(var4) || !Files.isDirectory(var4)) {
+   public void createConfigBackup(String text) {
+      SendMessage.infoMessage(Lang.CREATING_BACKUP.get().replace("%fileName%", text));
+      DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss");
+      LocalDateTime localDateTime = LocalDateTime.now();
+      Path path = Paths.get(getInstance().getDataFolder() + "/backups/");
+      if (!Files.exists(path) || !Files.isDirectory(path)) {
          try {
-            Files.createDirectory(var4);
-         } catch (FileAlreadyExistsException var9) {
-         } catch (IOException var10) {
-            var10.printStackTrace();
+            Files.createDirectory(path);
+         } catch (FileAlreadyExistsException exception) {
+         } catch (IOException exception) {
+            exception.printStackTrace();
          }
       }
 
-      File var5 = new File(getInstance().getDataFolder(), var1);
+      File file = new File(getInstance().getDataFolder(), text);
 
       try {
          try {
             Files.copy(
-               var5.toPath(), Paths.get(getInstance().getDataFolder() + "/backups/", var1.substring(0, var1.indexOf(".")) + " " + var2.format(var3) + ".yml")
+               file.toPath(), Paths.get(getInstance().getDataFolder() + "/backups/", text.substring(0, text.indexOf(".")) + " " + dateTimeFormatter.format(localDateTime) + ".yml")
             );
-         } catch (FileAlreadyExistsException var7) {
+         } catch (FileAlreadyExistsException exception) {
          }
-      } catch (Exception var8) {
-         var8.printStackTrace();
+      } catch (Exception exception) {
+         exception.printStackTrace();
       }
    }
 
-   public void createFileBackup(String var1) {
-      SendMessage.logDebugMessage(Lang.CREATING_BACKUP.get().replace("%fileName%", var1));
-      DateTimeFormatter var2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss");
-      LocalDateTime var3 = LocalDateTime.now();
-      Path var4 = Paths.get(getInstance().getDataFolder() + "/backups/");
-      if (!Files.exists(var4) || !Files.isDirectory(var4)) {
+   public void createFileBackup(String text) {
+      SendMessage.logDebugMessage(Lang.CREATING_BACKUP.get().replace("%fileName%", text));
+      DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss");
+      LocalDateTime localDateTime = LocalDateTime.now();
+      Path path = Paths.get(getInstance().getDataFolder() + "/backups/");
+      if (!Files.exists(path) || !Files.isDirectory(path)) {
          try {
-            Files.createDirectory(var4);
-         } catch (FileAlreadyExistsException var9) {
-         } catch (IOException var10) {
-            var10.printStackTrace();
+            Files.createDirectory(path);
+         } catch (FileAlreadyExistsException exception) {
+         } catch (IOException exception) {
+            exception.printStackTrace();
          }
       }
 
-      File var5 = new File(getInstance().getDataFolder(), var1);
+      File file = new File(getInstance().getDataFolder(), text);
 
       try {
          try {
             Files.copy(
-               var5.toPath(),
-               Paths.get(getInstance().getDataFolder() + "/backups/", var1.split("\\.")[0] + " " + var2.format(var3) + "." + var1.split("\\.")[1])
+               file.toPath(),
+               Paths.get(getInstance().getDataFolder() + "/backups/", text.split("\\.")[0] + " " + dateTimeFormatter.format(localDateTime) + "." + text.split("\\.")[1])
             );
-         } catch (FileAlreadyExistsException var7) {
+         } catch (FileAlreadyExistsException exception) {
          }
-      } catch (Exception var8) {
-         var8.printStackTrace();
+      } catch (Exception exception) {
+         exception.printStackTrace();
       }
    }
 
@@ -1031,147 +1031,151 @@ public final class OnyxShop extends JavaPlugin {
       instance = null;
    }
 
-   public ScheduledTask runTask(Runnable var1) {
-      return this.scheduler.runTask(this, var1);
+   public ScheduledTask runTask(Runnable task) {
+      return this.scheduler.runTask(this, task);
    }
 
-   public ScheduledTask runTaskFor(Runnable var1, Player var2) {
-      return this.scheduler.runTaskFor(this, var1, var2);
+   public ScheduledTask runTaskFor(Runnable task, Player player) {
+      return this.scheduler.runTaskFor(this, task, player);
    }
 
-   public ScheduledTask runTaskLater(Runnable var1, long var2) {
-      return this.scheduler.runTaskLater(this, var1, var2);
+   public ScheduledTask runTaskLater(Runnable task, long value) {
+      return this.scheduler.runTaskLater(this, task, value);
    }
 
-   public ScheduledTask runTaskTimer(Runnable var1, long var2, long var4) {
-      return this.scheduler.runTaskTimer(this, var1, var2, var4);
+   public ScheduledTask runTaskLaterFor(Runnable task, Player player, long value) {
+      return this.scheduler.runTaskLaterFor(this, task, player, value);
    }
 
-   public ScheduledTask runTaskAsyncTimer(Runnable var1, long var2, long var4) {
-      return this.scheduler.runTaskAsyncTimer(this, var1, var2, var4);
+   public ScheduledTask runTaskTimer(Runnable task, long time, long value) {
+      return this.scheduler.runTaskTimer(this, task, time, value);
    }
 
-   public ScheduledTask runTaskLaterAsync(Runnable var1, long var2) {
-      return this.scheduler.runTaskLaterAsync(this, var1, var2);
+   public ScheduledTask runTaskAsyncTimer(Runnable task, long time, long value) {
+      return this.scheduler.runTaskAsyncTimer(this, task, time, value);
    }
 
-   public ScheduledTask runTaskAsync(Runnable var1) {
-      return this.scheduler.runTaskAsync(this, var1);
+   public ScheduledTask runTaskLaterAsync(Runnable task, long value) {
+      return this.scheduler.runTaskLaterAsync(this, task, value);
    }
 
-   public void runKillableTask(Runnable var1) {
-      this.scheduler.runKillableTask(var1);
+   public ScheduledTask runTaskAsync(Runnable task) {
+      return this.scheduler.runTaskAsync(this, task);
    }
 
-   public ScheduledTask runKillableTaskLater(Runnable var1, long var2) {
-      return this.scheduler.runKillableTaskLater(var1, var2);
+   public void runKillableTask(Runnable task) {
+      this.scheduler.runKillableTask(task);
    }
 
-   public ScheduledTask runKillableTaskTimer(Runnable var1, long var2, long var4) {
-      return this.scheduler.runKillableTaskTimer(var1, var2, var4);
+   public ScheduledTask runKillableTaskLater(Runnable task, long value) {
+      return this.scheduler.runKillableTaskLater(task, value);
    }
 
-   public String formatPrices(String var1, Set<EcoType> var2, boolean var3) {
-      String var4 = "";
-      if (var1 != null) {
-         var4 = ChatUtil.getLastColor(var1);
+   public ScheduledTask runKillableTaskTimer(Runnable task, long time, long value) {
+      return this.scheduler.runKillableTaskTimer(task, time, value);
+   }
+
+   public String formatPrices(String type, Set<EcoType> values, boolean flag) {
+      String text = "";
+      if (type != null) {
+         text = ChatUtil.getLastColor(type);
       }
 
-      StringBuilder var5 = new StringBuilder();
-      int var6 = var2.size();
+      StringBuilder builder = new StringBuilder();
+      int size = values.size();
 
-      for (EcoType var8 : var2) {
-         if (var6 == 1) {
-            if (var2.size() == 1) {
-               return this.ecoHandler.getEcon(var8).getFriendly();
+      for (EcoType ecoType : values) {
+         if (size == 1) {
+            if (values.size() == 1) {
+               return this.ecoHandler.getEcon(ecoType).getFriendly();
             }
 
-            var5.append(var4).append(var3 ? Lang.AND_PRICE_SEPARATOR_LONG.get() : Lang.OR_PRICE_SEPARATOR_LONG.get());
+            builder.append(text).append(flag ? Lang.AND_PRICE_SEPARATOR_LONG.get() : Lang.OR_PRICE_SEPARATOR_LONG.get());
          } else {
-            if (var6 != var2.size()) {
-               var5.append(var4).append(var3 ? Lang.AND_PRICE_SEPARATOR_SHORT.get() : Lang.OR_PRICE_SEPARATOR_SHORT.get());
+            if (size != values.size()) {
+               builder.append(text).append(flag ? Lang.AND_PRICE_SEPARATOR_SHORT.get() : Lang.OR_PRICE_SEPARATOR_SHORT.get());
             }
 
-            var6--;
+            size--;
          }
 
-         var5.append(this.ecoHandler.getEcon(var8).getFriendly());
+         builder.append(this.ecoHandler.getEcon(ecoType).getFriendly());
       }
 
-      return var5.toString();
+      return builder.toString();
    }
 
-   public String formatPrices(String var1, Map<EcoType, Double> var2, boolean var3) {
-      String var4 = "";
-      if (var1 != null) {
-         var4 = ChatUtil.getLastColor(var1);
+   public String formatPrices(String type, Map<EcoType, Double> map, boolean flag) {
+      String text = "";
+      if (type != null) {
+         text = ChatUtil.getLastColor(type);
       }
 
-      StringBuilder var5 = new StringBuilder();
-      int var6 = var2.size();
+      StringBuilder builder = new StringBuilder();
+      int size = map.size();
 
-      for (Entry var8 : var2.entrySet()) {
-         if (var6 == 1) {
-            if (var2.size() == 1) {
-               return this.formatPrice((EcoType)var8.getKey(), (Double)var8.getValue());
+      for (Entry entry : map.entrySet()) {
+         if (size == 1) {
+            if (map.size() == 1) {
+               return this.formatPrice((EcoType)entry.getKey(), (Double)entry.getValue());
             }
 
-            var5.append(var4).append(var3 ? Lang.AND_PRICE_SEPARATOR_LONG.get() : Lang.OR_PRICE_SEPARATOR_LONG.get());
+            builder.append(text).append(flag ? Lang.AND_PRICE_SEPARATOR_LONG.get() : Lang.OR_PRICE_SEPARATOR_LONG.get());
          } else {
-            if (var6 != var2.size()) {
-               var5.append(var4).append(var3 ? Lang.AND_PRICE_SEPARATOR_SHORT.get() : Lang.OR_PRICE_SEPARATOR_SHORT.get());
+            if (size != map.size()) {
+               builder.append(text).append(flag ? Lang.AND_PRICE_SEPARATOR_SHORT.get() : Lang.OR_PRICE_SEPARATOR_SHORT.get());
             }
 
-            var6--;
+            size--;
          }
 
-         var5.append(var4).append(this.formatPrice((EcoType)var8.getKey(), (Double)var8.getValue()));
+         builder.append(text).append(this.formatPrice((EcoType)entry.getKey(), (Double)entry.getValue()));
       }
 
-      return var5.toString();
+      return builder.toString();
    }
 
-   public String formatNullablePrice(String var1, double var2) {
-      EcoType var4 = EconomyType.getFromString(var1);
-      if (var4 == null) {
+   public String formatNullablePrice(String price, double amount) {
+      EcoType ecoType = EconomyType.getFromString(price);
+      if (ecoType == null) {
          return null;
       } else {
-         EconomyProvider var5 = this.ecoHandler.getEcon(var4);
-         return var5 == null ? null : var5.formatPrice(var2);
+         EconomyProvider economy = this.ecoHandler.getEcon(ecoType);
+         return economy == null ? null : economy.formatPrice(amount);
       }
    }
 
-   public String formatPrice(EcoType var1, double var2) {
-      return this.ecoHandler.getEcon(var1).formatPrice(var2);
+   public String formatPrice(EcoType ecoType, double price) {
+      return this.ecoHandler.getEcon(ecoType).formatPrice(price);
    }
 
-   public String formatPrice(EconomyProvider var1, double var2) {
-      return var1.formatPrice(var2);
+   public String formatPrice(EconomyProvider economy, double price) {
+      return economy.formatPrice(price);
    }
 
-   public String formatPrice(String var1, double var2) {
-      return this.ecoHandler.getEcon(var1).formatPrice(var2);
+   public String formatPrice(String price, double amount) {
+      return this.ecoHandler.getEcon(price).formatPrice(amount);
    }
 
-   public double round(EcoType var1, double var2) {
-      return this.ecoHandler.getEcon(var1).round(var2);
+   public double round(EcoType ecoType, double amount) {
+      return this.ecoHandler.getEcon(ecoType).round(amount);
    }
 
    private NumberFormat getCurrencyFormat() {
-      String var1 = ConfigManager.getConfig().getString("locale", "en-US");
-      this.locale = Locale.forLanguageTag(var1);
-      String var3 = ConfigManager.getConfig().getString("currency-format", "#,##0.00");
+      String text = ConfigManager.getConfig().getString("locale", "en-US");
+      this.locale = Locale.forLanguageTag(text);
+      String text2 = ConfigManager.getConfig().getString("currency-format", "#,##0.00");
 
-      DecimalFormat var2;
+      DecimalFormat decimalFormat;
       try {
-         var2 = new DecimalFormat(var3, DecimalFormatSymbols.getInstance(this.locale));
-      } catch (IllegalArgumentException var5) {
-         SendMessage.warnMessage("Could not load currency format of '" + var3 + "', with reason: " + var5.getMessage());
-         var2 = new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(this.locale));
+         decimalFormat = new DecimalFormat(text2, DecimalFormatSymbols.getInstance(this.locale));
+      } catch (IllegalArgumentException exception) {
+         SendMessage.warnMessage("Could not load currency format of '" + text2 + "', with reason: " + exception.getMessage());
+         decimalFormat = new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(this.locale));
       }
 
-      var2.setRoundingMode(RoundingMode.FLOOR);
-      return var2;
+      decimalFormat.setRoundingMode(RoundingMode.FLOOR);
+      return decimalFormat;
    }
 
    private boolean checkForGson() {
@@ -1182,74 +1186,74 @@ public final class OnyxShop extends JavaPlugin {
       try {
          Class.forName("org.spigotmc.SpigotConfig");
          return true;
-      } catch (ClassNotFoundException var2) {
+      } catch (ClassNotFoundException exception) {
          return false;
       }
    }
 
-   private void overrideSellCommand(boolean var1) {
-      boolean var2 = false;
-      String var3 = new File("commands.yml").getAbsolutePath();
-      YamlConfiguration var4 = this.loadConfiguration(new File(var3), var3);
-      List var5 = var4.getStringList("aliases.sell");
-      if (var1) {
-         if (var5.isEmpty()) {
-            var4.set("aliases.sell", Collections.singletonList("onyxshop:sellall $1-"));
-            var2 = true;
+   private void overrideSellCommand(boolean flag) {
+      boolean flag2 = false;
+      String absolutePath = new File("commands.yml").getAbsolutePath();
+      YamlConfiguration config = this.loadConfiguration(new File(absolutePath), absolutePath);
+      List stringList = config.getStringList("aliases.sell");
+      if (flag) {
+         if (stringList.isEmpty()) {
+            config.set("aliases.sell", Collections.singletonList("onyxshop:sellall $1-"));
+            flag2 = true;
          } else {
-            if (!var5.contains("onyxshop:sellall $1-")) {
-               var5.add("onyxshop:sellall $1-");
-               var2 = true;
+            if (!stringList.contains("onyxshop:sellall $1-")) {
+               stringList.add("onyxshop:sellall $1-");
+               flag2 = true;
             }
 
-            if (var5.remove("economyshopgui:sellall $1-")) {
-               var2 = true;
+            if (stringList.remove("economyshopgui:sellall $1-")) {
+               flag2 = true;
             }
 
-            if (var2) {
-               var4.set("aliases.sell", var5);
+            if (flag2) {
+               config.set("aliases.sell", stringList);
             }
          }
-      } else if (var5.contains("onyxshop:sellall $1-")) {
-         if (var5.size() == 1) {
-            var4.set("aliases.sell", null);
+      } else if (stringList.contains("onyxshop:sellall $1-")) {
+         if (stringList.size() == 1) {
+            config.set("aliases.sell", null);
          } else {
-            var5.remove("onyxshop:sellall $1-");
-            var4.set("aliases.sell", var5);
-            var2 = true;
+            stringList.remove("onyxshop:sellall $1-");
+            config.set("aliases.sell", stringList);
+            flag2 = true;
          }
       }
 
-      if (var2) {
+      if (flag2) {
          try {
-            var4.save(var3);
-         } catch (IOException var7) {
-            SendMessage.errorMessage("Failed to save " + var3);
+            config.save(absolutePath);
+         } catch (IOException exception) {
+            SendMessage.errorMessage("Failed to save " + absolutePath);
          }
       }
    }
 
-   public String getPost(String var1) {
+   public String getPost(String text) {
       try {
-         HttpURLConnection var2 = (HttpURLConnection)new URL(var1).openConnection();
-         var2.setConnectTimeout(5000);
-         var2.connect();
-         return new BufferedReader(new InputStreamReader(var2.getInputStream())).readLine();
-      } catch (Exception var3) {
+         HttpURLConnection httpURLConnection = (HttpURLConnection)new URL(text).openConnection();
+         httpURLConnection.setConnectTimeout(5000);
+         httpURLConnection.connect();
+         return new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream())).readLine();
+      } catch (Exception exception) {
          return null;
       }
    }
 
-   public String getInvTitle(String var1) {
+   public String getInvTitle(String title) {
       if (this.version == 18) {
-         return var1.length() > 32 ? var1.substring(0, 32) : var1;
+         return title.length() > 32 ? title.substring(0, 32) : title;
       } else {
-         return this.version == 113 ? this.getTitle(var1) : var1;
+         return this.version == 113 ? this.getTitle(title) : title;
       }
    }
 
-   private String getTitle(String var1) {
-      return this.versionHandler.getTitle(Bukkit.createInventory(null, 9, var1));
+   private String getTitle(String title) {
+      return this.versionHandler.getTitle(Bukkit.createInventory(null, 9, title));
    }
 
    private ServerScheduler getScheduler() {
@@ -1278,29 +1282,29 @@ public final class OnyxShop extends JavaPlugin {
       );
    }
 
-   public boolean isSimilar(ItemStack var1, ItemStack var2) {
-      return var1 == var2 ? true : this.versionHandler.isSimilar(var1, var2, this.ignoredNBTData);
+   public boolean isSimilar(ItemStack itemStack, ItemStack itemStack2) {
+      return itemStack == itemStack2 ? true : this.versionHandler.isSimilar(itemStack, itemStack2, this.ignoredNBTData);
    }
 
-   public boolean isSimilar(ItemStack var1, ItemStack var2, List<String> var3) {
-      if (var1 == var2) {
+   public boolean isSimilar(ItemStack itemStack, ItemStack itemStack2, List<String> itemIds) {
+      if (itemStack == itemStack2) {
          return true;
       } else {
-         List<String> var4 = new ArrayList<>(var3);
-         var4.addAll(this.ignoredNBTData);
-         return this.versionHandler.isSimilar(var1, var2, var4);
+         List<String> values = new ArrayList<>(itemIds);
+         values.addAll(this.ignoredNBTData);
+         return this.versionHandler.isSimilar(itemStack, itemStack2, values);
       }
    }
 
-   public String getMaterialName(String var1) {
-      String[] var2 = var1.toLowerCase().replace("_", " ").split(" ");
-      StringBuffer var3 = new StringBuffer();
+   public String getMaterialName(String materialName) {
+      String[] names = materialName.toLowerCase().replace("_", " ").split(" ");
+      StringBuffer stringBuffer = new StringBuffer();
 
-      for (int var4 = 0; var4 < var2.length; var4++) {
-         var3.append(Character.toUpperCase(var2[var4].charAt(0))).append(var2[var4].substring(1)).append(" ");
+      for (int index = 0; index < names.length; index++) {
+         stringBuffer.append(Character.toUpperCase(names[index].charAt(0))).append(names[index].substring(1)).append(" ");
       }
 
-      return var3.toString().trim();
+      return stringBuffer.toString().trim();
    }
 
    public List<String> getExamplePrices() {
@@ -1308,79 +1312,79 @@ public final class OnyxShop extends JavaPlugin {
    }
 
    private List<String> setSupportedMatNames() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (XMaterial var5 : XMaterial.values()) {
-         if (var5.isSupported()) {
-            var1.add(var5.name());
+      for (XMaterial xMaterial : XMaterial.values()) {
+         if (xMaterial.isSupported()) {
+            values.add(xMaterial.name());
          }
       }
 
-      return var1;
+      return values;
    }
 
    private List<ItemStack> setSupportedItems() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (XMaterial var5 : XMaterial.values()) {
-         if (var5.isSupported() && var5.parseItem() != null && var5.parseMaterial() != Material.AIR) {
-            var1.add(var5.parseItem());
+      for (XMaterial xMaterial : XMaterial.values()) {
+         if (xMaterial.isSupported() && xMaterial.parseItem() != null && xMaterial.parseMaterial() != Material.AIR) {
+            values.add(xMaterial.parseItem());
          }
       }
 
       if (this.version <= 113) {
-         var1 = new ArrayList(new LinkedHashSet(var1));
+         values = new ArrayList(new LinkedHashSet(values));
       }
 
-      return var1;
+      return values;
    }
 
    private List<ItemStack> setSupportedEntities() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (EntityType var5 : EntityType.values()) {
-         if (var5.isSpawnable() && var5.isAlive()) {
-            Optional var6 = XMaterial.matchXMaterial(var5.toString().toUpperCase() + "_SPAWN_EGG");
-            if (var6.isPresent() && ((XMaterial)var6.get()).isSupported()) {
-               ItemStack var7 = ((XMaterial)var6.get()).parseItem();
-               if (var7 == null) {
-                  var7 = XMaterial.SHEEP_SPAWN_EGG.parseItem();
+      for (EntityType entityType : EntityType.values()) {
+         if (entityType.isSpawnable() && entityType.isAlive()) {
+            Optional optional = XMaterial.matchXMaterial(entityType.toString().toUpperCase() + "_SPAWN_EGG");
+            if (optional.isPresent() && ((XMaterial)optional.get()).isSupported()) {
+               ItemStack itemStack = ((XMaterial)optional.get()).parseItem();
+               if (itemStack == null) {
+                  itemStack = XMaterial.SHEEP_SPAWN_EGG.parseItem();
                }
 
-               ItemMeta var8 = var7.getItemMeta();
-               var8.setDisplayName(var5.toString().toUpperCase());
-               var7.setItemMeta(var8);
-               var1.add(var7);
+               ItemMeta itemMeta = itemStack.getItemMeta();
+               itemMeta.setDisplayName(entityType.toString().toUpperCase());
+               itemStack.setItemMeta(itemMeta);
+               values.add(itemStack);
             }
          }
       }
 
-      return var1;
+      return values;
    }
 
    private List<Enchantment> setSupportedEnchantments() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (XEnchantment var5 : XEnchantment.values()) {
-         if (var5.isSupported()) {
-            var1.add(var5.parseEnchantment());
+      for (XEnchantment xEnchantment : XEnchantment.values()) {
+         if (xEnchantment.isSupported()) {
+            values.add(xEnchantment.parseEnchantment());
          }
       }
 
-      return var1;
+      return values;
    }
 
    public void closeOpenGUIS() {
       try {
-         for (Player var2 : this.getServer().getOnlinePlayers()) {
-            if (InventoryUtil.getTopHolder(var2) instanceof ShopInventory
-               || InventoryUtil.getTopHolder(var2) instanceof com.onyxshop.inventorys.editor.ItemEditor) {
-               var2.closeInventory();
+         for (Player player : this.getServer().getOnlinePlayers()) {
+            if (InventoryUtil.getTopHolder(player) instanceof ShopInventory
+               || InventoryUtil.getTopHolder(player) instanceof com.onyxshop.inventorys.editor.ItemEditor) {
+               player.closeInventory();
             }
          }
-      } catch (Exception var3) {
+      } catch (Exception exception) {
          SendMessage.logDebugMessage("Failed to close shop menu(s) for currently browsing player(s)");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
    }
 }

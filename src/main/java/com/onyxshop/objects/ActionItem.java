@@ -50,86 +50,86 @@ public class ActionItem implements DisplayItem {
    public final String section;
    public final String itemLoc;
 
-   public ActionItem(OnyxShop var1, ShopSection var2, String var3) {
-      this.rotates = var2 instanceof RotatingShop;
-      this.section = var2.getSection();
-      this.itemLoc = var3;
+   public ActionItem(OnyxShop plugin, ShopSection section, String itemId) {
+      this.rotates = section instanceof RotatingShop;
+      this.section = section.getSection();
+      this.itemLoc = itemId;
       this.itemPath = this.section + "." + this.itemLoc;
-      ConfigurationSection var4 = ConfigManager.getShop(this.section).getConfigurationSection((this.rotates ? "" : "pages.") + this.itemLoc);
-      this.closeMenu = var4.getBoolean("close-menu");
+      ConfigurationSection section2 = ConfigManager.getShop(this.section).getConfigurationSection((this.rotates ? "" : "pages.") + this.itemLoc);
+      this.closeMenu = section2.getBoolean("close-menu");
 
       try {
-         this.requirements = var1.getRequirementManager().load(this.section, var3);
-         this.hideIfUnmet = this.requirements != null && var4.getBoolean("if-not-met.hide");
-         if (this.hideIfUnmet && var4.contains("if-not-met.placeholder") && var4.contains("if-not-met.placeholder.material")) {
-            this.ifUnmet = var1.createItem.createFillItem(var4.getConfigurationSection("if-not-met.placeholder"), this.section);
+         this.requirements = plugin.getRequirementManager().load(this.section, itemId);
+         this.hideIfUnmet = this.requirements != null && section2.getBoolean("if-not-met.hide");
+         if (this.hideIfUnmet && section2.contains("if-not-met.placeholder") && section2.contains("if-not-met.placeholder.material")) {
+            this.ifUnmet = plugin.createItem.createFillItem(section2.getConfigurationSection("if-not-met.placeholder"), this.section);
          }
 
          try {
-            this.action = ActionItem.Action.getFromString(var4.getString("action", "NONE"));
-         } catch (IllegalArgumentException var7) {
-            throw new ItemLoadException(Lang.INVALID_ITEM_ACTION.get().replace("%action%", var4.getString("action")));
+            this.action = ActionItem.Action.getFromString(section2.getString("action", "NONE"));
+         } catch (IllegalArgumentException exception) {
+            throw new ItemLoadException(Lang.INVALID_ITEM_ACTION.get().replace("%action%", section2.getString("action")));
          }
 
-         this.actionItem = var1.createItem.loadActionItem(this);
+         this.actionItem = plugin.createItem.loadActionItem(this);
          if (this.actionItem == null) {
-            this.actionItem = var1.createItem.getInvalidShopItem(this.section, this.itemLoc);
+            this.actionItem = plugin.createItem.getInvalidShopItem(this.section, this.itemLoc);
             this.error = true;
          } else if (this.actionItem.getType() != Material.AIR) {
-            this.displayname = var1.useItemName
+            this.displayname = plugin.useItemName
                ? (
                   this.actionItem.getItemMeta().hasDisplayName()
-                     ? var1.getMetaUtils().getRawDisplayName(this.actionItem.getItemMeta())
-                     : var1.getMaterialName(this.actionItem.getType().name())
+                     ? plugin.getMetaUtils().getRawDisplayName(this.actionItem.getItemMeta())
+                     : plugin.getMaterialName(this.actionItem.getType().name())
                )
-               : var1.getMaterialName(this.actionItem.getType().name());
-            List var5 = this.actionItem.hasItemMeta() ? var1.getMetaUtils().getRawLore(this.actionItem.getItemMeta()) : null;
-            this.lore = this.getDynamicLore(var1, var5);
-            List var6 = var1.versionHandler.getNBTCommands(this.actionItem, CommandType.CLICK);
-            if (var6.size() >= 1) {
+               : plugin.getMaterialName(this.actionItem.getType().name());
+            List lores = this.actionItem.hasItemMeta() ? plugin.getMetaUtils().getRawLore(this.actionItem.getItemMeta()) : null;
+            this.lore = this.getDynamicLore(plugin, lores);
+            List nbtCommands = plugin.versionHandler.getNBTCommands(this.actionItem, CommandType.CLICK);
+            if (nbtCommands.size() >= 1) {
                this.clickCommand = true;
             }
 
             this.placeholders.putAll(PlaceholderAPIHook.getPlaceholders(this.getShopItem(), actionPlaceholders));
          }
-      } catch (ItemLoadException var8) {
-         this.setError(var1, var8);
+      } catch (ItemLoadException exception) {
+         this.setError(plugin, exception);
          this.error = true;
-         SendMessage.warnMessage(var8.getMessage());
+         SendMessage.warnMessage(exception.getMessage());
          SendMessage.errorShops(this.section, this.itemLoc);
-      } catch (Exception var9) {
-         if (var9.getMessage() != null) {
-            this.setError(var1, var9);
+      } catch (Exception exception) {
+         if (exception.getMessage() != null) {
+            this.setError(plugin, exception);
          }
 
          this.error = true;
          SendMessage.warnMessage("A unknown error occurred while loading item: " + this.itemPath);
-         var9.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   public void setError(OnyxShop var1, Exception var2) {
-      List var3 = CalculateAmount.splitLongString(var2.getMessage()).stream().map(var0 -> ChatUtil.formatColors("&c" + var0)).collect(Collectors.toList());
-      this.actionItem = var1.createItem.getInvalidShopItem(this.section, this.itemLoc, (String)var3.remove(0));
-      this.lore = this.getDynamicLore(var1, var3.isEmpty() ? null : var3);
+   public void setError(OnyxShop plugin, Exception exception) {
+      List messages = CalculateAmount.splitLongString(exception.getMessage()).stream().map(element -> ChatUtil.formatColors("&c" + element)).collect(Collectors.toList());
+      this.actionItem = plugin.createItem.getInvalidShopItem(this.section, this.itemLoc, (String)messages.remove(0));
+      this.lore = this.getDynamicLore(plugin, messages.isEmpty() ? null : messages);
    }
 
-   public ActionItem(ActionItem var1) {
-      this.itemPath = var1.itemPath;
-      this.section = var1.section;
-      this.itemLoc = var1.itemLoc;
-      this.closeMenu = var1.closeMenu;
-      this.placeholders.putAll(var1.placeholders);
-      this.actionItem = var1.actionItem;
-      this.action = var1.action;
-      this.displayname = var1.displayname;
-      this.clickCommand = var1.clickCommand;
-      this.error = var1.error;
-      this.lore = var1.lore;
-      this.requirements = var1.requirements;
-      this.hideIfUnmet = var1.hideIfUnmet;
-      this.ifUnmet = var1.ifUnmet;
-      this.rotates = var1.rotates;
+   public ActionItem(ActionItem actionItem) {
+      this.itemPath = actionItem.itemPath;
+      this.section = actionItem.section;
+      this.itemLoc = actionItem.itemLoc;
+      this.closeMenu = actionItem.closeMenu;
+      this.placeholders.putAll(actionItem.placeholders);
+      this.actionItem = actionItem.actionItem;
+      this.action = actionItem.action;
+      this.displayname = actionItem.displayname;
+      this.clickCommand = actionItem.clickCommand;
+      this.error = actionItem.error;
+      this.lore = actionItem.lore;
+      this.requirements = actionItem.requirements;
+      this.hideIfUnmet = actionItem.hideIfUnmet;
+      this.ifUnmet = actionItem.ifUnmet;
+      this.rotates = actionItem.rotates;
    }
 
    @Override
@@ -162,14 +162,14 @@ public class ActionItem implements DisplayItem {
    }
 
    @Override
-   public boolean meetsRequirements(Player var1, boolean var2) {
+   public boolean meetsRequirements(Player player, boolean flag) {
       if (this.requirements == null) {
          return true;
       } else {
-         for (ItemRequirement var4 : this.requirements) {
-            if (!var4.isMet(var1)) {
-               if (!var2) {
-                  var4.sendNotMetMessage(var1);
+         for (ItemRequirement itemRequirement : this.requirements) {
+            if (!itemRequirement.isMet(player)) {
+               if (!flag) {
+                  itemRequirement.sendNotMetMessage(player);
                }
 
                return false;
@@ -181,13 +181,13 @@ public class ActionItem implements DisplayItem {
    }
 
    @Override
-   public void addItemRequirement(ItemRequirement var1) {
-      this.requirements.add(var1);
+   public void addItemRequirement(ItemRequirement itemRequirement) {
+      this.requirements.add(itemRequirement);
    }
 
    @Override
-   public void addItemRequirements(Collection<? extends ItemRequirement> var1) {
-      this.requirements.addAll(var1);
+   public void addItemRequirements(Collection<? extends ItemRequirement> values) {
+      this.requirements.addAll(values);
    }
 
    @Override
@@ -200,18 +200,18 @@ public class ActionItem implements DisplayItem {
    }
 
    @Override
-   public boolean hasItemRequirement(RequirementType var1) {
-      return this.requirements.hasType(var1);
+   public boolean hasItemRequirement(RequirementType requirementType) {
+      return this.requirements.hasType(requirementType);
    }
 
    @Override
-   public void removeItemRequirement(ItemRequirement var1) {
-      this.requirements.remove(var1);
+   public void removeItemRequirement(ItemRequirement itemRequirement) {
+      this.requirements.remove(itemRequirement);
    }
 
    @Override
-   public void removeItemRequirements(Collection<? extends ItemRequirement> var1) {
-      this.requirements.removeAll(var1);
+   public void removeItemRequirements(Collection<? extends ItemRequirement> values) {
+      this.requirements.removeAll(values);
    }
 
    @Override
@@ -249,7 +249,7 @@ public class ActionItem implements DisplayItem {
    }
 
    @Override
-   public boolean canPurchase(Player var1, String var2, boolean var3) {
+   public boolean canPurchase(Player player, String playerName, boolean flag) {
       return true;
    }
 
@@ -264,14 +264,14 @@ public class ActionItem implements DisplayItem {
    }
 
    @Override
-   public void updateSkullTexture(Object var1, boolean var2) {
-      SkullMeta var3 = (SkullMeta)this.actionItem.getItemMeta();
-      SkullUtil.applySkullProfile(var1, var3);
-      this.actionItem.setItemMeta(var3);
+   public void updateSkullTexture(Object value, boolean flag) {
+      SkullMeta skullMeta = (SkullMeta)this.actionItem.getItemMeta();
+      SkullUtil.applySkullProfile(value, skullMeta);
+      this.actionItem.setItemMeta(skullMeta);
    }
 
-   private DisplayItem.DynamicLore getDynamicLore(OnyxShop var1, List<String> var2) {
-      return (DisplayItem.DynamicLore)(var1.paperMeta ? new ActionItem.DynamicCompLore(var2) : new ActionItem.DynamicBukkitLore(var1, var2));
+   private DisplayItem.DynamicLore getDynamicLore(OnyxShop plugin, List<String> lores) {
+      return (DisplayItem.DynamicLore)(plugin.paperMeta ? new ActionItem.DynamicCompLore(lores) : new ActionItem.DynamicBukkitLore(plugin, lores));
    }
 
    public static enum Action {
@@ -284,11 +284,11 @@ public class ActionItem implements DisplayItem {
       private Action() {
       }
 
-      public static ActionItem.Action getFromString(String var0) {
-         if (var0 == null) {
+      public static ActionItem.Action getFromString(String itemId) {
+         if (itemId == null) {
             throw new IllegalArgumentException();
          } else {
-            return valueOf(var0.toUpperCase(Locale.ENGLISH).replace(" ", "_"));
+            return valueOf(itemId.toUpperCase(Locale.ENGLISH).replace(" ", "_"));
          }
       }
    }
@@ -297,20 +297,20 @@ public class ActionItem implements DisplayItem {
       private final String[] lore;
       private final String[] fastLore;
 
-      public DynamicBukkitLore(OnyxShop nullx, List<String> nullxx) {
-         this.lore = nullxx != null && !nullxx.isEmpty()
-            ? nullxx.stream().map(var1 -> ChatUtil.formatColors(this.removeUnknownFormats(var1))).toArray(String[]::new)
+      public DynamicBukkitLore(OnyxShop plugin, List<String> lores) {
+         this.lore = lores != null && !lores.isEmpty()
+            ? lores.stream().map(element -> ChatUtil.formatColors(this.removeUnknownFormats(element))).toArray(String[]::new)
             : new String[0];
-         this.fastLore = Arrays.stream(this.lore).map(var2 -> nullx.versionHandler.toNBT(this.removeUnknownFormats(var2))).toArray(String[]::new);
+         this.fastLore = Arrays.stream(this.lore).map(element -> plugin.versionHandler.toNBT(this.removeUnknownFormats(element))).toArray(String[]::new);
       }
 
-      private String removeUnknownFormats(String var1) {
-         return var1.replaceAll("&[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "").replaceAll("§[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "");
+      private String removeUnknownFormats(String text) {
+         return text.replaceAll("&[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "").replaceAll("§[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "");
       }
 
       @Override
-      public String[] get(boolean var1, boolean var2) {
-         return (String[])(var1 && !var2 ? this.fastLore : this.lore).clone();
+      public String[] get(boolean flag, boolean flag2) {
+         return (String[])(flag && !flag2 ? this.fastLore : this.lore).clone();
       }
    }
 
@@ -318,18 +318,18 @@ public class ActionItem implements DisplayItem {
       private final String[] lore;
       private final String[] compLore;
 
-      public DynamicCompLore(List<String> nullx) {
-         this.lore = nullx != null && !nullx.isEmpty() ? nullx.stream().map(this::removeUnknownFormats).toArray(String[]::new) : new String[0];
+      public DynamicCompLore(List<String> lores) {
+         this.lore = lores != null && !lores.isEmpty() ? lores.stream().map(this::removeUnknownFormats).toArray(String[]::new) : new String[0];
          this.compLore = Arrays.stream(this.lore).map(ChatUtil::getGsonComponent).toArray(String[]::new);
       }
 
-      private String removeUnknownFormats(String var1) {
-         return var1.replaceAll("&[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "").replaceAll("§[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "");
+      private String removeUnknownFormats(String text) {
+         return text.replaceAll("&[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "").replaceAll("§[gGhHiIjJpPqQsStTuUvVwWyYzZ心他自天生物稳]", "");
       }
 
       @Override
-      public String[] get(boolean var1, boolean var2) {
-         return (String[])(var1 ? this.compLore : this.lore).clone();
+      public String[] get(boolean flag, boolean flag2) {
+         return (String[])(flag ? this.compLore : this.lore).clone();
       }
    }
 }

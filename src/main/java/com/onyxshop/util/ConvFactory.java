@@ -24,61 +24,61 @@ public class ConvFactory {
    private ConversationFactory factory;
    private Conversation conv;
    Prompt name = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
+      public String getPromptText(ConversationContext conversationContext) {
          return Lang.NAME_PROMPT_TEXT.get().getLegacy();
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
-         var1.setSessionData(var1.getSessionData("option"), var2);
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
+         conversationContext.setSessionData(conversationContext.getSessionData("option"), text);
          return Prompt.END_OF_CONVERSATION;
       }
    };
    Prompt lore = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
+      public String getPromptText(ConversationContext conversationContext) {
          return Lang.LORE_PROMPT_TEXT.get().getLegacy();
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
-         var1.setSessionData(var1.getSessionData("option"), var2);
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
+         conversationContext.setSessionData(conversationContext.getSessionData("option"), text);
          return Prompt.END_OF_CONVERSATION;
       }
    };
    Prompt armorcolor = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
+      public String getPromptText(ConversationContext conversationContext) {
          return null;
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
          return null;
       }
    };
    Prompt commands = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
+      public String getPromptText(ConversationContext conversationContext) {
          return Lang.COMMAND_PROMPT_TEXT.get().getLegacy();
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
-         var1.setSessionData(var1.getSessionData("option"), var2);
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
+         conversationContext.setSessionData(conversationContext.getSessionData("option"), text);
          return Prompt.END_OF_CONVERSATION;
       }
    };
    Prompt nbtData = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
+      public String getPromptText(ConversationContext conversationContext) {
          return Lang.NBTDATA_PROMPT_TEXT.get().getLegacy();
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
-         var1.setSessionData(var1.getSessionData("option"), var2);
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
+         conversationContext.setSessionData(conversationContext.getSessionData("option"), text);
          return Prompt.END_OF_CONVERSATION;
       }
    };
    Prompt frequency = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
+      public String getPromptText(ConversationContext conversationContext) {
          return Lang.RESTOCK_FREQUENCY_PROMPT_TEXT.get().getLegacy();
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
-         var1.setSessionData(var1.getSessionData("option"), var2);
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
+         conversationContext.setSessionData(conversationContext.getSessionData("option"), text);
          return Prompt.END_OF_CONVERSATION;
       }
    };
@@ -86,9 +86,9 @@ public class ConvFactory {
    public ConvFactory() {
    }
 
-   public void startConversation(Player var1, ItemEditor.Option var2, ItemEditor.Action var3, String var4, int var5) {
+   public void startConversation(Player player, ItemEditor.Option option, ItemEditor.Action action, String playerName, int value) {
       this.factory = new ConversationFactory(OnyxShop.getInstance());
-      switch (var2) {
+      switch (option) {
          case DISPLAYNAME:
          case NAME:
             this.conv = this.factory
@@ -98,7 +98,7 @@ public class ConvFactory {
                .withLocalEcho(false)
                .withTimeout(60)
                .withPrefix(new ConvFactory.ConvPrefix())
-               .buildConversation(var1);
+               .buildConversation(player);
             break;
          case LORE:
          case DISPLAYLORE:
@@ -109,8 +109,8 @@ public class ConvFactory {
                .withLocalEcho(false)
                .withTimeout(60)
                .withPrefix(new ConvFactory.ConvPrefix())
-               .buildConversation(var1);
-            this.conv.getContext().setSessionData("index", var5);
+               .buildConversation(player);
+            this.conv.getContext().setSessionData("index", value);
             break;
          case BUY_COMMANDS:
          case SELL_COMMANDS:
@@ -121,8 +121,8 @@ public class ConvFactory {
                .withLocalEcho(false)
                .withTimeout(60)
                .withPrefix(new ConvFactory.ConvPrefix())
-               .buildConversation(var1);
-            this.conv.getContext().setSessionData("index", var5);
+               .buildConversation(player);
+            this.conv.getContext().setSessionData("index", value);
             break;
          case NBTDATA:
          case COMPONENTS:
@@ -133,7 +133,7 @@ public class ConvFactory {
                .withLocalEcho(false)
                .withTimeout(60)
                .withPrefix(new ConvFactory.ConvPrefix())
-               .buildConversation(var1);
+               .buildConversation(player);
             break;
          case GLOBAL_STOCK_FREQUENCY:
          case PLAYER_STOCK_FREQUENCY:
@@ -144,12 +144,12 @@ public class ConvFactory {
                .withLocalEcho(false)
                .withTimeout(60)
                .withPrefix(new ConvFactory.ConvPrefix())
-               .buildConversation(var1);
+               .buildConversation(player);
       }
 
-      this.conv.getContext().setSessionData("option", var2);
-      this.conv.getContext().setSessionData("action", var3);
-      this.conv.getContext().setSessionData("itemPath", var4);
+      this.conv.getContext().setSessionData("option", option);
+      this.conv.getContext().setSessionData("action", action);
+      this.conv.getContext().setSessionData("itemPath", playerName);
       this.conv.begin();
    }
 
@@ -157,85 +157,85 @@ public class ConvFactory {
       ConvAbandon() {
       }
 
-      public void conversationAbandoned(ConversationAbandonedEvent var1) {
-         Player var2 = (Player)var1.getContext().getForWhom();
-         if (var1.gracefulExit()) {
-            ItemEditor.Option var3 = (ItemEditor.Option)var1.getContext().getSessionData("option");
-            ItemEditor.Action var4 = (ItemEditor.Action)var1.getContext().getSessionData("action");
-            String[] var5 = ((String)var1.getContext().getSessionData("itemPath")).split("\\.");
-            String var6 = var5[0];
-            String var7 = var5[1] + "." + var5[2] + "." + var5[3];
-            switch (var3) {
+      public void conversationAbandoned(ConversationAbandonedEvent event) {
+         Player player = (Player)event.getContext().getForWhom();
+         if (event.gracefulExit()) {
+            ItemEditor.Option option = (ItemEditor.Option)event.getContext().getSessionData("option");
+            ItemEditor.Action action = (ItemEditor.Action)event.getContext().getSessionData("action");
+            String[] itemIds = ((String)event.getContext().getSessionData("itemPath")).split("\\.");
+            String text = itemIds[0];
+            String text2 = itemIds[1] + "." + itemIds[2] + "." + itemIds[3];
+            switch (option) {
                case DISPLAYNAME:
                case NAME:
-                  ConfigManager.getShop(var6).set("pages." + var7 + "." + var3.getKey(), var1.getContext().getSessionData(var3));
+                  ConfigManager.getShop(text).set("pages." + text2 + "." + option.getKey(), event.getContext().getSessionData(option));
                   break;
                case LORE:
                case DISPLAYLORE:
                case BUY_COMMANDS:
                case SELL_COMMANDS:
-                  List var8 = ConfigManager.getShop(var6).getStringList("pages." + var7 + "." + var3.getKey());
-                  String var9 = String.valueOf(var1.getContext().getSessionData(var3));
-                  if (var4 == ItemEditor.Action.ADD) {
-                     var8.add(var9);
-                  } else if (var4 == ItemEditor.Action.EDIT) {
-                     Integer var15 = (Integer)var1.getContext().getSessionData("index");
-                     if (var15 != null && var15 != -1) {
-                        var8.set(var15, var9);
+                  List stringList = ConfigManager.getShop(text).getStringList("pages." + text2 + "." + option.getKey());
+                  String text3 = String.valueOf(event.getContext().getSessionData(option));
+                  if (action == ItemEditor.Action.ADD) {
+                     stringList.add(text3);
+                  } else if (action == ItemEditor.Action.EDIT) {
+                     Integer value = (Integer)event.getContext().getSessionData("index");
+                     if (value != null && value != -1) {
+                        stringList.set(value, text3);
                      } else {
-                        var8.clear();
-                        var8.add(var9);
+                        stringList.clear();
+                        stringList.add(text3);
                      }
                   }
 
-                  ConfigManager.getShop(var6).set("pages." + var7 + "." + var3.getKey(), var8);
+                  ConfigManager.getShop(text).set("pages." + text2 + "." + option.getKey(), stringList);
                   break;
                case NBTDATA:
                case COMPONENTS:
-                  ConfigManager.getShop(var6).set("pages." + var7 + "." + var3.getKey(), var1.getContext().getSessionData(var3));
+                  ConfigManager.getShop(text).set("pages." + text2 + "." + option.getKey(), event.getContext().getSessionData(option));
                   break;
                case GLOBAL_STOCK_FREQUENCY:
                case PLAYER_STOCK_FREQUENCY:
-                  String var10 = (String)var1.getContext().getSessionData(var3);
+                  String text4 = (String)event.getContext().getSessionData(option);
 
                   try {
-                     LinkedList var11 = OnyxShop.getInstance().getScheduleManager().validate(var10);
-                     if (var11.isEmpty()) {
-                        SendMessage.warnMessage(var2, "Invalid cron expression, this schedule will not fire again.");
-                        ConvFactory.this.startConversation(var2, var3, var4, var6 + "." + var7, -1);
+                     LinkedList shopIds = OnyxShop.getInstance().getScheduleManager().validate(text4);
+                     if (shopIds.isEmpty()) {
+                        SendMessage.warnMessage(player, "Invalid cron expression, this schedule will not fire again.");
+                        ConvFactory.this.startConversation(player, option, action, text + "." + text2, -1);
                         return;
                      }
 
-                     StringBuilder var12 = new StringBuilder();
+                     StringBuilder builder = new StringBuilder();
 
-                     for (int var13 = 0; var13 < var11.size(); var13++) {
-                        var12.append(
+                     for (int size = 0; size < shopIds.size(); size++) {
+                        builder.append(
                            ChatColor.GRAY
                               + "-"
                               + ChatColor.GREEN
                               + " "
-                              + TimeUtils.getDateTime(((Date)var11.get(var13)).getTime())
-                              + (var13 != var11.size() ? "\n" : "")
+                              + TimeUtils.getDateTime(((Date)shopIds.get(size)).getTime())
+                              + (size != shopIds.size() ? "\n" : "")
                         );
                      }
 
-                     SendMessage.infoMessage(var2, ChatColor.GREEN + "Loaded cron job with following schedule dates loaded(up to 5):\n" + var12.toString());
-                     ConfigManager.getShop(var6).set("pages." + var7 + "." + var3.getKey(), var10);
-                  } catch (RuntimeException var14) {
+                     SendMessage.infoMessage(player, ChatColor.GREEN + "Loaded cron job with following schedule dates loaded(up to 5):\n" + builder.toString());
+                     ConfigManager.getShop(text).set("pages." + text2 + "." + option.getKey(), text4);
+                  } catch (RuntimeException exception) {
                      SendMessage.warnMessage(
-                        var2, ChatColor.RED + "Invalid cron expression format with reason(See console for more details): " + var14.getMessage()
+                        player, ChatColor.RED + "Invalid cron expression format with reason(See console for more details): " + exception.getMessage()
                      );
                      SendMessage.warnMessage(ChatColor.RED + "Invalid cron expression format specified while executing command");
-                     var14.printStackTrace();
-                     ConvFactory.this.startConversation(var2, var3, var4, var6 + "." + var7, -1);
+                     exception.printStackTrace();
+                     ConvFactory.this.startConversation(player, option, action, text + "." + text2, -1);
                      return;
                   }
             }
 
-            ConfigManager.saveShop(var6);
-            new ConclusionScreen(var2, OnyxShop.getInstance().getShopItem(var6, var7), var3, var4, null);
+            ConfigManager.saveShop(text);
+            new ConclusionScreen(player, OnyxShop.getInstance().getShopItem(text, text2), option, action, null);
          } else {
-            SendMessage.chatToPlayer(var2, Lang.EXITED_CONVERSATION.get());
+            SendMessage.chatToPlayer(player, Lang.EXITED_CONVERSATION.get());
          }
       }
    }
@@ -244,7 +244,7 @@ public class ConvFactory {
       private ConvPrefix() {
       }
 
-      public String getPrefix(ConversationContext var1) {
+      public String getPrefix(ConversationContext conversationContext) {
          return Lang.SHOP_PREFIX.get().getLegacy() + ChatColor.RESET + " ";
       }
    }

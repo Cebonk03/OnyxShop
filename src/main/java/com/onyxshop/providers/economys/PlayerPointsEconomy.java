@@ -28,18 +28,18 @@ public class PlayerPointsEconomy implements EconomyProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().isPluginEnabled("PlayerPoints")) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().isPluginEnabled("PlayerPoints")) {
          this.pp = PlayerPoints.getInstance().getAPI();
          if (this.pp == null) {
             throw new EconomyLoadException("Failed to hook into PlayerPoints economy");
          } else {
             SendMessage.infoMessage("Successfully hooked into PlayerPoints");
-            String var2 = ConfigManager.getPathIgnoreCase("currency-formats.player-points");
-            this.formatSingular(var2);
-            this.formatPlural(var2);
-            this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var2 + ".friendly", "Points"));
-            this.priceFormat = PriceFormatter.getFormatter(var2);
+            String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.player-points");
+            this.formatSingular(pathIgnoreCase);
+            this.formatPlural(pathIgnoreCase);
+            this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(pathIgnoreCase + ".friendly", "Points"));
+            this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
          }
       } else {
          throw new EconomyLoadException("Could not find PlayerPoints");
@@ -47,18 +47,18 @@ public class PlayerPointsEconomy implements EconomyProvider {
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return this.pp.look(var1.getUniqueId());
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return this.pp.look(offlinePlayer.getUniqueId());
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      this.pp.give(var1.getUniqueId(), (int)Math.round(var2));
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.pp.give(offlinePlayer.getUniqueId(), (int)Math.round(balance));
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      this.pp.take(var1.getUniqueId(), (int)Math.round(var2));
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.pp.take(offlinePlayer.getUniqueId(), (int)Math.round(balance));
       return true;
    }
 
@@ -93,13 +93,13 @@ public class PlayerPointsEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -109,25 +109,25 @@ public class PlayerPointsEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", "Point"));
-      if (this.isSymbol(var2)) {
-         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", "Point"));
+      if (this.isSymbol(text2)) {
+         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
       } else {
-         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", "Points"));
-      if (this.isSymbol(var2)) {
-         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", "Points"));
+      if (this.isSymbol(text2)) {
+         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
       } else {
-         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
       }
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

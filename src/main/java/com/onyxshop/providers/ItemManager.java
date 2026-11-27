@@ -41,59 +41,59 @@ public class ItemManager {
    private final Map<ItemType, ItemProvider> providers = new HashMap<>();
    private final Map<String, ItemManager.CustomItem> loadedItems = new HashMap<>();
 
-   public ItemManager(OnyxShop var1) {
-      this.plugin = var1;
-      this.preLoadEvent = new ItemProviderPreLoadEvent(var1);
+   public ItemManager(OnyxShop plugin) {
+      this.plugin = plugin;
+      this.preLoadEvent = new ItemProviderPreLoadEvent(plugin);
    }
 
    public void registerHooks() {
-      PluginManager var1 = this.plugin.getServer().getPluginManager();
-      var1.callEvent(this.preLoadEvent);
-      if (var1.getPlugin("ItemsAdder") != null) {
+      PluginManager pluginManager = this.plugin.getServer().getPluginManager();
+      pluginManager.callEvent(this.preLoadEvent);
+      if (pluginManager.getPlugin("ItemsAdder") != null) {
          this.providers.put(new ItemType(ItemProviderType.ITEMS_ADDER), new ItemsAdderHook(this.plugin));
       }
 
-      if (var1.getPlugin("HeadDatabase") != null) {
+      if (pluginManager.getPlugin("HeadDatabase") != null) {
          try {
             this.providers.put(new ItemType(ItemProviderType.HEAD_DATABASE), new HeadDatabaseHook(this.plugin));
-         } catch (ItemProviderLoadException var3) {
-            SendMessage.warnMessage("Failed to register HeadDatabase hook: " + var3.getMessage());
+         } catch (ItemProviderLoadException exception) {
+            SendMessage.warnMessage("Failed to register HeadDatabase hook: " + exception.getMessage());
          }
       }
 
-      if (var1.getPlugin("MMOItems") != null) {
+      if (pluginManager.getPlugin("MMOItems") != null) {
          this.providers.put(new ItemType(ItemProviderType.MMO_ITEMS), new MMOItemsHook(this.plugin));
       }
 
-      if (var1.getPlugin("ExecutableItems") != null) {
+      if (pluginManager.getPlugin("ExecutableItems") != null) {
          this.providers.put(new ItemType(ItemProviderType.EXECUTEABLE_ITEMS), new ExecutableItemsHook(this.plugin));
       }
 
-      if (var1.getPlugin("Oraxen") != null) {
+      if (pluginManager.getPlugin("Oraxen") != null) {
          this.providers.put(new ItemType(ItemProviderType.ORAXEN), new OraxenItemsHook(this.plugin));
       }
 
-      if (var1.getPlugin("Brewery") != null || var1.getPlugin("BreweryX") != null) {
-         this.providers.put(new ItemType(ItemProviderType.BREWERY), new BreweryHook(this.plugin, var1.getPlugin("Brewery") == null));
+      if (pluginManager.getPlugin("Brewery") != null || pluginManager.getPlugin("BreweryX") != null) {
+         this.providers.put(new ItemType(ItemProviderType.BREWERY), new BreweryHook(this.plugin, pluginManager.getPlugin("Brewery") == null));
       }
 
-      if (var1.getPlugin("Nexo") != null) {
+      if (pluginManager.getPlugin("Nexo") != null) {
          this.providers.put(new ItemType(ItemProviderType.NEXO), new NexoItemsHook(this.plugin));
       }
 
-      if (var1.getPlugin("Slimefun") != null) {
+      if (pluginManager.getPlugin("Slimefun") != null) {
          this.providers.put(new ItemType(ItemProviderType.SLIMEFUN), new SlimefunHook(this.plugin));
       }
 
-      if (var1.getPlugin("MythicMobs") != null) {
+      if (pluginManager.getPlugin("MythicMobs") != null) {
          this.providers.put(new ItemType(ItemProviderType.MYTHIC_MOBS), new MythicMobsHook(this.plugin));
       }
 
-      if (var1.getPlugin("EcoItems") != null) {
+      if (pluginManager.getPlugin("EcoItems") != null) {
          this.providers.put(new ItemType(ItemProviderType.ECOITEMS), new EcoItemsHook(this.plugin));
       }
 
-      if (var1.getPlugin("CraftEngine") != null) {
+      if (pluginManager.getPlugin("CraftEngine") != null) {
          this.providers.put(new ItemType(ItemProviderType.CRAFT_ENGINE), new CraftEngineHook(this.plugin));
       }
    }
@@ -106,61 +106,61 @@ public class ItemManager {
       return (HeadDatabaseHook)this.providers.get(ItemProviderType.HEAD_DATABASE);
    }
 
-   public static void registerDelayed(DelayedItemProvider var0) {
+   public static void registerDelayed(DelayedItemProvider delayedItemProvider) {
       if (delayedItemHandler == null) {
          delayedItemHandler = new DelayedItemHandler(OnyxShop.getInstance());
       }
 
-      delayedItemHandler.registerProvider(var0);
+      delayedItemHandler.registerProvider(delayedItemProvider);
    }
 
-   public void registerExternalProvider(ExternalItemsProvider var1) {
-      this.providers.put(var1.getType(), var1);
+   public void registerExternalProvider(ExternalItemsProvider externalItemsProvider) {
+      this.providers.put(externalItemsProvider.getType(), externalItemsProvider);
    }
 
-   public ItemStack getSPM(ShopItem var1, String var2) throws ItemLoadException {
-      if (!var2.contains(":")) {
+   public ItemStack getSPM(ShopItem shopItem, String itemId) throws ItemLoadException {
+      if (!itemId.contains(":")) {
          return null;
       } else {
-         String[] var3 = var2.split(":", 2);
-         ItemProviderType var4 = ItemProviderType.fromPrefix(var3[0].toLowerCase(Locale.ROOT));
-         if (var4 == null) {
+         String[] values = itemId.split(":", 2);
+         ItemProviderType itemProviderType = ItemProviderType.fromPrefix(values[0].toLowerCase(Locale.ROOT));
+         if (itemProviderType == null) {
             return null;
-         } else if (var4 != ItemProviderType.EXTERNAL) {
-            if (!this.providers.containsKey(var4)) {
-               throw new ItemLoadException(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", var4.name));
+         } else if (itemProviderType != ItemProviderType.EXTERNAL) {
+            if (!this.providers.containsKey(itemProviderType)) {
+               throw new ItemLoadException(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", itemProviderType.name));
             } else {
-               if (var1 != null) {
-                  if (var4.taggable != null) {
-                     var1.addTaggable(var4.taggable);
+               if (shopItem != null) {
+                  if (itemProviderType.taggable != null) {
+                     shopItem.addTaggable(itemProviderType.taggable);
                   }
 
-                  if (var4.serializer != null) {
-                     var1.setSerializer(var4.serializer);
+                  if (itemProviderType.serializer != null) {
+                     shopItem.setSerializer(itemProviderType.serializer);
                   }
-               } else if (!this.providers.get(var4).isReady()) {
+               } else if (!this.providers.get(itemProviderType).isReady()) {
                   throw new ItemLoadException("Item provider not enabled yet!");
                }
 
-               return this.providers.get(var4).getItem(var3[1]);
+               return this.providers.get(itemProviderType).getItem(values[1]);
             }
          } else {
-            ItemProvider var5 = this.providers.get(new ExternalItemType(var2.split(":")[1]));
-            if (var5 == null) {
-               SendMessage.warnMessage("External item provider for " + var2.split(":")[1] + " not loaded or found");
+            ItemProvider itemProvider = this.providers.get(new ExternalItemType(itemId.split(":")[1]));
+            if (itemProvider == null) {
+               SendMessage.warnMessage("External item provider for " + itemId.split(":")[1] + " not loaded or found");
                return null;
             } else {
-               return var5.getItem(var2.split(":", 3)[2]);
+               return itemProvider.getItem(itemId.split(":", 3)[2]);
             }
          }
       }
    }
 
-   public String getItem(ItemStack var1) {
-      for (ItemProvider var3 : this.providers.values()) {
-         String var4 = var3.getItem(var1);
-         if (var4 != null) {
-            return var3.getType().getPrefix() + ":" + var4;
+   public String getItem(ItemStack itemStack) {
+      for (ItemProvider itemProvider : this.providers.values()) {
+         String item = itemProvider.getItem(itemStack);
+         if (item != null) {
+            return itemProvider.getType().getPrefix() + ":" + item;
          }
       }
 
@@ -171,22 +171,22 @@ public class ItemManager {
       this.getAllLoaded().clear();
    }
 
-   public void registerItem(String var1, ItemType var2) {
-      String var3 = this.providers.get(var2).getID(var1);
-      this.loadedItems.put(var3, new ItemManager.CustomItem(var1, var2));
+   public void registerItem(String itemId, ItemType itemType) {
+      String text = this.providers.get(itemType).getID(itemId);
+      this.loadedItems.put(text, new ItemManager.CustomItem(itemId, itemType));
    }
 
    public Set<String> getAllLoaded() {
       return this.loadedItems.keySet();
    }
 
-   public ItemManager.CustomItem getRegistered(String var1) {
-      return this.loadedItems.get(var1);
+   public ItemManager.CustomItem getRegistered(String itemId) {
+      return this.loadedItems.get(itemId);
    }
 
    public void check() {
-      for (ItemProvider var2 : this.providers.values()) {
-         if (!var2.isReady()) {
+      for (ItemProvider itemProvider : this.providers.values()) {
+         if (!itemProvider.isReady()) {
             return;
          }
       }
@@ -198,9 +198,9 @@ public class ItemManager {
       private final ItemType type;
       private final String id;
 
-      public CustomItem(String nullx, ItemType nullxx) {
-         this.id = nullx;
-         this.type = nullxx;
+      public CustomItem(String itemId, ItemType itemType) {
+         this.id = itemId;
+         this.type = itemType;
       }
 
       public ItemStack get() throws ItemLoadException {
@@ -211,9 +211,9 @@ public class ItemManager {
          return ItemManager.this.providers.get(this.type).getID(this.id);
       }
 
-      public boolean match(ItemStack var1) {
-         String var2 = ItemManager.this.providers.get(this.type).getItem(var1);
-         return var2 != null && var2.equals(this.id);
+      public boolean match(ItemStack itemStack) {
+         String item = ItemManager.this.providers.get(this.type).getItem(itemStack);
+         return item != null && item.equals(this.id);
       }
    }
 }

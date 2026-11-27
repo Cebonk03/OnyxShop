@@ -17,34 +17,34 @@ public class PlaceholderDiffers extends PlaceholderRequirement {
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public PlaceholderDiffers(PlaceholderRequirement.ComparisonOperator var1, String var2, List<String> var3, String var4) throws ItemRequirementLoadException {
-      super(var2.split(var1.symbol)[0]);
-      this.value = var2.split(var1.symbol)[1];
-      Pattern var5 = Pattern.compile("%([^% ]+)%");
-      this.staticValue = !var5.matcher(this.value).find();
-      this.lore = RequirementManager.getLore(var3, Lang.PLACEHOLDER_DIFFERS_REQUIREMENT_LORE.get().toString());
-      this.customMSG = var4;
+   public PlaceholderDiffers(PlaceholderRequirement.ComparisonOperator comparisonOperator, String itemId, List<String> values, String text) throws ItemRequirementLoadException {
+      super(itemId.split(comparisonOperator.symbol)[0]);
+      this.value = itemId.split(comparisonOperator.symbol)[1];
+      Pattern pattern = Pattern.compile("%([^% ]+)%");
+      this.staticValue = !pattern.matcher(this.value).find();
+      this.lore = RequirementManager.getLore(values, Lang.PLACEHOLDER_DIFFERS_REQUIREMENT_LORE.get().toString());
+      this.customMSG = text;
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      return !this.getFormatted(var1).equals(this.getValue(var1));
+   public boolean isMet(Player player) {
+      return !this.getFormatted(player).equals(this.getValue(player));
    }
 
-   private String getValue(Player var1) {
-      return this.staticValue ? this.value : PlaceholderAPIHook.translate(var1, this.value);
-   }
-
-   @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
-      return this.lore.get(var1, var2, var3, "%requirement%", this.getValue(var1), "%progress%", this.getFormatted(var1));
+   private String getValue(Player player) {
+      return this.staticValue ? this.value : PlaceholderAPIHook.translate(player, this.value);
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PLACEHOLDER_DIFFERS_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
-         SendMessage.chatToPlayer(var1, var2.replace("%requirement%", this.getValue(var1)).replace("%progress%", this.getFormatted(var1)));
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
+      return this.lore.get(player, flag, flag2, "%requirement%", this.getValue(player), "%progress%", this.getFormatted(player));
+   }
+
+   @Override
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PLACEHOLDER_DIFFERS_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
+         SendMessage.chatToPlayer(player, text.replace("%requirement%", this.getValue(player)).replace("%progress%", this.getFormatted(player)));
       }
    }
 }

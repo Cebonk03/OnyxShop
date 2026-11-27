@@ -101,9 +101,11 @@ Always pass `--offline`; network resolution is unsupported by design. CI uses JD
 - **Java 8 language level** (`sourceCompatibility`/`targetCompatibility = 1.8`). No `var`, records,
   `switch` expressions, text blocks, or sealed types. Do not switch the build to `--release 8` (it rejects
   record supertypes) or to a newer target.
-- **Legacy source style is intentional.** Locals named `var1`, `var2`, `nullx`, raw `Map` returns,
-  redundant casts and misspelled packages (`methodes`, `inventorys`, `SubCommad`) are load-bearing for
-  binary compatibility. Fix only inside the code you are asked to change; never mass-rename.
+- **Local variable names are descriptive; the rest of the legacy style is intentional.** The decompiled
+  `var1`, `var2`, … locals and parameters were renamed to descriptive names in every compiled source set
+  (`src/main`, `src/apistubs`, `src/versions`) — give new locals descriptive names and never reintroduce
+  `varN`/`nullx` names. Raw `Map` returns, redundant casts and misspelled packages (`methodes`,
+  `inventorys`, `SubCommad`) are load-bearing for binary compatibility; leave them alone.
 - **Formatting:** 3-space indentation inside class bodies, explicit single-class imports (no wildcards),
   grouped `java.*` → `com.onyxshop.*` → third-party → `org.bukkit.*`. Keep the surrounding style even
   where it differs from modern Java norms.
@@ -166,8 +168,8 @@ Always pass `--offline`; network resolution is unsupported by design. CI uses JD
 - **Quartz:** compiles against `libs/cp/quartz-2.3.2.jar`, ships 2.3.0 classes from `libs/vendored/quartz.jar`.
 - **Runtime env:** no required environment variables. Storage is SQLite by default
   (`plugins/OnyxShop/database.db`); MySQL/PostgreSQL are optional. `util/PaperLibrariesLoader` downloads
-  the PostgreSQL driver at runtime and honours the `PAPER_LIBRARIES_*` environment variables /
-  `-Dpaper.libraries.*` system properties as a mirror override. Schema is created with
+  `org.postgresql:postgresql:42.7.4` at runtime and selects its mirror from `PAPER_DEFAULT_CENTRAL_REPOSITORY`
+  or `-Dorg.bukkit.plugin.java.LibraryLoader.centralURL`. Schema is created with
   `CREATE TABLE IF NOT EXISTS` plus idempotent `ALTER TABLE ... ADD COLUMN` migrations in
   `SQLite.migrate()` (no versioned migration framework).
 - **Optional code index:** `.codegraph/` (gitignored, regenerable) may exist locally; when present, prefer

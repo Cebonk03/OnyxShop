@@ -15,32 +15,32 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 public class SellGUI extends PluginCommands {
-   public SellGUI(OnyxShop var1, List<String> var2, List<String> var3) {
-      super(var1, (String)var2.get(0), "Opens the sell GUI", "/" + (String)var2.remove(0), "OnyxShop.sellgui", var2, var3);
+   public SellGUI(OnyxShop plugin, List<String> shopIds, List<String> values) {
+      super(plugin, (String)shopIds.get(0), "Opens the sell GUI", "/" + (String)shopIds.remove(0), "OnyxShop.sellgui", shopIds, values);
    }
 
    @Override
-   public boolean execute(CommandSender var1, String var2, String[] var3) {
-      if (!PermissionsCache.hasPermission(var1, "OnyxShop.sellgui")) {
-         SendMessage.sendMessage(var1, Lang.NO_PERMISSIONS.get());
+   public boolean execute(CommandSender sender, String command, String[] values) {
+      if (!PermissionsCache.hasPermission(sender, "OnyxShop.sellgui")) {
+         SendMessage.sendMessage(sender, Lang.NO_PERMISSIONS.get());
          return true;
       } else if (ConfigManager.badYaml != null) {
-         SendMessage.sendMessage(var1, ChatColor.DARK_RED + "This command cannot be executed now, please fix the configuration formatting first!");
+         SendMessage.sendMessage(sender, ChatColor.DARK_RED + "This command cannot be executed now, please fix the configuration formatting first!");
          return true;
       } else {
-         if (var1 instanceof Player) {
-            Player var4 = (Player)var1;
-            if (!this.canUse(var4)) {
+         if (sender instanceof Player) {
+            Player player = (Player)sender;
+            if (!this.canUse(player)) {
                return true;
             }
 
-            new com.onyxshop.objects.SellGUI().open(var4);
-         } else if ((var1 instanceof ConsoleCommandSender || var1 instanceof BlockCommandSender) && var3.length > 0) {
-            Player var5 = this.plugin.getServer().getPlayer(var3[0]);
-            if (var5 != null) {
-               new com.onyxshop.objects.SellGUI().open(var5);
+            new com.onyxshop.objects.SellGUI().open(player);
+         } else if ((sender instanceof ConsoleCommandSender || sender instanceof BlockCommandSender) && values.length > 0) {
+            Player player = this.plugin.getServer().getPlayer(values[0]);
+            if (player != null) {
+               new com.onyxshop.objects.SellGUI().open(player);
             } else {
-               SendMessage.sendMessage(var1, Lang.PLAYER_NOT_ONLINE.get());
+               SendMessage.sendMessage(sender, Lang.PLAYER_NOT_ONLINE.get());
             }
          }
 
@@ -49,7 +49,7 @@ public class SellGUI extends PluginCommands {
    }
 
    @Override
-   public List<String> tabComplete(CommandSender var1, String var2, String[] var3) {
+   public List<String> tabComplete(CommandSender sender, String command, String[] values) {
       return Collections.emptyList();
    }
 }

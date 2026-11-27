@@ -27,18 +27,18 @@ public class EcoBitsEconomy implements EconomyProvider {
    private boolean wait = false;
    private PriceFormatter.Format priceFormat;
 
-   public EcoBitsEconomy(String var1) {
-      this.currency = var1;
+   public EcoBitsEconomy(String text) {
+      this.currency = text;
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().getPlugin("EcoBits") == null) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().getPlugin("EcoBits") == null) {
          throw new EconomyLoadException("EcoBits is not installed");
       } else {
          if (Currencies.values().isEmpty()) {
             this.wait = true;
-            var1.runTaskLater(this::init, 20L);
+            plugin.runTaskLater(this::init, 20L);
          } else {
             this.init();
          }
@@ -53,8 +53,8 @@ public class EcoBitsEconomy implements EconomyProvider {
       } else {
          try {
             this.registerCurrency();
-         } catch (EconomyLoadException var2) {
-            SendMessage.warnMessage(var2.getMessage());
+         } catch (EconomyLoadException exception) {
+            SendMessage.warnMessage(exception.getMessage());
          }
 
          if (this.wait) {
@@ -65,14 +65,14 @@ public class EcoBitsEconomy implements EconomyProvider {
    }
 
    private void registerCurrency() throws EconomyLoadException {
-      String var1;
+      String text;
       if (this.currency != null && !this.currency.isEmpty()) {
          this.cur = Currencies.getByID(this.currency);
          if (this.cur == null) {
             throw new EconomyLoadException("Failed to register a EcoBits currency named as '" + this.currency + "'");
          }
 
-         var1 = this.currency;
+         text = this.currency;
          SendMessage.infoMessage("Successfully registered currency '" + this.cur.getName() + "' from EcoBits");
       } else {
          this.cur = (Currency)Currencies.values().stream().findFirst().orElse(null);
@@ -80,35 +80,35 @@ public class EcoBitsEconomy implements EconomyProvider {
             throw new EconomyLoadException("Failed to find default currency from EcoBits");
          }
 
-         var1 = this.cur.getId();
-         SendMessage.infoMessage("Successfully hooked into EcoBits and using default currency: " + var1 + "(" + this.cur.getName() + ")");
+         text = this.cur.getId();
+         SendMessage.infoMessage("Successfully hooked into EcoBits and using default currency: " + text + "(" + this.cur.getName() + ")");
       }
 
-      String var2 = ConfigManager.getPathIgnoreCase("currency-formats.ecobits:" + var1);
-      if (!ConfigManager.getConfig().contains(var2)) {
-         var2 = ConfigManager.getPathIgnoreCase("currency-formats.ecobits");
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.ecobits:" + text);
+      if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+         pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.ecobits");
       }
 
-      this.formatSingular(var2);
-      this.formatPlural(var2);
-      this.formatFriendly(var2);
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
+      this.formatFriendly(pathIgnoreCase);
       this.decimal = this.cur.isDecimal();
-      this.priceFormat = PriceFormatter.getFormatter(var2);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return CurrencyUtils.getBalance(var1, this.cur).doubleValue();
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return CurrencyUtils.getBalance(offlinePlayer, this.cur).doubleValue();
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      CurrencyUtils.setBalance(var1, this.cur, CurrencyUtils.getBalance(var1, this.cur).add(new BigDecimal(var2)));
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      CurrencyUtils.setBalance(offlinePlayer, this.cur, CurrencyUtils.getBalance(offlinePlayer, this.cur).add(new BigDecimal(balance)));
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      CurrencyUtils.setBalance(var1, this.cur, CurrencyUtils.getBalance(var1, this.cur).subtract(new BigDecimal(var2)));
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      CurrencyUtils.setBalance(offlinePlayer, this.cur, CurrencyUtils.getBalance(offlinePlayer, this.cur).subtract(new BigDecimal(balance)));
       return true;
    }
 
@@ -143,13 +143,13 @@ public class EcoBitsEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -159,37 +159,37 @@ public class EcoBitsEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", this.cur.getName()));
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatSingular(String text) {
+      String name = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", this.cur.getName()));
+      if (!name.isEmpty()) {
+         if (this.isSymbol(name)) {
+            this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", name).getLegacy();
          } else {
-            this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+            this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", name).getLegacy();
          }
       } else {
          this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", Lang.CURRENCYSYMBOL.get()).getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", this.cur.getName()));
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatPlural(String text) {
+      String name = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", this.cur.getName()));
+      if (!name.isEmpty()) {
+         if (this.isSymbol(name)) {
+            this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", name).getLegacy();
          } else {
-            this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+            this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", name).getLegacy();
          }
       } else {
          this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", Lang.CURRENCYSYMBOL.get()).getLegacy();
       }
    }
 
-   private void formatFriendly(String var1) {
-      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".friendly", this.cur.getName()));
+   private void formatFriendly(String text) {
+      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".friendly", this.cur.getName()));
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

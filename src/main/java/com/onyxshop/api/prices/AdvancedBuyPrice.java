@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 public class AdvancedBuyPrice {
    private final com.onyxshop.objects.prices.AdvancedBuyPrice aPrices;
 
-   public AdvancedBuyPrice(ShopItem var1) {
-      this.aPrices = var1.getABuyPrice();
+   public AdvancedBuyPrice(ShopItem shopItem) {
+      this.aPrices = shopItem.getABuyPrice();
    }
 
    public List<EcoType> getBuyTypes() {
@@ -27,11 +27,11 @@ public class AdvancedBuyPrice {
       return this.aPrices.isAll();
    }
 
-   public Map<EcoType, Double> getBuyPrices(@Nullable EcoType var1, int var2) {
-      return this.aPrices.getBuyPrices(var1, var2);
+   public Map<EcoType, Double> getBuyPrices(@Nullable EcoType ecoType, int value) {
+      return this.aPrices.getBuyPrices(ecoType, value);
    }
 
-   public Map<EcoType, Double> getBuyPrices(@Nullable EcoType var1, @Nullable Modifiers var2, Player var3, int var4) {
-      return this.aPrices.getBuyPrices(var1, var3, var4, var2);
+   public Map<EcoType, Double> getBuyPrices(@Nullable EcoType ecoType, @Nullable Modifiers modifiers, Player player, int value) {
+      return this.aPrices.getBuyPrices(ecoType, player, value, modifiers);
    }
 }

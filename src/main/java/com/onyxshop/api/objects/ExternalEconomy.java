@@ -8,13 +8,13 @@ public abstract class ExternalEconomy extends ExternalEconomyProvider {
    }
 
    @Override
-   public abstract double getBalance(OfflinePlayer var1);
+   public abstract double getBalance(OfflinePlayer offlinePlayer);
 
    @Override
-   public abstract void depositBalance(OfflinePlayer var1, double var2);
+   public abstract void depositBalance(OfflinePlayer offlinePlayer, double balance);
 
    @Override
-   public abstract boolean withdrawBalance(OfflinePlayer var1, double var2);
+   public abstract boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance);
 
    @Override
    public abstract String getName();

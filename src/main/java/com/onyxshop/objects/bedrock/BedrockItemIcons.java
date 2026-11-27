@@ -58,15 +58,15 @@ public class BedrockItemIcons {
    public BedrockItemIcons() {
    }
 
-   public static void init(OnyxShop var0) {
-      plugin = var0;
+   public static void init(OnyxShop plugin2) {
+      plugin = plugin2;
       if (ConfigManager.getConfig().getBoolean("bedrock-forms.enable", true)) {
-         cacheDir = new File(var0.getDataFolder(), "cache");
+         cacheDir = new File(plugin2.getDataFolder(), "cache");
          cacheExpiryHours = ConfigManager.getConfig().getLong("bedrock-forms.item-ids.cache", 48L);
          forceUpdate = ConfigManager.getConfig().getBoolean("bedrock-forms.item-ids.force-update", false);
          configPaletteVersion = ConfigManager.getConfig().getString("bedrock-forms.item-ids.geyser-palette-version", "").trim();
          gridForms = ConfigManager.getConfig().getBoolean("bedrock-forms.use-grid-forms", false);
-         var0.runKillableTask(BedrockItemIcons::load);
+         plugin2.runKillableTask(BedrockItemIcons::load);
       }
    }
 
@@ -81,8 +81,8 @@ public class BedrockItemIcons {
          if (forceUpdate) {
             disableForceUpdate();
          }
-      } catch (Exception var1) {
-         SendMessage.errorMessage("Failed to load bedrock item icons (" + var1.getMessage() + ")");
+      } catch (Exception exception) {
+         SendMessage.errorMessage("Failed to load bedrock item icons (" + exception.getMessage() + ")");
       }
    }
 
@@ -94,54 +94,54 @@ public class BedrockItemIcons {
    }
 
    private static void loadGridIds() throws IOException {
-      JsonElement var0 = loadItemStatesFromGeyser();
-      if (var0 == null) {
-         String var1 = configPaletteVersion.isEmpty() ? fetchLatestPaletteVersion() : configPaletteVersion;
-         if (var1 == null) {
+      JsonElement jsonElement = loadItemStatesFromGeyser();
+      if (jsonElement == null) {
+         String text = configPaletteVersion.isEmpty() ? fetchLatestPaletteVersion() : configPaletteVersion;
+         if (text == null) {
             SendMessage.errorMessage("Could not determine the latest Geyser item palette, icons for bedrock items in grid forms will not load!");
             return;
          }
 
-         var0 = downloadItemStates(var1);
+         jsonElement = downloadItemStates(text);
       }
 
-      HashMap var10 = new HashMap();
+      HashMap map = new HashMap();
 
-      for (JsonElement var3 : var0.getAsJsonArray()) {
-         JsonObject var4 = var3.getAsJsonObject();
-         var10.put(getValue(var4.get("name").getAsString()), var4.get("id").getAsInt());
+      for (JsonElement jsonElement2 : jsonElement.getAsJsonArray()) {
+         JsonObject jsonObject = jsonElement2.getAsJsonObject();
+         map.put(getValue(jsonObject.get("name").getAsString()), jsonObject.get("id").getAsInt());
       }
 
-      ConcurrentHashMap var11 = new ConcurrentHashMap();
+      ConcurrentHashMap map2 = new ConcurrentHashMap();
 
-      for (Entry var13 : loadJson(
+      for (Entry entry : loadJson(
             cacheDir, "geyser-items.json", "https://raw.githubusercontent.com/GeyserMC/mappings/master/items.json", cacheExpiryHours, forceUpdate
          )
          .getAsJsonObject()
          .entrySet()) {
-         JsonObject var5 = ((JsonElement)var13.getValue()).getAsJsonObject();
-         String var6 = getValue(var5.get("bedrock_identifier").getAsString());
-         Integer var7 = (Integer)var10.get(var6);
-         if (var7 != null) {
-            XMaterial var8 = XMaterial.matchXMaterial(getValue((String)var13.getKey())).orElse(null);
-            if (var8 != null) {
-               int var9 = var5.has("bedrock_data") ? var5.get("bedrock_data").getAsInt() : 0;
-               var11.put(var8, var7 * 65536 + var9);
+         JsonObject jsonObject = ((JsonElement)entry.getValue()).getAsJsonObject();
+         String value = getValue(jsonObject.get("bedrock_identifier").getAsString());
+         Integer value2 = (Integer)map.get(value);
+         if (value2 != null) {
+            XMaterial xMaterial = XMaterial.matchXMaterial(getValue((String)entry.getKey())).orElse(null);
+            if (xMaterial != null) {
+               int value3 = jsonObject.has("bedrock_data") ? jsonObject.get("bedrock_data").getAsInt() : 0;
+               map2.put(xMaterial, value2 * 65536 + value3);
             }
          }
       }
 
-      ITEM_IDS = var11;
-      SendMessage.infoMessage("Loaded " + var11.size() + " bedrock item ids for grid form icons");
+      ITEM_IDS = map2;
+      SendMessage.infoMessage("Loaded " + map2.size() + " bedrock item ids for grid form icons");
    }
 
    private static void loadVanillaTexturePaths() throws IOException {
-      HashMap<String, JsonElement> var0 = new HashMap<>();
-      HashMap var1 = new HashMap();
-      HashMap var2 = new HashMap();
+      HashMap<String, JsonElement> map = new HashMap<>();
+      HashMap map2 = new HashMap();
+      HashMap map3 = new HashMap();
 
       try {
-         JsonObject var3 = loadJson(
+         JsonObject jsonObject = loadJson(
                cacheDir,
                "item_texture.json",
                "https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/item_texture.json",
@@ -150,13 +150,13 @@ public class BedrockItemIcons {
             )
             .getAsJsonObject()
             .getAsJsonObject("texture_data");
-         if (var3 != null) {
-            for (Entry var5 : var3.entrySet()) {
-               var0.put((String)var5.getKey(), ((JsonElement)var5.getValue()).getAsJsonObject().get("textures"));
+         if (jsonObject != null) {
+            for (Entry entry : jsonObject.entrySet()) {
+               map.put((String)entry.getKey(), ((JsonElement)entry.getValue()).getAsJsonObject().get("textures"));
             }
          }
 
-         JsonObject var14 = loadJson(
+         JsonObject jsonObject2 = loadJson(
                cacheDir,
                "terrain_texture.json",
                "https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/terrain_texture.json",
@@ -165,20 +165,20 @@ public class BedrockItemIcons {
             )
             .getAsJsonObject()
             .getAsJsonObject("texture_data");
-         if (var14 != null) {
-            for (Entry var6 : var14.entrySet()) {
-               var0.put((String)var6.getKey(), ((JsonElement)var6.getValue()).getAsJsonObject().get("textures"));
+         if (jsonObject2 != null) {
+            for (Entry entry : jsonObject2.entrySet()) {
+               map.put((String)entry.getKey(), ((JsonElement)entry.getValue()).getAsJsonObject().get("textures"));
             }
          }
 
-         for (Entry var20 : var0.entrySet()) {
-            for (String var8 : getTexturePaths((JsonElement)var20.getValue())) {
-               String var9 = var8.substring(var8.lastIndexOf(47) + 1);
-               var1.putIfAbsent(var9, var8);
+         for (Entry entry : map.entrySet()) {
+            for (String text : getTexturePaths((JsonElement)entry.getValue())) {
+               String text2 = text.substring(text.lastIndexOf(47) + 1);
+               map2.putIfAbsent(text2, text);
             }
          }
 
-         JsonObject var18 = loadJson(
+         JsonObject jsonObject3 = loadJson(
                cacheDir,
                "blocks.json",
                "https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/blocks.json",
@@ -187,352 +187,352 @@ public class BedrockItemIcons {
             )
             .getAsJsonObject();
 
-         for (Entry var23 : var18.entrySet()) {
-            if (((JsonElement)var23.getValue()).isJsonObject()) {
-               JsonElement var25 = ((JsonElement)var23.getValue()).getAsJsonObject().get("textures");
-               if (var25 != null && var25.isJsonPrimitive()) {
-                  var2.put((String)var23.getKey(), var25.getAsString());
+         for (Entry entry : jsonObject3.entrySet()) {
+            if (((JsonElement)entry.getValue()).isJsonObject()) {
+               JsonElement jsonElement = ((JsonElement)entry.getValue()).getAsJsonObject().get("textures");
+               if (jsonElement != null && jsonElement.isJsonPrimitive()) {
+                  map3.put((String)entry.getKey(), jsonElement.getAsString());
                }
             }
          }
-      } catch (Exception var12) {
-         SendMessage.warnMessage("Failed to load vanilla item textures (" + var12.getMessage() + "), icons for bedrock items in vanilla forms will not load!");
+      } catch (Exception exception) {
+         SendMessage.warnMessage("Failed to load vanilla item textures (" + exception.getMessage() + "), icons for bedrock items in vanilla forms will not load!");
       }
 
-      ConcurrentHashMap var13 = new ConcurrentHashMap();
+      ConcurrentHashMap map4 = new ConcurrentHashMap();
 
-      for (Entry var19 : loadJson(
+      for (Entry entry : loadJson(
             cacheDir, "geyser-items.json", "https://raw.githubusercontent.com/GeyserMC/mappings/master/items.json", cacheExpiryHours, forceUpdate
          )
          .getAsJsonObject()
          .entrySet()) {
-         JsonObject var22 = ((JsonElement)var19.getValue()).getAsJsonObject();
-         XMaterial var24 = XMaterial.matchXMaterial(getValue((String)var19.getKey())).orElse(null);
-         if (var24 != null) {
-            String var26 = getValue(var22.get("bedrock_identifier").getAsString());
-            int var27 = var22.has("bedrock_data") ? var22.get("bedrock_data").getAsInt() : 0;
+         JsonObject jsonObject = ((JsonElement)entry.getValue()).getAsJsonObject();
+         XMaterial xMaterial = XMaterial.matchXMaterial(getValue((String)entry.getKey())).orElse(null);
+         if (xMaterial != null) {
+            String value = getValue(jsonObject.get("bedrock_identifier").getAsString());
+            int value2 = jsonObject.has("bedrock_data") ? jsonObject.get("bedrock_data").getAsInt() : 0;
 
             try {
-               String var10 = getArrayTexturePath(var0, var1, var2, var26, var27);
-               if (var10 != null) {
-                  var13.put(var24, var10);
+               String arrayTexturePath = getArrayTexturePath(map, map2, map3, value, value2);
+               if (arrayTexturePath != null) {
+                  map4.put(xMaterial, arrayTexturePath);
                }
-            } catch (Exception var11) {
-               SendMessage.warnMessage("Failed to resolve vanilla form texture for '" + var26 + "' (" + var11.getMessage() + "), it will show no icon");
+            } catch (Exception exception) {
+               SendMessage.warnMessage("Failed to resolve vanilla form texture for '" + value + "' (" + exception.getMessage() + "), it will show no icon");
             }
          }
       }
 
-      ITEM_TEXTURE_PATHS = var13;
-      SendMessage.infoMessage("Loaded " + var13.size() + " texture paths for form icons");
+      ITEM_TEXTURE_PATHS = map4;
+      SendMessage.infoMessage("Loaded " + map4.size() + " texture paths for form icons");
    }
 
-   private static List<String> getTexturePaths(JsonElement var0) {
-      if (!var0.isJsonArray()) {
-         String var5 = getTexturePath(var0);
-         return var5 == null ? Collections.emptyList() : Collections.singletonList(var5);
+   private static List<String> getTexturePaths(JsonElement jsonElement) {
+      if (!jsonElement.isJsonArray()) {
+         String texturePath = getTexturePath(jsonElement);
+         return texturePath == null ? Collections.emptyList() : Collections.singletonList(texturePath);
       } else {
-         ArrayList var1 = new ArrayList();
+         ArrayList values = new ArrayList();
 
-         for (JsonElement var3 : var0.getAsJsonArray()) {
-            String var4 = getTexturePath(var3);
-            if (var4 != null) {
-               var1.add(var4);
+         for (JsonElement jsonElement2 : jsonElement.getAsJsonArray()) {
+            String texturePath = getTexturePath(jsonElement2);
+            if (texturePath != null) {
+               values.add(texturePath);
             }
          }
 
-         return var1;
+         return values;
       }
    }
 
-   private static String getTexturePath(JsonElement var0) {
-      if (var0.isJsonPrimitive()) {
-         return var0.getAsString();
+   private static String getTexturePath(JsonElement jsonElement) {
+      if (jsonElement.isJsonPrimitive()) {
+         return jsonElement.getAsString();
       } else {
-         return var0.isJsonObject() && var0.getAsJsonObject().has("path") ? var0.getAsJsonObject().get("path").getAsString() : null;
+         return jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("path") ? jsonElement.getAsJsonObject().get("path").getAsString() : null;
       }
    }
 
-   private static String getArrayTexturePath(Map<String, JsonElement> var0, Map<String, String> var1, Map<String, String> var2, String var3, int var4) {
-      JsonElement var5 = (JsonElement)var0.get(var3);
-      if (var5 != null) {
-         return resolveVariant(var5, var4);
+   private static String getArrayTexturePath(Map<String, JsonElement> map, Map<String, String> paths, Map<String, String> map2, String text, int value) {
+      JsonElement jsonElement = (JsonElement)map.get(text);
+      if (jsonElement != null) {
+         return resolveVariant(jsonElement, value);
       } else {
-         String var6 = (String)var1.get(var3);
-         if (var6 != null) {
-            return var6;
+         String text2 = (String)paths.get(text);
+         if (text2 != null) {
+            return text2;
          } else {
-            int var7 = var3.indexOf(95);
-            if (var7 > 0 && var3.indexOf(95, var7 + 1) < 0) {
-               String var8 = var3.substring(var7 + 1) + "_" + var3.substring(0, var7);
-               JsonElement var9 = (JsonElement)var0.get(var8);
-               if (var9 != null) {
-                  return resolveVariant(var9, var4);
+            int index = text.indexOf(95);
+            if (index > 0 && text.indexOf(95, index + 1) < 0) {
+               String text3 = text.substring(index + 1) + "_" + text.substring(0, index);
+               JsonElement jsonElement2 = (JsonElement)map.get(text3);
+               if (jsonElement2 != null) {
+                  return resolveVariant(jsonElement2, value);
                }
 
-               String var10 = (String)var1.get(var8);
-               if (var10 != null) {
-                  return var10;
+               String text4 = (String)paths.get(text3);
+               if (text4 != null) {
+                  return text4;
                }
             }
 
-            String var11 = (String)var2.get(var3);
-            JsonElement var12 = var11 == null ? null : (JsonElement)var0.get(var11);
-            return var12 == null ? null : resolveVariant(var12, var4);
+            String text3 = (String)map2.get(text);
+            JsonElement jsonElement2 = text3 == null ? null : (JsonElement)map.get(text3);
+            return jsonElement2 == null ? null : resolveVariant(jsonElement2, value);
          }
       }
    }
 
-   private static String resolveVariant(JsonElement var0, int var1) {
-      if (!var0.isJsonArray()) {
-         return getTexturePath(var0);
+   private static String resolveVariant(JsonElement jsonElement, int value) {
+      if (!jsonElement.isJsonArray()) {
+         return getTexturePath(jsonElement);
       } else {
-         JsonArray var2 = var0.getAsJsonArray();
-         if (var2.size() == 0) {
+         JsonArray jsonArray = jsonElement.getAsJsonArray();
+         if (jsonArray.size() == 0) {
             return null;
          } else {
-            int var3 = Math.min(Math.max(var1, 0), var2.size() - 1);
-            return getTexturePath(var2.get(var3));
+            int size = Math.min(Math.max(value, 0), jsonArray.size() - 1);
+            return getTexturePath(jsonArray.get(size));
          }
       }
    }
 
    private static JsonElement loadItemStatesFromGeyser() {
       try {
-         File var0 = new File(GeyserApi.api().getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-         ZipFile var1 = new ZipFile(var0);
+         File file = new File(GeyserApi.api().getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+         ZipFile zipFile = new ZipFile(file);
 
-         Object var14;
+         Object value;
          label73: {
-            JsonElement var15;
+            JsonElement jsonElement;
             try {
-               ZipEntry var2 = null;
-               int[] var3 = null;
-               Enumeration var4 = var1.entries();
+               ZipEntry zipEntry = null;
+               int[] itemIds = null;
+               Enumeration enumeration = zipFile.entries();
 
-               while (var4.hasMoreElements()) {
-                  ZipEntry var5 = (ZipEntry)var4.nextElement();
-                  String var6 = var5.getName();
-                  if (var6.startsWith("bedrock/runtime_item_states.") && var6.endsWith(".json")) {
-                     int[] var7 = normalize(parseVersion(var6.substring("bedrock/runtime_item_states.".length(), var6.length() - ".json".length())));
-                     if (var7 != null && (var3 == null || compareVersion(var7, var3) > 0)) {
-                        var2 = var5;
-                        var3 = var7;
+               while (enumeration.hasMoreElements()) {
+                  ZipEntry zipEntry2 = (ZipEntry)enumeration.nextElement();
+                  String name = zipEntry2.getName();
+                  if (name.startsWith("bedrock/runtime_item_states.") && name.endsWith(".json")) {
+                     int[] values = normalize(parseVersion(name.substring("bedrock/runtime_item_states.".length(), name.length() - ".json".length())));
+                     if (values != null && (itemIds == null || compareVersion(values, itemIds) > 0)) {
+                        zipEntry = zipEntry2;
+                        itemIds = values;
                      }
                   }
                }
 
-               if (var2 == null) {
-                  var14 = null;
+               if (zipEntry == null) {
+                  value = null;
                   break label73;
                }
 
-               BufferedReader var13 = new BufferedReader(new InputStreamReader(var1.getInputStream(var2), StandardCharsets.UTF_8));
+               BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zipEntry), StandardCharsets.UTF_8));
 
                try {
-                  SendMessage.infoMessage("Reading bedrock item ids from the installed Geyser instance (" + var2.getName() + ")");
-                  var15 = new JsonParser().parse(var13);
-               } catch (Throwable var10) {
+                  SendMessage.infoMessage("Reading bedrock item ids from the installed Geyser instance (" + zipEntry.getName() + ")");
+                  jsonElement = new JsonParser().parse(bufferedReader);
+               } catch (Throwable exception) {
                   try {
-                     var13.close();
-                  } catch (Throwable var9) {
-                     var10.addSuppressed(var9);
+                     bufferedReader.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
 
-                  throw var10;
+                  throw exception;
                }
 
-               var13.close();
-            } catch (Throwable var11) {
+               bufferedReader.close();
+            } catch (Throwable exception) {
                try {
-                  var1.close();
-               } catch (Throwable var8) {
-                  var11.addSuppressed(var8);
+                  zipFile.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
 
-               throw var11;
+               throw exception;
             }
 
-            var1.close();
-            return var15;
+            zipFile.close();
+            return jsonElement;
          }
 
-         var1.close();
-         return (JsonElement)var14;
-      } catch (Throwable var12) {
-         SendMessage.warnMessage("Could not read item ids from the local Geyser instance (" + var12.getMessage() + "), falling back to a downloaded copy");
+         zipFile.close();
+         return (JsonElement)value;
+      } catch (Throwable exception) {
+         SendMessage.warnMessage("Could not read item ids from the local Geyser instance (" + exception.getMessage() + "), falling back to a downloaded copy");
          return null;
       }
    }
 
    private static String fetchLatestPaletteVersion() throws IOException {
-      String var0 = null;
-      int[] var1 = null;
+      String text = null;
+      int[] values = null;
 
-      for (JsonElement var3 : new JsonParser()
+      for (JsonElement jsonElement : new JsonParser()
          .parse(download("https://api.github.com/repos/GeyserMC/Geyser/contents/core/src/main/resources/bedrock?ref=master"))
          .getAsJsonArray()) {
-         String var4 = var3.getAsJsonObject().get("name").getAsString();
-         if (var4.startsWith("runtime_item_states.") && var4.endsWith(".json")) {
-            String var5 = var4.substring("runtime_item_states.".length(), var4.length() - ".json".length());
-            int[] var6 = normalize(parseVersion(var5));
-            if (var6 != null && (var1 == null || compareVersion(var6, var1) > 0)) {
-               var0 = var5;
-               var1 = var6;
+         String asString = jsonElement.getAsJsonObject().get("name").getAsString();
+         if (asString.startsWith("runtime_item_states.") && asString.endsWith(".json")) {
+            String itemId = asString.substring("runtime_item_states.".length(), asString.length() - ".json".length());
+            int[] values2 = normalize(parseVersion(itemId));
+            if (values2 != null && (values == null || compareVersion(values2, values) > 0)) {
+               text = itemId;
+               values = values2;
             }
          }
       }
 
-      return var0;
+      return text;
    }
 
-   private static JsonElement downloadItemStates(String var0) throws IOException {
+   private static JsonElement downloadItemStates(String itemId) throws IOException {
       return loadJson(
          cacheDir,
-         "runtime_item_states." + var0 + ".json",
+         "runtime_item_states." + itemId + ".json",
          "https://raw.githubusercontent.com/GeyserMC/Geyser/master/core/src/main/resources/bedrock/runtime_item_states.%version%.json"
-            .replace("%version%", var0),
+            .replace("%version%", itemId),
          cacheExpiryHours,
          forceUpdate
       );
    }
 
-   private static int[] parseVersion(String var0) {
-      String[] var1 = var0.split("[._]");
-      int[] var2 = new int[var1.length];
+   private static int[] parseVersion(String text) {
+      String[] values = text.split("[._]");
+      int[] value = new int[values.length];
 
-      for (int var3 = 0; var3 < var1.length; var3++) {
+      for (int index = 0; index < values.length; index++) {
          try {
-            var2[var3] = Integer.parseInt(var1[var3]);
-         } catch (NumberFormatException var5) {
+            value[index] = Integer.parseInt(values[index]);
+         } catch (NumberFormatException exception) {
             return null;
          }
       }
 
-      return var2;
+      return value;
    }
 
-   private static int[] normalize(int[] var0) {
-      return var0 != null && var0.length > 1 && var0[0] == 1 ? Arrays.copyOfRange(var0, 1, var0.length) : var0;
+   private static int[] normalize(int[] values) {
+      return values != null && values.length > 1 && values[0] == 1 ? Arrays.copyOfRange(values, 1, values.length) : values;
    }
 
-   private static int compareVersion(int[] var0, int[] var1) {
-      for (int var2 = 0; var2 < Math.max(var0.length, var1.length); var2++) {
-         int var3 = Integer.compare(var2 < var0.length ? var0[var2] : 0, var2 < var1.length ? var1[var2] : 0);
-         if (var3 != 0) {
-            return var3;
+   private static int compareVersion(int[] values, int[] values2) {
+      for (int index = 0; index < Math.max(values.length, values2.length); index++) {
+         int value2 = Integer.compare(index < values.length ? values[index] : 0, index < values2.length ? values2[index] : 0);
+         if (value2 != 0) {
+            return value2;
          }
       }
 
       return 0;
    }
 
-   private static JsonElement loadJson(File var0, String var1, String var2, long var3, boolean var5) throws IOException {
-      File var6 = new File(var0, var1);
-      if (!var5 && var3 >= 0L && var6.isFile() && System.currentTimeMillis() - var6.lastModified() < TimeUnit.HOURS.toMillis(var3)) {
+   private static JsonElement loadJson(File file, String text, String text2, long value, boolean flag) throws IOException {
+      File file2 = new File(file, text);
+      if (!flag && value >= 0L && file2.isFile() && System.currentTimeMillis() - file2.lastModified() < TimeUnit.HOURS.toMillis(value)) {
          try {
-            BufferedReader var14 = Files.newBufferedReader(var6.toPath(), StandardCharsets.UTF_8);
+            BufferedReader bufferedReader = Files.newBufferedReader(file2.toPath(), StandardCharsets.UTF_8);
 
-            JsonElement var15;
+            JsonElement jsonElement;
             try {
-               var15 = new JsonParser().parse(var14);
-            } catch (Throwable var12) {
-               if (var14 != null) {
+               jsonElement = new JsonParser().parse(bufferedReader);
+            } catch (Throwable exception) {
+               if (bufferedReader != null) {
                   try {
-                     var14.close();
-                  } catch (Throwable var10) {
-                     var12.addSuppressed(var10);
+                     bufferedReader.close();
+                  } catch (Throwable exception2) {
+                     exception.addSuppressed(exception2);
                   }
                }
 
-               throw var12;
+               throw exception;
             }
 
-            if (var14 != null) {
-               var14.close();
+            if (bufferedReader != null) {
+               bufferedReader.close();
             }
 
-            return var15;
-         } catch (Exception var13) {
-            SendMessage.warnMessage("Failed to read cached '" + var1 + "' (" + var13.getMessage() + "), retrying...");
+            return jsonElement;
+         } catch (Exception exception) {
+            SendMessage.warnMessage("Failed to read cached '" + text + "' (" + exception.getMessage() + "), retrying...");
          }
       }
 
-      String var7 = download(var2);
-      JsonElement var8 = new JsonParser().parse(var7);
-      if (var3 >= 0L) {
+      String text3 = download(text2);
+      JsonElement jsonElement = new JsonParser().parse(text3);
+      if (value >= 0L) {
          try {
-            if (var0.isDirectory() || var0.mkdirs()) {
-               Files.write(var6.toPath(), var7.getBytes(StandardCharsets.UTF_8));
+            if (file.isDirectory() || file.mkdirs()) {
+               Files.write(file2.toPath(), text3.getBytes(StandardCharsets.UTF_8));
             }
-         } catch (IOException var11) {
-            SendMessage.warnMessage("Failed to cache '" + var1 + "' (" + var11.getMessage() + ")");
+         } catch (IOException exception) {
+            SendMessage.warnMessage("Failed to cache '" + text + "' (" + exception.getMessage() + ")");
          }
       }
 
-      return var8;
+      return jsonElement;
    }
 
-   private static String download(String var0) throws MalformedURLException, IOException {
-      HttpURLConnection var1 = (HttpURLConnection)new URL(var0).openConnection();
-      var1.setConnectTimeout(10000);
-      var1.setReadTimeout(15000);
-      var1.setRequestProperty("User-Agent", "OnyxShop");
-      int var2 = var1.getResponseCode();
-      if (var2 != 200) {
-         throw new IOException("HTTP " + var2 + " from " + var0 + ", make sure the server has a valid ethernet connection");
+   private static String download(String text) throws MalformedURLException, IOException {
+      HttpURLConnection httpURLConnection = (HttpURLConnection)new URL(text).openConnection();
+      httpURLConnection.setConnectTimeout(10000);
+      httpURLConnection.setReadTimeout(15000);
+      httpURLConnection.setRequestProperty("User-Agent", "OnyxShop");
+      int responseCode = httpURLConnection.getResponseCode();
+      if (responseCode != 200) {
+         throw new IOException("HTTP " + responseCode + " from " + text + ", make sure the server has a valid ethernet connection");
       } else {
-         BufferedReader var3 = new BufferedReader(new InputStreamReader(var1.getInputStream(), StandardCharsets.UTF_8));
+         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), StandardCharsets.UTF_8));
 
-         String var7;
+         String text2;
          try {
-            StringBuilder var4 = new StringBuilder();
-            char[] var5 = new char[8192];
+            StringBuilder builder = new StringBuilder();
+            char[] character = new char[8192];
 
-            int var6;
-            while ((var6 = var3.read(var5)) != -1) {
-               var4.append(var5, 0, var6);
+            int value;
+            while ((value = bufferedReader.read(character)) != -1) {
+               builder.append(character, 0, value);
             }
 
-            var7 = var4.toString();
-         } catch (Throwable var9) {
+            text2 = builder.toString();
+         } catch (Throwable exception) {
             try {
-               var3.close();
-            } catch (Throwable var8) {
-               var9.addSuppressed(var8);
+               bufferedReader.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
 
-            throw var9;
+            throw exception;
          }
 
-         var3.close();
-         return var7;
+         bufferedReader.close();
+         return text2;
       }
    }
 
-   private static String getValue(String var0) {
-      int var1 = var0.indexOf(58);
-      return (var1 >= 0 ? var0.substring(var1 + 1) : var0).toLowerCase(Locale.ROOT);
+   private static String getValue(String text) {
+      int index = text.indexOf(58);
+      return (index >= 0 ? text.substring(index + 1) : text).toLowerCase(Locale.ROOT);
    }
 
-   public static String getIcon(ItemStack var0, Player var1) {
-      boolean var2 = plugin.versionHandler.hasData(var0, NBTMaps.ENCHANTMENTS.getTag());
-      if (var0.getType() == Material.PLAYER_HEAD
-         || plugin.versionHandler.hasData(var0, NBTMaps.CUSTOM_MODEL_DATA.getTag())
-         || ServerInfo.supportsComponents() && plugin.versionHandler.hasData(var0, NBTMaps.ITEM_MODEL.getTag())) {
-         String var3 = GeyserCustomIcons.getIcon(var0, var0.getType().getKey().toString(), var1, var2);
-         return var3 == null ? getIcon(var0, var2) : var3;
+   public static String getIcon(ItemStack itemStack, Player player) {
+      boolean data = plugin.versionHandler.hasData(itemStack, NBTMaps.ENCHANTMENTS.getTag());
+      if (itemStack.getType() == Material.PLAYER_HEAD
+         || plugin.versionHandler.hasData(itemStack, NBTMaps.CUSTOM_MODEL_DATA.getTag())
+         || ServerInfo.supportsComponents() && plugin.versionHandler.hasData(itemStack, NBTMaps.ITEM_MODEL.getTag())) {
+         String icon = GeyserCustomIcons.getIcon(itemStack, itemStack.getType().getKey().toString(), player, data);
+         return icon == null ? getIcon(itemStack, data) : icon;
       } else {
-         return getIcon(var0, var2);
+         return getIcon(itemStack, data);
       }
    }
 
-   public static String getTexturePath(ItemStack var0) {
-      return ITEM_TEXTURE_PATHS.get(XMaterial.matchXMaterial(var0));
+   public static String getTexturePath(ItemStack itemStack) {
+      return ITEM_TEXTURE_PATHS.get(XMaterial.matchXMaterial(itemStack));
    }
 
-   private static String getIcon(ItemStack var0, boolean var1) {
-      Integer var2 = ITEM_IDS.get(XMaterial.matchXMaterial(var0));
-      return var2 == null ? null : String.valueOf(var1 ? var2 + 32768 : var2);
+   private static String getIcon(ItemStack itemStack, boolean flag) {
+      Integer value = ITEM_IDS.get(XMaterial.matchXMaterial(itemStack));
+      return value == null ? null : String.valueOf(flag ? value + 32768 : value);
    }
 }

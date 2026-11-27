@@ -14,20 +14,20 @@ public class BukkitEnch {
    public BukkitEnch() {
    }
 
-   public String getName(SimpleEnchantment var1) {
-      return ((Enchantment)var1.getEnchant()).getName();
+   public String getName(SimpleEnchantment simpleEnchantment) {
+      return ((Enchantment)simpleEnchantment.getEnchant()).getName();
    }
 
-   public boolean canEnchantItem(ItemStack var1, Enchantment var2) {
-      if (!OnyxShop.getInstance().allowUnsafeEnchants && XMaterial.matchXMaterial(var1) != XMaterial.ENCHANTED_BOOK) {
-         if (var2.canEnchantItem(var1)) {
-            for (Enchantment var4 : var1.getEnchantments().keySet()) {
-               if (var2.conflictsWith(var4)) {
+   public boolean canEnchantItem(ItemStack itemStack, Enchantment enchantment) {
+      if (!OnyxShop.getInstance().allowUnsafeEnchants && XMaterial.matchXMaterial(itemStack) != XMaterial.ENCHANTED_BOOK) {
+         if (enchantment.canEnchantItem(itemStack)) {
+            for (Enchantment enchantment2 : itemStack.getEnchantments().keySet()) {
+               if (enchantment.conflictsWith(enchantment2)) {
                   SendMessage.errorMessage(
                      "Could not add enchantment '"
-                        + var2.getKey().getKey()
+                        + enchantment.getKey().getKey()
                         + "' to this shop item because it conflicts with enchantment '"
-                        + var4.getKey().getKey()
+                        + enchantment2.getKey().getKey()
                         + "'"
                   );
                   return false;
@@ -36,7 +36,7 @@ public class BukkitEnch {
 
             return true;
          } else {
-            SendMessage.errorMessage("Could not apply enchantment '" + var2.getKey().getKey() + "' to this shop item material type");
+            SendMessage.errorMessage("Could not apply enchantment '" + enchantment.getKey().getKey() + "' to this shop item material type");
             return false;
          }
       } else {
@@ -44,23 +44,23 @@ public class BukkitEnch {
       }
    }
 
-   public ItemStack addEnchantment(ItemStack var1, Enchantment var2, int var3, @Nullable DisplayItem var4) {
-      if (var1.getType().equals(XMaterial.ENCHANTED_BOOK.parseMaterial())) {
-         EnchantmentStorageMeta var5 = (EnchantmentStorageMeta)var1.getItemMeta();
-         var5.addStoredEnchant(var2, var3, true);
-         var1.setItemMeta(var5);
+   public ItemStack addEnchantment(ItemStack itemStack, Enchantment enchantment, int value, @Nullable DisplayItem displayItem) {
+      if (itemStack.getType().equals(XMaterial.ENCHANTED_BOOK.parseMaterial())) {
+         EnchantmentStorageMeta enchantmentStorageMeta = (EnchantmentStorageMeta)itemStack.getItemMeta();
+         enchantmentStorageMeta.addStoredEnchant(enchantment, value, true);
+         itemStack.setItemMeta(enchantmentStorageMeta);
       } else {
-         var1.addUnsafeEnchantment(var2, var3);
+         itemStack.addUnsafeEnchantment(enchantment, value);
       }
 
-      return var1;
+      return itemStack;
    }
 
-   public ItemStack getBook(Enchantment var1, int var2) {
-      ItemStack var3 = new ItemStack(Material.ENCHANTED_BOOK);
-      EnchantmentStorageMeta var4 = (EnchantmentStorageMeta)var3.getItemMeta();
-      var4.addStoredEnchant(var1, var2, true);
-      var3.setItemMeta(var4);
-      return var3;
+   public ItemStack getBook(Enchantment enchantment, int value) {
+      ItemStack itemStack = new ItemStack(Material.ENCHANTED_BOOK);
+      EnchantmentStorageMeta enchantmentStorageMeta = (EnchantmentStorageMeta)itemStack.getItemMeta();
+      enchantmentStorageMeta.addStoredEnchant(enchantment, value, true);
+      itemStack.setItemMeta(enchantmentStorageMeta);
+      return itemStack;
    }
 }

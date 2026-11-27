@@ -11,11 +11,11 @@ public class RotationJob implements Job {
    }
 
    @Override
-   public void execute(JobExecutionContext var1) {
-      String var2 = (String)var1.getJobDetail().getJobDataMap().get("section");
-      OnyxShop var3 = OnyxShop.getInstance();
-      RotatingShop var4 = (RotatingShop)var3.getSection(var2);
-      var3.runTask(() -> var4.forceRotate(false));
-      SendMessage.logDebugMessage("Cron task for rotating shop '" + var2 + "' completed and will next schedule at " + var1.getTrigger().getNextFireTime());
+   public void execute(JobExecutionContext jobExecutionContext) {
+      String text = (String)jobExecutionContext.getJobDetail().getJobDataMap().get("section");
+      OnyxShop plugin = OnyxShop.getInstance();
+      RotatingShop rotatingShop = (RotatingShop)plugin.getSection(text);
+      plugin.runTask(() -> rotatingShop.forceRotate(false));
+      SendMessage.logDebugMessage("Cron task for rotating shop '" + text + "' completed and will next schedule at " + jobExecutionContext.getTrigger().getNextFireTime());
    }
 }

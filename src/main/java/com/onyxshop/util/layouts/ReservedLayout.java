@@ -17,108 +17,108 @@ public class ReservedLayout implements ItemLayout {
    private final Map<Integer, ReservedLayout.Reserved> reserved = new HashMap<>();
    private final ArrayList<ReservedLayout.Reserved> outOfBounds = new ArrayList<>();
 
-   public ReservedLayout(String var1) {
-      this.section = var1;
+   public ReservedLayout(String text) {
+      this.section = text;
    }
 
-   public void reserve(int var1) {
-      this.reserved.put(var1, new ReservedLayout.Reserved());
-   }
-
-   @Override
-   public boolean containsKey(int var1) {
-      ReservedLayout.Reserved var2 = this.reserved.get(var1);
-      return var2 != null && var2.index != null;
+   public void reserve(int value) {
+      this.reserved.put(value, new ReservedLayout.Reserved());
    }
 
    @Override
-   public void add(String var1) {
-      for (ReservedLayout.Reserved var3 : this.reserved.values()) {
-         if (var3.getIndex() == null) {
-            var3.setIndex(var1);
+   public boolean containsKey(int value) {
+      ReservedLayout.Reserved reserved = this.reserved.get(value);
+      return reserved != null && reserved.index != null;
+   }
+
+   @Override
+   public void add(String text) {
+      for (ReservedLayout.Reserved reserved : this.reserved.values()) {
+         if (reserved.getIndex() == null) {
+            reserved.setIndex(text);
             return;
          }
       }
 
-      this.outOfBounds.add(new ReservedLayout.Reserved(var1));
+      this.outOfBounds.add(new ReservedLayout.Reserved(text));
    }
 
    @Override
-   public void set(int var1, String var2) {
-      ReservedLayout.Reserved var3 = this.reserved.get(var1);
-      if (var3 != null && var3.index != null) {
-         this.shift(var1, var2);
+   public void set(int value, String text) {
+      ReservedLayout.Reserved reserved = this.reserved.get(value);
+      if (reserved != null && reserved.index != null) {
+         this.shift(value, text);
       } else {
-         this.reserved.put(var1, new ReservedLayout.Reserved(var2));
+         this.reserved.put(value, new ReservedLayout.Reserved(text));
       }
    }
 
-   private void shift(int var1, String var2) {
-      LinkedList<String> var3 = new LinkedList<>();
-      ArrayList<Integer> var4 = new ArrayList<>(this.reserved.keySet());
-      Collections.sort(var4);
-      int var5 = (Integer)var4.get(var4.size() - 1);
+   private void shift(int value, String text) {
+      LinkedList<String> values = new LinkedList<>();
+      ArrayList<Integer> values2 = new ArrayList<>(this.reserved.keySet());
+      Collections.sort(values2);
+      int value2 = (Integer)values2.get(values2.size() - 1);
 
-      for (int var6 = var1; var6 < var5; var6++) {
-         ReservedLayout.Reserved var7 = this.reserved.get(var6);
-         if (var7 != null) {
-            if (var3.isEmpty() && var7.index == null) {
-               var7.setIndex(var2);
+      for (int index = value; index < value2; index++) {
+         ReservedLayout.Reserved reserved = this.reserved.get(index);
+         if (reserved != null) {
+            if (values.isEmpty() && reserved.index == null) {
+               reserved.setIndex(text);
                return;
             }
 
-            var3.add(var7.index);
-            var7.setIndex(null);
+            values.add(reserved.index);
+            reserved.setIndex(null);
          }
       }
 
-      for (String var9 : var3) {
-         this.add(var9);
+      for (String text2 : values) {
+         this.add(text2);
       }
    }
 
    @Override
-   public List<String> build(Integer var1, int var2) {
-      int var3 = this.reserved
+   public List<String> build(Integer value, int value2) {
+      int value3 = this.reserved
          .entrySet()
          .stream()
-         .filter(var0 -> var0.getValue().index != null)
+         .filter(entry -> entry.getValue().index != null)
          .map(Entry::getKey)
          .collect(Collectors.toList())
          .stream()
          .max(Integer::compareTo)
-         .orElse(var2);
-      int var4 = Math.max(9, Math.min((int)Math.ceil(var3 / 9.0) * 9, var2));
-      int var5 = var1 == null ? var4 : var1 - (OnyxShop.getInstance().navBar.isEnabled(this.section) ? 9 : 0);
-      ArrayList var6 = new ArrayList();
+         .orElse(value2);
+      int value4 = Math.max(9, Math.min((int)Math.ceil(value3 / 9.0) * 9, value2));
+      int value5 = value == null ? value4 : value - (OnyxShop.getInstance().navBar.isEnabled(this.section) ? 9 : 0);
+      ArrayList values = new ArrayList();
 
-      for (int var7 = 0; var7 < var5; var7++) {
-         ReservedLayout.Reserved var8 = this.reserved.remove(var7);
-         if (var8 != null && var8.index != null) {
-            var6.add(var8.getIndex());
+      for (int index = 0; index < value5; index++) {
+         ReservedLayout.Reserved reserved = this.reserved.remove(index);
+         if (reserved != null && reserved.index != null) {
+            values.add(reserved.getIndex());
          } else {
-            var6.add(null);
+            values.add(null);
          }
       }
 
-      while (var6.size() < var5) {
-         var6.add(null);
+      while (values.size() < value5) {
+         values.add(null);
       }
 
       this.outOfBounds.addAll(this.reserved.values());
       if (!this.outOfBounds.isEmpty()) {
-         for (ReservedLayout.Reserved var10 : this.outOfBounds) {
-            if (var10.index != null) {
+         for (ReservedLayout.Reserved reserved : this.outOfBounds) {
+            if (reserved.index != null) {
                SendMessage.warnMessage(
                   "Cannot load item '%itemPath%' because it is out of range for page size %size%"
-                     .replace("%itemPath%", this.section + "." + var10.index)
-                     .replace("%size%", String.valueOf(var5))
+                     .replace("%itemPath%", this.section + "." + reserved.index)
+                     .replace("%size%", String.valueOf(value5))
                );
             }
          }
       }
 
-      return var6;
+      return values;
    }
 
    public static final class Reserved {
@@ -127,12 +127,12 @@ public class ReservedLayout implements ItemLayout {
       public Reserved() {
       }
 
-      public Reserved(String var1) {
-         this.index = var1;
+      public Reserved(String text) {
+         this.index = text;
       }
 
-      public void setIndex(String var1) {
-         this.index = var1;
+      public void setIndex(String text) {
+         this.index = text;
       }
 
       public String getIndex() {

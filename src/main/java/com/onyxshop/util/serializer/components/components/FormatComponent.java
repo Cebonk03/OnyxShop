@@ -15,30 +15,30 @@ public class FormatComponent implements Component {
    boolean obfuscated;
    boolean strikethrough;
 
-   public FormatComponent(int var1) {
-      this.useItalic = var1 > 1;
+   public FormatComponent(int value) {
+      this.useItalic = value > 1;
    }
 
-   public FormatComponent(String var1, String var2, boolean var3, boolean var4, boolean var5, boolean var6, boolean var7) {
-      this.text = var1;
-      this.color = var2;
-      this.bold = var3;
-      this.italic = var4;
-      this.underlined = var5;
-      this.obfuscated = var6;
-      this.strikethrough = var7;
+   public FormatComponent(String text, String text2, boolean flag, boolean flag2, boolean flag3, boolean flag4, boolean flag5) {
+      this.text = text;
+      this.color = text2;
+      this.bold = flag;
+      this.italic = flag2;
+      this.underlined = flag3;
+      this.obfuscated = flag4;
+      this.strikethrough = flag5;
    }
 
-   public void setText(String var1) {
-      this.text = var1;
+   public void setText(String text) {
+      this.text = text;
    }
 
-   public void setColor(String var1) {
-      this.color = var1;
+   public void setColor(String text) {
+      this.color = text;
    }
 
-   public void setHex(String var1) {
-      this.color = "#" + var1;
+   public void setHex(String text) {
+      this.color = "#" + text;
    }
 
    public void setBold() {
@@ -75,32 +75,32 @@ public class FormatComponent implements Component {
 
    @Override
    public Object serialize() {
-      HashMap var1 = new HashMap();
-      var1.put("text", this.text);
+      HashMap map = new HashMap();
+      map.put("text", this.text);
       if (!this.color.isEmpty()) {
-         var1.put("color", this.color);
+         map.put("color", this.color);
       }
 
       if (this.bold) {
-         var1.put("bold", true);
+         map.put("bold", true);
       }
 
       if (this.useItalic) {
-         var1.put("italic", this.italic);
+         map.put("italic", this.italic);
       }
 
       if (this.underlined) {
-         var1.put("underlined", true);
+         map.put("underlined", true);
       }
 
       if (this.obfuscated) {
-         var1.put("obfuscated", true);
+         map.put("obfuscated", true);
       }
 
       if (this.strikethrough) {
-         var1.put("strikethrough", true);
+         map.put("strikethrough", true);
       }
 
-      return new JSONObject(var1);
+      return new JSONObject(map);
    }
 }

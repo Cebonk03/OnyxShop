@@ -71,132 +71,132 @@ public enum NBTMaps {
    final String COMPOUND;
    static final Set<String> registered = getRegistered();
 
-   private NBTMaps(String nullxx, String nullxxx) {
-      this.NBT = nullxx;
-      this.COMPOUND = nullxxx;
+   private NBTMaps(String text, String text2) {
+      this.NBT = text;
+      this.COMPOUND = text2;
    }
 
-   private NBTMaps(String nullxx, String... nullxxx) {
-      this.NBT = nullxx;
-      String var5 = null;
+   private NBTMaps(String text, String... values) {
+      this.NBT = text;
+      String text2 = null;
 
-      for (String var9 : nullxxx) {
-         if (!var9.contains("|")) {
-            var5 = var9;
-         } else if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.getFromSimple(var9.split("\\|")[0]))) {
-            var5 = var9.split("\\|")[1];
+      for (String text3 : values) {
+         if (!text3.contains("|")) {
+            text2 = text3;
+         } else if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.getFromSimple(text3.split("\\|")[0]))) {
+            text2 = text3.split("\\|")[1];
          }
       }
 
-      this.COMPOUND = var5 == null ? nullxxx[0] : var5;
+      this.COMPOUND = text2 == null ? values[0] : text2;
    }
 
    public String getTag() {
       return ServerInfo.supportsComponents() ? this.COMPOUND : this.NBT;
    }
 
-   public static List<String> getTags(boolean var0, String... var1) {
-      return Arrays.stream(var1).map(var1x -> getTag(var1x, null, null, var0)).collect(Collectors.toList());
+   public static List<String> getTags(boolean flag, String... values) {
+      return Arrays.stream(values).map(element -> getTag(element, null, null, flag)).collect(Collectors.toList());
    }
 
-   public static String getTag(String var0) {
-      return getTag(var0, null, null, true);
+   public static String getTag(String text) {
+      return getTag(text, null, null, true);
    }
 
-   public static String getTag(String var0, String var1, String var2) {
-      return getTag(var0, var1, var2, true);
+   public static String getTag(String text, String text2, String text3) {
+      return getTag(text, text2, text3, true);
    }
 
-   public static String getTag(String var0, String var1, String var2, boolean var3) {
-      boolean var4 = ServerInfo.supportsComponents();
-      NBTMaps var5 = null;
-      boolean var6 = false;
-      if (var0.contains("::")) {
+   public static String getTag(String text, String text2, String text3, boolean flag) {
+      boolean flag2 = ServerInfo.supportsComponents();
+      NBTMaps nbtMaps = null;
+      boolean flag3 = false;
+      if (text.contains("::")) {
          try {
-            var5 = getFromSimple(var0);
-         } catch (IllegalArgumentException var12) {
+            nbtMaps = getFromSimple(text);
+         } catch (IllegalArgumentException exception) {
          }
       } else {
          try {
-            var5 = getFromSimple(var0);
-         } catch (IllegalArgumentException var13) {
-            for (NBTMaps var11 : values()) {
-               if (var11.NBT != null && var11.NBT.contains("::") && var11.NBT.split("::")[0].equals(var0)) {
-                  var5 = var11;
-                  var6 = true;
+            nbtMaps = getFromSimple(text);
+         } catch (IllegalArgumentException exception) {
+            for (NBTMaps nbtMaps2 : values()) {
+               if (nbtMaps2.NBT != null && nbtMaps2.NBT.contains("::") && nbtMaps2.NBT.split("::")[0].equals(text)) {
+                  nbtMaps = nbtMaps2;
+                  flag3 = true;
                   break;
                }
 
-               if (var11.COMPOUND != null && var11.COMPOUND.contains("::") && var11.COMPOUND.split("::")[0].equals(var0)) {
-                  var5 = var11;
-                  var6 = true;
+               if (nbtMaps2.COMPOUND != null && nbtMaps2.COMPOUND.contains("::") && nbtMaps2.COMPOUND.split("::")[0].equals(text)) {
+                  nbtMaps = nbtMaps2;
+                  flag3 = true;
                   break;
                }
             }
          }
       }
 
-      if (var5 != null) {
-         String var7 = !var4 ? var5.NBT : var5.COMPOUND;
-         if (var7 == null) {
-            if (var3) {
-               SendMessage.warnMessage("Found incompatible NBT tag: NBT tag for given component tag '" + var0 + "' doesn't exist for current MC version");
-               if (var2 != null) {
-                  logPath(var2, var1);
+      if (nbtMaps != null) {
+         String text4 = !flag2 ? nbtMaps.NBT : nbtMaps.COMPOUND;
+         if (text4 == null) {
+            if (flag) {
+               SendMessage.warnMessage("Found incompatible NBT tag: NBT tag for given component tag '" + text + "' doesn't exist for current MC version");
+               if (text3 != null) {
+                  logPath(text3, text2);
                }
             }
 
-            return var0;
+            return text;
          } else {
-            var7 = var6 ? var7.split("::")[0] : var7;
-            if (!var0.equals(var7) && var3) {
+            text4 = flag3 ? text4.split("::")[0] : text4;
+            if (!text.equals(text4) && flag) {
                SendMessage.warnMessage(
                   "Found incompatible NBT/component tag for current minecraft version: Did you mean '"
-                     + var7
+                     + text4
                      + "' instead of '"
-                     + var0
+                     + text
                      + "'?\nPlease correct the value manually in config to get rid of this message"
                );
-               if (var2 != null) {
-                  logPath(var2, var1);
+               if (text3 != null) {
+                  logPath(text3, text2);
                }
             }
 
-            return var7;
+            return text4;
          }
-      } else if (!var4 || !var0.startsWith(CUSTOM_DATA.COMPOUND) && !registered.contains(var0.split("::")[0])) {
-         if (var4 && !var0.startsWith(CUSTOM_DATA.COMPOUND)) {
-            if (var3) {
-               SendMessage.warnMessage("Found unknown component tag '" + var0 + "' for current minecraft version, check spelling or make sure it exists");
-               if (var2 != null) {
-                  logPath(var2, var1);
+      } else if (!flag2 || !text.startsWith(CUSTOM_DATA.COMPOUND) && !registered.contains(text.split("::")[0])) {
+         if (flag2 && !text.startsWith(CUSTOM_DATA.COMPOUND)) {
+            if (flag) {
+               SendMessage.warnMessage("Found unknown component tag '" + text + "' for current minecraft version, check spelling or make sure it exists");
+               if (text3 != null) {
+                  logPath(text3, text2);
                }
             }
 
-            return CUSTOM_DATA.COMPOUND + var0;
+            return CUSTOM_DATA.COMPOUND + text;
          } else {
-            return var0;
+            return text;
          }
       } else {
-         return var0;
+         return text;
       }
    }
 
-   private static NBTMaps getFromSimple(String var0) {
-      for (NBTMaps var4 : values()) {
-         if (var4.NBT != null && var4.NBT.equals(var0) || var4.COMPOUND != null && var4.COMPOUND.equals(var0)) {
-            return var4;
+   private static NBTMaps getFromSimple(String text) {
+      for (NBTMaps nbtMaps : values()) {
+         if (nbtMaps.NBT != null && nbtMaps.NBT.equals(text) || nbtMaps.COMPOUND != null && nbtMaps.COMPOUND.equals(text)) {
+            return nbtMaps;
          }
       }
 
       throw new IllegalArgumentException();
    }
 
-   private static void logPath(String var0, String var1) {
-      if (var1 == null) {
-         SendMessage.errorItemConfig(Lang.ITEMS_PATH_IN_CONFIG.get().toString().replace("%location%", var0));
+   private static void logPath(String path, String text) {
+      if (text == null) {
+         SendMessage.errorItemConfig(Lang.ITEMS_PATH_IN_CONFIG.get().toString().replace("%location%", path));
       } else {
-         SendMessage.errorItemShops(Lang.ITEMS_LOCATION_IN_SHOPS.get().toString().replace("%section%", var1).replace("%location%", var0));
+         SendMessage.errorItemShops(Lang.ITEMS_LOCATION_IN_SHOPS.get().toString().replace("%section%", text).replace("%location%", path));
       }
    }
 
@@ -205,18 +205,18 @@ public enum NBTMaps {
          return new HashSet<>();
       } else {
          try {
-            String var0 = OnyxShop.getInstance().versionHandler.getClass().getName();
-            return (Set<String>)ReflectUtil.invokeLegacyVersionMethod("getRegistered", var0 + "$Components");
-         } catch (Exception var1) {
+            String shopId = OnyxShop.getInstance().versionHandler.getClass().getName();
+            return (Set<String>)ReflectUtil.invokeLegacyVersionMethod("getRegistered", shopId + "$Components");
+         } catch (Exception exception) {
             return new HashSet<>();
          }
       }
    }
 
    private static void doExistCheck() {
-      for (NBTMaps var3 : values()) {
-         if (!registered.contains(var3.COMPOUND.split("::")[0])) {
-            SendMessage.errorMessage("!! Mapping for '" + var3.COMPOUND + "' doesn't exist anymore or got renamed in current minecraft version!");
+      for (NBTMaps nbtMaps : values()) {
+         if (!registered.contains(nbtMaps.COMPOUND.split("::")[0])) {
+            SendMessage.errorMessage("!! Mapping for '" + nbtMaps.COMPOUND + "' doesn't exist anymore or got renamed in current minecraft version!");
          }
       }
    }

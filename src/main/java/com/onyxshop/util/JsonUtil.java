@@ -17,43 +17,43 @@ public final class JsonUtil {
    public JsonUtil() {
    }
 
-   public static JSONObject parseJson(InputStreamReader var0) throws ParseException, IOException {
-      return (JSONObject)parser.parse(var0);
+   public static JSONObject parseJson(InputStreamReader inputStreamReader) throws ParseException, IOException {
+      return (JSONObject)parser.parse(inputStreamReader);
    }
 
-   public static JSONObject parseJson(FileReader var0) throws ParseException, IOException {
-      return (JSONObject)parser.parse(var0);
+   public static JSONObject parseJson(FileReader fileReader) throws ParseException, IOException {
+      return (JSONObject)parser.parse(fileReader);
    }
 
-   public static JSONObject parseJson(String var0) throws ParseException {
-      return (JSONObject)parser.parse(var0);
+   public static JSONObject parseJson(String text) throws ParseException {
+      return (JSONObject)parser.parse(text);
    }
 
-   public static JSONArray parseArray(List<String> var0) throws ParseException {
-      return (JSONArray)parser.parse(var0.toString());
+   public static JSONArray parseArray(List<String> values) throws ParseException {
+      return (JSONArray)parser.parse(values.toString());
    }
 
-   public static JSONArray parseArray(String var0) throws ParseException {
-      return (JSONArray)parser.parse(var0);
+   public static JSONArray parseArray(String text) throws ParseException {
+      return (JSONArray)parser.parse(text);
    }
 
-   public static JSONArray parseArray(InputStreamReader var0) throws ParseException, IOException {
-      return (JSONArray)parser.parse(var0);
+   public static JSONArray parseArray(InputStreamReader inputStreamReader) throws ParseException, IOException {
+      return (JSONArray)parser.parse(inputStreamReader);
    }
 
-   public static String getString(JSONObject var0, String var1) {
-      return (String)var0.get(var1);
+   public static String getString(JSONObject jsonObject, String text) {
+      return (String)jsonObject.get(text);
    }
 
-   public static Long getLong(JSONObject var0, String var1) {
-      return (Long)var0.get(var1);
+   public static Long getLong(JSONObject jsonObject, String text) {
+      return (Long)jsonObject.get(text);
    }
 
-   public static ArrayList<String> getArray(JSONObject var0, String var1) {
-      return (ArrayList<String>)var0.get(var1);
+   public static ArrayList<String> getArray(JSONObject jsonObject, String text) {
+      return (ArrayList<String>)jsonObject.get(text);
    }
 
-   public static Map<String, String> getMap(JSONObject var0, String var1) {
-      return (Map<String, String>)var0.get(var1);
+   public static Map<String, String> getMap(JSONObject jsonObject, String text) {
+      return (Map<String, String>)jsonObject.get(text);
    }
 }

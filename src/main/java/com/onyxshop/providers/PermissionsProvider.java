@@ -4,9 +4,9 @@ import com.onyxshop.OnyxShop;
 import com.onyxshop.util.exceptions.PermissionsHookException;
 
 public interface PermissionsProvider {
-   void setup(OnyxShop var1) throws PermissionsHookException;
+   void setup(OnyxShop plugin) throws PermissionsHookException;
 
    String getName();
 
-   String getGroupName(String var1);
+   String getGroupName(String name);
 }

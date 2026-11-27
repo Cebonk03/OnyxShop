@@ -7,30 +7,30 @@ public class Modifiers extends ArrayList<PriceModifier> {
    public Modifiers() {
    }
 
-   public PriceModifier getByType(ModifierType var1) {
-      for (PriceModifier var3 : this) {
-         if (var3.getClass() == var1.getClazz()) {
-            return var3;
+   public PriceModifier getByType(ModifierType modifierType) {
+      for (PriceModifier priceModifier : this) {
+         if (priceModifier.getClass() == modifierType.getClazz()) {
+            return priceModifier;
          }
       }
 
       return null;
    }
 
-   public PriceModifier putIfAbsent(ModifierType var1, PriceModifier var2) {
-      for (PriceModifier var4 : this) {
-         if (var4.getClass() == var1.getClazz()) {
-            return var4;
+   public PriceModifier putIfAbsent(ModifierType modifierType, PriceModifier priceModifier) {
+      for (PriceModifier priceModifier2 : this) {
+         if (priceModifier2.getClass() == modifierType.getClazz()) {
+            return priceModifier2;
          }
       }
 
-      this.add(var2);
-      return var2;
+      this.add(priceModifier);
+      return priceModifier;
    }
 
-   public boolean hasType(ModifierType var1) {
-      for (PriceModifier var3 : this) {
-         if (var3.getClass() == var1.getClazz()) {
+   public boolean hasType(ModifierType modifierType) {
+      for (PriceModifier priceModifier : this) {
+         if (priceModifier.getClass() == modifierType.getClazz()) {
             return true;
          }
       }
@@ -38,19 +38,19 @@ public class Modifiers extends ArrayList<PriceModifier> {
       return false;
    }
 
-   public boolean removeType(ModifierType var1) {
-      for (PriceModifier var3 : this) {
-         if (var3.getClass() == var1.getClazz()) {
-            return super.remove(var3);
+   public boolean removeType(ModifierType modifierType) {
+      for (PriceModifier priceModifier : this) {
+         if (priceModifier.getClass() == modifierType.getClazz()) {
+            return super.remove(priceModifier);
          }
       }
 
       return false;
    }
 
-   public boolean hasSeasonModifier(String var1) {
-      for (PriceModifier var3 : this) {
-         if (var3 instanceof SeasonModifier && ((SeasonModifier)var3).getWorld().equals(var1)) {
+   public boolean hasSeasonModifier(String text) {
+      for (PriceModifier priceModifier : this) {
+         if (priceModifier instanceof SeasonModifier && ((SeasonModifier)priceModifier).getWorld().equals(text)) {
             return true;
          }
       }

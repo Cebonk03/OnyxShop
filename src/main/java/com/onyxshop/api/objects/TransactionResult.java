@@ -9,16 +9,16 @@ public class TransactionResult {
    private final Map<EcoType, Double> prices;
    private final int amount;
 
-   public TransactionResult(Transaction.Result var1) {
-      this.result = var1;
+   public TransactionResult(Transaction.Result result) {
+      this.result = result;
       this.prices = null;
       this.amount = 0;
    }
 
-   public TransactionResult(Transaction.Result var1, Map<EcoType, Double> var2, int var3) {
-      this.result = var1;
-      this.prices = var2;
-      this.amount = var3;
+   public TransactionResult(Transaction.Result result, Map<EcoType, Double> map, int value) {
+      this.result = result;
+      this.prices = map;
+      this.amount = value;
    }
 
    public Transaction.Result getResult() {

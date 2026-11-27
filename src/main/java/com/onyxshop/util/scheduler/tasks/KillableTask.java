@@ -6,8 +6,8 @@ import com.onyxshop.util.scheduler.ScheduledTask;
 public class KillableTask implements ScheduledTask {
    private final Future<?> task;
 
-   public KillableTask(Future<?> var1) {
-      this.task = var1;
+   public KillableTask(Future<?> future) {
+      this.task = future;
    }
 
    @Override

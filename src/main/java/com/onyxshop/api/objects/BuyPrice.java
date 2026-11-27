@@ -15,18 +15,18 @@ public class BuyPrice {
    private final ShopItem shopItem;
    private final Map<EcoType, Double> prices;
 
-   public BuyPrice(OfflinePlayer var1, int var2, ShopItem var3, Map<EcoType, Double> var4) {
-      this.player = var1;
-      this.amount = var2;
-      this.shopItem = var3;
-      this.prices = var4;
+   public BuyPrice(OfflinePlayer offlinePlayer, int price, ShopItem shopItem, Map<EcoType, Double> map) {
+      this.player = offlinePlayer;
+      this.amount = price;
+      this.shopItem = shopItem;
+      this.prices = map;
    }
 
-   public BuyPrice(OfflinePlayer var1, int var2, ShopItem var3, EcoType var4, double var5) {
-      this.player = var1;
-      this.amount = var2;
-      this.shopItem = var3;
-      this.prices = new HashMap<>(Collections.singletonMap(var4, var5));
+   public BuyPrice(OfflinePlayer offlinePlayer, int price, ShopItem shopItem, EcoType ecoType, double amount) {
+      this.player = offlinePlayer;
+      this.amount = price;
+      this.shopItem = shopItem;
+      this.prices = new HashMap<>(Collections.singletonMap(ecoType, amount));
    }
 
    public OfflinePlayer getPlayer() {
@@ -45,8 +45,8 @@ public class BuyPrice {
       return this.prices;
    }
 
-   public double getPrice(@NotNull EcoType var1) {
-      return this.prices.getOrDefault(var1, -1.0);
+   public double getPrice(@NotNull EcoType ecoType) {
+      return this.prices.getOrDefault(ecoType, -1.0);
    }
 
    public BuyPrice updateLimits() {

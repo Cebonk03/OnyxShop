@@ -14,17 +14,17 @@ import org.jetbrains.annotations.Nullable;
 public interface ShopSection {
    Collection<DisplayItem> getDisplayItems();
 
-   DisplayItem getDisplayItem(String var1);
+   DisplayItem getDisplayItem(String itemId);
 
-   boolean isActionItem(String var1, String var2);
+   boolean isActionItem(String itemId, String text);
 
    Collection<ShopItem> getShopItems();
 
-   ShopItem getShopItem(String var1);
+   ShopItem getShopItem(String shopId);
 
    String getSection();
 
-   ShopPageItems getShopPageItems(int var1);
+   ShopPageItems getShopPageItems(int page);
 
    int getPages();
 
@@ -46,23 +46,23 @@ public interface ShopSection {
 
    List<String> getShopItemLocs();
 
-   ClickAction getClickAction(ClickType var1);
+   ClickAction getClickAction(ClickType clickType);
 
-   int getPageForShopItem(String var1);
+   int getPageForShopItem(String shopId);
 
-   List<ShopItem> getPageItems(int var1);
+   List<ShopItem> getPageItems(int page);
 
-   void openShopSection(Player var1, boolean var2);
+   void openShopSection(Player player, boolean flag);
 
-   void openShopSection(Player var1, boolean var2, String var3);
+   void openShopSection(Player player, boolean flag, String shopId);
 
-   void openShopSection(Player var1, int var2, boolean var3);
+   void openShopSection(Player player, int value, boolean flag);
 
-   void openShopSection(Player var1, int var2, boolean var3, @Nullable String var4);
+   void openShopSection(Player player, int value, boolean flag, @Nullable String shopId);
 
-   ItemStack updateItem(Player var1, ShopItem var2);
+   ItemStack updateItem(Player player, ShopItem shopItem);
 
-   void reloadItem(String var1);
+   void reloadItem(String itemId);
 
-   void addNewItem(String var1);
+   void addNewItem(String itemId);
 }

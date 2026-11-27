@@ -18,57 +18,57 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent.Sku
 public class GeyserModule implements EventRegistrar {
    private final OnyxShop plugin;
 
-   public GeyserModule(OnyxShop var1) {
-      this.plugin = var1;
+   public GeyserModule(OnyxShop plugin) {
+      this.plugin = plugin;
       GeyserApi.api().eventBus().register(this, this);
       GeyserApi.api().eventBus().subscribe(this, GeyserPreInitializeEvent.class, this::onPreInitialize);
       GeyserApi.api().eventBus().subscribe(this, GeyserDefineCustomSkullsEvent.class, this::onDefineCustomSkulls);
    }
 
-   public void onPreInitialize(GeyserPreInitializeEvent var1) {
+   public void onPreInitialize(GeyserPreInitializeEvent event) {
       SendMessage.infoMessage("Enabling Geyser module...");
    }
 
-   public void onDefineCustomSkulls(GeyserDefineCustomSkullsEvent var1) {
-      GeyserModule.SkullTextures var2 = this.scrapeSkullTextures();
-      SendMessage.infoMessage("Registering " + var2.getSize() + " player head texture(s) for bedrock players...");
+   public void onDefineCustomSkulls(GeyserDefineCustomSkullsEvent event) {
+      GeyserModule.SkullTextures skullTextures = this.scrapeSkullTextures();
+      SendMessage.infoMessage("Registering " + skullTextures.getSize() + " player head texture(s) for bedrock players...");
 
-      for (String var4 : var2.getTextures()) {
-         var1.register(var4, SkullTextureType.PROFILE);
+      for (String text : skullTextures.getTextures()) {
+         event.register(text, SkullTextureType.PROFILE);
       }
 
-      for (String var6 : var2.getOwners()) {
-         var1.register(var6, SkullTextureType.USERNAME);
+      for (String text : skullTextures.getOwners()) {
+         event.register(text, SkullTextureType.USERNAME);
       }
    }
 
    private GeyserModule.SkullTextures scrapeSkullTextures() {
-      GeyserModule.SkullTextures var1 = new GeyserModule.SkullTextures();
-      this.getNavBarTextures(var1, "main-menu-nav-bar");
-      this.getNavBarTextures(var1, "shops-nav-bar");
-      this.getNavBarTextures(var1, "transaction-screens-nav-bar");
-      this.getNavBarTextures(var1, "sellgui-nav-bar");
-      this.getNavBarTextures(var1, "shop-search-nav-bar");
-      this.getNavBarTextures(var1, "buy-screen");
-      this.getNavBarTextures(var1, "sell-screen");
-      this.getNavBarTextures(var1, "buy-stacks-screen");
+      GeyserModule.SkullTextures skullTextures = new GeyserModule.SkullTextures();
+      this.getNavBarTextures(skullTextures, "main-menu-nav-bar");
+      this.getNavBarTextures(skullTextures, "shops-nav-bar");
+      this.getNavBarTextures(skullTextures, "transaction-screens-nav-bar");
+      this.getNavBarTextures(skullTextures, "sellgui-nav-bar");
+      this.getNavBarTextures(skullTextures, "shop-search-nav-bar");
+      this.getNavBarTextures(skullTextures, "buy-screen");
+      this.getNavBarTextures(skullTextures, "sell-screen");
+      this.getNavBarTextures(skullTextures, "buy-stacks-screen");
 
-      for (String var3 : ConfigManager.getSections()) {
-         if (ConfigManager.getSection(var3).getBoolean("enabled", true)) {
-            Config var4 = ConfigManager.getShop(var3);
-            if (var4 != null) {
-               this.getShopNavBarTextures(var1, var3);
-               ShopType var5 = this.plugin.getConfigManager().getShopType(var3);
+      for (String text : ConfigManager.getSections()) {
+         if (ConfigManager.getSection(text).getBoolean("enabled", true)) {
+            Config config = ConfigManager.getShop(text);
+            if (config != null) {
+               this.getShopNavBarTextures(skullTextures, text);
+               ShopType shopType = this.plugin.getConfigManager().getShopType(text);
 
-               for (String var7 : this.plugin.getConfigManager().getItemsRaw(var3)) {
-                  String var8 = var5 == ShopType.ROTATING ? var7 : "pages." + var7;
-                  String var9 = var4.getString(var8 + ".skullowner");
-                  if (var9 != null && !var9.isEmpty() && var9.matches("[a-zA-Z0-9_]{3,16}")) {
-                     var1.addOwner(var9);
+               for (String text2 : this.plugin.getConfigManager().getItemsRaw(text)) {
+                  String shopId = shopType == ShopType.ROTATING ? text2 : "pages." + text2;
+                  String text3 = config.getString(shopId + ".skullowner");
+                  if (text3 != null && !text3.isEmpty() && text3.matches("[a-zA-Z0-9_]{3,16}")) {
+                     skullTextures.addOwner(text3);
                   } else {
-                     String var10 = var4.getString(var8 + ".skull-texture");
-                     if (var10 != null && !var10.isEmpty() && Base64.isBase64(var10)) {
-                        var1.addTexture(var10);
+                     String text4 = config.getString(shopId + ".skull-texture");
+                     if (text4 != null && !text4.isEmpty() && Base64.isBase64(text4)) {
+                        skullTextures.addTexture(text4);
                      }
                   }
                }
@@ -76,22 +76,22 @@ public class GeyserModule implements EventRegistrar {
          }
       }
 
-      return var1;
+      return skullTextures;
    }
 
-   private void getShopNavBarTextures(GeyserModule.SkullTextures var1, String var2) {
-      if (!ConfigManager.getSection(var2).getString("nav-bar.mode", "INHERIT").equalsIgnoreCase("DISABLED")) {
-         ConfigurationSection var3 = ConfigManager.getSection(var2).getConfigurationSection("nav-bar.items");
-         if (var3 != null && !var3.getKeys(false).isEmpty()) {
-            for (String var5 : var3.getKeys(false)) {
-               String var6 = "nav-bar.items." + var5;
-               String var7 = ConfigManager.getSection(var2).getString(var6 + ".skullowner");
-               if (var7 != null && !var7.isEmpty() && var7.matches("[a-zA-Z0-9_]{3,16}")) {
-                  var1.addOwner(var7);
+   private void getShopNavBarTextures(GeyserModule.SkullTextures skullTextures, String shopId) {
+      if (!ConfigManager.getSection(shopId).getString("nav-bar.mode", "INHERIT").equalsIgnoreCase("DISABLED")) {
+         ConfigurationSection section = ConfigManager.getSection(shopId).getConfigurationSection("nav-bar.items");
+         if (section != null && !section.getKeys(false).isEmpty()) {
+            for (String text : section.getKeys(false)) {
+               String text2 = "nav-bar.items." + text;
+               String text3 = ConfigManager.getSection(shopId).getString(text2 + ".skullowner");
+               if (text3 != null && !text3.isEmpty() && text3.matches("[a-zA-Z0-9_]{3,16}")) {
+                  skullTextures.addOwner(text3);
                } else {
-                  String var8 = ConfigManager.getSection(var2).getString(var6 + ".skull-texture");
-                  if (var8 != null && !var8.isEmpty() && Base64.isBase64(var8)) {
-                     var1.addTexture(var8);
+                  String text4 = ConfigManager.getSection(shopId).getString(text2 + ".skull-texture");
+                  if (text4 != null && !text4.isEmpty() && Base64.isBase64(text4)) {
+                     skullTextures.addTexture(text4);
                   }
                }
             }
@@ -99,19 +99,19 @@ public class GeyserModule implements EventRegistrar {
       }
    }
 
-   private void getNavBarTextures(GeyserModule.SkullTextures var1, String var2) {
-      if (ConfigManager.getConfig().getBoolean(var2 + ".enabled", true)) {
-         ConfigurationSection var3 = ConfigManager.getConfig().getConfigurationSection(var2 + ".items");
-         if (var3 != null && !var3.getKeys(false).isEmpty()) {
-            for (String var5 : var3.getKeys(false)) {
-               String var6 = var2 + ".items." + var5;
-               String var7 = ConfigManager.getConfig().getString(var6 + ".skullowner");
-               if (var7 != null && !var7.isEmpty() && var7.matches("[a-zA-Z0-9_]{3,16}")) {
-                  var1.addOwner(var7);
+   private void getNavBarTextures(GeyserModule.SkullTextures skullTextures, String text) {
+      if (ConfigManager.getConfig().getBoolean(text + ".enabled", true)) {
+         ConfigurationSection section = ConfigManager.getConfig().getConfigurationSection(text + ".items");
+         if (section != null && !section.getKeys(false).isEmpty()) {
+            for (String text2 : section.getKeys(false)) {
+               String text3 = text + ".items." + text2;
+               String text4 = ConfigManager.getConfig().getString(text3 + ".skullowner");
+               if (text4 != null && !text4.isEmpty() && text4.matches("[a-zA-Z0-9_]{3,16}")) {
+                  skullTextures.addOwner(text4);
                } else {
-                  String var8 = ConfigManager.getConfig().getString(var6 + ".skull-texture");
-                  if (var8 != null && !var8.isEmpty() && Base64.isBase64(var8)) {
-                     var1.addTexture(var8);
+                  String text5 = ConfigManager.getConfig().getString(text3 + ".skull-texture");
+                  if (text5 != null && !text5.isEmpty() && Base64.isBase64(text5)) {
+                     skullTextures.addTexture(text5);
                   }
                }
             }
@@ -126,12 +126,12 @@ public class GeyserModule implements EventRegistrar {
       public SkullTextures() {
       }
 
-      public void addTexture(String var1) {
-         this.customTextures.add(var1);
+      public void addTexture(String text) {
+         this.customTextures.add(text);
       }
 
-      public void addOwner(String var1) {
-         this.skullOwners.add(var1);
+      public void addOwner(String text) {
+         this.skullOwners.add(text);
       }
 
       public int getSize() {

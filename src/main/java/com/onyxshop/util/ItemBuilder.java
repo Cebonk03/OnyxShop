@@ -23,33 +23,33 @@ public class ItemBuilder {
    private ItemStack item;
    private ItemMeta meta;
 
-   public ItemBuilder(ItemStack var1) {
-      this.item = var1.clone();
-      this.meta = var1.getItemMeta();
+   public ItemBuilder(ItemStack itemStack) {
+      this.item = itemStack.clone();
+      this.meta = itemStack.getItemMeta();
    }
 
-   public ItemBuilder(Material var1) {
-      this.item = new ItemStack(var1);
+   public ItemBuilder(Material material) {
+      this.item = new ItemStack(material);
       this.meta = this.item.getItemMeta();
    }
 
-   public ItemBuilder withType(Material var1) {
-      this.item.setType(var1);
+   public ItemBuilder withType(Material material) {
+      this.item.setType(material);
       return this;
    }
 
-   public ItemBuilder withSimpleMeta(ItemStack var1) {
-      ItemMeta var2 = var1.getItemMeta();
-      if (var2.hasDisplayName()) {
-         this.setDisplayName(var2.getDisplayName());
+   public ItemBuilder withSimpleMeta(ItemStack itemStack) {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (itemMeta.hasDisplayName()) {
+         this.setDisplayName(itemMeta.getDisplayName());
       }
 
-      if (var2.hasLore()) {
-         this.setLore(var2.getLore());
+      if (itemMeta.hasLore()) {
+         this.setLore(itemMeta.getLore());
       }
 
-      this.meta.addItemFlags(var2.getItemFlags().toArray(new ItemFlag[0]));
-      this.setAmount(var1.getAmount());
+      this.meta.addItemFlags(itemMeta.getItemFlags().toArray(new ItemFlag[0]));
+      this.setAmount(itemStack.getAmount());
       return this;
    }
 
@@ -61,29 +61,29 @@ public class ItemBuilder {
       return OnyxShop.getInstance().getMetaUtils().getRawDisplayName(this.meta);
    }
 
-   public void setRawDisplayName(String var1) {
-      OnyxShop.getInstance().getMetaUtils().setRawDisplayName(this.meta, var1);
+   public void setRawDisplayName(String name) {
+      OnyxShop.getInstance().getMetaUtils().setRawDisplayName(this.meta, name);
    }
 
-   public void setDisplayName(Translatable var1) {
-      OnyxShop.getInstance().getMetaUtils().setDisplayName(this.meta, var1);
+   public void setDisplayName(Translatable text) {
+      OnyxShop.getInstance().getMetaUtils().setDisplayName(this.meta, text);
    }
 
-   public void setDisplayName(String var1) {
-      this.meta.setDisplayName(var1);
+   public void setDisplayName(String name) {
+      this.meta.setDisplayName(name);
    }
 
-   public void setCDisplayName(Translatable var1) {
-      OnyxShop.getInstance().getMetaUtils().setDisplayName(this.meta, var1);
+   public void setCDisplayName(Translatable text) {
+      OnyxShop.getInstance().getMetaUtils().setDisplayName(this.meta, text);
    }
 
-   public ItemBuilder withDisplayName(Translatable var1) {
-      OnyxShop.getInstance().getMetaUtils().setDisplayName(this.meta, var1);
+   public ItemBuilder withDisplayName(Translatable text) {
+      OnyxShop.getInstance().getMetaUtils().setDisplayName(this.meta, text);
       return this;
    }
 
-   public ItemBuilder withDisplayName(String var1) {
-      this.meta.setDisplayName(var1);
+   public ItemBuilder withDisplayName(String name) {
+      this.meta.setDisplayName(name);
       return this;
    }
 
@@ -95,61 +95,61 @@ public class ItemBuilder {
       return OnyxShop.getInstance().getMetaUtils().getRawLore(this.meta);
    }
 
-   public ItemBuilder withLore(List<String> var1) {
-      this.meta.setLore(var1);
+   public ItemBuilder withLore(List<String> lores) {
+      this.meta.setLore(lores);
       return this;
    }
 
-   public ItemBuilder withCLore(List<Translatable> var1) {
-      OnyxShop.getInstance().getMetaUtils().setLore(this.meta, var1);
+   public ItemBuilder withCLore(List<Translatable> values) {
+      OnyxShop.getInstance().getMetaUtils().setLore(this.meta, values);
       return this;
    }
 
-   public void setCLore(List<Translatable> var1) {
-      OnyxShop.getInstance().getMetaUtils().setLore(this.meta, var1);
+   public void setCLore(List<Translatable> values) {
+      OnyxShop.getInstance().getMetaUtils().setLore(this.meta, values);
    }
 
-   public void setLore(List<String> var1) {
-      this.meta.setLore(var1);
+   public void setLore(List<String> lores) {
+      this.meta.setLore(lores);
    }
 
-   public void setRawLore(List<String> var1) {
-      OnyxShop.getInstance().getMetaUtils().setRawLore(this.meta, var1);
+   public void setRawLore(List<String> lores) {
+      OnyxShop.getInstance().getMetaUtils().setRawLore(this.meta, lores);
    }
 
-   public ItemBuilder addLore(String... var1) {
-      List<String> var2 = this.meta.hasLore() ? this.meta.getLore() : new ArrayList<>();
-      var2.addAll(0, OnyxShop.getInstance().itemEditor.getMultipleItemLore(var1));
-      this.meta.setLore((List)var2);
+   public ItemBuilder addLore(String... lores) {
+      List<String> values = this.meta.hasLore() ? this.meta.getLore() : new ArrayList<>();
+      values.addAll(0, OnyxShop.getInstance().itemEditor.getMultipleItemLore(lores));
+      this.meta.setLore((List)values);
       return this;
    }
 
-   public ItemBuilder addLore(List<String> var1) {
-      List<String> var2 = this.meta.hasLore() ? this.meta.getLore() : new ArrayList<>();
-      var2.addAll(var1);
-      this.meta.setLore((List)var2);
+   public ItemBuilder addLore(List<String> lores) {
+      List<String> values = this.meta.hasLore() ? this.meta.getLore() : new ArrayList<>();
+      values.addAll(lores);
+      this.meta.setLore((List)values);
       return this;
    }
 
-   public ItemBuilder addLore(String var1) {
-      List<String> var2 = this.meta.hasLore() ? this.meta.getLore() : new ArrayList<>();
-      var2.add(var1);
-      this.meta.setLore((List)var2);
+   public ItemBuilder addLore(String lore) {
+      List<String> values = this.meta.hasLore() ? this.meta.getLore() : new ArrayList<>();
+      values.add(lore);
+      this.meta.setLore((List)values);
       return this;
    }
 
-   public ItemBuilder addLore(Translatable var1) {
-      OnyxShop.getInstance().getMetaUtils().addLore(this.meta, var1);
+   public ItemBuilder addLore(Translatable text) {
+      OnyxShop.getInstance().getMetaUtils().addLore(this.meta, text);
       return this;
    }
 
-   public ItemBuilder withLore(Translatable... var1) {
-      OnyxShop.getInstance().getMetaUtils().setLore(this.meta, Arrays.asList(var1));
+   public ItemBuilder withLore(Translatable... lores) {
+      OnyxShop.getInstance().getMetaUtils().setLore(this.meta, Arrays.asList(lores));
       return this;
    }
 
-   public ItemBuilder withLore(String... var1) {
-      this.meta.setLore(OnyxShop.getInstance().itemEditor.getMultipleItemLore(var1));
+   public ItemBuilder withLore(String... lores) {
+      this.meta.setLore(OnyxShop.getInstance().itemEditor.getMultipleItemLore(lores));
       return this;
    }
 
@@ -158,19 +158,19 @@ public class ItemBuilder {
       return this;
    }
 
-   public ItemBuilder withItemFlags(List<String> var1) throws ItemLoadException {
-      for (String var3 : var1) {
-         if (var3.equals("*") || var3.equalsIgnoreCase("ALL")) {
+   public ItemBuilder withItemFlags(List<String> itemIds) throws ItemLoadException {
+      for (String text : itemIds) {
+         if (text.equals("*") || text.equalsIgnoreCase("ALL")) {
             this.hideFlags();
             return this;
          }
 
          try {
-            ItemFlag var4 = ItemFlag.valueOf(var3.toUpperCase(Locale.ROOT));
-            this.meta.addItemFlags(new ItemFlag[]{var4});
-         } catch (IllegalArgumentException var5) {
+            ItemFlag itemFlag = ItemFlag.valueOf(text.toUpperCase(Locale.ROOT));
+            this.meta.addItemFlags(new ItemFlag[]{itemFlag});
+         } catch (IllegalArgumentException exception) {
             throw new ItemLoadException(
-               "Invalid item flag for " + var3 + ", valid values are: " + Arrays.toString(Arrays.stream(ItemFlag.values()).map(Enum::name).toArray())
+               "Invalid item flag for " + text + ", valid values are: " + Arrays.toString(Arrays.stream(ItemFlag.values()).map(Enum::name).toArray())
             );
          }
       }
@@ -185,8 +185,8 @@ public class ItemBuilder {
 
    public ItemBuilder hideEntityData() {
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R4) && !ServerInfo.supportsPaper()) {
-         ItemFlag var1 = ItemFlag.valueOf("HIDE_BLOCK_ENTITY_DATA");
-         this.meta.addItemFlags(new ItemFlag[]{var1});
+         ItemFlag itemFlag = ItemFlag.valueOf("HIDE_BLOCK_ENTITY_DATA");
+         this.meta.addItemFlags(new ItemFlag[]{itemFlag});
       } else if (ServerInfo.supportsComponents()) {
          this.meta.addItemFlags(new ItemFlag[]{ItemFlag.HIDE_ADDITIONAL_TOOLTIP});
       } else {
@@ -208,81 +208,81 @@ public class ItemBuilder {
    }
 
    public ItemBuilder removeEnchants() {
-      for (Enchantment var2 : this.meta.getEnchants().keySet()) {
-         this.meta.removeEnchant(var2);
+      for (Enchantment enchantment : this.meta.getEnchants().keySet()) {
+         this.meta.removeEnchant(enchantment);
       }
 
       return this;
    }
 
-   public ItemBuilder replaceText(String var1, String var2) {
+   public ItemBuilder replaceText(String itemId, String text) {
       if (this.meta.hasDisplayName()) {
-         this.meta.setDisplayName(this.meta.getDisplayName().replace(var1, var2));
+         this.meta.setDisplayName(this.meta.getDisplayName().replace(itemId, text));
       }
 
       if (this.meta.hasLore()) {
-         this.meta.setLore(this.meta.getLore().stream().map(var2x -> var2x.replace(var1, var2)).collect(Collectors.toList()));
+         this.meta.setLore(this.meta.getLore().stream().map(element -> element.replace(itemId, text)).collect(Collectors.toList()));
       }
 
       return this;
    }
 
-   public ItemBuilder replaceName(String var1, String var2) {
+   public ItemBuilder replaceName(String name, String itemId) {
       if (!this.meta.hasDisplayName()) {
          return this;
       } else {
-         this.meta.setDisplayName(this.meta.getDisplayName().replace(var1, var2));
+         this.meta.setDisplayName(this.meta.getDisplayName().replace(name, itemId));
          return this;
       }
    }
 
-   public ItemBuilder withCustomModelData(int var1) {
-      this.meta.setCustomModelData(var1);
+   public ItemBuilder withCustomModelData(int value) {
+      this.meta.setCustomModelData(value);
       return this;
    }
 
-   public ItemBuilder replaceLore(String var1, String var2) {
+   public ItemBuilder replaceLore(String lore, String itemId) {
       if (!this.meta.hasLore()) {
          return this;
       } else {
-         this.meta.setLore(this.meta.getLore().stream().map(var2x -> var2x.replace(var1, var2)).collect(Collectors.toList()));
+         this.meta.setLore(this.meta.getLore().stream().map(element -> element.replace(lore, itemId)).collect(Collectors.toList()));
          return this;
       }
    }
 
-   public void setOwner(String var1) throws ItemLoadException {
+   public void setOwner(String itemId) throws ItemLoadException {
       if (this.item.getType().equals(XMaterial.PLAYER_HEAD.parseMaterial())) {
-         SkullUtil.setSkullTexture(this.item, (SkullMeta)this.meta, var1, false);
+         SkullUtil.setSkullTexture(this.item, (SkullMeta)this.meta, itemId, false);
       } else {
          throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
       }
    }
 
-   public void setTexture(String var1) throws ItemLoadException {
+   public void setTexture(String itemId) throws ItemLoadException {
       if (this.item.getType().equals(XMaterial.PLAYER_HEAD.parseMaterial())) {
-         SkullUtil.setSkullTextureFromHash((SkullMeta)this.meta, var1);
+         SkullUtil.setSkullTextureFromHash((SkullMeta)this.meta, itemId);
       } else {
          throw new ItemLoadException(Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
       }
    }
 
-   public ItemBuilder withSkullOwner(String var1) {
-      SkullUtil.setSkullTexture(this.item, (SkullMeta)this.meta, var1, false);
+   public ItemBuilder withSkullOwner(String itemId) {
+      SkullUtil.setSkullTexture(this.item, (SkullMeta)this.meta, itemId, false);
       return this;
    }
 
-   public ItemBuilder withSkullTexture(String var1) {
-      SkullUtil.setSkullTextureFromHash((SkullMeta)this.meta, var1);
+   public ItemBuilder withSkullTexture(String itemId) {
+      SkullUtil.setSkullTextureFromHash((SkullMeta)this.meta, itemId);
       return this;
    }
 
-   public ItemBuilder setAmount(int var1) {
-      this.item.setAmount(var1);
+   public ItemBuilder setAmount(int amount) {
+      this.item.setAmount(amount);
       return this;
    }
 
-   public ItemBuilder withAmount(int var1) {
-      this.item.setAmount(var1);
+   public ItemBuilder withAmount(int amount) {
+      this.item.setAmount(amount);
       return this;
    }
 
@@ -293,8 +293,8 @@ public class ItemBuilder {
 
    public ItemBuilder hideInteractLore() {
       if (ServerInfo.getVersion().newerOrEqualAs(ServerInfo.Version.v1_21_R4) && !ServerInfo.supportsPaper()) {
-         ItemFlag var1 = ItemFlag.valueOf("HIDE_BLOCK_ENTITY_DATA");
-         this.meta.addItemFlags(new ItemFlag[]{var1});
+         ItemFlag itemFlag = ItemFlag.valueOf("HIDE_BLOCK_ENTITY_DATA");
+         this.meta.addItemFlags(new ItemFlag[]{itemFlag});
       } else {
          this.meta.addItemFlags(ItemFlag.values());
       }
@@ -302,10 +302,10 @@ public class ItemBuilder {
       return this;
    }
 
-   public ItemBuilder setArmorColor(Color var1) {
-      LeatherArmorMeta var2 = (LeatherArmorMeta)this.meta;
-      var2.setColor(var1);
-      this.meta = var2;
+   public ItemBuilder setArmorColor(Color color) {
+      LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta)this.meta;
+      leatherArmorMeta.setColor(color);
+      this.meta = leatherArmorMeta;
       return this;
    }
 

@@ -11,11 +11,11 @@ public class SimpleEnchantment {
    private final String key;
    private final int lvl;
 
-   public SimpleEnchantment(EnchantsProvider.Provider var1, Object var2, String var3, int var4) {
-      this.provider = var1;
-      this.enchant = var2;
-      this.key = var3;
-      this.lvl = var4;
+   public SimpleEnchantment(EnchantsProvider.Provider provider, Object value, String text, int value2) {
+      this.provider = provider;
+      this.enchant = value;
+      this.key = text;
+      this.lvl = value2;
    }
 
    public EnchantsProvider.Provider getProvider() {
@@ -34,8 +34,8 @@ public class SimpleEnchantment {
       return this.lvl;
    }
 
-   public boolean canEnchant(ItemStack var1) {
-      return EnchantsProvider.canEnchant(var1, this);
+   public boolean canEnchant(ItemStack itemStack) {
+      return EnchantsProvider.canEnchant(itemStack, this);
    }
 
    public ItemStack getBook() {
@@ -46,7 +46,7 @@ public class SimpleEnchantment {
       return EnchantsProvider.getName(this);
    }
 
-   public ItemStack enchantItem(ItemStack var1, @Nullable DisplayItem var2) {
-      return EnchantsProvider.enchantItem(var1, this, var2);
+   public ItemStack enchantItem(ItemStack itemStack, @Nullable DisplayItem displayItem) {
+      return EnchantsProvider.enchantItem(itemStack, this, displayItem);
    }
 }

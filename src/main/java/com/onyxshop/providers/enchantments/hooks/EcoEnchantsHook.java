@@ -28,9 +28,9 @@ public class EcoEnchantsHook extends BukkitEnch implements EnchantProvider {
    private Map<String, EcoEnchant> registry() {
       try {
          return (Map<String, EcoEnchant>)this.field.get(this.clazz);
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to get EnchantRegistry");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
@@ -40,7 +40,7 @@ public class EcoEnchantsHook extends BukkitEnch implements EnchantProvider {
          this.clazz = Class.forName("com.willfp.ecoenchants.enchant.EcoEnchants");
          this.field = this.clazz.getDeclaredField("BY_NAME");
          this.field.setAccessible(true);
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          throw new EnchantHookLoadException(
             "Failed to register EcoEnchants hook, this version of EcoEnchants("
                + Bukkit.getPluginManager().getPlugin("EcoEnchants").getDescription().getVersion()
@@ -50,34 +50,34 @@ public class EcoEnchantsHook extends BukkitEnch implements EnchantProvider {
    }
 
    @Override
-   public SimpleEnchantment getEnchant(String var1, int var2) throws ItemLoadException {
-      Enchantment var3 = Enchantment.getByKey(NamespacedKey.minecraft(var1));
-      if (var3 != null) {
-         var2 = OnyxShop.getInstance().allowUnsafeEnchants ? var2 : (var2 > var3.getMaxLevel() ? var3.getMaxLevel() : var2);
-         return new SimpleEnchantment(EnchantsProvider.Provider.ECO_ENCHANTS, var3, var1, var2);
+   public SimpleEnchantment getEnchant(String itemId, int value) throws ItemLoadException {
+      Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(itemId));
+      if (enchantment != null) {
+         value = OnyxShop.getInstance().allowUnsafeEnchants ? value : (value > enchantment.getMaxLevel() ? enchantment.getMaxLevel() : value);
+         return new SimpleEnchantment(EnchantsProvider.Provider.ECO_ENCHANTS, enchantment, itemId, value);
       } else {
-         throw new ItemLoadException("EcoEnchants could not find a enchantment with name '" + var1 + "'");
+         throw new ItemLoadException("EcoEnchants could not find a enchantment with name '" + itemId + "'");
       }
    }
 
    @Override
-   public boolean canEnchantItem(ItemStack var1, SimpleEnchantment var2) {
-      return super.canEnchantItem(var1, (Enchantment)var2.getEnchant());
+   public boolean canEnchantItem(ItemStack itemStack, SimpleEnchantment simpleEnchantment) {
+      return super.canEnchantItem(itemStack, (Enchantment)simpleEnchantment.getEnchant());
    }
 
    @Override
-   public ItemStack addEnchantment(ItemStack var1, SimpleEnchantment var2, @Nullable DisplayItem var3) {
-      return super.addEnchantment(var1, (Enchantment)var2.getEnchant(), var2.getLvl(), var3);
+   public ItemStack addEnchantment(ItemStack itemStack, SimpleEnchantment simpleEnchantment, @Nullable DisplayItem displayItem) {
+      return super.addEnchantment(itemStack, (Enchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl(), displayItem);
    }
 
    @Override
-   public boolean isEnchant(NamespacedKey var1) {
-      return EcoEnchants.INSTANCE.getByID(var1.getKey()) != null;
+   public boolean isEnchant(NamespacedKey namespacedKey) {
+      return EcoEnchants.INSTANCE.getByID(namespacedKey.getKey()) != null;
    }
 
    @Override
    public List<String> getAvailableEnchantKeys() {
-      return this.registry().values().stream().map(var0 -> "ecoenchants:" + var0.getEnchantmentKey().getKey() + ":1").collect(Collectors.toList());
+      return this.registry().values().stream().map(element -> "ecoenchants:" + element.getEnchantmentKey().getKey() + ":1").collect(Collectors.toList());
    }
 
    @Override
@@ -85,17 +85,17 @@ public class EcoEnchantsHook extends BukkitEnch implements EnchantProvider {
       return this.registry()
          .values()
          .stream()
-         .map(var0 -> new SimpleEnchantment(EnchantsProvider.Provider.ECO_ENCHANTS, var0.getEnchantment(), var0.getEnchantmentKey().getKey(), 1))
+         .map(element -> new SimpleEnchantment(EnchantsProvider.Provider.ECO_ENCHANTS, element.getEnchantment(), element.getEnchantmentKey().getKey(), 1))
          .collect(Collectors.toList());
    }
 
    @Override
-   public List<Object> getAvailableEnchants(ItemStack var1) {
-      return this.registry().values().stream().filter(var1x -> var1x.canEnchantItem(var1)).collect(Collectors.toList());
+   public List<Object> getAvailableEnchants(ItemStack itemStack) {
+      return this.registry().values().stream().filter(element -> element.canEnchantItem(itemStack)).collect(Collectors.toList());
    }
 
    @Override
-   public ItemStack getBook(SimpleEnchantment var1) {
-      return super.getBook((Enchantment)var1.getEnchant(), var1.getLvl());
+   public ItemStack getBook(SimpleEnchantment simpleEnchantment) {
+      return super.getBook((Enchantment)simpleEnchantment.getEnchant(), simpleEnchantment.getLvl());
    }
 }

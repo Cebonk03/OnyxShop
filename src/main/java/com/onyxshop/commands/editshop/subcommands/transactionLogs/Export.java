@@ -27,8 +27,8 @@ import org.bukkit.command.CommandSender;
 public class Export extends SubCommad {
    private final OnyxShop plugin;
 
-   public Export(OnyxShop var1) {
-      this.plugin = var1;
+   public Export(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    @Override
@@ -47,106 +47,106 @@ public class Export extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.logs." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.logs." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      SendMessage.infoMessage(var1, "Exporting transaction data, this can take some time depending on the size of the transactions database...");
-      this.plugin.runTaskAsync(() -> this.retrieveAndCreate(var1));
+   public void perform(Object value, String[] values) {
+      SendMessage.infoMessage(value, "Exporting transaction data, this can take some time depending on the size of the transactions database...");
+      this.plugin.runTaskAsync(() -> this.retrieveAndCreate(value));
    }
 
-   public void retrieveAndCreate(Object var1) {
-      long var2 = System.currentTimeMillis();
-      String var4 = this.plugin.getTransactionLog().exportLogs();
+   public void retrieveAndCreate(Object value) {
+      long startTime = System.currentTimeMillis();
+      String text = this.plugin.getTransactionLog().exportLogs();
 
       try {
-         new Gson().fromJson(var4, JsonObject.class);
-      } catch (JsonSyntaxException var11) {
-         SendMessage.sendMessage(var1, "A unknown error occurred while exporting logs data");
-         var11.printStackTrace();
+         new Gson().fromJson(text, JsonObject.class);
+      } catch (JsonSyntaxException exception) {
+         SendMessage.sendMessage(value, "A unknown error occurred while exporting logs data");
+         exception.printStackTrace();
          return;
       }
 
       try {
-         String var5 = this.export(var4);
-         JsonObject var6 = (JsonObject)new Gson().fromJson(var5, JsonObject.class);
-         String var7 = var6.get("response").getAsString();
-         if (var7.equals("error")) {
-            SendMessage.errorMessage(var1, "Failed to export logs at this time with reason: " + var7);
+         String text2 = this.export(text);
+         JsonObject jsonObject = (JsonObject)new Gson().fromJson(text2, JsonObject.class);
+         String asString = jsonObject.get("response").getAsString();
+         if (asString.equals("error")) {
+            SendMessage.errorMessage(value, "Failed to export logs at this time with reason: " + asString);
             return;
          }
 
-         String var8 = var6.get("id").getAsString();
+         String asString2 = jsonObject.get("id").getAsString();
          this.plugin.runTask(() -> {
-            SendMessage.infoMessage(var1, "Took " + (System.currentTimeMillis() - var2) + "ms to create logs view");
-            SendMessage.infoMessage(var1, "Log id: " + ChatColor.WHITE + var8);
+            SendMessage.infoMessage(value, "Took " + (System.currentTimeMillis() - startTime) + "ms to create logs view");
+            SendMessage.infoMessage(value, "Log id: " + ChatColor.WHITE + asString2);
          });
-      } catch (NullPointerException var9) {
-         SendMessage.errorMessage(var1, "Failed to export logs at this point, please try again soon.");
-         var9.printStackTrace();
-      } catch (Exception var10) {
-         SendMessage.errorMessage(var1, "Unable to reach API server at this point, see console for more details.");
-         var10.printStackTrace();
+      } catch (NullPointerException exception) {
+         SendMessage.errorMessage(value, "Failed to export logs at this point, please try again soon.");
+         exception.printStackTrace();
+      } catch (Exception exception) {
+         SendMessage.errorMessage(value, "Unable to reach API server at this point, see console for more details.");
+         exception.printStackTrace();
       }
    }
 
-   private String export(String var1) throws IOException {
-      URL var2 = new URL(MarketplaceIntegration.getServer() + "/exportLogs");
-      HttpURLConnection var3 = (HttpURLConnection)var2.openConnection();
-      var3.setConnectTimeout(5000);
-      var3.setDoOutput(true);
-      var3.setRequestMethod("POST");
-      var3.setRequestProperty("Content-Type", "application/json");
-      OutputStream var4 = var3.getOutputStream();
-      OutputStreamWriter var5 = new OutputStreamWriter(var4, StandardCharsets.UTF_8);
-      var5.write(var1);
-      var5.flush();
-      var5.close();
-      var4.close();
-      var3.connect();
-      return new BufferedReader(new InputStreamReader(var3.getInputStream())).readLine();
+   private String export(String text) throws IOException {
+      URL url = new URL(MarketplaceIntegration.getServer() + "/exportLogs");
+      HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+      httpURLConnection.setConnectTimeout(5000);
+      httpURLConnection.setDoOutput(true);
+      httpURLConnection.setRequestMethod("POST");
+      httpURLConnection.setRequestProperty("Content-Type", "application/json");
+      OutputStream outputStream = httpURLConnection.getOutputStream();
+      OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+      outputStreamWriter.write(text);
+      outputStreamWriter.flush();
+      outputStreamWriter.close();
+      outputStream.close();
+      httpURLConnection.connect();
+      return new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream())).readLine();
    }
 
-   private File saveToFile(String var1) {
-      File var2 = new File(this.plugin.getDataFolder(), "logs.json");
+   private File saveToFile(String text) {
+      File file = new File(this.plugin.getDataFolder(), "logs.json");
 
       try {
-         if (!var2.exists()) {
-            var2.createNewFile();
+         if (!file.exists()) {
+            file.createNewFile();
          }
-      } catch (IOException var9) {
+      } catch (IOException exception) {
          System.out.println("Failed to create logs.json");
       }
 
       try {
-         FileWriter var3 = new FileWriter(var2);
+         FileWriter fileWriter = new FileWriter(file);
 
          try {
-            var3.write(var1);
-            var3.flush();
-         } catch (Throwable var7) {
+            fileWriter.write(text);
+            fileWriter.flush();
+         } catch (Throwable exception) {
             try {
-               var3.close();
-            } catch (Throwable var6) {
-               var7.addSuppressed(var6);
+               fileWriter.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
 
-            throw var7;
+            throw exception;
          }
 
-         var3.close();
-      } catch (IOException var8) {
+         fileWriter.close();
+      } catch (IOException exception) {
          System.err.println("Failed to save logs to 'logs.json'");
-         var8.printStackTrace();
+         exception.printStackTrace();
       }
 
-      return var2;
+      return file;
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
+   public List<String> getTabCompletion(String[] values) {
       return null;
    }
 
@@ -157,12 +157,12 @@ public class Export extends SubCommad {
       public final String itemPath;
       public final Transaction.Mode action;
 
-      public SimpleTransaction(TransactionLog.SimpleTransaction nullx) {
-         this.date = nullx.date;
+      public SimpleTransaction(TransactionLog.SimpleTransaction simpleTransaction) {
+         this.date = simpleTransaction.date;
          this.player = "OnyxShop";
-         this.itemPath = nullx.itemPath;
-         this.amount = nullx.amount;
-         this.action = nullx.action;
+         this.itemPath = simpleTransaction.itemPath;
+         this.amount = simpleTransaction.amount;
+         this.action = simpleTransaction.action;
       }
    }
 }

@@ -79,137 +79,137 @@ public class MenuHandler implements Listener {
    private final ConcurrentMap<UUID, Boolean> cooldown;
    public static final boolean backOnClose = ConfigManager.getConfig().getBoolean("escape-back");
 
-   public MenuHandler(OnyxShop var1) {
-      this.plugin = var1;
-      int var2 = Math.max(0, ConfigManager.getConfig().getInt("click-cooldown", 125));
-      this.cooldown = (ConcurrentMap<UUID, Boolean>)(ConcurrentMap<?, ?>) CacheBuilder.newBuilder().expireAfterWrite(Duration.of(var2, ChronoUnit.MILLIS)).build().asMap();
+   public MenuHandler(OnyxShop plugin) {
+      this.plugin = plugin;
+      int cooldown = Math.max(0, ConfigManager.getConfig().getInt("click-cooldown", 125));
+      this.cooldown = (ConcurrentMap<UUID, Boolean>)(ConcurrentMap<?, ?>) CacheBuilder.newBuilder().expireAfterWrite(Duration.of(cooldown, ChronoUnit.MILLIS)).build().asMap();
    }
 
    @EventHandler(
       priority = EventPriority.HIGH
    )
-   public void onMenuClick(InventoryClickEvent var1) {
-      int var2 = var1.getRawSlot();
-      Inventory var3 = var1.getInventory();
-      InventoryHolder var4 = InventoryUtil.getHolder(var3);
-      if (var4 instanceof ShopInventory || var4 instanceof ItemEditor) {
-         if (var2 >= var3.getSize()) {
-            if (var1.getClick() != ClickType.SHIFT_LEFT && var1.getClick() != ClickType.SHIFT_RIGHT) {
-               if (var1.getAction().equals(InventoryAction.COLLECT_TO_CURSOR)) {
-                  var1.setCancelled(true);
+   public void onMenuClick(InventoryClickEvent event) {
+      int slot = event.getRawSlot();
+      Inventory inventory = event.getInventory();
+      InventoryHolder holder = InventoryUtil.getHolder(inventory);
+      if (holder instanceof ShopInventory || holder instanceof ItemEditor) {
+         if (slot >= inventory.getSize()) {
+            if (event.getClick() != ClickType.SHIFT_LEFT && event.getClick() != ClickType.SHIFT_RIGHT) {
+               if (event.getAction().equals(InventoryAction.COLLECT_TO_CURSOR)) {
+                  event.setCancelled(true);
                }
-            } else if (var4 instanceof SellGUI) {
-               this.handleShiftSellGUI(var1, var3, var4, var2);
+            } else if (holder instanceof SellGUI) {
+               this.handleShiftSellGUI(event, inventory, holder, slot);
             } else {
-               var1.setCancelled(true);
+               event.setCancelled(true);
             }
          } else {
-            var1.setCancelled(true);
-            if (var1.getClick() != ClickType.DOUBLE_CLICK) {
-               Player var5 = (Player)var1.getWhoClicked();
-               if (this.cooldown.putIfAbsent(var5.getUniqueId(), Boolean.TRUE) == null) {
-                  if (var1.getCurrentItem() != null && var1.getCurrentItem().getType() != Material.AIR || var4 instanceof SellGUI) {
-                     if (var4 instanceof ShopPage) {
-                        ShopPage var12 = (ShopPage)var4;
-                        if (var2 >= var3.getSize() - 9 && var2 <= var3.getSize() - 1 && this.plugin.navBar.isEnabled(var12.getSection())) {
-                           this.plugin.navBar.execute(var5, var12, var2, var12.getPage(), var12.isDisabledBackButton());
+            event.setCancelled(true);
+            if (event.getClick() != ClickType.DOUBLE_CLICK) {
+               Player player = (Player)event.getWhoClicked();
+               if (this.cooldown.putIfAbsent(player.getUniqueId(), Boolean.TRUE) == null) {
+                  if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR || holder instanceof SellGUI) {
+                     if (holder instanceof ShopPage) {
+                        ShopPage shopPage = (ShopPage)holder;
+                        if (slot >= inventory.getSize() - 9 && slot <= inventory.getSize() - 1 && this.plugin.navBar.isEnabled(shopPage.getSection())) {
+                           this.plugin.navBar.execute(player, shopPage, slot, shopPage.getPage(), shopPage.isDisabledBackButton());
                         } else {
-                           DisplayItem var15 = this.plugin.getDisplayItem(var12.getSection(), var12.getItem(var2));
-                           if (var15 == null) {
+                           DisplayItem displayItem = this.plugin.getDisplayItem(shopPage.getSection(), shopPage.getItem(slot));
+                           if (displayItem == null) {
                               return;
                            }
 
-                           ClickAction var17 = this.plugin.getSection(var12.getSection()).getClickAction(var1.getClick());
-                           if (var17 == null) {
+                           ClickAction clickAction = this.plugin.getSection(shopPage.getSection()).getClickAction(event.getClick());
+                           if (clickAction == null) {
                               return;
                            }
 
-                           if (var17 == ClickAction.GUI_EDITOR
-                              && var15 instanceof ShopItem
-                              && PermissionsCache.hasPermission(var5, "OnyxShop.editshop.editor")) {
-                              new Main(var5, (ShopItem)var15);
-                           } else if (!var15.hasItemError()) {
-                              if (!var15.canPurchase(var5, "shop", false) || !this.isAllowedGamemode(var5)) {
+                           if (clickAction == ClickAction.GUI_EDITOR
+                              && displayItem instanceof ShopItem
+                              && PermissionsCache.hasPermission(player, "OnyxShop.editshop.editor")) {
+                              new Main(player, (ShopItem)displayItem);
+                           } else if (!displayItem.hasItemError()) {
+                              if (!displayItem.canPurchase(player, "shop", false) || !this.isAllowedGamemode(player)) {
                                  return;
                               }
 
-                              if (var15.meetsRequirements(var5, false)) {
-                                 if (var15.isClickCommand() && this.plugin.commandItems) {
-                                    CommandHelper.executeCommandItem(var15, var5, CommandType.CLICK);
+                              if (displayItem.meetsRequirements(player, false)) {
+                                 if (displayItem.isClickCommand() && this.plugin.commandItems) {
+                                    CommandHelper.executeCommandItem(displayItem, player, CommandType.CLICK);
                                  }
 
-                                 if (var15 instanceof ActionItem) {
-                                    this.plugin.navBar.execute(var5, var12, ((ActionItem)var15).getAction(), var12.getPage(), var12.isDisabledBackButton());
+                                 if (displayItem instanceof ActionItem) {
+                                    this.plugin.navBar.execute(player, shopPage, ((ActionItem)displayItem).getAction(), shopPage.getPage(), shopPage.isDisabledBackButton());
                                     return;
                                  }
 
-                                 ShopItem var9 = (ShopItem)var15;
-                                 if (var9.isLinked()) {
-                                    if (PermissionsCache.hasPermission(var5, "OnyxShop.shop." + var9.getSubSection().toLowerCase())) {
-                                       this.plugin.getSection(var9.getSubSection()).openShopSection(var5, var12.isDisabledBackButton(), var9.section);
+                                 ShopItem shopItem = (ShopItem)displayItem;
+                                 if (shopItem.isLinked()) {
+                                    if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + shopItem.getSubSection().toLowerCase())) {
+                                       this.plugin.getSection(shopItem.getSubSection()).openShopSection(player, shopPage.isDisabledBackButton(), shopItem.section);
                                     } else {
-                                       SendMessage.chatToPlayer(var5, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get());
+                                       SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get());
                                     }
 
                                     return;
                                  }
 
-                                 if (var9.isDisplayItem()) {
+                                 if (shopItem.isDisplayItem()) {
                                     return;
                                  }
 
-                                 if (var17 == ClickAction.BUY) {
-                                    if (!var9.isBuyAble()) {
+                                 if (clickAction == ClickAction.BUY) {
+                                    if (!shopItem.isBuyAble()) {
                                        return;
                                     }
 
-                                    if (var9.getMaxBuy() == -1) {
-                                       if (var9.isABuyPricing()) {
-                                          if (this.purchaseItemA(var5, var9)) {
-                                             var3.setItem(var1.getSlot(), this.plugin.getSection(var9.section).updateItem(var5, var9));
+                                    if (shopItem.getMaxBuy() == -1) {
+                                       if (shopItem.isABuyPricing()) {
+                                          if (this.purchaseItemA(player, shopItem)) {
+                                             inventory.setItem(event.getSlot(), this.plugin.getSection(shopItem.section).updateItem(player, shopItem));
                                           }
-                                       } else if (this.purchaseItem(var5, var9)) {
-                                          var3.setItem(var1.getSlot(), this.plugin.getSection(var9.section).updateItem(var5, var9));
+                                       } else if (this.purchaseItem(player, shopItem)) {
+                                          inventory.setItem(event.getSlot(), this.plugin.getSection(shopItem.section).updateItem(player, shopItem));
                                        }
                                     } else {
                                        new TransactionMenu(
-                                             var5,
-                                             var9,
-                                             var12.getRootSection(),
-                                             var12.isDisabledBackButton(),
+                                             player,
+                                             shopItem,
+                                             shopPage.getRootSection(),
+                                             shopPage.isDisabledBackButton(),
                                              Transaction.Mode.BUY,
                                              Transaction.Type.BUY_SCREEN,
                                              1
                                           )
                                           .open(false);
                                     }
-                                 } else if (var17 == ClickAction.SELL_ALL) {
-                                    if (!var9.isSellAble() || !this.plugin.MMB) {
+                                 } else if (clickAction == ClickAction.SELL_ALL) {
+                                    if (!shopItem.isSellAble() || !this.plugin.MMB) {
                                        return;
                                     }
 
-                                    if (var9.isASellPricing() ? this.sellItemA(var5, var9, Integer.MAX_VALUE) : this.sellItem(var5, var9, Integer.MAX_VALUE)) {
-                                       var3.setItem(var1.getSlot(), this.plugin.getSection(var9.section).updateItem(var5, var9));
+                                    if (shopItem.isASellPricing() ? this.sellItemA(player, shopItem, Integer.MAX_VALUE) : this.sellItem(player, shopItem, Integer.MAX_VALUE)) {
+                                       inventory.setItem(event.getSlot(), this.plugin.getSection(shopItem.section).updateItem(player, shopItem));
                                     }
-                                 } else if (var17 == ClickAction.SELL) {
-                                    if (!var9.isSellAble()) {
+                                 } else if (clickAction == ClickAction.SELL) {
+                                    if (!shopItem.isSellAble()) {
                                        return;
                                     }
 
-                                    if (var9.getMaxSell() == -1) {
-                                       if (var9.isASellPricing()) {
-                                          if (this.sellItemA(var5, var9, var9.getStackSize())) {
-                                             var3.setItem(var1.getSlot(), this.plugin.getSection(var9.section).updateItem(var5, var9));
+                                    if (shopItem.getMaxSell() == -1) {
+                                       if (shopItem.isASellPricing()) {
+                                          if (this.sellItemA(player, shopItem, shopItem.getStackSize())) {
+                                             inventory.setItem(event.getSlot(), this.plugin.getSection(shopItem.section).updateItem(player, shopItem));
                                           }
-                                       } else if (this.sellItem(var5, var9, var9.getStackSize())) {
-                                          var3.setItem(var1.getSlot(), this.plugin.getSection(var9.section).updateItem(var5, var9));
+                                       } else if (this.sellItem(player, shopItem, shopItem.getStackSize())) {
+                                          inventory.setItem(event.getSlot(), this.plugin.getSection(shopItem.section).updateItem(player, shopItem));
                                        }
                                     } else {
                                        new TransactionMenu(
-                                             var5,
-                                             var9,
-                                             var12.getRootSection(),
-                                             var12.isDisabledBackButton(),
+                                             player,
+                                             shopItem,
+                                             shopPage.getRootSection(),
+                                             shopPage.isDisabledBackButton(),
                                              Transaction.Mode.SELL,
                                              Transaction.Type.SELL_SCREEN,
                                              1
@@ -219,19 +219,19 @@ public class MenuHandler implements Listener {
                                  }
                               }
                            } else {
-                              SendMessage.chatToPlayer(var5, Lang.ITEM_ERROR.get());
+                              SendMessage.chatToPlayer(player, Lang.ITEM_ERROR.get());
                            }
                         }
-                     } else if (var4 instanceof TransactionMenu) {
-                        TransactionMenu var11 = (TransactionMenu)var4;
-                        if (var2 >= var3.getSize() - 9 && var2 <= var3.getSize() - 1) {
-                           switch (var11.getTransactionType()) {
+                     } else if (holder instanceof TransactionMenu) {
+                        TransactionMenu transactionMenu = (TransactionMenu)holder;
+                        if (slot >= inventory.getSize() - 9 && slot <= inventory.getSize() - 1) {
+                           switch (transactionMenu.getTransactionType()) {
                               case SHOPSTAND_BUY_SCREEN:
                               case SHOPSTAND_SELL_SCREEN:
                                  if (this.plugin.navBar.isEnableShopStandsNav()) {
                                     this.plugin
                                        .navBar
-                                       .execute(var11, var5, var11.getShopItem(), var2 - (var3.getSize() - 9), var11.getTransactionMode(), var11.getAmount());
+                                       .execute(transactionMenu, player, transactionMenu.getShopItem(), slot - (inventory.getSize() - 9), transactionMenu.getTransactionMode(), transactionMenu.getAmount());
                                  }
                                  break;
                               default:
@@ -239,150 +239,150 @@ public class MenuHandler implements Listener {
                                     this.plugin
                                        .navBar
                                        .execute(
-                                          var11,
-                                          var5,
-                                          var11.getShopItem(),
-                                          var2 - (var3.getSize() - 9),
-                                          var11.getRootSection(),
-                                          var11.isDisabledBackButton(),
-                                          var11.getTransactionMode(),
-                                          var11.getTransactionType(),
-                                          var11.getAmount()
+                                          transactionMenu,
+                                          player,
+                                          transactionMenu.getShopItem(),
+                                          slot - (inventory.getSize() - 9),
+                                          transactionMenu.getRootSection(),
+                                          transactionMenu.isDisabledBackButton(),
+                                          transactionMenu.getTransactionMode(),
+                                          transactionMenu.getTransactionType(),
+                                          transactionMenu.getAmount()
                                        );
                                  }
                            }
                         }
 
-                        TransactionItem var14 = TransactionMenus.getItemFromSlot(var11.getTransactionType(), var2);
-                        if (var14 != null) {
-                           switch (var14.getAction().type) {
+                        TransactionItem transactionItem = TransactionMenus.getItemFromSlot(transactionMenu.getTransactionType(), slot);
+                        if (transactionItem != null) {
+                           switch (transactionItem.getAction().type) {
                               case NONE:
                                  break;
                               case BACK:
-                                 if (var11.getTransactionType() != Transaction.Type.BUY_STACKS_SCREEN) {
-                                    ShopSection var16 = this.plugin.getSection(var11.getShopItem().section);
-                                    var16.openShopSection(
-                                       var5, var16.getPageForShopItem(var11.getShopItem().itemLoc), var11.isDisabledBackButton(), var11.getRootSection()
+                                 if (transactionMenu.getTransactionType() != Transaction.Type.BUY_STACKS_SCREEN) {
+                                    ShopSection section = this.plugin.getSection(transactionMenu.getShopItem().section);
+                                    section.openShopSection(
+                                       player, section.getPageForShopItem(transactionMenu.getShopItem().itemLoc), transactionMenu.isDisabledBackButton(), transactionMenu.getRootSection()
                                     );
-                                    this.plugin.getSoundEffects().useBackButton(var5);
+                                    this.plugin.getSoundEffects().useBackButton(player);
                                  } else {
                                     new TransactionMenu(
-                                          var5,
-                                          var11.getShopItem(),
-                                          var11.getRootSection(),
-                                          var11.isDisabledBackButton(),
-                                          var11.getTransactionMode(),
+                                          player,
+                                          transactionMenu.getShopItem(),
+                                          transactionMenu.getRootSection(),
+                                          transactionMenu.isDisabledBackButton(),
+                                          transactionMenu.getTransactionMode(),
                                           Transaction.Type.BUY_SCREEN,
-                                          var11.getAmount()
+                                          transactionMenu.getAmount()
                                        )
                                        .open(false);
                                  }
                                  break;
                               case COMMAND:
-                                 List<String> var8 = var14.getClickCommands();
-                                 if (!var8.isEmpty()) {
-                                    var8.forEach(var1x -> CommandHelper.executeCommand(null, var5, var1x));
+                                 List<String> clickCommands = transactionItem.getClickCommands();
+                                 if (!clickCommands.isEmpty()) {
+                                    clickCommands.forEach(entry -> CommandHelper.executeCommand(null, player, entry));
                                  }
                                  break;
                               case INSTA_BUY:
                               case INSTA_SELL:
-                                 var11.setAmount(var14.getItem().getAmount());
+                                 transactionMenu.setAmount(transactionItem.getItem().getAmount());
                               case CONFIRM_TRANSACTION:
-                                 if (var1.getClick().isLeftClick()) {
-                                    if (var11.isAPricing()) {
-                                       this.completeTransactionA(var11, var5);
+                                 if (event.getClick().isLeftClick()) {
+                                    if (transactionMenu.isAPricing()) {
+                                       this.completeTransactionA(transactionMenu, player);
                                     } else {
-                                       this.completeTransaction(var11, var5);
+                                       this.completeTransaction(transactionMenu, player);
                                     }
-                                 } else if (var1.getClick().isRightClick() && var11.isAPricing() && !var11.isAllPrices()) {
-                                    var11.cycleEcoType();
+                                 } else if (event.getClick().isRightClick() && transactionMenu.isAPricing() && !transactionMenu.isAllPrices()) {
+                                    transactionMenu.cycleEcoType();
                                  }
                                  break;
                               case OPEN_BUY_STACKS:
-                                 if (!var11.getShopItem().isMaxBuy(var11.getMaxStackSize()) && var11.getShopItem().isAllowQuantity()) {
+                                 if (!transactionMenu.getShopItem().isMaxBuy(transactionMenu.getMaxStackSize()) && transactionMenu.getShopItem().isAllowQuantity()) {
                                     new TransactionMenu(
-                                          var5,
-                                          var11.getShopItem(),
-                                          var11.getRootSection(),
-                                          var11.isDisabledBackButton(),
+                                          player,
+                                          transactionMenu.getShopItem(),
+                                          transactionMenu.getRootSection(),
+                                          transactionMenu.isDisabledBackButton(),
                                           Transaction.Mode.BUY,
                                           Transaction.Type.BUY_STACKS_SCREEN,
-                                          var11.getAmount()
+                                          transactionMenu.getAmount()
                                        )
                                        .open(false);
                                  }
                                  break;
                               case SELL_ALL:
-                                 this.completeSellAll(var11, var5);
+                                 this.completeSellAll(transactionMenu, player);
                                  break;
                               default:
-                                 if (var11.getShopItem().isAllowQuantity()) {
-                                    var11.updateAmount(var14.getAction());
-                                    if (var1.getCurrentItem() != null && var14.getItem().getType() == var1.getCurrentItem().getType()) {
-                                       this.plugin.getSoundEffects().changeItemAmount(var5);
+                                 if (transactionMenu.getShopItem().isAllowQuantity()) {
+                                    transactionMenu.updateAmount(transactionItem.getAction());
+                                    if (event.getCurrentItem() != null && transactionItem.getItem().getType() == event.getCurrentItem().getType()) {
+                                       this.plugin.getSoundEffects().changeItemAmount(player);
                                     }
                                  }
                            }
                         }
-                     } else if (var4 instanceof MainMenu) {
-                        if (this.plugin.navBar.isEnableMainNav() && var2 >= var3.getSize() - 9 && var2 <= var3.getSize() - 1) {
-                           this.plugin.navBar.execute(var4, var5, var2 - (var3.getSize() - 9));
+                     } else if (holder instanceof MainMenu) {
+                        if (this.plugin.navBar.isEnableMainNav() && slot >= inventory.getSize() - 9 && slot <= inventory.getSize() - 1) {
+                           this.plugin.navBar.execute(holder, player, slot - (inventory.getSize() - 9));
                         } else {
-                           String var10 = this.plugin.getMainMenuSectionForSlot(var2);
-                           if (var10 != null && this.plugin.getSections().containsKey(var10)) {
-                              if (PermissionsCache.hasPermission(var5, "OnyxShop.shop." + var10.toLowerCase())) {
-                                 ShopSection var13 = this.plugin.getSection(var10);
-                                 if (!var13.isCommandItem()) {
-                                    var13.openShopSection(var5, false);
+                           String mainMenuSectionForSlot = this.plugin.getMainMenuSectionForSlot(slot);
+                           if (mainMenuSectionForSlot != null && this.plugin.getSections().containsKey(mainMenuSectionForSlot)) {
+                              if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + mainMenuSectionForSlot.toLowerCase())) {
+                                 ShopSection section = this.plugin.getSection(mainMenuSectionForSlot);
+                                 if (!section.isCommandItem()) {
+                                    section.openShopSection(player, false);
                                  } else {
-                                    var13.getClickCommands().forEach(var1x -> CommandHelper.executeCommand(null, var5, var1x));
-                                    if (var13.isCloseMenu()) {
-                                       this.close(var5);
+                                    section.getClickCommands().forEach(entry -> CommandHelper.executeCommand(null, player, entry));
+                                    if (section.isCloseMenu()) {
+                                       this.close(player);
                                     }
                                  }
 
-                                 this.plugin.getSoundEffects().openShop(var5);
-                              } else if (!this.plugin.getSectionItem(var10).isHideIfNoPerms()) {
-                                 SendMessage.chatToPlayer(var5, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get());
+                                 this.plugin.getSoundEffects().openShop(player);
+                              } else if (!this.plugin.getSectionItem(mainMenuSectionForSlot).isHideIfNoPerms()) {
+                                 SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get());
                               }
                            }
                         }
-                     } else if (var4 instanceof ShopSearch) {
-                        ShopSearch var6 = (ShopSearch)var4;
-                        if (this.plugin.navBar.isEnableSearchNav() && var2 >= var3.getSize() - 9 && var2 <= var3.getSize() - 1) {
-                           this.plugin.navBar.execute(var6, var5, var2 - (var3.getSize() - 9), var6.getPage());
+                     } else if (holder instanceof ShopSearch) {
+                        ShopSearch shopSearch = (ShopSearch)holder;
+                        if (this.plugin.navBar.isEnableSearchNav() && slot >= inventory.getSize() - 9 && slot <= inventory.getSize() - 1) {
+                           this.plugin.navBar.execute(shopSearch, player, slot - (inventory.getSize() - 9), shopSearch.getPage());
                         } else {
-                           ShopItem var7 = var6.getShopItemForSlot(var2);
-                           if (var1.getClick().isShiftClick() && PermissionsCache.hasPermission(var5, "OnyxShop.editshop.editor")) {
-                              new Main(var5, var7);
-                           } else if (!var7.hasItemError()) {
-                              if (!var7.canPurchase(var5, "shop", false) || !this.isAllowedGamemode(var5)) {
+                           ShopItem shopItem = shopSearch.getShopItemForSlot(slot);
+                           if (event.getClick().isShiftClick() && PermissionsCache.hasPermission(player, "OnyxShop.editshop.editor")) {
+                              new Main(player, shopItem);
+                           } else if (!shopItem.hasItemError()) {
+                              if (!shopItem.canPurchase(player, "shop", false) || !this.isAllowedGamemode(player)) {
                                  return;
                               }
 
-                              if (PermissionsCache.hasPermission(var5, "OnyxShop.shop." + var7.section)) {
-                                 if (var1.getClick().isLeftClick()) {
-                                    if (var7.isBuyAble()) {
-                                       new TransactionMenu(var5, var7, null, true, Transaction.Mode.BUY, Transaction.Type.BUY_SCREEN, 1).open(false);
+                              if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + shopItem.section)) {
+                                 if (event.getClick().isLeftClick()) {
+                                    if (shopItem.isBuyAble()) {
+                                       new TransactionMenu(player, shopItem, null, true, Transaction.Mode.BUY, Transaction.Type.BUY_SCREEN, 1).open(false);
                                     }
-                                 } else if (var1.getClick().isRightClick() && var7.isSellAble()) {
-                                    new TransactionMenu(var5, var7, null, true, Transaction.Mode.SELL, Transaction.Type.SELL_SCREEN, 1).open(false);
+                                 } else if (event.getClick().isRightClick() && shopItem.isSellAble()) {
+                                    new TransactionMenu(player, shopItem, null, true, Transaction.Mode.SELL, Transaction.Type.SELL_SCREEN, 1).open(false);
                                  }
                               } else {
-                                 SendMessage.chatToPlayer(var5, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get());
+                                 SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get());
                               }
                            } else {
-                              SendMessage.chatToPlayer(var5, Lang.ITEM_ERROR.get());
+                              SendMessage.chatToPlayer(player, Lang.ITEM_ERROR.get());
                            }
                         }
-                     } else if (var4 instanceof SellGUI) {
-                        if (this.plugin.navBar.isEnableSellGUINav() && var2 >= var3.getSize() - 9 && var2 <= var3.getSize() - 1) {
-                           this.plugin.navBar.execute(var4, var5, var2 - (var3.getSize() - 9));
-                        } else if (!SellGUI.isFillItem(var2)) {
-                           var1.setCancelled(false);
+                     } else if (holder instanceof SellGUI) {
+                        if (this.plugin.navBar.isEnableSellGUINav() && slot >= inventory.getSize() - 9 && slot <= inventory.getSize() - 1) {
+                           this.plugin.navBar.execute(holder, player, slot - (inventory.getSize() - 9));
+                        } else if (!SellGUI.isFillItem(slot)) {
+                           event.setCancelled(false);
                         }
-                     } else if (var4 instanceof ItemEditor) {
-                        this.handleItemEditor(var1, var5, var3, var4, var2);
+                     } else if (holder instanceof ItemEditor) {
+                        this.handleItemEditor(event, player, inventory, holder, slot);
                      }
                   }
                }
@@ -391,216 +391,219 @@ public class MenuHandler implements Listener {
       }
    }
 
-   private void handleItemEditor(InventoryClickEvent var1, Player var2, Inventory var3, InventoryHolder var4, int var5) {
-      if (var4 instanceof Main) {
-         Main var6 = (Main)var4;
-         switch (var5) {
+   private void handleItemEditor(InventoryClickEvent inventoryClickEvent, Player player, Inventory inventory, InventoryHolder holder, int value) {
+      if (holder instanceof Main) {
+         Main main = (Main)holder;
+         switch (value) {
             case 29:
-               this.plugin.itemEditor.openItemEditorCreateItem(var2, var6.getItem(), null, null, null);
+               this.plugin.itemEditor.openItemEditorCreateItem(player, main.getItem(), null, null, null);
                break;
             case 31:
-               new AvailableOptions(var2, var6.getItem());
+               new AvailableOptions(player, main.getItem());
                break;
             case 33:
-               new DeleteItemConfirmation(var2, var6.getItem());
+               new DeleteItemConfirmation(player, main.getItem());
                break;
             case 53:
                this.plugin
-                  .getSection(var6.getItem().section)
-                  .openShopSection(var2, this.plugin.getSection(var6.getItem().section).getPageForShopItem(var6.getItem().itemLoc), false);
+                  .getSection(main.getItem().section)
+                  .openShopSection(player, this.plugin.getSection(main.getItem().section).getPageForShopItem(main.getItem().itemLoc), false);
          }
-      } else if (var4 instanceof IndexChooser) {
-         IndexChooser var9 = (IndexChooser)var4;
-         Integer var7 = this.plugin.versionHandler.getOnyxNbtInt(var1.getCurrentItem(), "Index");
-         if (var7 != null) {
-            this.plugin.itemEditor.openAvailableResultsForOption(var2, var9.getOption(), var9.getAction(), var9.getItem(), var7);
-         } else if (var5 == var3.getSize() - 1) {
-            new AvailableActions(var2, var9.getItem(), var9.getOption());
+      } else if (holder instanceof IndexChooser) {
+         IndexChooser indexChooser = (IndexChooser)holder;
+         Integer onyxNbtInt = this.plugin.versionHandler.getOnyxNbtInt(inventoryClickEvent.getCurrentItem(), "Index");
+         if (onyxNbtInt != null) {
+            this.plugin.itemEditor.openAvailableResultsForOption(player, indexChooser.getOption(), indexChooser.getAction(), indexChooser.getItem(), onyxNbtInt);
+         } else if (value == inventory.getSize() - 1) {
+            new AvailableActions(player, indexChooser.getItem(), indexChooser.getOption());
          }
-      } else if (var4 instanceof FireworkOptions) {
-         FireworkOptions var10 = (FireworkOptions)var4;
-         com.onyxshop.methodes.ItemEditor.Option var18 = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
-            this.plugin.versionHandler.getEditOption(var1.getCurrentItem())
+      } else if (holder instanceof FireworkOptions) {
+         FireworkOptions fireworkOptions = (FireworkOptions)holder;
+         com.onyxshop.methodes.ItemEditor.Option option = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
+            this.plugin.versionHandler.getEditOption(inventoryClickEvent.getCurrentItem())
          );
-         if (var18 != null) {
-            if (var18 != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_SHAPE
-               && var18 != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_FLICKER
-               && var18 != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_TRAIL
-               && var18 != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_DURATION) {
-               new AvailableActions(var2, var10.getItem(), var18);
+         if (option != null) {
+            if (option != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_SHAPE
+               && option != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_FLICKER
+               && option != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_TRAIL
+               && option != com.onyxshop.methodes.ItemEditor.Option.FIREWORK_DURATION) {
+               new AvailableActions(player, fireworkOptions.getItem(), option);
             } else {
-               var3.setItem(var5, this.plugin.itemEditor.toggleOption(this.plugin.versionHandler.getOnyxNbtString(var1.getCurrentItem(), "value"), var18));
+               inventory.setItem(value, this.plugin.itemEditor.toggleOption(this.plugin.versionHandler.getOnyxNbtString(inventoryClickEvent.getCurrentItem(), "value"), option));
             }
-         } else if (var5 == 17) {
-            new AvailableOptions(var2, var10.getItem());
+         } else if (value == 17) {
+            new AvailableOptions(player, fireworkOptions.getItem());
          }
-      } else if (var4 instanceof DynamicPricingOptions) {
-         DynamicPricingOptions var11 = (DynamicPricingOptions)var4;
-         com.onyxshop.methodes.ItemEditor.Option var19 = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
-            this.plugin.versionHandler.getEditOption(var1.getCurrentItem())
+      } else if (holder instanceof DynamicPricingOptions) {
+         DynamicPricingOptions dynamicPricingOptions = (DynamicPricingOptions)holder;
+         com.onyxshop.methodes.ItemEditor.Option option = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
+            this.plugin.versionHandler.getEditOption(inventoryClickEvent.getCurrentItem())
          );
-         if (var19 != null) {
-            if (var19 == com.onyxshop.methodes.ItemEditor.Option.DYNAMIC_PRICING_ENABLE) {
-               var3.setItem(var5, this.plugin.itemEditor.toggleOption(this.plugin.versionHandler.getOnyxNbtString(var1.getCurrentItem(), "value"), var19));
+         if (option != null) {
+            if (option == com.onyxshop.methodes.ItemEditor.Option.DYNAMIC_PRICING_ENABLE) {
+               inventory.setItem(value, this.plugin.itemEditor.toggleOption(this.plugin.versionHandler.getOnyxNbtString(inventoryClickEvent.getCurrentItem(), "value"), option));
             } else {
-               new AvailableActions(var2, var11.getItem(), var19);
+               new AvailableActions(player, dynamicPricingOptions.getItem(), option);
             }
-         } else if (var5 == 17) {
-            new AvailableOptions(var2, var11.getItem());
+         } else if (value == 17) {
+            new AvailableOptions(player, dynamicPricingOptions.getItem());
          }
-      } else if (var4 instanceof LimitedStockOptions) {
-         LimitedStockOptions var12 = (LimitedStockOptions)var4;
-         com.onyxshop.methodes.ItemEditor.Option var20 = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
-            this.plugin.versionHandler.getEditOption(var1.getCurrentItem())
+      } else if (holder instanceof LimitedStockOptions) {
+         LimitedStockOptions limitedStockOptions = (LimitedStockOptions)holder;
+         com.onyxshop.methodes.ItemEditor.Option option = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
+            this.plugin.versionHandler.getEditOption(inventoryClickEvent.getCurrentItem())
          );
-         if (var20 != null) {
-            new AvailableActions(var2, var12.getItem(), var20);
-         } else if (var5 == 17) {
-            new AvailableOptions(var2, var12.getItem());
+         if (option != null) {
+            new AvailableActions(player, limitedStockOptions.getItem(), option);
+         } else if (value == 17) {
+            new AvailableOptions(player, limitedStockOptions.getItem());
          }
-      } else if (var4 instanceof DeleteItemConfirmation) {
-         DeleteItemConfirmation var13 = (DeleteItemConfirmation)var4;
-         switch (var5) {
+      } else if (holder instanceof DeleteItemConfirmation) {
+         DeleteItemConfirmation deleteItemConfirmation = (DeleteItemConfirmation)holder;
+         switch (value) {
             case 3:
-               ConfigManager.getShop(var13.getItem().section).set("pages." + var13.getItem().itemLoc, null);
-               ConfigManager.saveShop(var13.getItem().section);
-               new ConclusionScreen(var2, var13.getItem(), null, com.onyxshop.methodes.ItemEditor.Action.REMOVE_ITEM, null);
+               ConfigManager.getShop(deleteItemConfirmation.getItem().section).set("pages." + deleteItemConfirmation.getItem().itemLoc, null);
+               ConfigManager.saveShop(deleteItemConfirmation.getItem().section);
+               new ConclusionScreen(player, deleteItemConfirmation.getItem(), null, com.onyxshop.methodes.ItemEditor.Action.REMOVE_ITEM, null);
             case 5:
             default:
                break;
             case 17:
-               new Main(var2, var13.getItem());
+               new Main(player, deleteItemConfirmation.getItem());
          }
-      } else if (var4 instanceof ConclusionScreen) {
-         ConclusionScreen var14 = (ConclusionScreen)var4;
-         if (var5 == 17) {
-            switch (var14.getAction()) {
+      } else if (holder instanceof ConclusionScreen) {
+         ConclusionScreen conclusionScreen = (ConclusionScreen)holder;
+         if (value == 17) {
+            switch (conclusionScreen.getAction()) {
                case REMOVE_ITEM:
-                  this.plugin.getSection(var14.getItem().section).openShopSection(var2, false);
+                  this.plugin.getSection(conclusionScreen.getItem().section).openShopSection(player, false);
                   break;
                case REMOVE:
                case EDIT:
                case ADD:
-                  new Main(var2, this.plugin.getShopItem(var14.getItem().section, var14.getItem().itemLoc));
+                  new Main(player, this.plugin.getShopItem(conclusionScreen.getItem().section, conclusionScreen.getItem().itemLoc));
                   break;
                case ADD_ITEM:
-                  new Main(var2, this.plugin.getShopItem(var14.getNewItem()));
+                  new Main(player, this.plugin.getShopItem(conclusionScreen.getNewItem()));
             }
          }
-      } else if (var4 instanceof AvailableOptions) {
-         AvailableOptions var15 = (AvailableOptions)var4;
-         com.onyxshop.methodes.ItemEditor.Option var21 = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
-            this.plugin.versionHandler.getEditOption(var1.getCurrentItem())
+      } else if (holder instanceof AvailableOptions) {
+         AvailableOptions availableOptions = (AvailableOptions)holder;
+         com.onyxshop.methodes.ItemEditor.Option option = com.onyxshop.methodes.ItemEditor.Option.getFromKey(
+            this.plugin.versionHandler.getEditOption(inventoryClickEvent.getCurrentItem())
          );
-         if (var21 != null) {
-            switch (var21) {
+         if (option != null) {
+            switch (option) {
                case ENCHANTMENT_GLINT:
-                  var3.setItem(var5, this.plugin.itemEditor.toggleOption(this.plugin.versionHandler.getOnyxNbtString(var1.getCurrentItem(), "value"), var21));
+                  inventory.setItem(value, this.plugin.itemEditor.toggleOption(this.plugin.versionHandler.getOnyxNbtString(inventoryClickEvent.getCurrentItem(), "value"), option));
                   break;
                case DYNAMIC_PRICING:
-                  new DynamicPricingOptions(var2, var15.getItem());
+                  new DynamicPricingOptions(player, availableOptions.getItem());
                   break;
                case FIREWORK:
-                  new FireworkOptions(var2, var15.getItem());
+                  new FireworkOptions(player, availableOptions.getItem());
                   break;
                case GLOBAL_STOCK:
                case PLAYER_STOCK:
                   new LimitedStockOptions(
-                     var2,
-                     var15.getItem(),
-                     var21 == com.onyxshop.methodes.ItemEditor.Option.GLOBAL_STOCK
+                     player,
+                     availableOptions.getItem(),
+                     option == com.onyxshop.methodes.ItemEditor.Option.GLOBAL_STOCK
                         ? LimitedStockOptions.Type.GLOBAL
                         : LimitedStockOptions.Type.PLAYER
                   );
                   break;
                default:
-                  new AvailableActions(var2, var15.getItem(), var21);
+                  new AvailableActions(player, availableOptions.getItem(), option);
             }
-         } else if (var5 == 53) {
-            new Main(var2, var15.getItem());
+         } else if (value == 53) {
+            new Main(player, availableOptions.getItem());
          }
-      } else if (var4 instanceof AvailableActions) {
-         AvailableActions var16 = (AvailableActions)var4;
-         String var22 = this.plugin.versionHandler.getAction(var1.getCurrentItem());
-         if (var22 != null) {
+      } else if (holder instanceof AvailableActions) {
+         AvailableActions availableActions = (AvailableActions)holder;
+         String action = this.plugin.versionHandler.getAction(inventoryClickEvent.getCurrentItem());
+         if (action != null) {
             this.plugin
                .itemEditor
                .openAvailableResultsForOption(
-                  var2, var16.getOption(), com.onyxshop.methodes.ItemEditor.Action.valueOf(var22.toUpperCase(Locale.ENGLISH)), var16.getItem(), -1
+                  player, availableActions.getOption(), com.onyxshop.methodes.ItemEditor.Action.valueOf(action.toUpperCase(Locale.ENGLISH)), availableActions.getItem(), -1
                );
-         } else if (var5 == 17) {
-            switch (var16.getOption()) {
+         } else if (value == 17) {
+            switch (availableActions.getOption()) {
                case FIREWORK_SHAPE:
                case FIREWORK_FLICKER:
                case FIREWORK_TRAIL:
                case FIREWORK_DURATION:
                case FIREWORK_COLORS:
                case FIREWORK_FADE_COLORS:
-                  new FireworkOptions(var2, var16.getItem());
+                  new FireworkOptions(player, availableActions.getItem());
                   break;
                case DYNAMIC_PRICING_ENABLE:
                case DYNAMIC_PRICING_MAX_STOCK:
-                  new DynamicPricingOptions(var2, var16.getItem());
+                  new DynamicPricingOptions(player, availableActions.getItem());
                   break;
                case GLOBAL_STOCK_LIMIT:
                case GLOBAL_STOCK_TIMER:
                case GLOBAL_STOCK_FREQUENCY:
-                  new LimitedStockOptions(var2, var16.getItem(), LimitedStockOptions.Type.GLOBAL);
+                  new LimitedStockOptions(player, availableActions.getItem(), LimitedStockOptions.Type.GLOBAL);
                   break;
                case PLAYER_STOCK_LIMIT:
                case PLAYER_STOCK_TIMER:
                case PLAYER_STOCK_FREQUENCY:
-                  new LimitedStockOptions(var2, var16.getItem(), LimitedStockOptions.Type.PLAYER);
+                  new LimitedStockOptions(player, availableActions.getItem(), LimitedStockOptions.Type.PLAYER);
                   break;
                default:
-                  new AvailableOptions(var2, var16.getItem());
+                  new AvailableOptions(player, availableActions.getItem());
             }
          }
-      } else if (var4 instanceof ChooseValue) {
-         ChooseValue var17 = (ChooseValue)var4;
-         if (var5 == var3.getSize() - 1) {
-            if (var17.getAction() != com.onyxshop.methodes.ItemEditor.Action.ADD) {
-               new AvailableActions(var2, var17.getItem(), var17.getOption());
+      } else if (holder instanceof ChooseValue) {
+         ChooseValue chooseValue = (ChooseValue)holder;
+         if (value == inventory.getSize() - 1) {
+            if (chooseValue.getAction() != com.onyxshop.methodes.ItemEditor.Action.ADD) {
+               new AvailableActions(player, chooseValue.getItem(), chooseValue.getOption());
             } else {
-               new Main(var2, var17.getItem());
+               new Main(player, chooseValue.getItem());
             }
-         } else if (var5 == var3.getSize() - 6) {
-            if (var17.getPage() > 1) {
-               new ChooseValue(var17, var2, var17.getPage() - 1);
+         } else if (value == inventory.getSize() - 6) {
+            if (chooseValue.getPage() > 1) {
+               new ChooseValue(chooseValue, player, chooseValue.getPage() - 1);
             }
-         } else if (var5 == var3.getSize() - 4) {
-            if (var17.getPage() != var17.getAllPages()) {
-               new ChooseValue(var17, var2, var17.getPage() + 1);
+         } else if (value == inventory.getSize() - 4) {
+            if (chooseValue.getPage() != chooseValue.getAllPages()) {
+               new ChooseValue(chooseValue, player, chooseValue.getPage() + 1);
             }
-         } else if (var5 == var3.getSize() - 5) {
+         } else if (value == inventory.getSize() - 5) {
             new AnvilGUI.Builder()
                .onComplete(
-                  (var3x, var4x) -> {
+                  (player2, input) -> {
                      this.plugin
-                        .runTaskLater(
+                        .runTaskLaterFor(
                            () -> new ChooseValue(
-                              var2, var17.getItem(), var17.getOption(), var17.getAction(), var17.getIndex(), 1, var4x.toLowerCase(Locale.ROOT)
+                              player, chooseValue.getItem(), chooseValue.getOption(), chooseValue.getAction(), chooseValue.getIndex(), 1, input.toLowerCase(Locale.ROOT)
                            ),
+                           player,
                            1L
                         );
                      return AnvilGUI.Response.close();
                   }
                )
                .onClose(
-                  var3x -> this.plugin
-                     .runTaskLater(() -> new ChooseValue(var2, var17.getItem(), var17.getOption(), var17.getAction(), var17.getIndex(), var17.getPage()), 1L)
+                  player2 -> this.plugin
+                     .runTaskLaterFor(
+                        () -> new ChooseValue(player, chooseValue.getItem(), chooseValue.getOption(), chooseValue.getAction(), chooseValue.getIndex(), chooseValue.getPage()), player, 1L
+                     )
                )
                .text("Search text")
                .itemLeft(new ItemStack(Material.PAPER))
-               .title(Lang.ANVILGUI_ENTER_VALUE.get().getLegacy().replace("%option%", var17.getOption().getName()))
+               .title(Lang.ANVILGUI_ENTER_VALUE.get().getLegacy().replace("%option%", chooseValue.getOption().getName()))
                .plugin(this.plugin)
-               .open(var2);
+               .open(player);
          } else {
-            String var23 = null;
-            switch (var17.getOption()) {
+            String itemId = null;
+            switch (chooseValue.getOption()) {
                case FIREWORK_COLORS:
                case FIREWORK_FADE_COLORS:
-                  var23 = FireworkUtil.FireworkColor.getFromID(XMaterial.matchXMaterial(var1.getCurrentItem()).getData()).name();
+                  itemId = FireworkUtil.FireworkColor.getFromID(XMaterial.matchXMaterial(inventoryClickEvent.getCurrentItem()).getData()).name();
                case DYNAMIC_PRICING_ENABLE:
                case DYNAMIC_PRICING_MAX_STOCK:
                case GLOBAL_STOCK_LIMIT:
@@ -613,373 +616,374 @@ public class MenuHandler implements Listener {
                   break;
                case MATERIAL:
                case RECIPES:
-                  var23 = var1.getCurrentItem().getType().name();
-                  if (var17.getAction() == com.onyxshop.methodes.ItemEditor.Action.ADD) {
-                     this.plugin.itemEditor.openItemEditorCreateItem(var2, var17.getItem(), var23, null, null);
+                  itemId = inventoryClickEvent.getCurrentItem().getType().name();
+                  if (chooseValue.getAction() == com.onyxshop.methodes.ItemEditor.Action.ADD) {
+                     this.plugin.itemEditor.openItemEditorCreateItem(player, chooseValue.getItem(), itemId, null, null);
                      return;
                   }
                   break;
                case ENCHANTMENTS:
                   new AnvilGUI.Builder()
                      .onComplete(
-                        (var4x, var5x) -> {
+                        (player2, input) -> {
                            try {
-                              String var6x = this.plugin.enchantsProvider.getEnchants(var1.getCurrentItem()).get(0) + ":" + Integer.parseInt(var5x);
-                              if (var17.getAction() == com.onyxshop.methodes.ItemEditor.Action.ADD && var17.getIndex() == -1) {
-                                 List var9x = ConfigManager.getShop(var17.getItem().section)
-                                    .getStringList("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey());
-                                 var9x.add(var6x);
-                                 ConfigManager.getShop(var17.getItem().section)
-                                    .set("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey(), var9x);
+                              String text = this.plugin.enchantsProvider.getEnchants(inventoryClickEvent.getCurrentItem()).get(0) + ":" + Integer.parseInt(input);
+                              if (chooseValue.getAction() == com.onyxshop.methodes.ItemEditor.Action.ADD && chooseValue.getIndex() == -1) {
+                                 List stringList = ConfigManager.getShop(chooseValue.getItem().section)
+                                    .getStringList("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey());
+                                 stringList.add(text);
+                                 ConfigManager.getShop(chooseValue.getItem().section)
+                                    .set("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey(), stringList);
                               } else {
-                                 List var7x = ConfigManager.getShop(var17.getItem().section)
-                                    .getStringList("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey());
-                                 if (var17.getIndex() != -1) {
-                                    var7x.set(var17.getIndex(), var6x);
+                                 List stringList = ConfigManager.getShop(chooseValue.getItem().section)
+                                    .getStringList("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey());
+                                 if (chooseValue.getIndex() != -1) {
+                                    stringList.set(chooseValue.getIndex(), text);
                                  } else {
-                                    var7x.clear();
-                                    var7x.add(var6x);
+                                    stringList.clear();
+                                    stringList.add(text);
                                  }
 
-                                 ConfigManager.getShop(var17.getItem().section)
-                                    .set("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey(), var7x);
+                                 ConfigManager.getShop(chooseValue.getItem().section)
+                                    .set("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey(), stringList);
                               }
 
-                              ConfigManager.saveShop(var17.getItem().section);
-                              this.plugin.runTaskLater(() -> new ConclusionScreen(var2, var17.getItem(), var17.getOption(), var17.getAction(), null), 1L);
+                              ConfigManager.saveShop(chooseValue.getItem().section);
+                              this.plugin
+                                 .runTaskLaterFor(() -> new ConclusionScreen(player, chooseValue.getItem(), chooseValue.getOption(), chooseValue.getAction(), null), player, 1L);
                               return AnvilGUI.Response.close();
-                           } catch (NumberFormatException var8x) {
+                           } catch (NumberFormatException exception) {
                               return AnvilGUI.Response.text(Lang.NO_VALID_AMOUNT.get().getLegacy());
                            }
                         }
                      )
-                     .onClose(var3x -> {
-                        if (var17.getIndex() != -1) {
-                           this.plugin.runTaskLater(() -> new IndexChooser(var2, var17.getItem(), var17.getOption(), var17.getAction()), 1L);
+                     .onClose(player2 -> {
+                        if (chooseValue.getIndex() != -1) {
+                           this.plugin.runTaskLaterFor(() -> new IndexChooser(player, chooseValue.getItem(), chooseValue.getOption(), chooseValue.getAction()), player, 1L);
                         } else {
-                           this.plugin.runTaskLater(() -> new AvailableActions(var2, var17.getItem(), var17.getOption()), 1L);
+                           this.plugin.runTaskLaterFor(() -> new AvailableActions(player, chooseValue.getItem(), chooseValue.getOption()), player, 1L);
                         }
                      })
                      .text(Lang.OPTION_STRENGTH.get().getLegacy())
                      .itemLeft(new ItemStack(Material.PAPER))
                      .title(Lang.ANVILGUI_ENTER_VALUE.get().getLegacy().replace("%option%", Lang.OPTION_STRENGTH.get().getLegacy()))
                      .plugin(this.plugin)
-                     .open(var2);
+                     .open(player);
                   return;
                case POTIONTYPES:
-                  var23 = PotionTypes.getPotionTypes(var1.getCurrentItem()).get(0).toString();
+                  itemId = PotionTypes.getPotionTypes(inventoryClickEvent.getCurrentItem()).get(0).toString();
                   break;
                case SPAWNERTYPE:
-                  var23 = var1.getCurrentItem().getItemMeta().getDisplayName();
+                  itemId = inventoryClickEvent.getCurrentItem().getItemMeta().getDisplayName();
                   break;
                case SUB_SECTION:
-                  var23 = this.plugin.versionHandler.getNBTString(var1.getCurrentItem(), "section");
+                  itemId = this.plugin.versionHandler.getNBTString(inventoryClickEvent.getCurrentItem(), "section");
             }
 
-            if (var17.getAction() == com.onyxshop.methodes.ItemEditor.Action.ADD && var17.getIndex() == -1) {
-               if (this.plugin.itemEditor.allListKeys.contains(var17.getOption().getKey())) {
-                  List var24 = ConfigManager.getShop(var17.getItem().section)
-                     .getStringList("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey());
-                  var24.add(var23);
-                  ConfigManager.getShop(var17.getItem().section).set("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey(), var24);
+            if (chooseValue.getAction() == com.onyxshop.methodes.ItemEditor.Action.ADD && chooseValue.getIndex() == -1) {
+               if (this.plugin.itemEditor.allListKeys.contains(chooseValue.getOption().getKey())) {
+                  List stringList = ConfigManager.getShop(chooseValue.getItem().section)
+                     .getStringList("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey());
+                  stringList.add(itemId);
+                  ConfigManager.getShop(chooseValue.getItem().section).set("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey(), stringList);
                } else {
-                  ConfigManager.getShop(var17.getItem().section).set("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey(), var23);
+                  ConfigManager.getShop(chooseValue.getItem().section).set("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey(), itemId);
                }
-            } else if (var17.getAction() == com.onyxshop.methodes.ItemEditor.Action.EDIT) {
-               if (this.plugin.itemEditor.allListKeys.contains(var17.getOption().getKey())) {
-                  List var8 = ConfigManager.getShop(var17.getItem().section)
-                     .getStringList("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey());
-                  if (var17.getIndex() != -1) {
-                     var8.set(var17.getIndex(), var23);
+            } else if (chooseValue.getAction() == com.onyxshop.methodes.ItemEditor.Action.EDIT) {
+               if (this.plugin.itemEditor.allListKeys.contains(chooseValue.getOption().getKey())) {
+                  List stringList = ConfigManager.getShop(chooseValue.getItem().section)
+                     .getStringList("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey());
+                  if (chooseValue.getIndex() != -1) {
+                     stringList.set(chooseValue.getIndex(), itemId);
                   } else {
-                     var8.clear();
-                     var8.add(var23);
+                     stringList.clear();
+                     stringList.add(itemId);
                   }
 
-                  ConfigManager.getShop(var17.getItem().section).set("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey(), var8);
+                  ConfigManager.getShop(chooseValue.getItem().section).set("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey(), stringList);
                } else {
-                  ConfigManager.getShop(var17.getItem().section).set("pages." + var17.getItem().itemLoc + "." + var17.getOption().getKey(), var23);
+                  ConfigManager.getShop(chooseValue.getItem().section).set("pages." + chooseValue.getItem().itemLoc + "." + chooseValue.getOption().getKey(), itemId);
                }
             }
 
-            ConfigManager.saveShop(var17.getItem().section);
-            new ConclusionScreen(var2, var17.getItem(), var17.getOption(), var17.getAction(), null);
+            ConfigManager.saveShop(chooseValue.getItem().section);
+            new ConclusionScreen(player, chooseValue.getItem(), chooseValue.getOption(), chooseValue.getAction(), null);
          }
       }
    }
 
-   public void completeTransaction(TransactionMenu var1, Player var2) {
-      Transaction.Result var3 = Transaction.Result.SUCCESS;
-      double var4 = 0.0;
-      int var6 = 0;
-      if (var1.getTransactionMode() != Transaction.Mode.SELL) {
-         if (var1.isPurchaseAble()) {
-            int var7 = var1.getFreeSpace();
-            if (var7 != 0) {
-               var6 = var1.getAmountToSell(var7);
-               if (var1.getShopItem().getLimitedStockMode() != 0 && var1.getItemStock() <= 0) {
-                  SendMessage.chatToPlayer(var2, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
-                  this.plugin.getSoundEffects().insufficientStock(var2);
-                  var3 = Transaction.Result.NO_ITEM_STOCK_LEFT;
-                  if (var1.getItemStock() == -1 || var1.getItemStock() == -2) {
-                     var1.setSelectedItem(true);
+   public void completeTransaction(TransactionMenu transactionMenu, Player player) {
+      Transaction.Result result = Transaction.Result.SUCCESS;
+      double amount = 0.0;
+      int value = 0;
+      if (transactionMenu.getTransactionMode() != Transaction.Mode.SELL) {
+         if (transactionMenu.isPurchaseAble()) {
+            int freeSpace = transactionMenu.getFreeSpace();
+            if (freeSpace != 0) {
+               value = transactionMenu.getAmountToSell(freeSpace);
+               if (transactionMenu.getShopItem().getLimitedStockMode() != 0 && transactionMenu.getItemStock() <= 0) {
+                  SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
+                  this.plugin.getSoundEffects().insufficientStock(player);
+                  result = Transaction.Result.NO_ITEM_STOCK_LEFT;
+                  if (transactionMenu.getItemStock() == -1 || transactionMenu.getItemStock() == -2) {
+                     transactionMenu.setSelectedItem(true);
                   }
                } else {
-                  PreTransactionEvent var8 = new PreTransactionEvent(var1.getShopItem(), var2, var6, var1.getPrice(var6), var1.getTransactionType());
-                  Bukkit.getPluginManager().callEvent(var8);
-                  var4 = var8.getPrice();
-                  if (!var8.isCancelled()) {
-                     if (!(var4 >= 0.0)) {
-                        SendMessage.chatToPlayer(var2, Lang.CANNOT_PURCHASE_ITEM.get());
-                        var3 = Transaction.Result.NEGATIVE_ITEM_PRICE;
-                     } else if (this.plugin.getEcoHandler().getEcon(var1.getShopItem().getEcoType()).getBalance(var2) >= var4) {
-                        if (!this.plugin.getEcoHandler().getEcon(var1.getShopItem().getEcoType()).withdrawBalance(var2, var4)) {
+                  PreTransactionEvent preTransactionEvent = new PreTransactionEvent(transactionMenu.getShopItem(), player, value, transactionMenu.getPrice(value), transactionMenu.getTransactionType());
+                  Bukkit.getPluginManager().callEvent(preTransactionEvent);
+                  amount = preTransactionEvent.getPrice();
+                  if (!preTransactionEvent.isCancelled()) {
+                     if (!(amount >= 0.0)) {
+                        SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
+                        result = Transaction.Result.NEGATIVE_ITEM_PRICE;
+                     } else if (this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).getBalance(player) >= amount) {
+                        if (!this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).withdrawBalance(player, amount)) {
                            SendMessage.chatToPlayer(
-                              var2,
+                              player,
                               Lang.INSUFFICIENT_MONEY
                                  .get()
-                                 .replace("%currency%", this.plugin.getEcoHandler().getEcon(var1.getShopItem().getEcoType()).getFriendly())
+                                 .replace("%currency%", this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).getFriendly())
                            );
-                           this.plugin.getSoundEffects().insufficientFunds(var2);
-                           var3 = Transaction.Result.INSUFFICIENT_FUNDS;
+                           this.plugin.getSoundEffects().insufficientFunds(player);
+                           result = Transaction.Result.INSUFFICIENT_FUNDS;
                         } else {
-                           if (var1.getShopItem().getLimitedStockMode() != 0) {
-                              var1.updateItemStock(var6);
-                              if (var1.getItemStock() > 0) {
-                                 final int stockDeltaA = var6;
-                                 this.plugin.runTaskAsync(() -> this.plugin.getLimitedStockProvider().buyItems(var1.getShopItem(), var2.getUniqueId(), stockDeltaA));
+                           if (transactionMenu.getShopItem().getLimitedStockMode() != 0) {
+                              transactionMenu.updateItemStock(value);
+                              if (transactionMenu.getItemStock() > 0) {
+                                 final int stockDeltaA = value;
+                                 this.plugin.runTaskAsync(() -> this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), stockDeltaA));
                               } else {
-                                 this.plugin.getLimitedStockProvider().buyItems(var1.getShopItem(), var2.getUniqueId(), var6);
+                                 this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), value);
                               }
                            }
 
-                           if (var1.getShopItem().isBuyCommand() && this.plugin.commandItems) {
-                              CommandHelper.executeCommandItem(var1.getShopItem(), var2, CommandType.BUY, String.valueOf(var4), var6);
-                              var3 = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
+                           if (transactionMenu.getShopItem().isBuyCommand() && this.plugin.commandItems) {
+                              CommandHelper.executeCommandItem(transactionMenu.getShopItem(), player, CommandType.BUY, String.valueOf(amount), value);
+                              result = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
                            }
 
-                           if (!var1.getShopItem().isBuyCommand() || var1.getShopItem().isGiveItem()) {
-                              int undelivered = PlayerItems.giveItems(var2, var1.getShopItem(), var6);
-                              if (undelivered > 0 && var6 > 0) {
+                           if (!transactionMenu.getShopItem().isBuyCommand() || transactionMenu.getShopItem().isGiveItem()) {
+                              int undelivered = PlayerItems.giveItems(player, transactionMenu.getShopItem(), value);
+                              if (undelivered > 0 && value > 0) {
                                  this.plugin
                                     .getEcoHandler()
-                                    .getEcon(var1.getShopItem().getEcoType())
-                                    .depositBalance(var2, var4 / var6 * undelivered);
-                                 if (var1.getShopItem().getLimitedStockMode() != 0) {
-                                    var1.addItemStock(undelivered);
-                                    this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), undelivered);
+                                    .getEcon(transactionMenu.getShopItem().getEcoType())
+                                    .depositBalance(player, amount / value * undelivered);
+                                 if (transactionMenu.getShopItem().getLimitedStockMode() != 0) {
+                                    transactionMenu.addItemStock(undelivered);
+                                    this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), undelivered);
                                  }
 
                                  SendMessage.chatToPlayer(
-                                    var2,
+                                    player,
                                     Lang.COULD_NOT_STORE_ALL_ITEMS.get().replace("%amount%", Integer.toString(undelivered))
                                  );
                               }
                            }
 
-                           if (this.plugin.dynamicPricing && var1.getShopItem().isDynamicPricing()) {
-                              this.plugin.getDynamicPricingProvider().buyItem(var1.getItemPath(), var6);
+                           if (this.plugin.dynamicPricing && transactionMenu.getShopItem().isDynamicPricing()) {
+                              this.plugin.getDynamicPricingProvider().buyItem(transactionMenu.getItemPath(), value);
                            }
 
-                           var1.sendTransactionCompleteMessage(var4, var6);
-                           if (var1.getShopItem().isCloseMenu()) {
-                              this.close(var2);
+                           transactionMenu.sendTransactionCompleteMessage(amount, value);
+                           if (transactionMenu.getShopItem().isCloseMenu()) {
+                              this.close(player);
                            } else {
-                              var1.open(true);
+                              transactionMenu.open(true);
                            }
                         }
                      } else {
                         SendMessage.chatToPlayer(
-                           var2,
+                           player,
                            Lang.INSUFFICIENT_MONEY
                               .get()
-                              .replace("%currency%", this.plugin.getEcoHandler().getEcon(var1.getShopItem().getEcoType()).getFriendly())
+                              .replace("%currency%", this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).getFriendly())
                         );
-                        this.plugin.getSoundEffects().insufficientFunds(var2);
-                        var3 = Transaction.Result.INSUFFICIENT_FUNDS;
+                        this.plugin.getSoundEffects().insufficientFunds(player);
+                        result = Transaction.Result.INSUFFICIENT_FUNDS;
                      }
                   } else {
-                     var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                     result = Transaction.Result.TRANSACTION_CANCELLED;
                   }
                }
             } else {
-               SendMessage.chatToPlayer(var2, Lang.MORE_SPACE_NEEDED.get());
-               var3 = Transaction.Result.NO_INVENTORY_SPACE;
+               SendMessage.chatToPlayer(player, Lang.MORE_SPACE_NEEDED.get());
+               result = Transaction.Result.NO_INVENTORY_SPACE;
             }
          } else {
-            SendMessage.chatToPlayer(var2, Lang.CANNOT_PURCHASE_ITEM.get());
-            var3 = Transaction.Result.NEGATIVE_ITEM_PRICE;
+            SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
+            result = Transaction.Result.NEGATIVE_ITEM_PRICE;
          }
       } else {
-         Double var10 = var1.getAvailableItems(var1.getAmount());
-         if (var10 != null) {
-            if (var10 >= 0.0) {
-               if (var1.getShopItem().getEcoType().getType() == EconomyType.ITEM && !this.canPay(var2, var1.getShopItem().getEcoType(), var10)) {
-                  SendMessage.chatToPlayer(var2, Lang.CANNOT_STORE_PAYMENT.get());
-                  var1.emptyCache();
-                  var3 = Transaction.Result.CANT_STORE_PAYMENT;
+         Double availableItems = transactionMenu.getAvailableItems(transactionMenu.getAmount());
+         if (availableItems != null) {
+            if (availableItems >= 0.0) {
+               if (transactionMenu.getShopItem().getEcoType().getType() == EconomyType.ITEM && !this.canPay(player, transactionMenu.getShopItem().getEcoType(), availableItems)) {
+                  SendMessage.chatToPlayer(player, Lang.CANNOT_STORE_PAYMENT.get());
+                  transactionMenu.emptyCache();
+                  result = Transaction.Result.CANT_STORE_PAYMENT;
                } else {
-                  PreTransactionEvent var11 = new PreTransactionEvent(var1.getShopItem(), var2, var6 = var1.getAmount(), var10, var1.getTransactionType());
-                  Bukkit.getPluginManager().callEvent(var11);
-                  var4 = var11.getPrice();
-                  if (!var11.isCancelled()) {
-                     if (var4 >= 0.0) {
-                        final int sold = var1.getAmount();
-                        final List<ItemStack> removedStacks = var1.getCachedItems();
-                        var1.emptyCache();
-                        boolean var15 = false;
+                  PreTransactionEvent preTransactionEvent = new PreTransactionEvent(transactionMenu.getShopItem(), player, value = transactionMenu.getAmount(), availableItems, transactionMenu.getTransactionType());
+                  Bukkit.getPluginManager().callEvent(preTransactionEvent);
+                  amount = preTransactionEvent.getPrice();
+                  if (!preTransactionEvent.isCancelled()) {
+                     if (amount >= 0.0) {
+                        final int sold = transactionMenu.getAmount();
+                        final List<ItemStack> removedStacks = transactionMenu.getCachedItems();
+                        transactionMenu.emptyCache();
+                        boolean flag = false;
                         try {
-                           this.plugin.getEcoHandler().getEcon(var1.getShopItem().getEcoType()).depositBalance(var2, var4);
-                           var15 = true;
-                           if (var1.getShopItem().isSellCommand() && this.plugin.commandItems) {
-                              CommandHelper.executeCommandItem(var1.getShopItem(), var2, CommandType.SELL, String.valueOf(var4), sold);
-                              var3 = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
+                           this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).depositBalance(player, amount);
+                           flag = true;
+                           if (transactionMenu.getShopItem().isSellCommand() && this.plugin.commandItems) {
+                              CommandHelper.executeCommandItem(transactionMenu.getShopItem(), player, CommandType.SELL, String.valueOf(amount), sold);
+                              result = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
                            }
 
-                           var1.sendTransactionCompleteMessage(var4);
-                           this.plugin.runTaskAsync(() -> this.sellItems(var1.getShopItem(), sold, var2.getUniqueId()));
-                           if (var1.getShopItem().getLimitedSellMode() != 0) {
-                              var1.updateSellLimit(sold);
-                              if (var1.getSellLimit() > 0) {
+                           transactionMenu.sendTransactionCompleteMessage(amount);
+                           this.plugin.runTaskAsync(() -> this.sellItems(transactionMenu.getShopItem(), sold, player.getUniqueId()));
+                           if (transactionMenu.getShopItem().getLimitedSellMode() != 0) {
+                              transactionMenu.updateSellLimit(sold);
+                              if (transactionMenu.getSellLimit() > 0) {
                                  this.plugin
                                     .runTaskAsync(
-                                       () -> this.plugin.getLimitedSellProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold, false)
+                                       () -> this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false)
                                     );
                               } else {
-                                 this.plugin.getLimitedSellProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold, false);
+                                 this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
                               }
                            }
 
-                           if (var1.getShopItem().isRefillStock()) {
-                              var1.addItemStock(sold);
-                              if (var1.getItemStock() > 0) {
+                           if (transactionMenu.getShopItem().isRefillStock()) {
+                              transactionMenu.addItemStock(sold);
+                              if (transactionMenu.getItemStock() > 0) {
                                  this.plugin
-                                    .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold));
+                                    .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold));
                               } else {
-                                 this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold);
+                                 this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
                               }
                            }
 
-                           if (var1.getShopItem().isCloseMenu()) {
-                              this.close(var2);
+                           if (transactionMenu.getShopItem().isCloseMenu()) {
+                              this.close(player);
                            } else {
-                              var1.open(true);
+                              transactionMenu.open(true);
                            }
-                        } catch (RuntimeException var14) {
-                           if (var15) {
-                              SendMessage.errorMessage("Sell completed but post-processing failed: " + var14.getMessage());
+                        } catch (RuntimeException exception) {
+                           if (flag) {
+                              SendMessage.errorMessage("Sell completed but post-processing failed: " + exception.getMessage());
                            } else {
-                              var2.getInventory().addItem(removedStacks.toArray(new ItemStack[0]));
-                              SendMessage.errorMessage("Rolled back a failed sell: " + var14.getMessage());
-                              var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                              player.getInventory().addItem(removedStacks.toArray(new ItemStack[0]));
+                              SendMessage.errorMessage("Rolled back a failed sell: " + exception.getMessage());
+                              result = Transaction.Result.TRANSACTION_CANCELLED;
                            }
                         }
                      } else {
-                        var1.emptyCache();
-                        var3 = Transaction.Result.NEGATIVE_ITEM_PRICE;
+                        transactionMenu.emptyCache();
+                        result = Transaction.Result.NEGATIVE_ITEM_PRICE;
                      }
                   } else {
-                     var1.emptyCache();
-                     var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                     transactionMenu.emptyCache();
+                     result = Transaction.Result.TRANSACTION_CANCELLED;
                   }
                }
             } else {
-               SendMessage.chatToPlayer(var2, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
-               this.plugin.getSoundEffects().insufficientStock(var2);
-               var1.emptyCache();
-               var3 = Transaction.Result.REACHED_SELL_LIMIT;
-               if (var1.getSellLimit() == -1 || var1.getSellLimit() == -2) {
-                  var1.setSelectedItem(true);
+               SendMessage.chatToPlayer(player, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
+               this.plugin.getSoundEffects().insufficientStock(player);
+               transactionMenu.emptyCache();
+               result = Transaction.Result.REACHED_SELL_LIMIT;
+               if (transactionMenu.getSellLimit() == -1 || transactionMenu.getSellLimit() == -2) {
+                  transactionMenu.setSelectedItem(true);
                }
             }
          } else {
-            SendMessage.chatToPlayer(var2, Lang.NO_ITEM_FOUND.get());
-            var1.emptyCache();
-            var3 = Transaction.Result.NO_ITEMS_FOUND;
+            SendMessage.chatToPlayer(player, Lang.NO_ITEM_FOUND.get());
+            transactionMenu.emptyCache();
+            result = Transaction.Result.NO_ITEMS_FOUND;
          }
       }
 
-      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(var1.getShopItem(), var2, var6, var4, var1.getTransactionType(), var3));
+      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(transactionMenu.getShopItem(), player, value, amount, transactionMenu.getTransactionType(), result));
    }
 
-   public void completeTransactionA(TransactionMenu var1, Player var2) {
-      Transaction.Result var3 = Transaction.Result.SUCCESS;
-      Map<EcoType, Double> var4 = new HashMap<>();
-      int var5 = 0;
-      if (var1.getTransactionMode() != Transaction.Mode.SELL) {
-         if (var1.isPurchaseAble()) {
-            int var6 = var1.getFreeSpace();
-            if (var6 != 0) {
-               var5 = var1.getAmountToSell(var6);
-               if (var1.getShopItem().getLimitedStockMode() != 0 && var1.getItemStock() <= 0) {
-                  SendMessage.chatToPlayer(var2, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
-                  this.plugin.getSoundEffects().insufficientStock(var2);
-                  var3 = Transaction.Result.NO_ITEM_STOCK_LEFT;
-                  if (var1.getItemStock() == -1 || var1.getItemStock() == -2) {
-                     var1.setSelectedItem(true);
+   public void completeTransactionA(TransactionMenu transactionMenu, Player player) {
+      Transaction.Result result = Transaction.Result.SUCCESS;
+      Map<EcoType, Double> map = new HashMap<>();
+      int value = 0;
+      if (transactionMenu.getTransactionMode() != Transaction.Mode.SELL) {
+         if (transactionMenu.isPurchaseAble()) {
+            int freeSpace = transactionMenu.getFreeSpace();
+            if (freeSpace != 0) {
+               value = transactionMenu.getAmountToSell(freeSpace);
+               if (transactionMenu.getShopItem().getLimitedStockMode() != 0 && transactionMenu.getItemStock() <= 0) {
+                  SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
+                  this.plugin.getSoundEffects().insufficientStock(player);
+                  result = Transaction.Result.NO_ITEM_STOCK_LEFT;
+                  if (transactionMenu.getItemStock() == -1 || transactionMenu.getItemStock() == -2) {
+                     transactionMenu.setSelectedItem(true);
                   }
                } else {
-                  PreTransactionEvent var7 = new PreTransactionEvent(
-                     Collections.singletonMap(var1.getShopItem(), var5), var1.getPrices(var5), var2, var5, var1.getTransactionType()
+                  PreTransactionEvent preTransactionEvent = new PreTransactionEvent(
+                     Collections.singletonMap(transactionMenu.getShopItem(), value), transactionMenu.getPrices(value), player, value, transactionMenu.getTransactionType()
                   );
-                  Bukkit.getPluginManager().callEvent(var7);
-                  var4 = var7.getPrices();
-                  if (!var7.isCancelled()) {
-                     Map var8 = this.plugin.getEcoHandler().has((Map<EcoType, Double>)var4, var2);
-                     if (!this.arePricesValid((Map<EcoType, Double>)var4)) {
-                        SendMessage.chatToPlayer(var2, Lang.CANNOT_PURCHASE_ITEM.get());
-                        var3 = Transaction.Result.NEGATIVE_ITEM_PRICE;
-                     } else if (var8.size() == 0) {
-                        if (!this.plugin.getEcoHandler().withdraw((Map<EcoType, Double>)var4, var2)) {
+                  Bukkit.getPluginManager().callEvent(preTransactionEvent);
+                  map = preTransactionEvent.getPrices();
+                  if (!preTransactionEvent.isCancelled()) {
+                     Map types = this.plugin.getEcoHandler().has((Map<EcoType, Double>)map, player);
+                     if (!this.arePricesValid((Map<EcoType, Double>)map)) {
+                        SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
+                        result = Transaction.Result.NEGATIVE_ITEM_PRICE;
+                     } else if (types.size() == 0) {
+                        if (!this.plugin.getEcoHandler().withdraw((Map<EcoType, Double>)map, player)) {
                            SendMessage.chatToPlayer(
-                              var2,
+                              player,
                               Lang.INSUFFICIENT_MONEY
                                  .get()
                                  .replace(
                                     "%currency%",
                                     this.plugin.formatPrices(
                                        Lang.INSUFFICIENT_MONEY.get().getLegacy().split("%currency%")[0],
-                                       var4.keySet(),
-                                       var1.getShopItem().getABuyPrice().isAll()
+                                       map.keySet(),
+                                       transactionMenu.getShopItem().getABuyPrice().isAll()
                                     )
                                  )
                            );
-                           this.plugin.getSoundEffects().insufficientFunds(var2);
-                           var3 = Transaction.Result.INSUFFICIENT_FUNDS;
+                           this.plugin.getSoundEffects().insufficientFunds(player);
+                           result = Transaction.Result.INSUFFICIENT_FUNDS;
                         } else {
-                           if (var1.getShopItem().getLimitedStockMode() != 0) {
-                              var1.updateItemStock(var5);
-                              if (var1.getItemStock() > 0) {
-                                 final int stockDeltaB = var5;
-                                 this.plugin.runTaskAsync(() -> this.plugin.getLimitedStockProvider().buyItems(var1.getShopItem(), var2.getUniqueId(), stockDeltaB));
+                           if (transactionMenu.getShopItem().getLimitedStockMode() != 0) {
+                              transactionMenu.updateItemStock(value);
+                              if (transactionMenu.getItemStock() > 0) {
+                                 final int stockDeltaB = value;
+                                 this.plugin.runTaskAsync(() -> this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), stockDeltaB));
                               } else {
-                                 this.plugin.getLimitedStockProvider().buyItems(var1.getShopItem(), var2.getUniqueId(), var5);
+                                 this.plugin.getLimitedStockProvider().buyItems(transactionMenu.getShopItem(), player.getUniqueId(), value);
                               }
                            }
 
-                           if (var1.getShopItem().isBuyCommand() && this.plugin.commandItems) {
-                              CommandHelper.executeCommandItem(var1.getShopItem(), var2, CommandType.BUY, var4.toString(), var5);
-                              var3 = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
+                           if (transactionMenu.getShopItem().isBuyCommand() && this.plugin.commandItems) {
+                              CommandHelper.executeCommandItem(transactionMenu.getShopItem(), player, CommandType.BUY, map.toString(), value);
+                              result = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
                            }
 
-                           if (!var1.getShopItem().isBuyCommand() || var1.getShopItem().isGiveItem()) {
-                              PlayerItems.giveItems(var2, var1.getShopItem(), var5);
+                           if (!transactionMenu.getShopItem().isBuyCommand() || transactionMenu.getShopItem().isGiveItem()) {
+                              PlayerItems.giveItems(player, transactionMenu.getShopItem(), value);
                            }
 
-                           if (this.plugin.dynamicPricing && var1.getShopItem().isDynamicPricing()) {
-                              this.plugin.getDynamicPricingProvider().buyItem(var1.getItemPath(), var5);
+                           if (this.plugin.dynamicPricing && transactionMenu.getShopItem().isDynamicPricing()) {
+                              this.plugin.getDynamicPricingProvider().buyItem(transactionMenu.getItemPath(), value);
                            }
 
-                           var1.sendTransactionCompleteMessage((Map<EcoType, Double>)var4, var5);
-                           if (var1.getShopItem().isCloseMenu()) {
-                              this.close(var2);
+                           transactionMenu.sendTransactionCompleteMessage((Map<EcoType, Double>)map, value);
+                           if (transactionMenu.getShopItem().isCloseMenu()) {
+                              this.close(player);
                            } else {
-                              var1.open(true);
+                              transactionMenu.open(true);
                            }
                         }
                      } else {
                         SendMessage.chatToPlayer(
-                           var2,
+                           player,
                            Lang.INSUFFICIENT_MONEY
                               .get()
                               .replace(
@@ -987,215 +991,215 @@ public class MenuHandler implements Listener {
                                  this.plugin
                                     .formatPrices(
                                        Lang.INSUFFICIENT_MONEY.get().getLegacy().split("%currency%")[0],
-                                       var8.keySet(),
-                                       var1.getShopItem().getABuyPrice().isAll()
+                                       types.keySet(),
+                                       transactionMenu.getShopItem().getABuyPrice().isAll()
                                     )
                               )
                         );
-                        this.plugin.getSoundEffects().insufficientFunds(var2);
-                        var3 = Transaction.Result.INSUFFICIENT_FUNDS;
+                        this.plugin.getSoundEffects().insufficientFunds(player);
+                        result = Transaction.Result.INSUFFICIENT_FUNDS;
                      }
                   } else {
-                     var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                     result = Transaction.Result.TRANSACTION_CANCELLED;
                   }
                }
             } else {
-               SendMessage.chatToPlayer(var2, Lang.MORE_SPACE_NEEDED.get());
-               var3 = Transaction.Result.NO_INVENTORY_SPACE;
+               SendMessage.chatToPlayer(player, Lang.MORE_SPACE_NEEDED.get());
+               result = Transaction.Result.NO_INVENTORY_SPACE;
             }
          } else {
-            SendMessage.chatToPlayer(var2, Lang.CANNOT_PURCHASE_ITEM.get());
-            var3 = Transaction.Result.NEGATIVE_ITEM_PRICE;
+            SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
+            result = Transaction.Result.NEGATIVE_ITEM_PRICE;
          }
       } else {
-         var4 = var1.getAvailableItemsA(var1.getAmount());
-         if (var4 != null) {
-            if (!var4.isEmpty()) {
-               if (!var4.keySet().stream().noneMatch(var0 -> var0.getType() == EconomyType.ITEM) && !this.canPay((Map<EcoType, Double>)var4, var2)) {
-                  SendMessage.chatToPlayer(var2, Lang.CANNOT_STORE_PAYMENT.get());
-                  var1.emptyCache();
-                  var3 = Transaction.Result.CANT_STORE_PAYMENT;
+         map = transactionMenu.getAvailableItemsA(transactionMenu.getAmount());
+         if (map != null) {
+            if (!map.isEmpty()) {
+               if (!map.keySet().stream().noneMatch(element -> element.getType() == EconomyType.ITEM) && !this.canPay((Map<EcoType, Double>)map, player)) {
+                  SendMessage.chatToPlayer(player, Lang.CANNOT_STORE_PAYMENT.get());
+                  transactionMenu.emptyCache();
+                  result = Transaction.Result.CANT_STORE_PAYMENT;
                } else {
-                  PreTransactionEvent var10 = new PreTransactionEvent(
-                     Collections.singletonMap(var1.getShopItem(), var5), (Map<EcoType, Double>)var4, var2, var5, var1.getTransactionType()
+                  PreTransactionEvent preTransactionEvent = new PreTransactionEvent(
+                     Collections.singletonMap(transactionMenu.getShopItem(), value), (Map<EcoType, Double>)map, player, value, transactionMenu.getTransactionType()
                   );
-                  Bukkit.getPluginManager().callEvent(var10);
-                  var4 = var10.getPrices();
-                  if (!var10.isCancelled()) {
-                     final int sold = var1.getAmount();
-                     final List<ItemStack> removedStacks = var1.getCachedItems();
-                     var1.emptyCache();
-                     boolean var15 = false;
+                  Bukkit.getPluginManager().callEvent(preTransactionEvent);
+                  map = preTransactionEvent.getPrices();
+                  if (!preTransactionEvent.isCancelled()) {
+                     final int sold = transactionMenu.getAmount();
+                     final List<ItemStack> removedStacks = transactionMenu.getCachedItems();
+                     transactionMenu.emptyCache();
+                     boolean flag = false;
                      try {
-                        this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)var4, var2);
-                        var15 = true;
-                        if (var1.getShopItem().isSellCommand() && this.plugin.commandItems) {
-                           CommandHelper.executeCommandItem(var1.getShopItem(), var2, CommandType.SELL, var4.toString(), sold);
-                           var3 = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
+                        this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)map, player);
+                        flag = true;
+                        if (transactionMenu.getShopItem().isSellCommand() && this.plugin.commandItems) {
+                           CommandHelper.executeCommandItem(transactionMenu.getShopItem(), player, CommandType.SELL, map.toString(), sold);
+                           result = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
                         }
 
-                        var1.sendTransactionCompleteMessage((Map<EcoType, Double>)var4, sold);
-                        this.plugin.runTaskAsync(() -> this.sellItems(var1.getShopItem(), sold, var2.getUniqueId()));
-                        if (var1.getShopItem().getLimitedSellMode() != 0) {
-                           var1.updateSellLimit(sold);
-                           if (var1.getSellLimit() > 0) {
+                        transactionMenu.sendTransactionCompleteMessage((Map<EcoType, Double>)map, sold);
+                        this.plugin.runTaskAsync(() -> this.sellItems(transactionMenu.getShopItem(), sold, player.getUniqueId()));
+                        if (transactionMenu.getShopItem().getLimitedSellMode() != 0) {
+                           transactionMenu.updateSellLimit(sold);
+                           if (transactionMenu.getSellLimit() > 0) {
                               this.plugin
                                  .runTaskAsync(
-                                    () -> this.plugin.getLimitedSellProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold, false)
+                                    () -> this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false)
                                  );
                            } else {
-                              this.plugin.getLimitedSellProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold, false);
+                              this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
                            }
                         }
 
-                        if (var1.getShopItem().isRefillStock()) {
-                           var1.addItemStock(sold);
-                           if (var1.getItemStock() > 0) {
+                        if (transactionMenu.getShopItem().isRefillStock()) {
+                           transactionMenu.addItemStock(sold);
+                           if (transactionMenu.getItemStock() > 0) {
                               this.plugin
-                                 .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold));
+                                 .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold));
                            } else {
-                              this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold);
+                              this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
                            }
                         }
 
-                        if (var1.getShopItem().isCloseMenu()) {
-                           this.close(var2);
+                        if (transactionMenu.getShopItem().isCloseMenu()) {
+                           this.close(player);
                         } else {
-                           var1.open(true);
+                           transactionMenu.open(true);
                         }
-                     } catch (RuntimeException var14) {
-                        if (var15) {
-                           SendMessage.errorMessage("Sell completed but post-processing failed: " + var14.getMessage());
+                     } catch (RuntimeException exception) {
+                        if (flag) {
+                           SendMessage.errorMessage("Sell completed but post-processing failed: " + exception.getMessage());
                         } else {
-                           var2.getInventory().addItem(removedStacks.toArray(new ItemStack[0]));
-                           SendMessage.errorMessage("Rolled back a failed sell: " + var14.getMessage());
-                           var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                           player.getInventory().addItem(removedStacks.toArray(new ItemStack[0]));
+                           SendMessage.errorMessage("Rolled back a failed sell: " + exception.getMessage());
+                           result = Transaction.Result.TRANSACTION_CANCELLED;
                         }
                      }
                   } else {
-                     var1.emptyCache();
-                     var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                     transactionMenu.emptyCache();
+                     result = Transaction.Result.TRANSACTION_CANCELLED;
                   }
                }
             } else {
-               SendMessage.chatToPlayer(var2, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
-               this.plugin.getSoundEffects().insufficientStock(var2);
-               var1.emptyCache();
-               var3 = Transaction.Result.REACHED_SELL_LIMIT;
-               if (var1.getSellLimit() == -1 || var1.getSellLimit() == -2) {
-                  var1.setSelectedItem(true);
+               SendMessage.chatToPlayer(player, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
+               this.plugin.getSoundEffects().insufficientStock(player);
+               transactionMenu.emptyCache();
+               result = Transaction.Result.REACHED_SELL_LIMIT;
+               if (transactionMenu.getSellLimit() == -1 || transactionMenu.getSellLimit() == -2) {
+                  transactionMenu.setSelectedItem(true);
                }
             }
          } else {
-            SendMessage.chatToPlayer(var2, Lang.NO_ITEM_FOUND.get());
-            var1.emptyCache();
-            var3 = Transaction.Result.NO_ITEMS_FOUND;
+            SendMessage.chatToPlayer(player, Lang.NO_ITEM_FOUND.get());
+            transactionMenu.emptyCache();
+            result = Transaction.Result.NO_ITEMS_FOUND;
          }
       }
 
       Bukkit.getPluginManager()
          .callEvent(
             new PostTransactionEvent(
-               Collections.singletonMap(var1.getShopItem(), var5), (Map<EcoType, Double>)var4, var2, var5, var1.getTransactionType(), var3
+               Collections.singletonMap(transactionMenu.getShopItem(), value), (Map<EcoType, Double>)map, player, value, transactionMenu.getTransactionType(), result
             )
          );
    }
 
-   public void completeSellAll(TransactionMenu var1, Player var2) {
-      Transaction.Result var3 = Transaction.Result.SUCCESS;
-      Double var4 = var1.getAvailableItems(Integer.MAX_VALUE);
-      if (var4 != null) {
-         if (var4 >= 0.0) {
-            if (var1.getShopItem().getEcoType().getType() == EconomyType.ITEM && !this.canPay(var2, var1.getShopItem().getEcoType(), var4)) {
-               SendMessage.chatToPlayer(var2, Lang.CANNOT_STORE_PAYMENT.get());
-               var3 = Transaction.Result.CANT_STORE_PAYMENT;
+   public void completeSellAll(TransactionMenu transactionMenu, Player player) {
+      Transaction.Result result = Transaction.Result.SUCCESS;
+      Double availableItems = transactionMenu.getAvailableItems(Integer.MAX_VALUE);
+      if (availableItems != null) {
+         if (availableItems >= 0.0) {
+            if (transactionMenu.getShopItem().getEcoType().getType() == EconomyType.ITEM && !this.canPay(player, transactionMenu.getShopItem().getEcoType(), availableItems)) {
+               SendMessage.chatToPlayer(player, Lang.CANNOT_STORE_PAYMENT.get());
+               result = Transaction.Result.CANT_STORE_PAYMENT;
             } else {
-               PreTransactionEvent var5 = new PreTransactionEvent(var1.getShopItem(), var2, var1.getAmount(), var4, var1.getTransactionType());
-               Bukkit.getPluginManager().callEvent(var5);
-               var4 = var5.getPrice();
-               if (!var5.isCancelled()) {
-                  if (var4 >= 0.0) {
-                     final int sold = var1.getAmount();
-                     final List<ItemStack> removedStacks = var1.getCachedItems();
-                     var1.emptyCache();
-                     boolean var15 = false;
+               PreTransactionEvent preTransactionEvent = new PreTransactionEvent(transactionMenu.getShopItem(), player, transactionMenu.getAmount(), availableItems, transactionMenu.getTransactionType());
+               Bukkit.getPluginManager().callEvent(preTransactionEvent);
+               availableItems = preTransactionEvent.getPrice();
+               if (!preTransactionEvent.isCancelled()) {
+                  if (availableItems >= 0.0) {
+                     final int sold = transactionMenu.getAmount();
+                     final List<ItemStack> removedStacks = transactionMenu.getCachedItems();
+                     transactionMenu.emptyCache();
+                     boolean flag = false;
                      try {
-                        this.plugin.getEcoHandler().getEcon(var1.getShopItem().getEcoType()).depositBalance(var2, var4);
-                        var15 = true;
-                        if (var1.getShopItem().isSellCommand() && this.plugin.commandItems) {
-                           CommandHelper.executeCommandItem(var1.getShopItem(), var2, CommandType.SELL, String.valueOf(var4), sold);
-                           var3 = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
+                        this.plugin.getEcoHandler().getEcon(transactionMenu.getShopItem().getEcoType()).depositBalance(player, availableItems);
+                        flag = true;
+                        if (transactionMenu.getShopItem().isSellCommand() && this.plugin.commandItems) {
+                           CommandHelper.executeCommandItem(transactionMenu.getShopItem(), player, CommandType.SELL, String.valueOf(availableItems), sold);
+                           result = Transaction.Result.SUCCESS_COMMANDS_EXECUTED;
                         }
 
-                        var1.sendTransactionCompleteMessage(var4);
-                        this.plugin.runTaskAsync(() -> this.sellItems(var1.getShopItem(), sold, var2.getUniqueId()));
-                        if (var1.getShopItem().getLimitedSellMode() != 0) {
-                           var1.updateSellLimit(sold);
-                           if (var1.getSellLimit() > 0) {
+                        transactionMenu.sendTransactionCompleteMessage(availableItems);
+                        this.plugin.runTaskAsync(() -> this.sellItems(transactionMenu.getShopItem(), sold, player.getUniqueId()));
+                        if (transactionMenu.getShopItem().getLimitedSellMode() != 0) {
+                           transactionMenu.updateSellLimit(sold);
+                           if (transactionMenu.getSellLimit() > 0) {
                               this.plugin
                                  .runTaskAsync(
-                                    () -> this.plugin.getLimitedSellProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold, false)
+                                    () -> this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false)
                                  );
                            } else {
-                              this.plugin.getLimitedSellProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold, false);
+                              this.plugin.getLimitedSellProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold, false);
                            }
                         }
 
-                        if (var1.getShopItem().isRefillStock()) {
-                           var1.addItemStock(sold);
-                           if (var1.getItemStock() > 0) {
+                        if (transactionMenu.getShopItem().isRefillStock()) {
+                           transactionMenu.addItemStock(sold);
+                           if (transactionMenu.getItemStock() > 0) {
                               this.plugin
-                                 .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold));
+                                 .runTaskAsync(() -> this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold));
                            } else {
-                              this.plugin.getLimitedStockProvider().sellItems(var1.getShopItem(), var2.getUniqueId(), sold);
+                              this.plugin.getLimitedStockProvider().sellItems(transactionMenu.getShopItem(), player.getUniqueId(), sold);
                            }
                         }
 
-                        if (var1.getShopItem().isCloseMenu()) {
-                           this.close(var2);
+                        if (transactionMenu.getShopItem().isCloseMenu()) {
+                           this.close(player);
                         } else {
-                           var1.open(true);
+                           transactionMenu.open(true);
                         }
-                     } catch (RuntimeException var14) {
-                        if (var15) {
-                           SendMessage.errorMessage("Sell completed but post-processing failed: " + var14.getMessage());
+                     } catch (RuntimeException exception) {
+                        if (flag) {
+                           SendMessage.errorMessage("Sell completed but post-processing failed: " + exception.getMessage());
                         } else {
-                           var2.getInventory().addItem(removedStacks.toArray(new ItemStack[0]));
-                           SendMessage.errorMessage("Rolled back a failed sell: " + var14.getMessage());
-                           var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                           player.getInventory().addItem(removedStacks.toArray(new ItemStack[0]));
+                           SendMessage.errorMessage("Rolled back a failed sell: " + exception.getMessage());
+                           result = Transaction.Result.TRANSACTION_CANCELLED;
                         }
                      }
                   } else {
-                     var1.emptyCache();
-                     var3 = Transaction.Result.NEGATIVE_ITEM_PRICE;
+                     transactionMenu.emptyCache();
+                     result = Transaction.Result.NEGATIVE_ITEM_PRICE;
                   }
                } else {
-                  var1.emptyCache();
-                  var3 = Transaction.Result.TRANSACTION_CANCELLED;
+                  transactionMenu.emptyCache();
+                  result = Transaction.Result.TRANSACTION_CANCELLED;
                }
             }
          } else {
-            SendMessage.chatToPlayer(var2, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
-            this.plugin.getSoundEffects().insufficientStock(var2);
-            var1.emptyCache();
-            var3 = Transaction.Result.REACHED_SELL_LIMIT;
-            if (var1.getSellLimit() == -1 || var1.getSellLimit() == -2) {
-               var1.setSelectedItem(true);
+            SendMessage.chatToPlayer(player, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
+            this.plugin.getSoundEffects().insufficientStock(player);
+            transactionMenu.emptyCache();
+            result = Transaction.Result.REACHED_SELL_LIMIT;
+            if (transactionMenu.getSellLimit() == -1 || transactionMenu.getSellLimit() == -2) {
+               transactionMenu.setSelectedItem(true);
             }
          }
       } else {
-         SendMessage.chatToPlayer(var2, Lang.NO_ITEM_TO_BE_SOLD.get());
-         var1.emptyCache();
-         var3 = Transaction.Result.NO_ITEMS_FOUND;
-         var4 = 0.0;
+         SendMessage.chatToPlayer(player, Lang.NO_ITEM_TO_BE_SOLD.get());
+         transactionMenu.emptyCache();
+         result = Transaction.Result.NO_ITEMS_FOUND;
+         availableItems = 0.0;
       }
 
-      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(var1.getShopItem(), var2, var1.getAmount(), var4, var1.getTransactionType(), var3));
+      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(transactionMenu.getShopItem(), player, transactionMenu.getAmount(), availableItems, transactionMenu.getTransactionType(), result));
    }
 
-   private boolean arePricesValid(Map<EcoType, Double> var1) {
-      for (Double var2 : var1.values()) {
-         if (var2 == null || !(var2 >= 0.0)) {
+   private boolean arePricesValid(Map<EcoType, Double> map) {
+      for (Double amount : map.values()) {
+         if (amount == null || !(amount >= 0.0)) {
             return false;
          }
       }
@@ -1203,41 +1207,41 @@ public class MenuHandler implements Listener {
       return true;
    }
 
-   private boolean canPay(Map<EcoType, Double> var1, Player var2) {
-      return var1.entrySet()
+   private boolean canPay(Map<EcoType, Double> map, Player player) {
+      return map.entrySet()
          .stream()
-         .filter(var0 -> ((EcoType)var0.getKey()).getType() == EconomyType.ITEM)
-         .allMatch(var2x -> this.canPay(var2, (EcoType)var2x.getKey(), (Double)var2x.getValue()));
+         .filter(entry -> ((EcoType)entry.getKey()).getType() == EconomyType.ITEM)
+         .allMatch(entry -> this.canPay(player, (EcoType)entry.getKey(), (Double)entry.getValue()));
    }
 
-   private boolean canPay(Player var1, EcoType var2, double var3) {
-      int var5 = 0;
-      int var6 = ((ItemEconomy)this.plugin.getEcoHandler().getEcon(var2)).getItem().getMaxStackSize();
+   private boolean canPay(Player player, EcoType ecoType, double amount) {
+      int value = 0;
+      int maxStackSize = ((ItemEconomy)this.plugin.getEcoHandler().getEcon(ecoType)).getItem().getMaxStackSize();
 
-      for (int var7 = 0; var7 < 36; var7++) {
-         ItemStack var8 = var1.getInventory().getItem(var7);
-         if (var8 == null || var8.getType().equals(Material.AIR)) {
-            var5 += var6;
-         } else if (var8.isSimilar(((ItemEconomy)this.plugin.getEcoHandler().getEcon(var2)).getItem()) && var8.getAmount() < var6) {
-            var5 += var6 - var8.getAmount();
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = player.getInventory().getItem(index);
+         if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
+            value += maxStackSize;
+         } else if (itemStack.isSimilar(((ItemEconomy)this.plugin.getEcoHandler().getEcon(ecoType)).getItem()) && itemStack.getAmount() < maxStackSize) {
+            value += maxStackSize - itemStack.getAmount();
          }
       }
 
-      return var5 >= var3;
+      return value >= amount;
    }
 
-   public boolean isAllowedGamemode(Player var1) {
-      if (this.plugin.bannedGamemodes.contains(var1.getGameMode()) && !PermissionsCache.hasPermission(var1, "OnyxShop.bypassgamemode")) {
-         SendMessage.chatToPlayer(var1, Lang.CANNOT_ENTER_SHOP_BANNED_GAMEMODE.get().replace("%gamemode%", var1.getGameMode().name().toLowerCase()));
+   public boolean isAllowedGamemode(Player player) {
+      if (this.plugin.bannedGamemodes.contains(player.getGameMode()) && !PermissionsCache.hasPermission(player, "OnyxShop.bypassgamemode")) {
+         SendMessage.chatToPlayer(player, Lang.CANNOT_ENTER_SHOP_BANNED_GAMEMODE.get().replace("%gamemode%", player.getGameMode().name().toLowerCase()));
          return false;
       } else {
          return true;
       }
    }
 
-   private void sellItems(ShopItem var1, int var2, UUID var3) {
+   private void sellItems(ShopItem shopItem, int value, UUID uniqueId) {
       if (this.plugin.dynamicPricing) {
-         this.plugin.getDynamicPricingProvider().sellItem(var1.getItemPath(), var2);
+         this.plugin.getDynamicPricingProvider().sellItem(shopItem.getItemPath(), value);
       }
    }
 
@@ -1245,112 +1249,112 @@ public class MenuHandler implements Listener {
       priority = EventPriority.HIGHEST,
       ignoreCancelled = true
    )
-   public void onMenuClose(InventoryCloseEvent var1) {
-      if (InventoryUtil.getHolder(var1.getInventory()) instanceof ShopInventory) {
-         Player var2 = (Player)var1.getPlayer();
-         InventoryHolder var3 = InventoryUtil.getHolder(var1.getInventory());
-         boolean var4 = backOnClose && !UserManager.getUser(var2).isOpenNewGUI();
-         this.plugin.runTaskLater(() -> this.closeInventory(var2, var3, var4), 1L);
-      } else if (InventoryUtil.getHolder(var1.getInventory()) instanceof ItemEditor) {
-         Player var5 = (Player)var1.getPlayer();
-         if (InventoryUtil.getHolder(var1.getInventory()) instanceof FireworkOptions) {
-            this.plugin.itemEditor.saveFireworkOptions(var1.getInventory());
-         } else if (InventoryUtil.getHolder(var1.getInventory()) instanceof DynamicPricingOptions) {
-            this.plugin.itemEditor.saveDynamicPricingOptions(var1.getInventory());
-         } else if (InventoryUtil.getHolder(var1.getInventory()) instanceof AvailableOptions) {
-            this.plugin.itemEditor.saveUnsavedOptions(var1.getInventory());
+   public void onMenuClose(InventoryCloseEvent event) {
+      if (InventoryUtil.getHolder(event.getInventory()) instanceof ShopInventory) {
+         Player player = (Player)event.getPlayer();
+         InventoryHolder holder = InventoryUtil.getHolder(event.getInventory());
+         boolean flag = backOnClose && !UserManager.getUser(player).isOpenNewGUI();
+         this.plugin.runTaskLaterFor(() -> this.closeInventory(player, holder, flag), player, 1L);
+      } else if (InventoryUtil.getHolder(event.getInventory()) instanceof ItemEditor) {
+         Player player = (Player)event.getPlayer();
+         if (InventoryUtil.getHolder(event.getInventory()) instanceof FireworkOptions) {
+            this.plugin.itemEditor.saveFireworkOptions(event.getInventory());
+         } else if (InventoryUtil.getHolder(event.getInventory()) instanceof DynamicPricingOptions) {
+            this.plugin.itemEditor.saveDynamicPricingOptions(event.getInventory());
+         } else if (InventoryUtil.getHolder(event.getInventory()) instanceof AvailableOptions) {
+            this.plugin.itemEditor.saveUnsavedOptions(event.getInventory());
          }
 
-         this.plugin.runTaskLater(var5::updateInventory, 1L);
+         this.plugin.runTaskLaterFor(player::updateInventory, player, 1L);
       }
    }
 
-   private void closeInventory(Player var1, InventoryHolder var2, boolean var3) {
-      if (var3 && var2 instanceof ShopPage) {
-         ShopPage var6 = (ShopPage)var2;
-         if (!var6.isDisabledBackButton() || var6.isSubSection() && !BackButton.SUB_SECTIONS) {
-            if (var6.isSubSection()) {
-               this.plugin.getSection(var6.getRootSection()).openShopSection(var1, var6.isDisabledBackButton());
+   private void closeInventory(Player player, InventoryHolder holder, boolean flag) {
+      if (flag && holder instanceof ShopPage) {
+         ShopPage shopPage = (ShopPage)holder;
+         if (!shopPage.isDisabledBackButton() || shopPage.isSubSection() && !BackButton.SUB_SECTIONS) {
+            if (shopPage.isSubSection()) {
+               this.plugin.getSection(shopPage.getRootSection()).openShopSection(player, shopPage.isDisabledBackButton());
             } else {
-               MainMenu.open(var1);
+               MainMenu.open(player);
             }
 
-            this.plugin.getSoundEffects().useBackButton(var1);
+            this.plugin.getSoundEffects().useBackButton(player);
          }
-      } else if (var3 && var2 instanceof TransactionMenu) {
-         TransactionMenu var4 = (TransactionMenu)var2;
-         if (var4.getTransactionType() != Transaction.Type.BUY_STACKS_SCREEN) {
-            ShopSection var5 = this.plugin.getSection(var4.getShopItem().section);
-            var5.openShopSection(var1, var5.getPageForShopItem(var4.getShopItem().itemLoc), var4.isDisabledBackButton());
-            this.plugin.getSoundEffects().useBackButton(var1);
+      } else if (flag && holder instanceof TransactionMenu) {
+         TransactionMenu transactionMenu = (TransactionMenu)holder;
+         if (transactionMenu.getTransactionType() != Transaction.Type.BUY_STACKS_SCREEN) {
+            ShopSection section = this.plugin.getSection(transactionMenu.getShopItem().section);
+            section.openShopSection(player, section.getPageForShopItem(transactionMenu.getShopItem().itemLoc), transactionMenu.isDisabledBackButton());
+            this.plugin.getSoundEffects().useBackButton(player);
          } else {
             new TransactionMenu(
-                  var1,
-                  var4.getShopItem(),
-                  var4.getRootSection(),
-                  var4.isDisabledBackButton(),
-                  Transaction.Mode.getFromType(var4.getTransactionType()),
+                  player,
+                  transactionMenu.getShopItem(),
+                  transactionMenu.getRootSection(),
+                  transactionMenu.isDisabledBackButton(),
+                  Transaction.Mode.getFromType(transactionMenu.getTransactionType()),
                   Transaction.Type.BUY_SCREEN,
-                  var4.getAmount()
+                  transactionMenu.getAmount()
                )
                .open(false);
          }
-      } else if (var2 instanceof SellGUI) {
-         ((SellGUI)var2).sellItems(var1);
+      } else if (holder instanceof SellGUI) {
+         ((SellGUI)holder).sellItems(player);
       }
 
-      var1.updateInventory();
+      player.updateInventory();
    }
 
-   private void close(Player var1) {
-      UserManager.getUser(var1).setOpenNewGUI(true);
-      var1.closeInventory();
+   private void close(Player player) {
+      UserManager.getUser(player).setOpenNewGUI(true);
+      player.closeInventory();
    }
 
-   private void handleShiftSellGUI(InventoryClickEvent var1, Inventory var2, InventoryHolder var3, int var4) {
-      ItemStack var5 = var1.getCurrentItem();
-      if (var5 != null) {
-         ItemStack var6 = var5.clone();
-         ArrayList<Integer> var7 = new ArrayList<>();
-         ItemStack[] var8 = var3.getInventory().getContents();
+   private void handleShiftSellGUI(InventoryClickEvent inventoryClickEvent, Inventory inventory, InventoryHolder holder, int value) {
+      ItemStack itemStack = inventoryClickEvent.getCurrentItem();
+      if (itemStack != null) {
+         ItemStack itemStack2 = itemStack.clone();
+         ArrayList<Integer> values = new ArrayList<>();
+         ItemStack[] contents = holder.getInventory().getContents();
 
-         for (int var9 = 0; var9 < var8.length; var9++) {
-            ItemStack var10 = var8[var9];
-            if (var10 != null && var10.isSimilar(var6)) {
-               int var11 = Math.min(var10.getMaxStackSize(), var6.getMaxStackSize());
-               int var12 = var11 - var10.getAmount();
-               if (var12 > 0) {
-                  int var13 = Math.min(var12, var6.getAmount());
-                  var6.setAmount(var6.getAmount() - var13);
-                  var7.add(var9);
-                  if (var6.getAmount() <= 0) {
+         for (int index = 0; index < contents.length; index++) {
+            ItemStack itemStack3 = contents[index];
+            if (itemStack3 != null && itemStack3.isSimilar(itemStack2)) {
+               int size = Math.min(itemStack3.getMaxStackSize(), itemStack2.getMaxStackSize());
+               int amount = size - itemStack3.getAmount();
+               if (amount > 0) {
+                  int value3 = Math.min(amount, itemStack2.getAmount());
+                  itemStack2.setAmount(itemStack2.getAmount() - value3);
+                  values.add(index);
+                  if (itemStack2.getAmount() <= 0) {
                      break;
                   }
                }
             }
          }
 
-         if (var6.getAmount() > 0) {
-            for (int var14 = 0; var14 < var8.length; var14++) {
-               if (var8[var14] == null) {
-                  int var16 = Math.min(var6.getAmount(), var6.getMaxStackSize());
-                  var6.setAmount(var6.getAmount() - var16);
-                  var7.add(var14);
-                  if (var6.getAmount() <= 0) {
+         if (itemStack2.getAmount() > 0) {
+            for (int index = 0; index < contents.length; index++) {
+               if (contents[index] == null) {
+                  int value3 = Math.min(itemStack2.getAmount(), itemStack2.getMaxStackSize());
+                  itemStack2.setAmount(itemStack2.getAmount() - value3);
+                  values.add(index);
+                  if (itemStack2.getAmount() <= 0) {
                      break;
                   }
                }
             }
          }
 
-         for (int var17 : var7) {
-            if (this.plugin.navBar.isEnableSellGUINav() && var17 >= var2.getSize() - 9 && var17 <= var2.getSize() - 1) {
-               var1.setCancelled(true);
+         for (int value2 : values) {
+            if (this.plugin.navBar.isEnableSellGUINav() && value2 >= inventory.getSize() - 9 && value2 <= inventory.getSize() - 1) {
+               inventoryClickEvent.setCancelled(true);
                return;
             }
 
-            if (SellGUI.isFillItem(var17)) {
-               var1.setCancelled(true);
+            if (SellGUI.isFillItem(value2)) {
+               inventoryClickEvent.setCancelled(true);
                return;
             }
          }
@@ -1361,16 +1365,16 @@ public class MenuHandler implements Listener {
       priority = EventPriority.HIGH,
       ignoreCancelled = true
    )
-   public void onDrag(InventoryDragEvent var1) {
-      InventoryHolder var2 = InventoryUtil.getHolder(var1.getInventory());
-      if (var2 instanceof ShopInventory || var2 instanceof ItemEditor) {
-         int var3 = var2.getInventory().getSize();
+   public void onDrag(InventoryDragEvent event) {
+      InventoryHolder holder = InventoryUtil.getHolder(event.getInventory());
+      if (holder instanceof ShopInventory || holder instanceof ItemEditor) {
+         int size = holder.getInventory().getSize();
 
-         for (int var5 : var1.getRawSlots()) {
-            if (var5 < var3
-               && (!(var2 instanceof SellGUI) || SellGUI.isFillItem(var5) || this.plugin.navBar.isEnableSellGUINav() && var5 >= var3 - 9 && var5 <= var3 - 1)) {
-               var1.setCancelled(true);
-               var1.setResult(Result.DENY);
+         for (int value : event.getRawSlots()) {
+            if (value < size
+               && (!(holder instanceof SellGUI) || SellGUI.isFillItem(value) || this.plugin.navBar.isEnableSellGUINav() && value >= size - 9 && value <= size - 1)) {
+               event.setCancelled(true);
+               event.setResult(Result.DENY);
                return;
             }
          }
@@ -1380,435 +1384,435 @@ public class MenuHandler implements Listener {
    @EventHandler(
       priority = EventPriority.HIGH
    )
-   public void onCreative(InventoryCreativeEvent var1) {
-      InventoryHolder var2 = InventoryUtil.getHolder(var1.getInventory());
-      if (var2 instanceof ShopInventory || var2 instanceof ItemEditor) {
-         var1.setCancelled(true);
-         var1.setResult(Result.DENY);
+   public void onCreative(InventoryCreativeEvent event) {
+      InventoryHolder holder = InventoryUtil.getHolder(event.getInventory());
+      if (holder instanceof ShopInventory || holder instanceof ItemEditor) {
+         event.setCancelled(true);
+         event.setResult(Result.DENY);
       }
    }
 
-   public boolean purchaseItem(Player var1, ShopItem var2) {
-      int var3 = var2.getStackSize();
-      double var4 = 0.0;
-      if (!PlayerItems.canBuy(var1, var2)) {
-         SendMessage.chatToPlayer(var1, Lang.MORE_SPACE_NEEDED.get());
-         this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NO_INVENTORY_SPACE);
+   public boolean purchaseItem(Player player, ShopItem shopItem) {
+      int stackSize = shopItem.getStackSize();
+      double amount = 0.0;
+      if (!PlayerItems.canBuy(player, shopItem)) {
+         SendMessage.chatToPlayer(player, Lang.MORE_SPACE_NEEDED.get());
+         this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.NO_INVENTORY_SPACE);
          return false;
       } else {
-         var3 = PlayerItems.getFinalAmount(var2, var1, var3);
-         if (var2.isMinBuy(var3)) {
-            SendMessage.chatToPlayer(var1, Lang.NOT_ENOUGH_ITEMS_TO_BUY.get().replace("%min-buy%", String.valueOf(var2.getMinBuy())));
-            this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NOT_ENOUGH_ITEMS);
+         stackSize = PlayerItems.getFinalAmount(shopItem, player, stackSize);
+         if (shopItem.isMinBuy(stackSize)) {
+            SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_ITEMS_TO_BUY.get().replace("%min-buy%", String.valueOf(shopItem.getMinBuy())));
+            this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.NOT_ENOUGH_ITEMS);
             return false;
          } else {
-            if (var2.getLimitedStockMode() != 0) {
-               int var6 = this.plugin.getLimitedStockProvider().getItemStock(var2, var1.getUniqueId(), true);
-               var3 = Math.min(var3, var6);
-               if (var6 <= 0) {
-                  SendMessage.chatToPlayer(var1, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
-                  this.plugin.getSoundEffects().insufficientStock(var1);
-                  this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NO_ITEM_STOCK_LEFT);
+            if (shopItem.getLimitedStockMode() != 0) {
+               int itemStock = this.plugin.getLimitedStockProvider().getItemStock(shopItem, player.getUniqueId(), true);
+               stackSize = Math.min(stackSize, itemStock);
+               if (itemStock <= 0) {
+                  SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
+                  this.plugin.getSoundEffects().insufficientStock(player);
+                  this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.NO_ITEM_STOCK_LEFT);
                   return false;
                }
             }
 
-            PreTransactionEvent var10 = new PreTransactionEvent(var2, var1, var3, var2.getBuyPrice(var1, var3), Transaction.Type.QUICK_BUY);
-            Bukkit.getPluginManager().callEvent(var10);
-            var4 = var10.getPrice();
-            if (var10.isCancelled()) {
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.TRANSACTION_CANCELLED);
+            PreTransactionEvent preTransactionEvent = new PreTransactionEvent(shopItem, player, stackSize, shopItem.getBuyPrice(player, stackSize), Transaction.Type.QUICK_BUY);
+            Bukkit.getPluginManager().callEvent(preTransactionEvent);
+            amount = preTransactionEvent.getPrice();
+            if (preTransactionEvent.isCancelled()) {
+               this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.TRANSACTION_CANCELLED);
                return false;
-            } else if (!(var4 >= 0.0)) {
-               SendMessage.chatToPlayer(var1, Lang.CANNOT_PURCHASE_ITEM.get());
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NEGATIVE_ITEM_PRICE);
+            } else if (!(amount >= 0.0)) {
+               SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
+               this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.NEGATIVE_ITEM_PRICE);
                return false;
-            } else if (this.plugin.getEcoHandler().getEcon(var2).getBalance(var1) < var4) {
+            } else if (this.plugin.getEcoHandler().getEcon(shopItem).getBalance(player) < amount) {
                SendMessage.chatToPlayer(
-                  var1, Lang.INSUFFICIENT_MONEY.get().replace("%currency%", this.plugin.getEcoHandler().getEcon(var2.getEcoType()).getFriendly())
+                  player, Lang.INSUFFICIENT_MONEY.get().replace("%currency%", this.plugin.getEcoHandler().getEcon(shopItem.getEcoType()).getFriendly())
                );
-               this.plugin.getSoundEffects().insufficientFunds(var1);
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
+               this.plugin.getSoundEffects().insufficientFunds(player);
+               this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
                return false;
             } else {
-               if (!this.plugin.getEcoHandler().getEcon(var2).withdrawBalance(var1, var4)) {
+               if (!this.plugin.getEcoHandler().getEcon(shopItem).withdrawBalance(player, amount)) {
                   SendMessage.chatToPlayer(
-                     var1, Lang.INSUFFICIENT_MONEY.get().replace("%currency%", this.plugin.getEcoHandler().getEcon(var2.getEcoType()).getFriendly())
+                     player, Lang.INSUFFICIENT_MONEY.get().replace("%currency%", this.plugin.getEcoHandler().getEcon(shopItem.getEcoType()).getFriendly())
                   );
-                  this.plugin.getSoundEffects().insufficientFunds(var1);
-                  this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
+                  this.plugin.getSoundEffects().insufficientFunds(player);
+                  this.callPost(shopItem, player, stackSize, amount, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
                   return false;
                }
 
-               if (var2.isBuyCommand() && this.plugin.commandItems) {
-                  CommandHelper.executeCommandItem(var2, var1, CommandType.BUY, String.valueOf(var4), var3);
+               if (shopItem.isBuyCommand() && this.plugin.commandItems) {
+                  CommandHelper.executeCommandItem(shopItem, player, CommandType.BUY, String.valueOf(amount), stackSize);
                }
 
-               if (!var2.isBuyCommand() || var2.isGiveItem()) {
-                  PlayerItems.giveItems(var1, var2, var3);
+               if (!shopItem.isBuyCommand() || shopItem.isGiveItem()) {
+                  PlayerItems.giveItems(player, shopItem, stackSize);
                }
 
-               boolean var7 = false;
-               if (var2.getLimitedStockMode() != 0) {
-                  var7 = true;
+               boolean flag = false;
+               if (shopItem.getLimitedStockMode() != 0) {
+                  flag = true;
                   if (true) {
-                     this.plugin.getLimitedStockProvider().buyItems(var2, var1.getUniqueId(), var3);
+                     this.plugin.getLimitedStockProvider().buyItems(shopItem, player.getUniqueId(), stackSize);
                   }
                }
 
-               if (this.plugin.dynamicPricing && var2.isDynamicPricing()) {
-                  var7 = true;
+               if (this.plugin.dynamicPricing && shopItem.isDynamicPricing()) {
+                  flag = true;
                   if (true) {
-                     this.plugin.getDynamicPricingProvider().buyItem(var2.getItemPath(), var3);
+                     this.plugin.getDynamicPricingProvider().buyItem(shopItem.getItemPath(), stackSize);
                   }
                }
 
                SendMessage.sendTransactionMessage(
-                  var1, var3, var4, var2, Transaction.Mode.BUY, Transaction.Type.QUICK_BUY, var2.isBuyCommand() && !var2.isGiveItem()
+                  player, stackSize, amount, shopItem, Transaction.Mode.BUY, Transaction.Type.QUICK_BUY, shopItem.isBuyCommand() && !shopItem.isGiveItem()
                );
-               if (var2.isCloseMenu()) {
-                  this.close(var1);
+               if (shopItem.isCloseMenu()) {
+                  this.close(player);
                }
 
                this.callPost(
-                  var2,
-                  var1,
-                  var3,
-                  var4,
+                  shopItem,
+                  player,
+                  stackSize,
+                  amount,
                   Transaction.Type.QUICK_BUY,
-                  var2.isBuyCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
+                  shopItem.isBuyCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
                );
-               return var7;
+               return flag;
             }
          }
       }
    }
 
-   public boolean purchaseItemA(Player var1, ShopItem var2) {
-      int var3 = var2.getStackSize();
-      HashMap var4 = new HashMap();
-      if (!PlayerItems.canBuy(var1, var2)) {
-         SendMessage.chatToPlayer(var1, Lang.MORE_SPACE_NEEDED.get());
-         this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NO_INVENTORY_SPACE);
+   public boolean purchaseItemA(Player player, ShopItem shopItem) {
+      int stackSize = shopItem.getStackSize();
+      HashMap itemIds = new HashMap();
+      if (!PlayerItems.canBuy(player, shopItem)) {
+         SendMessage.chatToPlayer(player, Lang.MORE_SPACE_NEEDED.get());
+         this.callPost(shopItem, player, stackSize, itemIds, Transaction.Type.QUICK_BUY, Transaction.Result.NO_INVENTORY_SPACE);
          return false;
       } else {
-         var3 = PlayerItems.getFinalAmount(var2, var1, var3);
-         if (var2.isMinBuy(var3)) {
-            SendMessage.chatToPlayer(var1, Lang.NOT_ENOUGH_ITEMS_TO_BUY.get().replace("%min-buy%", String.valueOf(var2.getMinBuy())));
-            this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NOT_ENOUGH_ITEMS);
+         stackSize = PlayerItems.getFinalAmount(shopItem, player, stackSize);
+         if (shopItem.isMinBuy(stackSize)) {
+            SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_ITEMS_TO_BUY.get().replace("%min-buy%", String.valueOf(shopItem.getMinBuy())));
+            this.callPost(shopItem, player, stackSize, itemIds, Transaction.Type.QUICK_BUY, Transaction.Result.NOT_ENOUGH_ITEMS);
             return false;
          } else {
-            if (var2.getLimitedStockMode() != 0) {
-               int var5 = this.plugin.getLimitedStockProvider().getItemStock(var2, var1.getUniqueId(), true);
-               var3 = Math.min(var3, var5);
-               if (var5 <= 0) {
-                  SendMessage.chatToPlayer(var1, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
-                  this.plugin.getSoundEffects().insufficientStock(var1);
-                  this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_BUY, Transaction.Result.NO_ITEM_STOCK_LEFT);
+            if (shopItem.getLimitedStockMode() != 0) {
+               int itemStock = this.plugin.getLimitedStockProvider().getItemStock(shopItem, player.getUniqueId(), true);
+               stackSize = Math.min(stackSize, itemStock);
+               if (itemStock <= 0) {
+                  SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_STOCK_AVAILABLE.get());
+                  this.plugin.getSoundEffects().insufficientStock(player);
+                  this.callPost(shopItem, player, stackSize, itemIds, Transaction.Type.QUICK_BUY, Transaction.Result.NO_ITEM_STOCK_LEFT);
                   return false;
                }
             }
 
-            PreTransactionEvent var10 = new PreTransactionEvent(
-               Collections.singletonMap(var2, var3),
-               var2.getABuyPrice().getBuyPrices(null, var1, var3, var2.getBuyModifiers()),
-               var1,
-               var3,
+            PreTransactionEvent preTransactionEvent = new PreTransactionEvent(
+               Collections.singletonMap(shopItem, stackSize),
+               shopItem.getABuyPrice().getBuyPrices(null, player, stackSize, shopItem.getBuyModifiers()),
+               player,
+               stackSize,
                Transaction.Type.QUICK_BUY
             );
-            Bukkit.getPluginManager().callEvent(var10);
-            Map var9 = var10.getPrices();
-            if (var10.isCancelled()) {
-               this.callPost(var2, var1, var3, var9, Transaction.Type.QUICK_BUY, Transaction.Result.TRANSACTION_CANCELLED);
+            Bukkit.getPluginManager().callEvent(preTransactionEvent);
+            Map prices = preTransactionEvent.getPrices();
+            if (preTransactionEvent.isCancelled()) {
+               this.callPost(shopItem, player, stackSize, prices, Transaction.Type.QUICK_BUY, Transaction.Result.TRANSACTION_CANCELLED);
                return false;
-            } else if (!this.arePricesValid(var9)) {
-               SendMessage.chatToPlayer(var1, Lang.CANNOT_PURCHASE_ITEM.get());
-               this.callPost(var2, var1, var3, var9, Transaction.Type.QUICK_BUY, Transaction.Result.NEGATIVE_ITEM_PRICE);
+            } else if (!this.arePricesValid(prices)) {
+               SendMessage.chatToPlayer(player, Lang.CANNOT_PURCHASE_ITEM.get());
+               this.callPost(shopItem, player, stackSize, prices, Transaction.Type.QUICK_BUY, Transaction.Result.NEGATIVE_ITEM_PRICE);
                return false;
             } else {
-               Map var6 = this.plugin.getEcoHandler().has(var9, var1);
-               if (var6.size() != 0) {
+               Map map = this.plugin.getEcoHandler().has(prices, player);
+               if (map.size() != 0) {
                   SendMessage.chatToPlayer(
-                     var1,
+                     player,
                      Lang.INSUFFICIENT_MONEY
                         .get()
                         .replace(
                            "%currency%",
                            this.plugin
-                              .formatPrices(Lang.INSUFFICIENT_MONEY.get().getLegacy().split("%currency%")[0], var6.keySet(), var2.getABuyPrice().isAll())
+                              .formatPrices(Lang.INSUFFICIENT_MONEY.get().getLegacy().split("%currency%")[0], map.keySet(), shopItem.getABuyPrice().isAll())
                         )
                   );
-                  this.plugin.getSoundEffects().insufficientFunds(var1);
-                  this.callPost(var2, var1, var3, var9, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
+                  this.plugin.getSoundEffects().insufficientFunds(player);
+                  this.callPost(shopItem, player, stackSize, prices, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
                   return false;
                } else {
-                  if (!this.plugin.getEcoHandler().withdraw(var9, var1)) {
+                  if (!this.plugin.getEcoHandler().withdraw(prices, player)) {
                      SendMessage.chatToPlayer(
-                        var1,
+                        player,
                         Lang.INSUFFICIENT_MONEY
                            .get()
                            .replace(
                               "%currency%",
                               this.plugin.formatPrices(
-                                 Lang.INSUFFICIENT_MONEY.get().getLegacy().split("%currency%")[0], var9.keySet(), var2.getABuyPrice().isAll()
+                                 Lang.INSUFFICIENT_MONEY.get().getLegacy().split("%currency%")[0], prices.keySet(), shopItem.getABuyPrice().isAll()
                               )
                            )
                      );
-                     this.plugin.getSoundEffects().insufficientFunds(var1);
-                     this.callPost(var2, var1, var3, var9, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
+                     this.plugin.getSoundEffects().insufficientFunds(player);
+                     this.callPost(shopItem, player, stackSize, prices, Transaction.Type.QUICK_BUY, Transaction.Result.INSUFFICIENT_FUNDS);
                      return false;
                   }
 
-                  if (var2.isBuyCommand() && this.plugin.commandItems) {
-                     CommandHelper.executeCommandItem(var2, var1, CommandType.BUY, var9.toString(), var3);
+                  if (shopItem.isBuyCommand() && this.plugin.commandItems) {
+                     CommandHelper.executeCommandItem(shopItem, player, CommandType.BUY, prices.toString(), stackSize);
                   }
 
-                  if (!var2.isBuyCommand() || var2.isGiveItem()) {
-                     PlayerItems.giveItems(var1, var2, var3);
+                  if (!shopItem.isBuyCommand() || shopItem.isGiveItem()) {
+                     PlayerItems.giveItems(player, shopItem, stackSize);
                   }
 
-                  boolean var7 = false;
-                  if (var2.getLimitedStockMode() != 0) {
-                     var7 = true;
+                  boolean flag = false;
+                  if (shopItem.getLimitedStockMode() != 0) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getLimitedStockProvider().buyItems(var2, var1.getUniqueId(), var3);
+                        this.plugin.getLimitedStockProvider().buyItems(shopItem, player.getUniqueId(), stackSize);
                      }
                   }
 
-                  if (this.plugin.dynamicPricing && var2.isDynamicPricing()) {
-                     var7 = true;
+                  if (this.plugin.dynamicPricing && shopItem.isDynamicPricing()) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getDynamicPricingProvider().buyItem(var2.getItemPath(), var3);
+                        this.plugin.getDynamicPricingProvider().buyItem(shopItem.getItemPath(), stackSize);
                      }
                   }
 
                   SendMessage.sendTransactionMessage(
-                     var1, var3, var9, var2, Transaction.Mode.BUY, Transaction.Type.QUICK_BUY, var2.isBuyCommand() && !var2.isGiveItem()
+                     player, stackSize, prices, shopItem, Transaction.Mode.BUY, Transaction.Type.QUICK_BUY, shopItem.isBuyCommand() && !shopItem.isGiveItem()
                   );
-                  if (var2.isCloseMenu()) {
-                     this.close(var1);
+                  if (shopItem.isCloseMenu()) {
+                     this.close(player);
                   }
 
                   this.callPost(
-                     var2,
-                     var1,
-                     var3,
-                     var9,
+                     shopItem,
+                     player,
+                     stackSize,
+                     prices,
                      Transaction.Type.QUICK_BUY,
-                     var2.isBuyCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
+                     shopItem.isBuyCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
                   );
-                  return var7;
+                  return flag;
                }
             }
          }
       }
    }
 
-   public boolean sellItem(Player var1, ShopItem var2, int var3) {
-      double var4 = 0.0;
-      if (!PlayerItems.canSell(var2, var1)) {
-         SendMessage.chatToPlayer(var1, Lang.NO_ITEM_FOUND.get());
-         this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.NO_ITEMS_FOUND);
+   public boolean sellItem(Player player, ShopItem shopItem, int value) {
+      double amount = 0.0;
+      if (!PlayerItems.canSell(shopItem, player)) {
+         SendMessage.chatToPlayer(player, Lang.NO_ITEM_FOUND.get());
+         this.callPost(shopItem, player, value, amount, Transaction.Type.QUICK_SELL, Transaction.Result.NO_ITEMS_FOUND);
          return false;
       } else {
-         if (var2.getLimitedSellMode() != 0) {
-            int var6 = this.plugin.getLimitedSellProvider().getItemLimit(var2, var1.getUniqueId(), true);
-            var3 = Math.min(var3, var6);
-            if (var3 <= 0) {
-               SendMessage.chatToPlayer(var1, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.REACHED_SELL_LIMIT);
+         if (shopItem.getLimitedSellMode() != 0) {
+            int itemLimit = this.plugin.getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true);
+            value = Math.min(value, itemLimit);
+            if (value <= 0) {
+               SendMessage.chatToPlayer(player, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
+               this.callPost(shopItem, player, value, amount, Transaction.Type.QUICK_SELL, Transaction.Result.REACHED_SELL_LIMIT);
                return false;
             }
          }
 
-         ArrayList<ItemStack> var12 = PlayerItems.getSellAble(var2, var1, var3);
-         var3 = var12.stream().mapToInt(ItemStack::getAmount).sum();
-         if (var2.isMinSell(var3)) {
+         ArrayList<ItemStack> sellAble = PlayerItems.getSellAble(shopItem, player, value);
+         value = sellAble.stream().mapToInt(ItemStack::getAmount).sum();
+         if (shopItem.isMinSell(value)) {
             SendMessage.chatToPlayer(
-               var1, Lang.NOT_ENOUGH_ITEMS_TO_SELL.get().replace("%min-sell%", String.valueOf(var2.getMinSell())).replace("%quantity%", String.valueOf(var3))
+               player, Lang.NOT_ENOUGH_ITEMS_TO_SELL.get().replace("%min-sell%", String.valueOf(shopItem.getMinSell())).replace("%quantity%", String.valueOf(value))
             );
-            this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.NOT_ENOUGH_ITEMS);
+            this.callPost(shopItem, player, value, amount, Transaction.Type.QUICK_SELL, Transaction.Result.NOT_ENOUGH_ITEMS);
             return false;
          } else {
-            var4 = var12.stream().mapToDouble(var2x -> var2.getSellPrice(var1, var2x)).sum();
-            if (var2.getEcoType().getType() == EconomyType.ITEM && !this.canPay(var1, var2.getEcoType(), var4)) {
-               SendMessage.chatToPlayer(var1, Lang.CANNOT_STORE_PAYMENT.get());
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.CANT_STORE_PAYMENT);
+            amount = sellAble.stream().mapToDouble(value2 -> shopItem.getSellPrice(player, value2)).sum();
+            if (shopItem.getEcoType().getType() == EconomyType.ITEM && !this.canPay(player, shopItem.getEcoType(), amount)) {
+               SendMessage.chatToPlayer(player, Lang.CANNOT_STORE_PAYMENT.get());
+               this.callPost(shopItem, player, value, amount, Transaction.Type.QUICK_SELL, Transaction.Result.CANT_STORE_PAYMENT);
                return false;
             } else {
-               PreTransactionEvent var7 = new PreTransactionEvent(var2, var1, var3, var4, Transaction.Type.QUICK_SELL);
-               Bukkit.getPluginManager().callEvent(var7);
-               var4 = var7.getPrice();
-               if (var7.isCancelled()) {
-                  this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.TRANSACTION_CANCELLED);
+               PreTransactionEvent preTransactionEvent = new PreTransactionEvent(shopItem, player, value, amount, Transaction.Type.QUICK_SELL);
+               Bukkit.getPluginManager().callEvent(preTransactionEvent);
+               amount = preTransactionEvent.getPrice();
+               if (preTransactionEvent.isCancelled()) {
+                  this.callPost(shopItem, player, value, amount, Transaction.Type.QUICK_SELL, Transaction.Result.TRANSACTION_CANCELLED);
                   return false;
                } else {
-                  this.plugin.getEcoHandler().getEcon(var2.getEcoType()).depositBalance(var1, var4);
-                  if (var2.isSellCommand() && this.plugin.commandItems) {
-                     CommandHelper.executeCommandItem(var2, var1, CommandType.SELL, String.valueOf(var4), var3);
+                  this.plugin.getEcoHandler().getEcon(shopItem.getEcoType()).depositBalance(player, amount);
+                  if (shopItem.isSellCommand() && this.plugin.commandItems) {
+                     CommandHelper.executeCommandItem(shopItem, player, CommandType.SELL, String.valueOf(amount), value);
                   }
 
-                  if (!var2.isSellCommand() || var2.isRequireItem()) {
-                     var12.forEach(var1x -> var1.getInventory().removeItem(new ItemStack[]{var1x}));
+                  if (!shopItem.isSellCommand() || shopItem.isRequireItem()) {
+                     sellAble.forEach(entry -> player.getInventory().removeItem(new ItemStack[]{entry}));
                   }
 
-                  boolean var8 = false;
-                  if (var2.getLimitedSellMode() != 0) {
-                     var8 = true;
+                  boolean flag = false;
+                  if (shopItem.getLimitedSellMode() != 0) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getLimitedSellProvider().sellItems(var2, var1.getUniqueId(), var3, false);
+                        this.plugin.getLimitedSellProvider().sellItems(shopItem, player.getUniqueId(), value, false);
                      }
                   }
 
-                  if (var2.isRefillStock()) {
-                     var8 = true;
+                  if (shopItem.isRefillStock()) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getLimitedStockProvider().sellItems(var2, var1.getUniqueId(), var3);
+                        this.plugin.getLimitedStockProvider().sellItems(shopItem, player.getUniqueId(), value);
                      }
                   }
 
-                  if (this.plugin.dynamicPricing && var2.isDynamicPricing()) {
-                     var8 = true;
+                  if (this.plugin.dynamicPricing && shopItem.isDynamicPricing()) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getDynamicPricingProvider().sellItem(var2.getItemPath(), var3);
+                        this.plugin.getDynamicPricingProvider().sellItem(shopItem.getItemPath(), value);
                      }
                   }
 
                   SendMessage.sendTransactionMessage(
-                     var1, var3, var4, var2, Transaction.Mode.SELL, Transaction.Type.QUICK_SELL, var2.isSellCommand() && !var2.isRequireItem()
+                     player, value, amount, shopItem, Transaction.Mode.SELL, Transaction.Type.QUICK_SELL, shopItem.isSellCommand() && !shopItem.isRequireItem()
                   );
-                  if (var2.isCloseMenu()) {
-                     this.close(var1);
+                  if (shopItem.isCloseMenu()) {
+                     this.close(player);
                   }
 
                   this.callPost(
-                     var2,
-                     var1,
-                     var3,
-                     var4,
+                     shopItem,
+                     player,
+                     value,
+                     amount,
                      Transaction.Type.QUICK_SELL,
-                     var2.isSellCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
+                     shopItem.isSellCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
                   );
-                  return var8;
+                  return flag;
                }
             }
          }
       }
    }
 
-   public boolean sellItemA(Player var1, ShopItem var2, int var3) {
-      HashMap<EcoType, Double> var4 = new HashMap<>();
-      if (!PlayerItems.canSell(var2, var1)) {
-         SendMessage.chatToPlayer(var1, Lang.NO_ITEM_FOUND.get());
-         this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.NO_ITEMS_FOUND);
+   public boolean sellItemA(Player player, ShopItem shopItem, int value) {
+      HashMap<EcoType, Double> map = new HashMap<>();
+      if (!PlayerItems.canSell(shopItem, player)) {
+         SendMessage.chatToPlayer(player, Lang.NO_ITEM_FOUND.get());
+         this.callPost(shopItem, player, value, map, Transaction.Type.QUICK_SELL, Transaction.Result.NO_ITEMS_FOUND);
          return false;
       } else {
-         if (var2.getLimitedSellMode() != 0) {
-            int var5 = this.plugin.getLimitedSellProvider().getItemLimit(var2, var1.getUniqueId(), true);
-            var3 = Math.min(var3, var5);
-            if (var3 <= 0) {
-               SendMessage.chatToPlayer(var1, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.REACHED_SELL_LIMIT);
+         if (shopItem.getLimitedSellMode() != 0) {
+            int itemLimit = this.plugin.getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true);
+            value = Math.min(value, itemLimit);
+            if (value <= 0) {
+               SendMessage.chatToPlayer(player, Lang.LIMITED_ITEM_SELL_AMOUNT.get());
+               this.callPost(shopItem, player, value, map, Transaction.Type.QUICK_SELL, Transaction.Result.REACHED_SELL_LIMIT);
                return false;
             }
          }
 
-         ArrayList<ItemStack> var12 = PlayerItems.getSellAble(var2, var1, var3);
-         var3 = var12.stream().mapToInt(ItemStack::getAmount).sum();
-         if (var2.isMinSell(var3)) {
+         ArrayList<ItemStack> sellAble = PlayerItems.getSellAble(shopItem, player, value);
+         value = sellAble.stream().mapToInt(ItemStack::getAmount).sum();
+         if (shopItem.isMinSell(value)) {
             SendMessage.chatToPlayer(
-               var1, Lang.NOT_ENOUGH_ITEMS_TO_SELL.get().replace("%min-sell%", String.valueOf(var2.getMinSell())).replace("%quantity%", String.valueOf(var3))
+               player, Lang.NOT_ENOUGH_ITEMS_TO_SELL.get().replace("%min-sell%", String.valueOf(shopItem.getMinSell())).replace("%quantity%", String.valueOf(value))
             );
-            this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.NOT_ENOUGH_ITEMS);
+            this.callPost(shopItem, player, value, map, Transaction.Type.QUICK_SELL, Transaction.Result.NOT_ENOUGH_ITEMS);
             return false;
          } else {
-            for (ItemStack var7 : var12) {
-               for (Entry var9 : var2.getASellPrice().getSellPrices(null, var1, var7, var2.getSellModifiers()).entrySet()) {
-                  var4.put((EcoType)var9.getKey(), var4.getOrDefault(var9.getKey(), 0.0) + (Double)var9.getValue());
+            for (ItemStack itemStack : sellAble) {
+               for (Entry entry : shopItem.getASellPrice().getSellPrices(null, player, itemStack, shopItem.getSellModifiers()).entrySet()) {
+                  map.put((EcoType)entry.getKey(), map.getOrDefault(entry.getKey(), 0.0) + (Double)entry.getValue());
                }
             }
 
-            if (var4.entrySet()
+            if (map.entrySet()
                .stream()
                .anyMatch(
-                  var2x -> ((EcoType)var2x.getKey()).getType() == EconomyType.ITEM && !this.canPay(var1, (EcoType)var2x.getKey(), (Double)var2x.getValue())
+                  entry -> ((EcoType)entry.getKey()).getType() == EconomyType.ITEM && !this.canPay(player, (EcoType)entry.getKey(), (Double)entry.getValue())
                )) {
-               SendMessage.chatToPlayer(var1, Lang.CANNOT_STORE_PAYMENT.get());
-               this.callPost(var2, var1, var3, var4, Transaction.Type.QUICK_SELL, Transaction.Result.CANT_STORE_PAYMENT);
+               SendMessage.chatToPlayer(player, Lang.CANNOT_STORE_PAYMENT.get());
+               this.callPost(shopItem, player, value, map, Transaction.Type.QUICK_SELL, Transaction.Result.CANT_STORE_PAYMENT);
                return false;
             } else {
-               PreTransactionEvent var13 = new PreTransactionEvent(Collections.singletonMap(var2, var3), var4, var1, var3, Transaction.Type.QUICK_BUY);
-               Bukkit.getPluginManager().callEvent(var13);
-               Map var11 = var13.getPrices();
-               if (var13.isCancelled()) {
-                  this.callPost(var2, var1, var3, var11, Transaction.Type.QUICK_SELL, Transaction.Result.TRANSACTION_CANCELLED);
+               PreTransactionEvent preTransactionEvent = new PreTransactionEvent(Collections.singletonMap(shopItem, value), map, player, value, Transaction.Type.QUICK_BUY);
+               Bukkit.getPluginManager().callEvent(preTransactionEvent);
+               Map prices = preTransactionEvent.getPrices();
+               if (preTransactionEvent.isCancelled()) {
+                  this.callPost(shopItem, player, value, prices, Transaction.Type.QUICK_SELL, Transaction.Result.TRANSACTION_CANCELLED);
                   return false;
                } else {
-                  this.plugin.getEcoHandler().deposit(var11, var1);
-                  if (var2.isSellCommand() && this.plugin.commandItems) {
-                     CommandHelper.executeCommandItem(var2, var1, CommandType.SELL, var11.toString(), var3);
+                  this.plugin.getEcoHandler().deposit(prices, player);
+                  if (shopItem.isSellCommand() && this.plugin.commandItems) {
+                     CommandHelper.executeCommandItem(shopItem, player, CommandType.SELL, prices.toString(), value);
                   }
 
-                  if (!var2.isSellCommand() || var2.isRequireItem()) {
-                     var12.forEach(var1x -> var1.getInventory().removeItem(new ItemStack[]{var1x}));
+                  if (!shopItem.isSellCommand() || shopItem.isRequireItem()) {
+                     sellAble.forEach(entry -> player.getInventory().removeItem(new ItemStack[]{entry}));
                   }
 
-                  boolean var14 = false;
-                  if (var2.getLimitedSellMode() != 0) {
-                     var14 = true;
+                  boolean flag = false;
+                  if (shopItem.getLimitedSellMode() != 0) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getLimitedSellProvider().sellItems(var2, var1.getUniqueId(), var3, false);
+                        this.plugin.getLimitedSellProvider().sellItems(shopItem, player.getUniqueId(), value, false);
                      }
                   }
 
-                  if (var2.isRefillStock()) {
-                     var14 = true;
+                  if (shopItem.isRefillStock()) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getLimitedStockProvider().sellItems(var2, var1.getUniqueId(), var3);
+                        this.plugin.getLimitedStockProvider().sellItems(shopItem, player.getUniqueId(), value);
                      }
                   }
 
-                  if (this.plugin.dynamicPricing && var2.isDynamicPricing()) {
-                     var14 = true;
+                  if (this.plugin.dynamicPricing && shopItem.isDynamicPricing()) {
+                     flag = true;
                      if (true) {
-                        this.plugin.getDynamicPricingProvider().sellItem(var2.getItemPath(), var3);
+                        this.plugin.getDynamicPricingProvider().sellItem(shopItem.getItemPath(), value);
                      }
                   }
 
                   SendMessage.sendTransactionMessage(
-                     var1, var3, var11, var2, Transaction.Mode.SELL, Transaction.Type.QUICK_SELL, var2.isSellCommand() && !var2.isRequireItem()
+                     player, value, prices, shopItem, Transaction.Mode.SELL, Transaction.Type.QUICK_SELL, shopItem.isSellCommand() && !shopItem.isRequireItem()
                   );
-                  if (var2.isCloseMenu()) {
-                     this.close(var1);
+                  if (shopItem.isCloseMenu()) {
+                     this.close(player);
                   }
 
                   this.callPost(
-                     var2,
-                     var1,
-                     var3,
-                     var11,
+                     shopItem,
+                     player,
+                     value,
+                     prices,
                      Transaction.Type.QUICK_SELL,
-                     var2.isSellCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
+                     shopItem.isSellCommand() ? Transaction.Result.SUCCESS_COMMANDS_EXECUTED : Transaction.Result.SUCCESS
                   );
-                  return var14;
+                  return flag;
                }
             }
          }
       }
    }
 
-   private void callPost(ShopItem var1, Player var2, int var3, double var4, Transaction.Type var6, Transaction.Result var7) {
-      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(var1, var2, var3, var4, var6, var7));
+   private void callPost(ShopItem shopItem, Player player, int value, double amount, Transaction.Type type, Transaction.Result result) {
+      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(shopItem, player, value, amount, type, result));
    }
 
-   private void callPost(ShopItem var1, Player var2, int var3, Map<EcoType, Double> var4, Transaction.Type var5, Transaction.Result var6) {
-      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(Collections.singletonMap(var1, var3), var4, var2, var3, var5, var6));
+   private void callPost(ShopItem shopItem, Player player, int value, Map<EcoType, Double> map, Transaction.Type type, Transaction.Result result) {
+      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(Collections.singletonMap(shopItem, value), map, player, value, type, result));
    }
 
-   private String getCommand(String var1, ShopItem var2, int var3, double var4) {
-      return var1.replace("%quantity%", String.valueOf(var3))
-         .replace("%price%", this.plugin.formatPrice(var2.getEcoType(), var4))
-         .replace("%buyPrice%", this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var3)))
-         .replace("%sellPrice%", this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice()));
+   private String getCommand(String command, ShopItem shopItem, int value, double amount) {
+      return command.replace("%quantity%", String.valueOf(value))
+         .replace("%price%", this.plugin.formatPrice(shopItem.getEcoType(), amount))
+         .replace("%buyPrice%", this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(value)))
+         .replace("%sellPrice%", this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice()));
    }
 }

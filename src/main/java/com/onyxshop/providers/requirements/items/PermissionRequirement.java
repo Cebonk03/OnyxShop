@@ -13,28 +13,28 @@ public class PermissionRequirement implements com.onyxshop.providers.requirement
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public PermissionRequirement(String var1, List<String> var2, String var3) {
-      this.meetsPerm = !var1.startsWith("!");
-      this.requirement = this.meetsPerm ? var1 : var1.substring(1);
-      this.lore = RequirementManager.getLore(var2, Lang.PERMISSION_REQUIREMENT_LORE.get().toString(), var1);
-      this.customMSG = var3;
+   public PermissionRequirement(String permission, List<String> values, String text) {
+      this.meetsPerm = !permission.startsWith("!");
+      this.requirement = this.meetsPerm ? permission : permission.substring(1);
+      this.lore = RequirementManager.getLore(values, Lang.PERMISSION_REQUIREMENT_LORE.get().toString(), permission);
+      this.customMSG = text;
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      return this.meetsPerm == var1.hasPermission(this.requirement);
+   public boolean isMet(Player player) {
+      return this.meetsPerm == player.hasPermission(this.requirement);
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
-      return this.lore.get(var1, var2, var3);
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
+      return this.lore.get(player, flag, flag2);
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PERMISSION_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
-         SendMessage.chatToPlayer(var1, var2.replace("%requirement%", this.requirement));
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PERMISSION_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
+         SendMessage.chatToPlayer(player, text.replace("%requirement%", this.requirement));
       }
    }
 }

@@ -26,32 +26,32 @@ public class LevelsEconomy implements EconomyProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      String var2 = ConfigManager.getPathIgnoreCase("currency-formats.levels");
-      this.formatSingular(var2);
-      this.formatPlural(var2);
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.levels");
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
       this.friendly = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var2 + ".friendly", Lang.LEVELS_CURRENCY_NAME_PLURAL.get().getLegacy())
+            .getString(pathIgnoreCase + ".friendly", Lang.LEVELS_CURRENCY_NAME_PLURAL.get().getLegacy())
             .replace("%translations-levels-currency-name-plural%", Lang.LEVELS_CURRENCY_NAME_PLURAL.get().getLegacy())
       );
-      this.priceFormat = PriceFormatter.getFormatter(var2);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
       SendMessage.infoMessage("Successfully enabled xp levels economy");
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return ((Player)var1).getLevel();
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return ((Player)offlinePlayer).getLevel();
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      ((Player)var1).giveExpLevels((int)Math.round(var2));
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      ((Player)offlinePlayer).giveExpLevels((int)Math.round(balance));
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      ((Player)var1).setLevel((int)Math.round(this.getBalance(var1) - var2));
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      ((Player)offlinePlayer).setLevel((int)Math.round(this.getBalance(offlinePlayer) - balance));
       return true;
    }
 
@@ -86,13 +86,13 @@ public class LevelsEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -102,41 +102,41 @@ public class LevelsEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".singular", Lang.LEVELS_CURRENCY_NAME_SINGULAR.get().getLegacy())
+            .getString(text + ".singular", Lang.LEVELS_CURRENCY_NAME_SINGULAR.get().getLegacy())
             .replace("%translations-levels-currency-name-singular%", Lang.LEVELS_CURRENCY_NAME_SINGULAR.get().getLegacy())
       );
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+      if (!text2.isEmpty()) {
+         if (this.isSymbol(text2)) {
+            this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
          } else {
-            this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+            this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
          }
       } else {
          this.singular = Lang.CURRENCYSYMBOL.get().getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(
          ConfigManager.getConfig()
-            .getString(var1 + ".plural", Lang.LEVELS_CURRENCY_NAME_PLURAL.get().getLegacy())
+            .getString(text + ".plural", Lang.LEVELS_CURRENCY_NAME_PLURAL.get().getLegacy())
             .replace("%translations-levels-currency-name-plural%", Lang.LEVELS_CURRENCY_NAME_PLURAL.get().getLegacy())
       );
-      if (!var2.isEmpty()) {
-         if (this.isSymbol(var2)) {
-            this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+      if (!text2.isEmpty()) {
+         if (this.isSymbol(text2)) {
+            this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
          } else {
-            this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+            this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
          }
       } else {
          this.plural = Lang.CURRENCYSYMBOL.get().getLegacy();
       }
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

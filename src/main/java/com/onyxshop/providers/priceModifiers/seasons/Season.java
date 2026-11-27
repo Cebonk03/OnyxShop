@@ -5,10 +5,10 @@ public class Season {
    private final String name;
    private final SeasonType type;
 
-   public Season(String var1, String var2, SeasonType var3) {
-      this.icon = var1;
-      this.name = var2;
-      this.type = var3;
+   public Season(String type, String text, SeasonType seasonType) {
+      this.icon = type;
+      this.name = text;
+      this.type = seasonType;
    }
 
    public String getIcon() {

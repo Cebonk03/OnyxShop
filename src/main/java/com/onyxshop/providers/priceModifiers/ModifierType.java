@@ -8,8 +8,8 @@ public enum ModifierType {
 
    private final Class<? extends PriceModifier> clazz;
 
-   private ModifierType(Class<? extends PriceModifier> nullxx) {
-      this.clazz = nullxx;
+   private ModifierType(Class<? extends PriceModifier> type) {
+      this.clazz = type;
    }
 
    public Class<? extends PriceModifier> getClazz() {

@@ -34,195 +34,195 @@ public class ChooseValue extends ItemEditor {
    private int allPages;
    private final String query;
 
-   public ChooseValue(ChooseValue var1, Player var2, int var3) {
-      this(var2, var1.item, var1.option, var1.action, var1.index, var3, var1.query);
+   public ChooseValue(ChooseValue chooseValue, Player player, int value) {
+      this(player, chooseValue.item, chooseValue.option, chooseValue.action, chooseValue.index, value, chooseValue.query);
    }
 
    public ChooseValue(
-      Player var1,
-      ShopItem var2,
-      com.onyxshop.methodes.ItemEditor.Option var3,
-      com.onyxshop.methodes.ItemEditor.Action var4,
-      int var5,
-      int var6
+      Player player,
+      ShopItem shopItem,
+      com.onyxshop.methodes.ItemEditor.Option option,
+      com.onyxshop.methodes.ItemEditor.Action action,
+      int value,
+      int value2
    ) {
-      this(var1, var2, var3, var4, var5, var6, "");
+      this(player, shopItem, option, action, value, value2, "");
    }
 
    public ChooseValue(
-      Player var1,
-      ShopItem var2,
-      com.onyxshop.methodes.ItemEditor.Option var3,
-      com.onyxshop.methodes.ItemEditor.Action var4,
-      int var5,
-      int var6,
-      String var7
+      Player player,
+      ShopItem shopItem,
+      com.onyxshop.methodes.ItemEditor.Option option,
+      com.onyxshop.methodes.ItemEditor.Action action,
+      int value,
+      int value2,
+      String text
    ) {
-      this.item = var2;
-      this.option = var3;
-      this.action = var4;
-      this.index = var5;
-      this.page = var6;
-      this.query = var7;
-      this.initInventory(var1, var7);
+      this.item = shopItem;
+      this.option = option;
+      this.action = action;
+      this.index = value;
+      this.page = value2;
+      this.query = text;
+      this.initInventory(player, text);
       this.fillInventory();
-      this.open(var1);
+      this.open(player);
    }
 
-   private void initInventory(Player var1, String var2) {
-      ItemStack var3 = this.action != com.onyxshop.methodes.ItemEditor.Action.ADD_ITEM && !this.item.hasItemError()
+   private void initInventory(Player player, String playerName) {
+      ItemStack itemStack = this.action != com.onyxshop.methodes.ItemEditor.Action.ADD_ITEM && !this.item.hasItemError()
          ? this.item.getShopItem()
          : null;
-      ArrayList<ItemStack> var4 = new ArrayList<>();
-      int var5 = this.page * 45 - 45;
-      int var6 = 0;
-      int var7 = 0;
-      int var8 = 0;
+      ArrayList<ItemStack> values = new ArrayList<>();
+      int page = this.page * 45 - 45;
+      int value = 0;
+      int value2 = 0;
+      int value3 = 0;
       switch (this.option) {
          case MATERIAL:
          case RECIPES:
-            List<ItemStack> var9 = OnyxShop.getInstance().getSupportedItems();
-            if (!var2.isEmpty()) {
-               var9 = var9.stream().filter(var1x -> var1x.getType().name().toLowerCase(Locale.ROOT).contains(var2)).collect(Collectors.toList());
+            List<ItemStack> supportedItems = OnyxShop.getInstance().getSupportedItems();
+            if (!playerName.isEmpty()) {
+               supportedItems = supportedItems.stream().filter(element -> element.getType().name().toLowerCase(Locale.ROOT).contains(playerName)).collect(Collectors.toList());
             }
 
-            var6 = var9.size() - (var3 == null ? 0 : 1);
-            var7 = var6 - var5;
+            value = supportedItems.size() - (itemStack == null ? 0 : 1);
+            value2 = value - page;
 
-            for (int var24 = 0; var24 < var7 && var8 < 45; var24++) {
-               ItemStack var26 = (ItemStack)var9.get(var5 + var24);
-               if (var3 == null || !var26.getType().equals(var3.getType())) {
-                  var4.add(var26);
-                  var8++;
+            for (int index = 0; index < value2 && value3 < 45; index++) {
+               ItemStack itemStack2 = (ItemStack)supportedItems.get(page + index);
+               if (itemStack == null || !itemStack2.getType().equals(itemStack.getType())) {
+                  values.add(itemStack2);
+                  value3++;
                }
             }
             break;
          case ENCHANTMENTS:
-            List<SimpleEnchantment> var10 = OnyxShop.getInstance().enchantsProvider.getAvailableEnchants();
-            if (!var2.isEmpty()) {
-               var10 = var10.stream().filter(var1x -> var1x.getKey().toLowerCase(Locale.ROOT).contains(var2)).collect(Collectors.toList());
+            List<SimpleEnchantment> availableEnchants = OnyxShop.getInstance().enchantsProvider.getAvailableEnchants();
+            if (!playerName.isEmpty()) {
+               availableEnchants = availableEnchants.stream().filter(entry -> entry.getKey().toLowerCase(Locale.ROOT).contains(playerName)).collect(Collectors.toList());
             }
 
-            List<SimpleEnchantment> var11 = OnyxShop.getInstance().enchantsProvider.getEnchantsOfItem(var3);
-            SimpleEnchantment var12 = this.itemEditor.getChosenEnchantment(this.item.section, this.item.itemLoc, this.index);
-            var6 = var10.size() - var11.size();
-            var7 = var6 - var5;
+            List<SimpleEnchantment> enchantsOfItem = OnyxShop.getInstance().enchantsProvider.getEnchantsOfItem(itemStack);
+            SimpleEnchantment simpleEnchantment = this.itemEditor.getChosenEnchantment(this.item.section, this.item.itemLoc, this.index);
+            value = availableEnchants.size() - enchantsOfItem.size();
+            value2 = value - page;
 
-            for (int var28 = 0; var28 < var7 + var11.size() && var8 < 45; var28++) {
-               SimpleEnchantment var29 = (SimpleEnchantment)var10.get(var5 + var28);
-               if (var11.isEmpty()
-                  || var12 != null && var12.getKey().equals(var29.getKey())
-                  || var11.stream().noneMatch(var1x -> var1x.getKey().equals(var29.getKey()))) {
-                  var4.add(var29.getBook());
-                  var8++;
+            for (int size = 0; size < value2 + enchantsOfItem.size() && value3 < 45; size++) {
+               SimpleEnchantment simpleEnchantment2 = (SimpleEnchantment)availableEnchants.get(page + size);
+               if (enchantsOfItem.isEmpty()
+                  || simpleEnchantment != null && simpleEnchantment.getKey().equals(simpleEnchantment2.getKey())
+                  || enchantsOfItem.stream().noneMatch(entry -> entry.getKey().equals(simpleEnchantment2.getKey()))) {
+                  values.add(simpleEnchantment2.getBook());
+                  value3++;
                }
             }
             break;
          case POTIONTYPES:
-            List<PotionTypes> var13 = OnyxShop.getInstance().supportedPots;
-            if (!var2.isEmpty()) {
-               var13 = var13.stream().filter(var1x -> var1x.name().toLowerCase(Locale.ROOT).contains(var2)).collect(Collectors.toList());
+            List<PotionTypes> instance = OnyxShop.getInstance().supportedPots;
+            if (!playerName.isEmpty()) {
+               instance = instance.stream().filter(element -> element.name().toLowerCase(Locale.ROOT).contains(playerName)).collect(Collectors.toList());
             }
 
-            List<PotionTypes> var14 = PotionTypes.getPotionTypes(var3);
-            PotionEffect var15 = this.itemEditor.getChosenPotionEffectType(this.item.section, this.item.itemLoc, this.index);
-            var6 = var13.size() - var14.size();
-            var7 = var6 - var5;
+            List<PotionTypes> potionTypes = PotionTypes.getPotionTypes(itemStack);
+            PotionEffect potionEffect = this.itemEditor.getChosenPotionEffectType(this.item.section, this.item.itemLoc, this.index);
+            value = instance.size() - potionTypes.size();
+            value2 = value - page;
 
-            for (int var30 = 0; var30 < var7 + var14.size() && var8 <= 45; var30++) {
-               PotionTypes var31 = (PotionTypes)var13.get(var5 + var30);
-               if (var14.isEmpty() || var15 != null && var15.equals(var31.parsePotionEffect()) || !var14.contains(var31)) {
-                  var4.add(var31.getPotion());
-                  var8++;
+            for (int index = 0; index < value2 + potionTypes.size() && value3 <= 45; index++) {
+               PotionTypes potionTypes2 = (PotionTypes)instance.get(page + index);
+               if (potionTypes.isEmpty() || potionEffect != null && potionEffect.equals(potionTypes2.parsePotionEffect()) || !potionTypes.contains(potionTypes2)) {
+                  values.add(potionTypes2.getPotion());
+                  value3++;
                }
             }
             break;
          case SPAWNERTYPE:
-            List<ItemStack> var16 = OnyxShop.getInstance().supportedEntities;
-            if (!var2.isEmpty()) {
-               var16 = var16.stream()
-                  .filter(var1x -> var1x.getItemMeta().getDisplayName().toLowerCase(Locale.ROOT).contains(var2))
+            List<ItemStack> instance2 = OnyxShop.getInstance().supportedEntities;
+            if (!playerName.isEmpty()) {
+               instance2 = instance2.stream()
+                  .filter(element -> element.getItemMeta().getDisplayName().toLowerCase(Locale.ROOT).contains(playerName))
                   .collect(Collectors.toList());
             }
 
-            String var17 = OnyxShop.getInstance().getSpawnerManager().getProvider().getSpawnedType(var3);
-            var6 = var16.size() - (var17 == null ? 0 : 1);
-            var7 = var6 - var5;
+            String spawnedType = OnyxShop.getInstance().getSpawnerManager().getProvider().getSpawnedType(itemStack);
+            value = instance2.size() - (spawnedType == null ? 0 : 1);
+            value2 = value - page;
 
-            for (int var32 = 0; var32 < var7 && var8 <= 45; var32++) {
-               ItemStack var33 = (ItemStack)var16.get(var5 + var32);
-               if (var3 != null && !var33.getItemMeta().getDisplayName().equalsIgnoreCase(var17)) {
-                  var4.add(var33);
-                  var8++;
+            for (int index = 0; index < value2 && value3 <= 45; index++) {
+               ItemStack itemStack2 = (ItemStack)instance2.get(page + index);
+               if (itemStack != null && !itemStack2.getItemMeta().getDisplayName().equalsIgnoreCase(spawnedType)) {
+                  values.add(itemStack2);
+                  value3++;
                }
             }
             break;
          case FIREWORK_COLORS:
          case FIREWORK_FADE_COLORS:
-            List<FireworkUtil.FireworkColor> var18 = Arrays.asList(FireworkUtil.FireworkColor.values());
-            if (!var2.isEmpty()) {
-               var18 = var18.stream().filter(var1x -> var1x.name().toLowerCase(Locale.ROOT).contains(var2)).collect(Collectors.toList());
+            List<FireworkUtil.FireworkColor> values2 = Arrays.asList(FireworkUtil.FireworkColor.values());
+            if (!playerName.isEmpty()) {
+               values2 = values2.stream().filter(element -> element.name().toLowerCase(Locale.ROOT).contains(playerName)).collect(Collectors.toList());
             }
 
-            List<FireworkUtil.FireworkColor> var19 = FireworkUtil.FireworkColor.matchColorsNames(
+            List<FireworkUtil.FireworkColor> values3 = FireworkUtil.FireworkColor.matchColorsNames(
                ConfigManager.getShop(this.item.section).getStringList("pages." + this.item.itemLoc + "." + this.option.getKey())
             );
-            var6 = 16 - var19.size();
-            var7 = var6;
+            value = 16 - values3.size();
+            value2 = value;
 
-            for (FireworkUtil.FireworkColor var35 : var18) {
-               if (!var19.contains(var35)) {
-                  ItemBuilder var36 = new ItemBuilder(XMaterial.matchXMaterial("WOOL:" + var35.getId()).get().parseItem())
+            for (FireworkUtil.FireworkColor fireworkColor : values2) {
+               if (!values3.contains(fireworkColor)) {
+                  ItemBuilder itemBuilder = new ItemBuilder(XMaterial.matchXMaterial("WOOL:" + fireworkColor.getId()).get().parseItem())
                      .withDisplayName(
                         OnyxShop.getInstance().version >= 116
-                           ? ChatColor.of(var35.getColor()) + OnyxShop.getInstance().getMaterialName(var35.name())
-                           : OnyxShop.getInstance().getMaterialName(var35.name())
+                           ? ChatColor.of(fireworkColor.getColor()) + OnyxShop.getInstance().getMaterialName(fireworkColor.name())
+                           : OnyxShop.getInstance().getMaterialName(fireworkColor.name())
                      );
-                  var4.add(var36.build());
+                  values.add(itemBuilder.build());
                }
             }
             break;
          case SUB_SECTION:
-            Collection<SectionItem> var20 = OnyxShop.getInstance().getSectionItems().values();
-            if (!var2.isEmpty()) {
-               var20 = var20.stream().filter(var1x -> var1x.section.toLowerCase(Locale.ROOT).contains(var2)).collect(Collectors.toList());
+            Collection<SectionItem> values4 = OnyxShop.getInstance().getSectionItems().values();
+            if (!playerName.isEmpty()) {
+               values4 = values4.stream().filter(element -> element.section.toLowerCase(Locale.ROOT).contains(playerName)).collect(Collectors.toList());
             }
 
-            var6 = var20.size() - (this.item.isLinked() ? 1 : 0);
-            var7 = var6;
+            value = values4.size() - (this.item.isLinked() ? 1 : 0);
+            value2 = value;
 
-            for (SectionItem var22 : var20) {
-               var4.add(
-                  OnyxShop.getInstance().versionHandler.setNBTString(new ItemBuilder(var22.getItem(var1)).removeLore().build(), "section", var22.section)
+            for (SectionItem sectionItem : values4) {
+               values.add(
+                  OnyxShop.getInstance().versionHandler.setNBTString(new ItemBuilder(sectionItem.getItem(player)).removeLore().build(), "section", sectionItem.section)
                );
             }
       }
 
-      this.allPages = (int)Math.ceil(var6 / 45.0);
-      int var23 = CalculateAmount.getSlots(var7);
-      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, var23, TitleManager.get(TitleManager.Menu.ITEM_EDITOR_CHOOSE_VALUE, var1));
+      this.allPages = (int)Math.ceil(value / 45.0);
+      int slots = CalculateAmount.getSlots(value2);
+      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, slots, TitleManager.get(TitleManager.Menu.ITEM_EDITOR_CHOOSE_VALUE, player));
 
-      for (ItemStack var27 : var4) {
-         this.inv.addItem(new ItemStack[]{var27});
+      for (ItemStack itemStack2 : values) {
+         this.inv.addItem(new ItemStack[]{itemStack2});
       }
 
-      this.inv.setItem(var23 - 5, this.getCompass());
-      this.inv.setItem(var23 - 9, OnyxShop.getInstance().createItem.getPlayerReminder(var1, false));
-      this.inv.setItem(var23 - 1, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
-      this.inv.setItem(var23 - 6, new ItemBuilder(XMaterial.RED_STAINED_GLASS_PANE.parseItem()).withDisplayName(Lang.PREVIOUS_PAGE.get()).build());
-      this.inv.setItem(var23 - 4, new ItemBuilder(XMaterial.LIGHT_BLUE_STAINED_GLASS_PANE.parseItem()).withDisplayName(Lang.NEXT_PAGE.get()).build());
+      this.inv.setItem(slots - 5, this.getCompass());
+      this.inv.setItem(slots - 9, OnyxShop.getInstance().createItem.getPlayerReminder(player, false));
+      this.inv.setItem(slots - 1, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
+      this.inv.setItem(slots - 6, new ItemBuilder(XMaterial.RED_STAINED_GLASS_PANE.parseItem()).withDisplayName(Lang.PREVIOUS_PAGE.get()).build());
+      this.inv.setItem(slots - 4, new ItemBuilder(XMaterial.LIGHT_BLUE_STAINED_GLASS_PANE.parseItem()).withDisplayName(Lang.NEXT_PAGE.get()).build());
    }
 
    private ItemStack getCompass() {
-      ItemStack var1 = new ItemBuilder(XMaterial.COMPASS.parseItem())
+      ItemStack itemStack = new ItemBuilder(XMaterial.COMPASS.parseItem())
          .withDisplayName(Lang.CURRENT_PAGE.get().getLegacy() + " " + this.page + "/" + this.allPages)
          .build();
-      ItemBuilder var2 = new ItemBuilder(var1).addLore(org.bukkit.ChatColor.GREEN + "Click to search by name");
+      ItemBuilder itemBuilder = new ItemBuilder(itemStack).addLore(org.bukkit.ChatColor.GREEN + "Click to search by name");
       if (!this.query.isEmpty()) {
-         var2.addLore(org.bukkit.ChatColor.BLUE + "Current search: " + org.bukkit.ChatColor.WHITE + this.query);
+         itemBuilder.addLore(org.bukkit.ChatColor.BLUE + "Current search: " + org.bukkit.ChatColor.WHITE + this.query);
       }
 
-      return var2.build();
+      return itemBuilder.build();
    }
 
    public ShopItem getItem() {

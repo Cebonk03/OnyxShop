@@ -26,8 +26,8 @@ public class ModifierManager {
    private static SeasonProvider seasonProvider;
    private final Map<UUID, PlayerPriceModifier> COMMAND_MODIFIERS = new HashMap<>();
 
-   public ModifierManager(OnyxShop var1) {
-      this.plugin = var1;
+   public ModifierManager(OnyxShop plugin) {
+      this.plugin = plugin;
       this.loadModifiers();
    }
 
@@ -40,8 +40,8 @@ public class ModifierManager {
          try {
             SendMessage.infoMessage("Loading season modifiers...");
             seasonProvider = new SeasonProvider(this.plugin);
-         } catch (ModifierLoadException var2) {
-            SendMessage.errorMessage("Failed to load SeasonModifiers from config for reason: " + var2.getMessage());
+         } catch (ModifierLoadException exception) {
+            SendMessage.errorMessage("Failed to load SeasonModifiers from config for reason: " + exception.getMessage());
          }
       }
    }
@@ -60,12 +60,12 @@ public class ModifierManager {
       this.reloadForOnlinePlayersAsync();
    }
 
-   private PlayerPriceModifier loadCommandModifiersFromDB(UUID var1) {
+   private PlayerPriceModifier loadCommandModifiersFromDB(UUID playerId) {
       if (this.plugin.getProviderManager().getDatabase() != null) {
          try {
-            return this.plugin.getProviderManager().getDatabase().loadPlayerPriceModifiers(var1);
-         } catch (SQLException var3) {
-            SendMessage.warnMessage("Failed to load command modifiers for player because database error occurred: " + var3.getMessage());
+            return this.plugin.getProviderManager().getDatabase().loadPlayerPriceModifiers(playerId);
+         } catch (SQLException exception) {
+            SendMessage.warnMessage("Failed to load command modifiers for player because database error occurred: " + exception.getMessage());
             return null;
          }
       } else {
@@ -75,11 +75,11 @@ public class ModifierManager {
    }
 
    private void reloadForOnlinePlayersAsync() {
-      Collection<? extends Player> var1 = this.plugin.getServer().getOnlinePlayers();
-      SendMessage.logDebugMessage("Loading item price modifiers for " + var1.size() + " online player(s)");
+      Collection<? extends Player> onlinePlayers = this.plugin.getServer().getOnlinePlayers();
+      SendMessage.logDebugMessage("Loading item price modifiers for " + onlinePlayers.size() + " online player(s)");
       this.plugin.runTaskAsync(() -> {
-         for (Player var3 : var1) {
-            this.loadCommandModifiersForPlayer(var3);
+         for (Player player : onlinePlayers) {
+            this.loadCommandModifiersForPlayer(player);
          }
       });
    }
@@ -89,232 +89,232 @@ public class ModifierManager {
          SendMessage.logDebugMessage(Lang.SAVING_PRICE_MODIFIERS.get().replace("%count%", String.valueOf(this.COMMAND_MODIFIERS.size())));
 
          try {
-            for (Entry var2 : this.COMMAND_MODIFIERS.entrySet()) {
-               this.plugin.getProviderManager().getDatabase().savePlayerPriceModifiers((UUID)var2.getKey(), (PlayerPriceModifier)var2.getValue());
+            for (Entry entry : this.COMMAND_MODIFIERS.entrySet()) {
+               this.plugin.getProviderManager().getDatabase().savePlayerPriceModifiers((UUID)entry.getKey(), (PlayerPriceModifier)entry.getValue());
             }
-         } catch (SQLException var3) {
-            SendMessage.errorMessage(Lang.ERROR_SAVING_PRICE_MODIFIERS.get().replace("%message%", var3.getMessage()));
-            var3.printStackTrace();
+         } catch (SQLException exception) {
+            SendMessage.errorMessage(Lang.ERROR_SAVING_PRICE_MODIFIERS.get().replace("%message%", exception.getMessage()));
+            exception.printStackTrace();
          }
       }
    }
 
-   public void loadCommandModifiersForPlayer(Player var1) {
-      PlayerPriceModifier var2 = this.COMMAND_MODIFIERS.getOrDefault(var1.getUniqueId(), this.loadCommandModifiersFromDB(var1.getUniqueId()));
-      if (var2 != null) {
-         for (String var4 : var2.getSectionModifiers().keySet()) {
-            PriceModifierData var5 = var2.getSectionModifiers().get(var4);
+   public void loadCommandModifiersForPlayer(Player player) {
+      PlayerPriceModifier playerPriceModifier = this.COMMAND_MODIFIERS.getOrDefault(player.getUniqueId(), this.loadCommandModifiersFromDB(player.getUniqueId()));
+      if (playerPriceModifier != null) {
+         for (String command : playerPriceModifier.getSectionModifiers().keySet()) {
+            PriceModifierData priceModifierData = playerPriceModifier.getSectionModifiers().get(command);
 
             try {
-               if (!this.plugin.getShopSections().contains(var4)) {
-                  throw new ModifierLoadException("Shop " + var4 + " doesn't exist");
+               if (!this.plugin.getShopSections().contains(command)) {
+                  throw new ModifierLoadException("Shop " + command + " doesn't exist");
                }
 
-               Double var6 = var5.getOr(PriceModifierType.BOTH, -1.0) > var5.getOr(PriceModifierType.BUY, -1.0)
-                  ? var5.get(PriceModifierType.BOTH)
-                  : var5.get(PriceModifierType.BUY);
-               Double var7 = var5.getOr(PriceModifierType.BOTH, -1.0) > var5.getOr(PriceModifierType.SELL, -1.0)
-                  ? var5.get(PriceModifierType.BOTH)
-                  : var5.get(PriceModifierType.SELL);
+               Double price = priceModifierData.getOr(PriceModifierType.BOTH, -1.0) > priceModifierData.getOr(PriceModifierType.BUY, -1.0)
+                  ? priceModifierData.get(PriceModifierType.BOTH)
+                  : priceModifierData.get(PriceModifierType.BUY);
+               Double amount = priceModifierData.getOr(PriceModifierType.BOTH, -1.0) > priceModifierData.getOr(PriceModifierType.SELL, -1.0)
+                  ? priceModifierData.get(PriceModifierType.BOTH)
+                  : priceModifierData.get(PriceModifierType.SELL);
 
-               for (ShopItem var9 : this.plugin.getSection(var4).getShopItems()) {
-                  if (var6 != null && var6 >= 0.0) {
-                     ((CommandModifier)var9.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
-                        .setBestModifier(var1.getUniqueId(), var6);
+               for (ShopItem shopItem : this.plugin.getSection(command).getShopItems()) {
+                  if (price != null && price >= 0.0) {
+                     ((CommandModifier)shopItem.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
+                        .setBestModifier(player.getUniqueId(), price);
                   }
 
-                  if (var7 != null && var7 >= 0.0) {
-                     ((CommandModifier)var9.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
-                        .setBestModifier(var1.getUniqueId(), var7);
+                  if (amount != null && amount >= 0.0) {
+                     ((CommandModifier)shopItem.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
+                        .setBestModifier(player.getUniqueId(), amount);
                   }
                }
-            } catch (ModifierLoadException var11) {
+            } catch (ModifierLoadException exception) {
                SendMessage.warnMessage(
-                  "Failed to load command modifier for player '" + var1.getName() + "' for shop section '" + var4 + "': " + var11.getMessage()
+                  "Failed to load command modifier for player '" + player.getName() + "' for shop section '" + command + "': " + exception.getMessage()
                );
             }
          }
 
-         for (String var13 : var2.getItemModifiers().keySet()) {
-            PriceModifierData var14 = var2.getItemModifiers().get(var13);
+         for (String playerName : playerPriceModifier.getItemModifiers().keySet()) {
+            PriceModifierData priceModifierData = playerPriceModifier.getItemModifiers().get(playerName);
 
             try {
-               ShopItem var15 = this.plugin.getShopItem(var13);
-               if (var15 == null) {
-                  throw new ModifierLoadException("Item " + var13 + " doesn't exist");
+               ShopItem shopItem = this.plugin.getShopItem(playerName);
+               if (shopItem == null) {
+                  throw new ModifierLoadException("Item " + playerName + " doesn't exist");
                }
 
-               Double var16 = var14.getOr(PriceModifierType.BOTH, -1.0) > var14.getOr(PriceModifierType.BUY, -1.0)
-                  ? var14.get(PriceModifierType.BOTH)
-                  : var14.get(PriceModifierType.BUY);
-               Double var17 = var14.getOr(PriceModifierType.BOTH, -1.0) > var14.getOr(PriceModifierType.SELL, -1.0)
-                  ? var14.get(PriceModifierType.BOTH)
-                  : var14.get(PriceModifierType.SELL);
-               if (var16 != null && var16 >= 0.0) {
-                  ((CommandModifier)var15.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
-                     .setBestModifier(var1.getUniqueId(), var16);
+               Double amount = priceModifierData.getOr(PriceModifierType.BOTH, -1.0) > priceModifierData.getOr(PriceModifierType.BUY, -1.0)
+                  ? priceModifierData.get(PriceModifierType.BOTH)
+                  : priceModifierData.get(PriceModifierType.BUY);
+               Double amount2 = priceModifierData.getOr(PriceModifierType.BOTH, -1.0) > priceModifierData.getOr(PriceModifierType.SELL, -1.0)
+                  ? priceModifierData.get(PriceModifierType.BOTH)
+                  : priceModifierData.get(PriceModifierType.SELL);
+               if (amount != null && amount >= 0.0) {
+                  ((CommandModifier)shopItem.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
+                     .setBestModifier(player.getUniqueId(), amount);
                }
 
-               if (var17 != null && var17 >= 0.0) {
-                  ((CommandModifier)var15.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
-                     .setBestModifier(var1.getUniqueId(), var17);
+               if (amount2 != null && amount2 >= 0.0) {
+                  ((CommandModifier)shopItem.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier()))
+                     .setBestModifier(player.getUniqueId(), amount2);
                }
-            } catch (ModifierLoadException var10) {
-               SendMessage.warnMessage("Failed to load command modifier for player '" + var1.getName() + "' for item '" + var13 + "': " + var10.getMessage());
+            } catch (ModifierLoadException exception) {
+               SendMessage.warnMessage("Failed to load command modifier for player '" + player.getName() + "' for item '" + playerName + "': " + exception.getMessage());
             }
          }
 
-         this.COMMAND_MODIFIERS.put(var1.getUniqueId(), var2);
+         this.COMMAND_MODIFIERS.put(player.getUniqueId(), playerPriceModifier);
       }
    }
 
-   public void unloadAndSaveCommandModifiers(UUID var1) {
-      PlayerPriceModifier var2 = this.COMMAND_MODIFIERS.get(var1);
-      if (var2 != null) {
-         for (String var4 : var2.getSectionModifiers().keySet()) {
-            if (this.plugin.getShopSections().contains(var4)) {
-               for (ShopItem var6 : this.plugin.getSection(var4).getShopItems()) {
-                  CommandModifier var7 = (CommandModifier)var6.getBuyModifiers().getByType(ModifierType.COMMAND);
-                  if (var7 != null) {
-                     var7.removeModifier(var1);
+   public void unloadAndSaveCommandModifiers(UUID uniqueId) {
+      PlayerPriceModifier playerPriceModifier = this.COMMAND_MODIFIERS.get(uniqueId);
+      if (playerPriceModifier != null) {
+         for (String command : playerPriceModifier.getSectionModifiers().keySet()) {
+            if (this.plugin.getShopSections().contains(command)) {
+               for (ShopItem shopItem : this.plugin.getSection(command).getShopItems()) {
+                  CommandModifier commandModifier = (CommandModifier)shopItem.getBuyModifiers().getByType(ModifierType.COMMAND);
+                  if (commandModifier != null) {
+                     commandModifier.removeModifier(uniqueId);
                   }
 
-                  CommandModifier var8 = (CommandModifier)var6.getSellModifiers().getByType(ModifierType.COMMAND);
-                  if (var8 != null) {
-                     var8.removeModifier(var1);
+                  CommandModifier commandModifier2 = (CommandModifier)shopItem.getSellModifiers().getByType(ModifierType.COMMAND);
+                  if (commandModifier2 != null) {
+                     commandModifier2.removeModifier(uniqueId);
                   }
                }
             }
          }
 
-         for (String var11 : var2.getItemModifiers().keySet()) {
-            ShopItem var12 = this.plugin.getShopItem(var11);
-            if (var12 != null) {
-               CommandModifier var13 = (CommandModifier)var12.getBuyModifiers().getByType(ModifierType.COMMAND);
-               if (var13 != null) {
-                  var13.removeModifier(var1);
+         for (String itemId : playerPriceModifier.getItemModifiers().keySet()) {
+            ShopItem shopItem = this.plugin.getShopItem(itemId);
+            if (shopItem != null) {
+               CommandModifier commandModifier = (CommandModifier)shopItem.getBuyModifiers().getByType(ModifierType.COMMAND);
+               if (commandModifier != null) {
+                  commandModifier.removeModifier(uniqueId);
                }
 
-               CommandModifier var14 = (CommandModifier)var12.getSellModifiers().getByType(ModifierType.COMMAND);
-               if (var14 != null) {
-                  var14.removeModifier(var1);
+               CommandModifier commandModifier2 = (CommandModifier)shopItem.getSellModifiers().getByType(ModifierType.COMMAND);
+               if (commandModifier2 != null) {
+                  commandModifier2.removeModifier(uniqueId);
                }
             }
          }
 
-         this.COMMAND_MODIFIERS.remove(var1);
+         this.COMMAND_MODIFIERS.remove(uniqueId);
 
          try {
-            this.plugin.getProviderManager().getDatabase().savePlayerPriceModifiers(var1, var2);
-         } catch (SQLException var9) {
-            SendMessage.warnMessage("Failed to save player command modifiers to database for " + Bukkit.getOfflinePlayer(var1) + ":" + var9.getMessage());
+            this.plugin.getProviderManager().getDatabase().savePlayerPriceModifiers(uniqueId, playerPriceModifier);
+         } catch (SQLException exception) {
+            SendMessage.warnMessage("Failed to save player command modifiers to database for " + Bukkit.getOfflinePlayer(uniqueId) + ":" + exception.getMessage());
          }
       }
    }
 
-   public void setCommandSectionModifier(UUID var1, String var2, PriceModifierType var3, double var4) {
-      var4 = (int)var4;
-      PlayerPriceModifier var6 = this.COMMAND_MODIFIERS.getOrDefault(var1, new PlayerPriceModifier());
-      var6.setSectionModifier(var2, var3, var4);
+   public void setCommandSectionModifier(UUID uniqueId, String command, PriceModifierType priceModifierType, double price) {
+      price = (int)price;
+      PlayerPriceModifier playerPriceModifier = this.COMMAND_MODIFIERS.getOrDefault(uniqueId, new PlayerPriceModifier());
+      playerPriceModifier.setSectionModifier(command, priceModifierType, price);
 
-      for (ShopItem var8 : this.plugin.getSection(var2).getShopItems()) {
-         if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.BUY) {
-            ((CommandModifier)var8.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(var1, var4);
+      for (ShopItem shopItem : this.plugin.getSection(command).getShopItems()) {
+         if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.BUY) {
+            ((CommandModifier)shopItem.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(uniqueId, price);
          }
 
-         if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.SELL) {
-            ((CommandModifier)var8.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(var1, var4);
+         if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.SELL) {
+            ((CommandModifier)shopItem.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(uniqueId, price);
          }
       }
 
-      this.COMMAND_MODIFIERS.put(var1, var6);
+      this.COMMAND_MODIFIERS.put(uniqueId, playerPriceModifier);
    }
 
-   public boolean removeCommandSectionModifier(UUID var1, String var2, PriceModifierType var3) {
-      PlayerPriceModifier var4 = this.COMMAND_MODIFIERS.get(var1);
-      if (var3 == PriceModifierType.BOTH) {
-         var4.removeSectionModifier(var2);
+   public boolean removeCommandSectionModifier(UUID uniqueId, String command, PriceModifierType priceModifierType) {
+      PlayerPriceModifier playerPriceModifier = this.COMMAND_MODIFIERS.get(uniqueId);
+      if (priceModifierType == PriceModifierType.BOTH) {
+         playerPriceModifier.removeSectionModifier(command);
       } else {
-         var4.removeSectionModifier(var2, var3);
+         playerPriceModifier.removeSectionModifier(command, priceModifierType);
       }
 
-      boolean var5 = false;
+      boolean flag = false;
 
-      for (ShopItem var7 : this.plugin.getSection(var2).getShopItems()) {
-         if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.BUY) {
-            CommandModifier var8 = (CommandModifier)var7.getBuyModifiers().getByType(ModifierType.COMMAND);
-            if (var8 != null) {
-               var5 = var8.removeModifier(var1);
+      for (ShopItem shopItem : this.plugin.getSection(command).getShopItems()) {
+         if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.BUY) {
+            CommandModifier commandModifier = (CommandModifier)shopItem.getBuyModifiers().getByType(ModifierType.COMMAND);
+            if (commandModifier != null) {
+               flag = commandModifier.removeModifier(uniqueId);
             }
          }
 
-         if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.SELL) {
-            CommandModifier var9 = (CommandModifier)var7.getSellModifiers().getByType(ModifierType.COMMAND);
-            if (var9 != null) {
-               var5 = var9.removeModifier(var1);
+         if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.SELL) {
+            CommandModifier commandModifier = (CommandModifier)shopItem.getSellModifiers().getByType(ModifierType.COMMAND);
+            if (commandModifier != null) {
+               flag = commandModifier.removeModifier(uniqueId);
             }
          }
       }
 
-      if (var4.getSectionModifiers().isEmpty() && var4.getItemModifiers().isEmpty()) {
-         this.COMMAND_MODIFIERS.remove(var1);
+      if (playerPriceModifier.getSectionModifiers().isEmpty() && playerPriceModifier.getItemModifiers().isEmpty()) {
+         this.COMMAND_MODIFIERS.remove(uniqueId);
       }
 
-      return var5;
+      return flag;
    }
 
-   public void setCommandItemModifier(UUID var1, String var2, PriceModifierType var3, double var4) {
-      var4 = (int)var4;
-      PlayerPriceModifier var6 = this.COMMAND_MODIFIERS.getOrDefault(var1, new PlayerPriceModifier());
-      var6.setItemModifier(var2, var3, var4);
-      ShopItem var7 = this.plugin.getShopItem(var2);
-      if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.BUY) {
-         ((CommandModifier)var7.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(var1, var4);
+   public void setCommandItemModifier(UUID uniqueId, String command, PriceModifierType priceModifierType, double price) {
+      price = (int)price;
+      PlayerPriceModifier playerPriceModifier = this.COMMAND_MODIFIERS.getOrDefault(uniqueId, new PlayerPriceModifier());
+      playerPriceModifier.setItemModifier(command, priceModifierType, price);
+      ShopItem shopItem = this.plugin.getShopItem(command);
+      if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.BUY) {
+         ((CommandModifier)shopItem.getBuyModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(uniqueId, price);
       }
 
-      if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.SELL) {
-         ((CommandModifier)var7.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(var1, var4);
+      if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.SELL) {
+         ((CommandModifier)shopItem.getSellModifiers().putIfAbsent(ModifierType.COMMAND, new CommandModifier())).setModifier(uniqueId, price);
       }
 
-      this.COMMAND_MODIFIERS.put(var1, var6);
+      this.COMMAND_MODIFIERS.put(uniqueId, playerPriceModifier);
    }
 
-   public boolean removeCommandItemModifier(UUID var1, String var2, PriceModifierType var3) {
-      PlayerPriceModifier var4 = this.COMMAND_MODIFIERS.get(var1);
-      if (var3 == PriceModifierType.BOTH) {
-         var4.removeItemModifier(var2);
+   public boolean removeCommandItemModifier(UUID uniqueId, String command, PriceModifierType priceModifierType) {
+      PlayerPriceModifier playerPriceModifier = this.COMMAND_MODIFIERS.get(uniqueId);
+      if (priceModifierType == PriceModifierType.BOTH) {
+         playerPriceModifier.removeItemModifier(command);
       } else {
-         var4.removeItemModifier(var2, var3);
+         playerPriceModifier.removeItemModifier(command, priceModifierType);
       }
 
-      ShopItem var5 = this.plugin.getShopItem(var2);
-      boolean var6 = false;
-      if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.BUY) {
-         CommandModifier var7 = (CommandModifier)var5.getBuyModifiers().getByType(ModifierType.COMMAND);
-         if (var7 != null) {
-            var6 = var7.removeModifier(var1);
+      ShopItem shopItem = this.plugin.getShopItem(command);
+      boolean flag = false;
+      if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.BUY) {
+         CommandModifier commandModifier = (CommandModifier)shopItem.getBuyModifiers().getByType(ModifierType.COMMAND);
+         if (commandModifier != null) {
+            flag = commandModifier.removeModifier(uniqueId);
          }
       }
 
-      if (var3 == PriceModifierType.BOTH || var3 == PriceModifierType.SELL) {
-         CommandModifier var8 = (CommandModifier)var5.getSellModifiers().getByType(ModifierType.COMMAND);
-         if (var8 != null) {
-            var6 = var8.removeModifier(var1);
+      if (priceModifierType == PriceModifierType.BOTH || priceModifierType == PriceModifierType.SELL) {
+         CommandModifier commandModifier = (CommandModifier)shopItem.getSellModifiers().getByType(ModifierType.COMMAND);
+         if (commandModifier != null) {
+            flag = commandModifier.removeModifier(uniqueId);
          }
       }
 
-      if (var4.getSectionModifiers().isEmpty() && var4.getItemModifiers().isEmpty()) {
-         this.COMMAND_MODIFIERS.remove(var1);
+      if (playerPriceModifier.getSectionModifiers().isEmpty() && playerPriceModifier.getItemModifiers().isEmpty()) {
+         this.COMMAND_MODIFIERS.remove(uniqueId);
       }
 
-      return var6;
+      return flag;
    }
 
-   public PlayerPriceModifier getCommandModifiersForPlayer(UUID var1) {
-      return this.COMMAND_MODIFIERS.get(var1);
+   public PlayerPriceModifier getCommandModifiersForPlayer(UUID playerId) {
+      return this.COMMAND_MODIFIERS.get(playerId);
    }
 
-   public PlayerPriceModifier loadCommandModifiersForPlayer(UUID var1) {
-      return this.COMMAND_MODIFIERS.computeIfAbsent(var1, this::loadCommandModifiersFromDB);
+   public PlayerPriceModifier loadCommandModifiersForPlayer(UUID playerId) {
+      return this.COMMAND_MODIFIERS.computeIfAbsent(playerId, this::loadCommandModifiersFromDB);
    }
 }

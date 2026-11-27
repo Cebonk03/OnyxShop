@@ -24,32 +24,32 @@ public class ItemProviderType {
    public final TaggableItemType taggable;
    public final SerializerType serializer;
 
-   public ItemProviderType(String var1, String var2) {
-      this.name = var1;
-      this.prefix = var2;
+   public ItemProviderType(String itemId, String type) {
+      this.name = itemId;
+      this.prefix = type;
       this.serializer = null;
       this.taggable = null;
    }
 
-   public ItemProviderType(String var1, String var2, TaggableItemType var3) {
-      this.name = var1;
-      this.prefix = var2;
-      this.taggable = var3;
+   public ItemProviderType(String itemId, String type, TaggableItemType taggableItemType) {
+      this.name = itemId;
+      this.prefix = type;
+      this.taggable = taggableItemType;
       this.serializer = null;
    }
 
-   public ItemProviderType(String var1, String var2, SerializerType var3) {
-      this.name = var1;
-      this.prefix = var2;
+   public ItemProviderType(String itemId, String type, SerializerType serializerType) {
+      this.name = itemId;
+      this.prefix = type;
       this.taggable = null;
-      this.serializer = var3;
+      this.serializer = serializerType;
    }
 
-   public ItemProviderType(String var1, String var2, TaggableItemType var3, SerializerType var4) {
-      this.name = var1;
-      this.prefix = var2;
-      this.taggable = var3;
-      this.serializer = var4;
+   public ItemProviderType(String itemId, String type, TaggableItemType taggableItemType, SerializerType serializerType) {
+      this.name = itemId;
+      this.prefix = type;
+      this.taggable = taggableItemType;
+      this.serializer = serializerType;
    }
 
    public String getName() {
@@ -68,20 +68,20 @@ public class ItemProviderType {
       return this.taggable;
    }
 
-   public static ItemProviderType fromName(String var0) {
-      for (ItemProviderType var4 : VALUES) {
-         if (var4.name.equals(var0)) {
-            return var4;
+   public static ItemProviderType fromName(String name) {
+      for (ItemProviderType itemProviderType : VALUES) {
+         if (itemProviderType.name.equals(name)) {
+            return itemProviderType;
          }
       }
 
       return null;
    }
 
-   public static ItemProviderType fromPrefix(String var0) {
-      for (ItemProviderType var4 : VALUES) {
-         if (var4.prefix.equals(var0)) {
-            return var4;
+   public static ItemProviderType fromPrefix(String itemId) {
+      for (ItemProviderType itemProviderType : VALUES) {
+         if (itemProviderType.prefix.equals(itemId)) {
+            return itemProviderType;
          }
       }
 
@@ -89,19 +89,19 @@ public class ItemProviderType {
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (!(var1 instanceof ItemProviderType)) {
-         if (var1 instanceof ItemType) {
-            ItemType var3 = (ItemType)var1;
-            return var3.providerType == this;
+      } else if (!(value instanceof ItemProviderType)) {
+         if (value instanceof ItemType) {
+            ItemType itemType = (ItemType)value;
+            return itemType.providerType == this;
          } else {
             return false;
          }
       } else {
-         ItemProviderType var2 = (ItemProviderType)var1;
-         return this.name.equals(var2.name) && this.prefix.equals(var2.prefix);
+         ItemProviderType itemProviderType = (ItemProviderType)value;
+         return this.name.equals(itemProviderType.name) && this.prefix.equals(itemProviderType.prefix);
       }
    }
 

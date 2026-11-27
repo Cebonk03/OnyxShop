@@ -36,13 +36,13 @@ public class FileUploader extends ShopInventory {
    private final Player player;
    private Class<? extends ShopInventory> current = FileUploader.class;
 
-   public FileUploader(Player var1, Consumer<ArrayList<String>> var2) {
+   public FileUploader(Player player, Consumer<ArrayList<String>> task) {
       this.inv = Bukkit.createInventory(this, 45, "§8§lSelect files to upload");
-      this.onComplete = var2;
-      this.player = var1;
+      this.onComplete = task;
+      this.player = player;
       this.buildPane();
       Bukkit.getPluginManager().registerEvents(this.listener, this.plugin);
-      var1.openInventory(this.inv);
+      player.openInventory(this.inv);
    }
 
    private void buildPane() {
@@ -80,9 +80,9 @@ public class FileUploader extends ShopInventory {
 
    private void fillEmpty() {
       if (this.plugin.createItem.fillItem != null) {
-         for (int var1 = 0; var1 < this.inv.getSize(); var1++) {
-            if (this.inv.getItem(var1) == null) {
-               this.inv.setItem(var1, this.plugin.createItem.fillItem);
+         for (int size = 0; size < this.inv.getSize(); size++) {
+            if (this.inv.getItem(size) == null) {
+               this.inv.setItem(size, this.plugin.createItem.fillItem);
             }
          }
       }
@@ -111,24 +111,24 @@ public class FileUploader extends ShopInventory {
    }
 
    private ArrayList<String> initShopFiles() {
-      Set var1 = ConfigManager.getShops();
-      ArrayList var2 = new ArrayList();
-      File var3 = new File(this.plugin.getDataFolder() + File.separator + "shops");
-      if (var3.exists() && var3.isDirectory()) {
-         Arrays.stream(var3.listFiles()).forEach(var2x -> {
-            if (var2x.isDirectory()) {
-               for (File var6 : var2x.listFiles()) {
-                  if (var1.contains(var6.getName().split("\\.")[0])) {
-                     var2.add(var2x.getName() + "/" + var6.getName().split("\\.")[0]);
+      Set shops = ConfigManager.getShops();
+      ArrayList shopIds = new ArrayList();
+      File file = new File(this.plugin.getDataFolder() + File.separator + "shops");
+      if (file.exists() && file.isDirectory()) {
+         Arrays.stream(file.listFiles()).forEach(entry -> {
+            if (entry.isDirectory()) {
+               for (File file2 : entry.listFiles()) {
+                  if (shops.contains(file2.getName().split("\\.")[0])) {
+                     shopIds.add(entry.getName() + "/" + file2.getName().split("\\.")[0]);
                   }
                }
-            } else if (var1.contains(var2x.getName().split("\\.")[0])) {
-               var2.add(var2x.getName().split("\\.")[0]);
+            } else if (shops.contains(entry.getName().split("\\.")[0])) {
+               shopIds.add(entry.getName().split("\\.")[0]);
             }
          });
       }
 
-      return var2;
+      return shopIds;
    }
 
    private class Listen implements Listener {
@@ -136,38 +136,38 @@ public class FileUploader extends ShopInventory {
       }
 
       @EventHandler
-      public void onInventoryClick(InventoryClickEvent var1) {
-         if (var1.getClickedInventory() != null
-            && var1.getClickedInventory().getHolder() instanceof ShopInventory
-            && var1.getCurrentItem() != null
-            && var1.getCurrentItem().getType() != Material.AIR) {
-            var1.setCancelled(true);
-            int var2 = var1.getRawSlot();
-            if (var1.getClickedInventory() == FileUploader.this.inv) {
-               if (var2 == 14) {
-                  ItemBuilder var3;
+      public void onInventoryClick(InventoryClickEvent event) {
+         if (event.getClickedInventory() != null
+            && event.getClickedInventory().getHolder() instanceof ShopInventory
+            && event.getCurrentItem() != null
+            && event.getCurrentItem().getType() != Material.AIR) {
+            event.setCancelled(true);
+            int slot = event.getRawSlot();
+            if (event.getClickedInventory() == FileUploader.this.inv) {
+               if (slot == 14) {
+                  ItemBuilder itemBuilder;
                   if (!FileUploader.this.files.contains("config.yml")) {
-                     var3 = new ItemBuilder(XMaterial.FILLED_MAP.parseItem());
-                     var3.hideFlags();
-                     var3.withDisplayName("§a§lconfig.yml").withEnchantGlint();
+                     itemBuilder = new ItemBuilder(XMaterial.FILLED_MAP.parseItem());
+                     itemBuilder.hideFlags();
+                     itemBuilder.withDisplayName("§a§lconfig.yml").withEnchantGlint();
                      FileUploader.this.files.add("config.yml");
                   } else {
-                     var3 = new ItemBuilder(XMaterial.PAPER.parseItem());
-                     var3.withDisplayName("§c§lconfig.yml").removeEnchants();
+                     itemBuilder = new ItemBuilder(XMaterial.PAPER.parseItem());
+                     itemBuilder.withDisplayName("§c§lconfig.yml").removeEnchants();
                      FileUploader.this.files.remove("config.yml");
                   }
 
-                  var3.withLore(
+                  itemBuilder.withLore(
                      CalculateAmount.splitLongString(
                         "§6This file won't be uploaded by default, though, if anything related to §ftransaction screens§6, §foption items§6, §fnavigation bars§6, §finventory sizes§6, §fetc... §6is customized in your shop layout, you may opt-in to also include this file in the upload process."
                      )
                   );
-                  FileUploader.this.inv.setItem(14, var3.build());
-               } else if (var2 == 12) {
-                  if (var1.getClick() == ClickType.LEFT) {
+                  FileUploader.this.inv.setItem(14, itemBuilder.build());
+               } else if (slot == 12) {
+                  if (event.getClick() == ClickType.LEFT) {
                      FileUploader.this.current = FileUploader.ShopSelect.class;
                      FileUploader.this.shopSelect.open(FileUploader.this.player);
-                  } else if (var1.getClick() == ClickType.RIGHT) {
+                  } else if (event.getClick() == ClickType.RIGHT) {
                      if (!FileUploader.this.shops.isEmpty()) {
                         FileUploader.this.shops.clear();
                      } else {
@@ -176,34 +176,34 @@ public class FileUploader extends ShopInventory {
 
                      FileUploader.this.updateShops();
                   }
-               } else if (var2 == 30) {
+               } else if (slot == 30) {
                   FileUploader.this.quit();
-                  var1.getWhoClicked().closeInventory();
+                  event.getWhoClicked().closeInventory();
                   FileUploader.this.onComplete.accept(null);
-               } else if (var2 == 32) {
+               } else if (slot == 32) {
                   if (FileUploader.this.files.isEmpty() && FileUploader.this.shops.isEmpty()) {
                      return;
                   }
 
                   FileUploader.this.quit();
 
-                  for (String var4 : FileUploader.this.shops) {
-                     FileUploader.this.files.add("shops/" + var4 + ".yml");
-                     FileUploader.this.files.add("sections/" + var4 + ".yml");
+                  for (String text : FileUploader.this.shops) {
+                     FileUploader.this.files.add("shops/" + text + ".yml");
+                     FileUploader.this.files.add("sections/" + text + ".yml");
                   }
 
                   FileUploader.this.onComplete.accept(FileUploader.this.files);
                }
-            } else if (var1.getClickedInventory().getHolder() instanceof FileUploader.ShopSelect) {
-               if (var2 == 53) {
+            } else if (event.getClickedInventory().getHolder() instanceof FileUploader.ShopSelect) {
+               if (slot == 53) {
                   FileUploader.this.updateShops();
                   FileUploader.this.current = FileUploader.class;
                   FileUploader.this.player.openInventory(FileUploader.this.inv);
                } else {
-                  switch (XMaterial.matchXMaterial(var1.getCurrentItem())) {
+                  switch (XMaterial.matchXMaterial(event.getCurrentItem())) {
                      case PAPER:
                      case FILLED_MAP:
-                        FileUploader.this.shopSelect.toggle(var2);
+                        FileUploader.this.shopSelect.toggle(slot);
                   }
                }
             }
@@ -211,10 +211,10 @@ public class FileUploader extends ShopInventory {
       }
 
       @EventHandler
-      public void onInventoryClose(InventoryCloseEvent var1) {
-         if (var1.getInventory() == FileUploader.this.inv && FileUploader.this.current == FileUploader.class) {
+      public void onInventoryClose(InventoryCloseEvent event) {
+         if (event.getInventory() == FileUploader.this.inv && FileUploader.this.current == FileUploader.class) {
             FileUploader.this.quit();
-         } else if (var1.getInventory().getHolder() instanceof FileUploader.ShopSelect && FileUploader.this.current == FileUploader.ShopSelect.class) {
+         } else if (event.getInventory().getHolder() instanceof FileUploader.ShopSelect && FileUploader.this.current == FileUploader.ShopSelect.class) {
             FileUploader.this.updateShops();
             FileUploader.this.current = FileUploader.class;
             FileUploader.this.player.openInventory(FileUploader.this.inv);
@@ -228,58 +228,58 @@ public class FileUploader extends ShopInventory {
       public ShopSelect() {
       }
 
-      public void open(Player var1) {
+      public void open(Player player) {
          if (!this.inv.isEmpty()) {
             this.inv.clear();
          }
 
          this.update();
-         this.buildPane(var1);
-         var1.openInventory(this.inv);
+         this.buildPane(player);
+         player.openInventory(this.inv);
       }
 
       private void update() {
-         for (String var2 : FileUploader.this.originalShops) {
-            ItemBuilder var3;
-            if (FileUploader.this.shops.contains(var2)) {
-               var3 = new ItemBuilder(XMaterial.FILLED_MAP.parseMaterial());
-               var3.withEnchantGlint();
-               var3.hideFlags();
-               var3.withDisplayName("§a§l" + var2);
-               var3.withLore("§6Click to deselect");
+         for (String text : FileUploader.this.originalShops) {
+            ItemBuilder itemBuilder;
+            if (FileUploader.this.shops.contains(text)) {
+               itemBuilder = new ItemBuilder(XMaterial.FILLED_MAP.parseMaterial());
+               itemBuilder.withEnchantGlint();
+               itemBuilder.hideFlags();
+               itemBuilder.withDisplayName("§a§l" + text);
+               itemBuilder.withLore("§6Click to deselect");
             } else {
-               var3 = new ItemBuilder(XMaterial.PAPER.parseMaterial());
-               var3.hideFlags();
-               var3.withDisplayName("§c§l" + var2);
-               var3.withLore("§6Click to select");
+               itemBuilder = new ItemBuilder(XMaterial.PAPER.parseMaterial());
+               itemBuilder.hideFlags();
+               itemBuilder.withDisplayName("§c§l" + text);
+               itemBuilder.withLore("§6Click to select");
             }
 
-            this.inv.addItem(new ItemStack[]{var3.build()});
+            this.inv.addItem(new ItemStack[]{itemBuilder.build()});
          }
       }
 
-      private void buildPane(Player var1) {
-         this.inv.setItem(45, OnyxShop.getInstance().createItem.getPlayerReminder(var1, false));
+      private void buildPane(Player player) {
+         this.inv.setItem(45, OnyxShop.getInstance().createItem.getPlayerReminder(player, false));
          this.inv.setItem(53, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
       }
 
-      public void toggle(int var1) {
-         ItemStack var2 = this.inv.getItem(var1);
-         String var3 = ChatColor.stripColor(var2.getItemMeta().getDisplayName());
-         if (FileUploader.this.shops.contains(var3)) {
-            ItemBuilder var4 = new ItemBuilder(XMaterial.PAPER.parseMaterial());
-            var4.withDisplayName("§c§l" + var3);
-            var4.withLore("§6Click to select");
-            this.inv.setItem(var1, var4.build());
-            FileUploader.this.shops.remove(var3);
+      public void toggle(int value) {
+         ItemStack itemStack = this.inv.getItem(value);
+         String itemId = ChatColor.stripColor(itemStack.getItemMeta().getDisplayName());
+         if (FileUploader.this.shops.contains(itemId)) {
+            ItemBuilder itemBuilder = new ItemBuilder(XMaterial.PAPER.parseMaterial());
+            itemBuilder.withDisplayName("§c§l" + itemId);
+            itemBuilder.withLore("§6Click to select");
+            this.inv.setItem(value, itemBuilder.build());
+            FileUploader.this.shops.remove(itemId);
          } else {
-            ItemBuilder var5 = new ItemBuilder(XMaterial.FILLED_MAP.parseMaterial());
-            var5.withEnchantGlint();
-            var5.hideFlags();
-            var5.withDisplayName("§a§l" + var3);
-            var5.withLore("§6Click to deselect");
-            this.inv.setItem(var1, var5.build());
-            FileUploader.this.shops.add(var3);
+            ItemBuilder itemBuilder = new ItemBuilder(XMaterial.FILLED_MAP.parseMaterial());
+            itemBuilder.withEnchantGlint();
+            itemBuilder.hideFlags();
+            itemBuilder.withDisplayName("§a§l" + itemId);
+            itemBuilder.withLore("§6Click to deselect");
+            this.inv.setItem(value, itemBuilder.build());
+            FileUploader.this.shops.add(itemId);
          }
       }
    }

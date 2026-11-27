@@ -18,17 +18,17 @@ public class BetonQuestIntegration implements QuestProvider {
    }
 
    @Override
-   public void init(OnyxShop var1, QuestManager var2) {
+   public void init(OnyxShop plugin, QuestManager questManager) {
       if (!this.isReady()) {
          SendMessage.infoMessage(this.getName() + " found, waiting...");
-         var1.runTaskLater(() -> {
+         plugin.runTaskLater(() -> {
             if (this.isReady()) {
                SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
             } else {
                SendMessage.warnMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", this.getName()));
             }
 
-            var2.onLoad();
+            questManager.onLoad();
          }, 65L);
       } else {
          SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
@@ -37,9 +37,9 @@ public class BetonQuestIntegration implements QuestProvider {
 
    @Override
    public boolean isReady() {
-      BetonQuestApiService var1 = (BetonQuestApiService)Bukkit.getServer().getServicesManager().load(BetonQuestApiService.class);
-      if (var1 != null) {
-         this.questsAPI = var1.api(OnyxShop.getInstance());
+      BetonQuestApiService betonQuestApiService = (BetonQuestApiService)Bukkit.getServer().getServicesManager().load(BetonQuestApiService.class);
+      if (betonQuestApiService != null) {
+         this.questsAPI = betonQuestApiService.api(OnyxShop.getInstance());
          return true;
       } else {
          return false;
@@ -52,18 +52,18 @@ public class BetonQuestIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean isLoaded(String var1) {
+   public boolean isLoaded(String text) {
       return true;
    }
 
    @Override
-   public String getQuestName(String var1) {
-      return var1;
+   public String getQuestName(String name) {
+      return name;
    }
 
    @Override
-   public boolean hasCompleted(Player var1, String var2) {
-      OnlineProfile var3 = this.questsAPI.profiles().getProfile(var1);
-      return this.questsAPI.persistence().of(var3).tags().has(var2);
+   public boolean hasCompleted(Player player, String playerName) {
+      OnlineProfile onlineProfile = this.questsAPI.profiles().getProfile(player);
+      return this.questsAPI.persistence().of(onlineProfile).tags().has(playerName);
    }
 }

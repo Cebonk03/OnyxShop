@@ -20,9 +20,9 @@ public class ResetStock extends SubCommad {
    String itemLoc;
    String playerName;
 
-   public ResetStock(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public ResetStock(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -41,16 +41,16 @@ public class ResetStock extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.globalstock." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.globalstock." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         String var3 = var2[2].equals("*") ? null : var2[2];
-         if (var3 != null) {
-            this.section = this.methods.getSection(var1, var3);
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         String text = values[2].equals("*") ? null : values[2];
+         if (text != null) {
+            this.section = this.methods.getSection(value, text);
             if (this.section == null) {
                return;
             }
@@ -59,20 +59,20 @@ public class ResetStock extends SubCommad {
          }
 
          if (this.section != null) {
-            if (var2.length <= 3) {
-               SendMessage.sendMessage(var1, this.getSyntax());
+            if (values.length <= 3) {
+               SendMessage.sendMessage(value, this.getSyntax());
                return;
             }
 
-            var3 = var2[3].equals("*") ? null : var2[3];
-            if (var3 != null) {
-               this.itemLoc = this.methods.getShopItemLoc(var1, this.section, var3);
+            text = values[3].equals("*") ? null : values[3];
+            if (text != null) {
+               this.itemLoc = this.methods.getShopItemLoc(value, this.section, text);
                if (this.itemLoc == null) {
                   return;
                }
 
                if (this.plugin.getLimitedStockProvider().getItemStockMode(this.section + "." + this.itemLoc) != 1) {
-                  SendMessage.warnMessage(var1, "This item does not have any global stock limits");
+                  SendMessage.warnMessage(value, "This item does not have any global stock limits");
                   return;
                }
             } else {
@@ -81,50 +81,50 @@ public class ResetStock extends SubCommad {
          }
 
          try {
-            long var7 = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
             this.plugin
                .getLimitedStockProvider()
                .resetItemStock(this.section, this.itemLoc, this.playerName == null ? null : Bukkit.getOfflinePlayer(this.playerName).getUniqueId(), 1);
-            SendMessage.infoMessage(var1, Lang.STOCK_LIMIT_RESET_SUCCESSFUL.get().replace("%time%", String.valueOf(System.currentTimeMillis() - var7)));
-         } catch (Exception var5) {
-            SendMessage.warnMessage(var1, "Failed to reset stock limit, see console for details");
-            var5.printStackTrace();
+            SendMessage.infoMessage(value, Lang.STOCK_LIMIT_RESET_SUCCESSFUL.get().replace("%time%", String.valueOf(System.currentTimeMillis() - startTime)));
+         } catch (Exception exception) {
+            SendMessage.warnMessage(value, "Failed to reset stock limit, see console for details");
+            exception.printStackTrace();
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               ArrayList var5 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], this.plugin.getShopSections(), var5);
-               Collections.sort(var5);
-               var5.add("*");
-               return var5;
+            if (!values[2].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               values2.add("*");
+               return values2;
             }
 
-            ArrayList var4 = new ArrayList<>(this.plugin.getShopSections());
-            var4.add("*");
-            return var4;
+            ArrayList values2 = new ArrayList<>(this.plugin.getShopSections());
+            values2.add("*");
+            return values2;
          case 4:
-            if (var1[2].equals("*") && !this.plugin.getShopSections().contains(var1[2])) {
+            if (values[2].equals("*") && !this.plugin.getShopSections().contains(values[2])) {
                return null;
             } else {
-               if (!var1[3].isEmpty()) {
-                  ArrayList var3 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[3], this.plugin.getSection(var1[2]).getShopItemLocs(), var3);
-                  Collections.sort(var3);
-                  var3.add("*");
-                  return var3;
+               if (!values[3].isEmpty()) {
+                  ArrayList values3 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[3], this.plugin.getSection(values[2]).getShopItemLocs(), values3);
+                  Collections.sort(values3);
+                  values3.add("*");
+                  return values3;
                }
 
-               List var2 = this.plugin.getSection(var1[2]).getShopItemLocs();
-               var2.add("*");
-               return var2;
+               List shopItemLocs = this.plugin.getSection(values[2]).getShopItemLocs();
+               shopItemLocs.add("*");
+               return shopItemLocs;
             }
          default:
             return null;

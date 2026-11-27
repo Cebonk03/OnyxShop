@@ -9,9 +9,9 @@ public interface ItemProvider {
 
    boolean isReady();
 
-   ItemStack getItem(String var1) throws ItemLoadException;
+   ItemStack getItem(String itemId) throws ItemLoadException;
 
-   String getItem(ItemStack var1);
+   String getItem(ItemStack itemStack);
 
    default String getID(String itemID) {
       return itemID;

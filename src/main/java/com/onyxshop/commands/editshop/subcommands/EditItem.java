@@ -71,9 +71,9 @@ public class EditItem extends SubCommad {
    Object value;
    private final List<String> listKeys = this.getListKeys();
 
-   public EditItem(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public EditItem(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -92,73 +92,73 @@ public class EditItem extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length <= 1) {
-         SendMessage.sendMessage(var1, this.getSyntax());
+   public void perform(Object value, String[] values) {
+      if (values.length <= 1) {
+         SendMessage.sendMessage(value, this.getSyntax());
       } else {
-         this.section = this.methods.getSection(var1, var2[1]);
+         this.section = this.methods.getSection(value, values[1]);
          if (this.section != null) {
-            if (var2.length <= 2) {
-               SendMessage.sendMessage(var1, this.getSyntax());
+            if (values.length <= 2) {
+               SendMessage.sendMessage(value, this.getSyntax());
             } else {
-               this.itemLoc = this.methods.getItemLoc(var1, this.section, var2[2]);
+               this.itemLoc = this.methods.getItemLoc(value, this.section, values[2]);
                if (this.itemLoc != null) {
-                  if (var2.length <= 3) {
-                     SendMessage.sendMessage(var1, this.getSyntax());
+                  if (values.length <= 3) {
+                     SendMessage.sendMessage(value, this.getSyntax());
                   } else {
-                     boolean var3 = false;
+                     boolean flag = false;
 
-                     for (String var5 : this.availableActions) {
-                        if (var2[3].equalsIgnoreCase(var5)) {
-                           this.action = var5;
-                           var3 = true;
+                     for (String text : this.availableActions) {
+                        if (values[3].equalsIgnoreCase(text)) {
+                           this.action = text;
+                           flag = true;
                            break;
                         }
                      }
 
-                     if (!var3) {
+                     if (!flag) {
                         SendMessage.sendMessage(
-                           var1, Lang.NO_VALID_ACTION.get().replace("%action%", var2[3]).replace("%actions%", Arrays.toString(this.availableActions.toArray()))
+                           value, Lang.NO_VALID_ACTION.get().replace("%action%", values[3]).replace("%actions%", Arrays.toString(this.availableActions.toArray()))
                         );
-                     } else if (var2.length > 4) {
-                        this.key = var2[4];
+                     } else if (values.length > 4) {
+                        this.key = values[4];
                         if (this.getAvailableKeys().stream().noneMatch(this.key::equalsIgnoreCase)) {
                            SendMessage.sendMessage(
-                              var1, Lang.NO_VALID_KEY.get().replace("%key%", var2[4]).replace("%keys%", Arrays.toString(this.getAvailableKeys().toArray()))
+                              value, Lang.NO_VALID_KEY.get().replace("%key%", values[4]).replace("%keys%", Arrays.toString(this.getAvailableKeys().toArray()))
                            );
                         } else if (this.action.equalsIgnoreCase("remove") && this.listKeys.stream().noneMatch(this.key::equalsIgnoreCase)) {
                            this.value = null;
-                           if (this.validate(var1, var2)) {
-                              this.updateOption(var1);
+                           if (this.validate(value, values)) {
+                              this.updateOption(value);
                            }
-                        } else if (var2.length <= 5) {
-                           SendMessage.sendMessage(var1, this.getSyntax());
+                        } else if (values.length <= 5) {
+                           SendMessage.sendMessage(value, this.getSyntax());
                         } else {
-                           if (var2.length > 6) {
-                              StringBuilder var6 = new StringBuilder();
+                           if (values.length > 6) {
+                              StringBuilder builder = new StringBuilder();
 
-                              for (int var7 = 5; var7 < var2.length; var7++) {
-                                 if (!var2[var7].equals("-unsafe")) {
-                                    var6.append(var2[var7]).append(" ");
+                              for (int index = 5; index < values.length; index++) {
+                                 if (!values[index].equals("-unsafe")) {
+                                    builder.append(values[index]).append(" ");
                                  }
                               }
 
-                              this.value = var6.substring(0, var6.length() - 1);
+                              this.value = builder.substring(0, builder.length() - 1);
                            } else {
-                              this.value = var2[5];
+                              this.value = values[5];
                            }
 
-                           if (this.validate(var1, var2)) {
-                              this.updateOption(var1);
+                           if (this.validate(value, values)) {
+                              this.updateOption(value);
                            }
                         }
                      } else {
-                        SendMessage.sendMessage(var1, this.getSyntax());
+                        SendMessage.sendMessage(value, this.getSyntax());
                      }
                   }
                }
@@ -168,46 +168,46 @@ public class EditItem extends SubCommad {
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 2:
-            if (!var1[1].isEmpty()) {
-               ArrayList var6 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[1], this.plugin.getShopSections(), var6);
-               Collections.sort(var6);
-               return var6;
+            if (!values[1].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[1], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 3:
-            if (!this.isSection(var1[1])) {
+            if (!this.isSection(values[1])) {
                return null;
             } else {
-               if (!var1[2].isEmpty()) {
-                  ArrayList var5 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[2], this.plugin.getSection(var1[1]).getItemLocs(), var5);
-                  Collections.sort(var5);
-                  return var5;
+               if (!values[2].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[2], this.plugin.getSection(values[1]).getItemLocs(), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return this.plugin.getSection(var1[1]).getItemLocs();
+               return this.plugin.getSection(values[1]).getItemLocs();
             }
          case 4:
-            if (!var1[3].isEmpty()) {
-               ArrayList var4 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[3], this.getAvailableActions(), var4);
-               Collections.sort(var4);
-               return var4;
+            if (!values[3].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[3], this.getAvailableActions(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.getAvailableActions();
          case 5:
-            if (this.isSection(var1[1]) && this.isItemLoc(var1[2]) && this.isAction(var1[3])) {
-               if (!var1[4].isEmpty()) {
-                  ArrayList var3 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[4], this.getAvailableKeys(), var3);
-                  Collections.sort(var3);
-                  return var3;
+            if (this.isSection(values[1]) && this.isItemLoc(values[2]) && this.isAction(values[3])) {
+               if (!values[4].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[4], this.getAvailableKeys(), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
                return this.getAvailableKeys();
@@ -215,113 +215,113 @@ public class EditItem extends SubCommad {
 
             return null;
          case 6:
-            if (!this.isKey(var1[4])) {
+            if (!this.isKey(values[4])) {
                return null;
             } else {
-               if (!var1[5].isEmpty()) {
-                  ArrayList var2 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[5], this.getTabcompletionForValue(var1[1], var1[2], var1[3], var1[4]), var2);
-                  Collections.sort(var2);
-                  return var2;
+               if (!values[5].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[5], this.getTabcompletionForValue(values[1], values[2], values[3], values[4]), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return this.getTabcompletionForValue(var1[1], var1[2], var1[3], var1[4]);
+               return this.getTabcompletionForValue(values[1], values[2], values[3], values[4]);
             }
          default:
             return null;
       }
    }
 
-   private boolean isSection(String var1) {
-      if (this.plugin.getShopSections().contains(var1)) {
-         this.section = var1;
+   private boolean isSection(String sectionId) {
+      if (this.plugin.getShopSections().contains(sectionId)) {
+         this.section = sectionId;
          return true;
       } else {
          return false;
       }
    }
 
-   private boolean isItemLoc(String var1) {
-      if (this.plugin.getSection(this.section).getItemLocs().contains(var1)) {
-         this.itemLoc = var1;
+   private boolean isItemLoc(String itemId) {
+      if (this.plugin.getSection(this.section).getItemLocs().contains(itemId)) {
+         this.itemLoc = itemId;
          return true;
       } else {
          return false;
       }
    }
 
-   private boolean isAction(String var1) {
-      if (this.availableActions.contains(var1)) {
-         this.action = var1;
+   private boolean isAction(String text) {
+      if (this.availableActions.contains(text)) {
+         this.action = text;
          return true;
       } else {
          return false;
       }
    }
 
-   private boolean isKey(String var1) {
-      if (this.getAvailableKeys().contains(var1)) {
-         this.key = var1;
+   private boolean isKey(String key) {
+      if (this.getAvailableKeys().contains(key)) {
+         this.key = key;
          return true;
       } else {
          return false;
       }
    }
 
-   private boolean validate(Object var1, String[] var2) {
+   private boolean validate(Object value, String[] values) {
       if (this.action.equalsIgnoreCase("add")) {
          if (!this.getAvailableKeys().contains(this.key)) {
-            SendMessage.sendMessage(var1, Lang.KEY_ALREADY_DEFINED.get().replace("%key%", this.key));
+            SendMessage.sendMessage(value, Lang.KEY_ALREADY_DEFINED.get().replace("%key%", this.key));
             return false;
          }
       } else if (this.action.equalsIgnoreCase("remove") && !this.getAvailableKeys().contains(this.key)) {
-         SendMessage.sendMessage(var1, Lang.KEY_IS_NOT_FOUND.get().replace("%key%", this.key));
+         SendMessage.sendMessage(value, Lang.KEY_IS_NOT_FOUND.get().replace("%key%", this.key));
          return false;
       }
 
       if ((this.action.equalsIgnoreCase("remove") || this.action.equalsIgnoreCase("add"))
          && !this.listKeys.contains(this.key)
          && this.key.equalsIgnoreCase("material")) {
-         SendMessage.sendMessage(var1, Lang.ACTION_NOT_VALID_ON_KEY.get().replace("%action%", this.action).replace("%key%", this.key));
+         SendMessage.sendMessage(value, Lang.ACTION_NOT_VALID_ON_KEY.get().replace("%action%", this.action).replace("%key%", this.key));
          return false;
       } else {
          if (this.plugin.getSection(this.section).isActionItem(this.section, this.itemLoc)) {
-            ArrayList var3 = new ArrayList<>(this.actionKeys);
-            var3.addAll(Arrays.asList("lore", "displaylore", "enchantments", "potiontypes", "item-flags"));
-            if (var3.stream().noneMatch(var1x -> var1x.equals(this.key))) {
-               SendMessage.sendMessage(var1, Lang.EDIT_KEY_UNAVAILABLE.get().replace("%key%", this.key));
+            ArrayList values2 = new ArrayList<>(this.actionKeys);
+            values2.addAll(Arrays.asList("lore", "displaylore", "enchantments", "potiontypes", "item-flags"));
+            if (values2.stream().noneMatch(element -> element.equals(this.key))) {
+               SendMessage.sendMessage(value, Lang.EDIT_KEY_UNAVAILABLE.get().replace("%key%", this.key));
                return false;
             }
          }
 
          if (this.value != null) {
-            String var29 = ConfigManager.getShop(this.section).getString(this.getItemLoc(this.section, this.itemLoc) + ".material");
-            if (var29 == null || var29.isEmpty()) {
-               SendMessage.sendMessage(var1, Lang.EDIT_ITEM_MATERIAL_INVALID.get().replace("%material%", var29));
+            String text = ConfigManager.getShop(this.section).getString(this.getItemLoc(this.section, this.itemLoc) + ".material");
+            if (text == null || text.isEmpty()) {
+               SendMessage.sendMessage(value, Lang.EDIT_ITEM_MATERIAL_INVALID.get().replace("%material%", text));
                return false;
             }
 
-            ItemStack var4 = null;
+            ItemStack itemStack = null;
 
             try {
-               var4 = CreateItemMethodes.createItemMaterialFromString(null, var29);
-            } catch (ItemLoadException var27) {
+               itemStack = CreateItemMethodes.createItemMaterialFromString(null, text);
+            } catch (ItemLoadException exception) {
             }
 
-            if (var4 == null) {
-               SendMessage.sendMessage(var1, Lang.EDIT_ITEM_MATERIAL_INVALID.get().replace("%material%", var29));
+            if (itemStack == null) {
+               SendMessage.sendMessage(value, Lang.EDIT_ITEM_MATERIAL_INVALID.get().replace("%material%", text));
                return false;
             }
 
-            Material var5 = var4.getType();
-            String var6 = this.key;
-            switch (var6) {
+            Material material = itemStack.getType();
+            String key = this.key;
+            switch (key) {
                case "material":
                   if (!this.action.equalsIgnoreCase("remove") && !this.action.equalsIgnoreCase("add")) {
-                     return this.methods.getMaterial(var1, this.value.toString()) != null;
+                     return this.methods.getMaterial(value, this.value.toString()) != null;
                   }
 
-                  SendMessage.sendMessage(var1, Lang.ACTION_NOT_VALID_ON_KEY.get().replace("%action%", this.action).replace("%key%", this.key));
+                  SendMessage.sendMessage(value, Lang.ACTION_NOT_VALID_ON_KEY.get().replace("%action%", this.action).replace("%key%", this.key));
                   return false;
                case "displayname":
                case "name":
@@ -334,7 +334,7 @@ public class EditItem extends SubCommad {
                case "ignored-tags":
                   if (this.plugin.getShopItem(this.section, this.itemLoc) != null) {
                      if (this.value.toString().split("::").length > 2) {
-                        SendMessage.errorMessage(var1, "OnyxShop does not support deeper nested tags as one deep!");
+                        SendMessage.errorMessage(value, "OnyxShop does not support deeper nested tags as one deep!");
                         return false;
                      }
 
@@ -345,7 +345,7 @@ public class EditItem extends SubCommad {
                            NBTMaps.getTag(this.value.toString(), this.section, this.itemLoc)
                         )) {
                         SendMessage.warnMessage(
-                           var1,
+                           value,
                            "The item configured at path '"
                               + this.section
                               + "."
@@ -360,20 +360,20 @@ public class EditItem extends SubCommad {
                   return true;
                case "buy":
                case "sell":
-                  this.value = this.methods.getPrice(var1, this.value);
+                  this.value = this.methods.getPrice(value, this.value);
                   return this.value != null;
                case "slot":
                   try {
-                     int var31 = Integer.parseInt(this.value.toString());
-                     if (this.plugin.maxShopSize * 45 >= var31 && 1 <= var31) {
-                        this.value = var31;
+                     int value2 = Integer.parseInt(this.value.toString());
+                     if (this.plugin.maxShopSize * 45 >= value2 && 1 <= value2) {
+                        this.value = value2;
                         return true;
                      }
 
                      throw new NumberFormatException();
-                  } catch (NumberFormatException var26) {
+                  } catch (NumberFormatException exception) {
                      SendMessage.sendMessage(
-                        var1,
+                        value,
                         Lang.NO_VALID_SLOT_FOR_ITEM
                            .get()
                            .replace("%slot%", this.value.toString())
@@ -383,23 +383,23 @@ public class EditItem extends SubCommad {
                   }
                case "ominous-strength":
                   try {
-                     int var30 = Integer.parseInt(this.value.toString());
-                     if (5 > var30 && 1 < var30) {
-                        this.value = var30;
+                     int value2 = Integer.parseInt(this.value.toString());
+                     if (5 > value2 && 1 < value2) {
+                        this.value = value2;
                         return true;
                      }
 
                      throw new NumberFormatException();
-                  } catch (NumberFormatException var25) {
-                     SendMessage.sendMessage(var1, Lang.INVALID_OMINOUS_BOTTLE_STRENGTH.get().replace("%strength%", this.value.toString()));
+                  } catch (NumberFormatException exception) {
+                     SendMessage.sendMessage(value, Lang.INVALID_OMINOUS_BOTTLE_STRENGTH.get().replace("%strength%", this.value.toString()));
                      return false;
                   }
                case "enchantments":
                   try {
                      this.plugin.enchantsProvider.getEnchant(this.value.toString());
                      return true;
-                  } catch (ItemLoadException var24) {
-                     SendMessage.sendMessage(var1, var24.getMessage());
+                  } catch (ItemLoadException exception) {
+                     SendMessage.sendMessage(value, exception.getMessage());
                      return false;
                   }
                case "enchantment-glint":
@@ -419,7 +419,7 @@ public class EditItem extends SubCommad {
                case "trail":
                   if (ConfigManager.getShop(this.section).getStringList(this.getItemLoc(this.section, this.itemLoc) + ".colors").isEmpty()) {
                      SendMessage.sendMessage(
-                        var1,
+                        value,
                         ChatColor.RED
                            + "To apply a flicker, trail or firework shape you need to give the firework at least one color using the 'colors' option"
                      );
@@ -429,48 +429,48 @@ public class EditItem extends SubCommad {
                   this.value = Boolean.valueOf(this.value.toString());
                   return true;
                case "potiontypes":
-                  if (!PotionTypes.canHaveEffects(var5)) {
-                     SendMessage.warnMessage(var1, Lang.MATERIAL_NEEDS_TO_BE_POTION.get());
+                  if (!PotionTypes.canHaveEffects(material)) {
+                     SendMessage.warnMessage(value, Lang.MATERIAL_NEEDS_TO_BE_POTION.get());
                      return false;
                   }
 
-                  Optional var8 = PotionTypes.matchPotionType(this.value.toString());
-                  if (!var8.isPresent()) {
-                     SendMessage.warnMessage(var1, Lang.ITEM_POTIONTYPE_NULL.get());
+                  Optional optional = PotionTypes.matchPotionType(this.value.toString());
+                  if (!optional.isPresent()) {
+                     SendMessage.warnMessage(value, Lang.ITEM_POTIONTYPE_NULL.get());
                      return false;
                   }
 
-                  if (!((PotionTypes)var8.get()).isSupported()) {
-                     SendMessage.warnMessage(var1, Lang.POTIONTYPE_NOT_SUPPORTED.get());
+                  if (!((PotionTypes)optional.get()).isSupported()) {
+                     SendMessage.warnMessage(value, Lang.POTIONTYPE_NOT_SUPPORTED.get());
                      return false;
                   }
 
                   return true;
                case "spawnertype":
-                  if (var5 != XMaterial.SPAWNER.parseMaterial()) {
-                     SendMessage.warnMessage(var1, Lang.MATERIAL_NEEDS_TO_BE_SPAWNER.get());
+                  if (material != XMaterial.SPAWNER.parseMaterial()) {
+                     SendMessage.warnMessage(value, Lang.MATERIAL_NEEDS_TO_BE_SPAWNER.get());
                      return false;
                   }
 
-                  for (EntityType var38 : EntityType.values()) {
-                     if (this.value.toString().equalsIgnoreCase(var38.toString())) {
+                  for (EntityType entityType : EntityType.values()) {
+                     if (this.value.toString().equalsIgnoreCase(entityType.toString())) {
                         return true;
                      }
                   }
 
-                  SendMessage.warnMessage(var1, Lang.ITEM_SPAWNERTYPE_NULL.get());
+                  SendMessage.warnMessage(value, Lang.ITEM_SPAWNERTYPE_NULL.get());
                   return false;
                case "armorcolor":
                   try {
                      Color.fromRGB(Integer.parseInt(this.value.toString()));
-                  } catch (IllegalArgumentException var23) {
-                     SendMessage.warnMessage(var1, Lang.RGB_COLOR_FORMATTED_WRONG.get().replace("%path%", this.section + "." + this.itemLoc + "." + this.key));
+                  } catch (IllegalArgumentException exception) {
+                     SendMessage.warnMessage(value, Lang.RGB_COLOR_FORMATTED_WRONG.get().replace("%path%", this.section + "." + this.itemLoc + "." + this.key));
                   }
 
                   return true;
                case "recipes":
-                  if (var5 != XMaterial.KNOWLEDGE_BOOK.parseMaterial()) {
-                     SendMessage.warnMessage(var1, Lang.MATERIAL_NEEDS_TO_BE_BOOK.get());
+                  if (material != XMaterial.KNOWLEDGE_BOOK.parseMaterial()) {
+                     SendMessage.warnMessage(value, Lang.MATERIAL_NEEDS_TO_BE_BOOK.get());
                      return false;
                   }
 
@@ -479,11 +479,11 @@ public class EditItem extends SubCommad {
                      return true;
                   }
 
-                  SendMessage.warnMessage(var1, Lang.CANNOT_GET_RECIPE_MATERIAL.get());
+                  SendMessage.warnMessage(value, Lang.CANNOT_GET_RECIPE_MATERIAL.get());
                   return false;
                case "skullowner":
-                  if (var5 != XMaterial.PLAYER_HEAD.parseMaterial()) {
-                     SendMessage.warnMessage(var1, Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
+                  if (material != XMaterial.PLAYER_HEAD.parseMaterial()) {
+                     SendMessage.warnMessage(value, Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
                      return false;
                   }
 
@@ -494,15 +494,15 @@ public class EditItem extends SubCommad {
                      return true;
                   }
 
-                  SendMessage.warnMessage(var1, Lang.NBTDATA_NEEDS_CURLY_BRACKETS.get());
+                  SendMessage.warnMessage(value, Lang.NBTDATA_NEEDS_CURLY_BRACKETS.get());
                   return false;
                case "colors":
                case "fade-colors":
                   if (!Arrays.stream(FireworkUtil.FireworkColor.values())
-                     .map(var0 -> var0.name())
+                     .map(element -> element.name())
                      .collect(Collectors.toList())
                      .contains(this.value.toString().toUpperCase(Locale.ENGLISH))) {
-                     SendMessage.warnMessage(var1, "Could not get the color '" + this.value.toString() + "'");
+                     SendMessage.warnMessage(value, "Could not get the color '" + this.value.toString() + "'");
                      return false;
                   }
 
@@ -510,7 +510,7 @@ public class EditItem extends SubCommad {
                case "shape":
                   if (ConfigManager.getShop(this.section).getStringList(this.getItemLoc(this.section, this.itemLoc) + ".colors").isEmpty()) {
                      SendMessage.warnMessage(
-                        var1, "To apply a flicker, trail or firework shape you need to give the firework at least one color using the 'colors' option"
+                        value, "To apply a flicker, trail or firework shape you need to give the firework at least one color using the 'colors' option"
                      );
                      return false;
                   }
@@ -518,16 +518,16 @@ public class EditItem extends SubCommad {
                   try {
                      Type.valueOf(this.value.toString().toUpperCase(Locale.ENGLISH));
                      return true;
-                  } catch (IllegalArgumentException var22) {
-                     SendMessage.warnMessage(var1, "Could not get the firework shape '" + this.value.toString() + "'");
+                  } catch (IllegalArgumentException exception) {
+                     SendMessage.warnMessage(value, "Could not get the firework shape '" + this.value.toString() + "'");
                      return false;
                   }
                case "duration":
                   try {
                      Integer.parseInt(this.value.toString());
                      return true;
-                  } catch (NumberFormatException var21) {
-                     SendMessage.warnMessage(var1, Lang.NO_VALID_AMOUNT.get());
+                  } catch (NumberFormatException exception) {
+                     SendMessage.warnMessage(value, Lang.NO_VALID_AMOUNT.get());
                      return false;
                   }
                case "max-buy":
@@ -542,18 +542,18 @@ public class EditItem extends SubCommad {
                case "sell-limit-player":
                   try {
                      this.value = Integer.parseInt(this.value.toString());
-                  } catch (NumberFormatException var20) {
-                     SendMessage.warnMessage(var1, Lang.NO_VALID_AMOUNT.get());
+                  } catch (NumberFormatException exception) {
+                     SendMessage.warnMessage(value, Lang.NO_VALID_AMOUNT.get());
                      return false;
                   }
 
                   if (this.key.equals("stack-size") && !this.plugin.allowIllegalStacks) {
-                     if ((Integer)this.value < var5.getMaxStackSize()) {
+                     if ((Integer)this.value < material.getMaxStackSize()) {
                         SendMessage.warnMessage(
-                           var1,
+                           value,
                            ChatColor.RED
                               + "Cannot set the stack size of item %material% to %stack-size% because it would exceed the vanilla max stack size."
-                                 .replace("%material%", var5.toString())
+                                 .replace("%material%", material.toString())
                                  .replace("%stack-size%", this.value.toString())
                         );
                      }
@@ -561,49 +561,49 @@ public class EditItem extends SubCommad {
                      if (this.key.equals("max-buy") || this.key.equals("max-sell")) {
                         if (this.key.equals("max-buy")) {
                            if (this.plugin.getShopItem(this.section, this.itemLoc).isMinBuy((Integer)this.value)) {
-                              SendMessage.warnMessage(var1, ChatColor.RED + "The " + this.key + " should be larger as the min-buy option of this item.");
+                              SendMessage.warnMessage(value, ChatColor.RED + "The " + this.key + " should be larger as the min-buy option of this item.");
                               return false;
                            }
                         } else if (this.key.equals("max-sell") && this.plugin.getShopItem(this.section, this.itemLoc).isMinSell((Integer)this.value)) {
-                           SendMessage.warnMessage(var1, ChatColor.RED + "The " + this.key + " should be larger as the min-sell option of this item.");
+                           SendMessage.warnMessage(value, ChatColor.RED + "The " + this.key + " should be larger as the min-sell option of this item.");
                            return false;
                         }
                      }
                   } else {
                      if ((Integer)this.value < 0) {
-                        SendMessage.warnMessage(var1, ChatColor.RED + "The " + this.key + " needs to be a positive value!");
+                        SendMessage.warnMessage(value, ChatColor.RED + "The " + this.key + " needs to be a positive value!");
                         return false;
                      }
 
                      if (this.key.equals("min-buy")) {
                         if ((Integer)this.value < this.plugin.getShopItem(this.section, this.itemLoc).getStackSize()) {
-                           SendMessage.warnMessage(var1, ChatColor.RED + "The " + this.key + " should be larger as the stack size of this shop item.");
+                           SendMessage.warnMessage(value, ChatColor.RED + "The " + this.key + " should be larger as the stack size of this shop item.");
                            return false;
                         }
 
                         if (this.plugin.getShopItem(this.section, this.itemLoc).isMaxBuy((Integer)this.value)) {
-                           SendMessage.warnMessage(var1, ChatColor.RED + "The " + this.key + " should be smaller as the max-buy option of this item.");
+                           SendMessage.warnMessage(value, ChatColor.RED + "The " + this.key + " should be smaller as the max-buy option of this item.");
                            return false;
                         }
                      } else if (this.key.equals("min-sell") && this.plugin.getShopItem(this.section, this.itemLoc).isMaxSell((Integer)this.value)) {
-                        SendMessage.warnMessage(var1, ChatColor.RED + "The " + this.key + " should be smaller as the max-sell option of this item.");
+                        SendMessage.warnMessage(value, ChatColor.RED + "The " + this.key + " should be smaller as the max-sell option of this item.");
                         return false;
                      }
                   }
 
                   return true;
                case "instrument":
-                  if (var5 != XMaterial.GOAT_HORN.parseMaterial()) {
-                     SendMessage.warnMessage(var1, ChatColor.RED + "To apply a horn sound type, the material needs to be a goat horn");
+                  if (material != XMaterial.GOAT_HORN.parseMaterial()) {
+                     SendMessage.warnMessage(value, ChatColor.RED + "To apply a horn sound type, the material needs to be a goat horn");
                      return false;
                   }
 
                   try {
                      CreateItemMethodes.Horn.setInstrument(new ItemStack(Material.GOAT_HORN), this.value.toString());
                      return true;
-                  } catch (ItemLoadException var19) {
+                  } catch (ItemLoadException exception) {
                      SendMessage.warnMessage(
-                        var1,
+                        value,
                         "Could not find a goat horn instrument like '"
                            + this.value.toString()
                            + "', valid values are:\n"
@@ -615,15 +615,15 @@ public class EditItem extends SubCommad {
                case "section":
                   return this.plugin.getShopSections().contains(this.value.toString());
                case "stew-effect":
-                  if (var5 != XMaterial.MUSHROOM_STEW.parseMaterial()) {
-                     SendMessage.warnMessage(var1, "To add a stew effect to an item, the material needs to be a 'SUSPICIOUS_STEW'.");
+                  if (material != XMaterial.MUSHROOM_STEW.parseMaterial()) {
+                     SendMessage.warnMessage(value, "To add a stew effect to an item, the material needs to be a 'SUSPICIOUS_STEW'.");
                      return false;
                   }
 
-                  CreateItemMethodes.Stew var9 = CreateItemMethodes.Stew.get(this.value.toString());
-                  if (var9 == null) {
+                  CreateItemMethodes.Stew stew = CreateItemMethodes.Stew.get(this.value.toString());
+                  if (stew == null) {
                      SendMessage.warnMessage(
-                        var1,
+                        value,
                         "Could not find a stew effect like '"
                            + this.value.toString()
                            + "', valid values are:\n"
@@ -635,29 +635,29 @@ public class EditItem extends SubCommad {
 
                   return true;
                case "armor-trim.type":
-                  if (!(new ItemStack(var5).getItemMeta() instanceof ArmorMeta)) {
-                     SendMessage.warnMessage(var1, "To add a armor trim to an item, the material needs to be a armor piece.");
+                  if (!(new ItemStack(material).getItemMeta() instanceof ArmorMeta)) {
+                     SendMessage.warnMessage(value, "To add a armor trim to an item, the material needs to be a armor piece.");
                      return false;
                   }
 
                   try {
                      new CreateItemMethodes.ArmorTrim().getTrimType(this.value.toString());
                      return true;
-                  } catch (ItemLoadException var18) {
-                     SendMessage.warnMessage(var1, var18.getMessage());
+                  } catch (ItemLoadException exception) {
+                     SendMessage.warnMessage(value, exception.getMessage());
                      return false;
                   }
                case "armor-trim.pattern":
-                  if (!(new ItemStack(var5).getItemMeta() instanceof ArmorMeta)) {
-                     SendMessage.warnMessage(var1, "To add a armor trim to an item, the material needs to be a armor piece.");
+                  if (!(new ItemStack(material).getItemMeta() instanceof ArmorMeta)) {
+                     SendMessage.warnMessage(value, "To add a armor trim to an item, the material needs to be a armor piece.");
                      return false;
                   }
 
                   try {
                      new CreateItemMethodes.ArmorTrim().getTrimPattern(this.value.toString());
                      return true;
-                  } catch (ItemLoadException var17) {
-                     SendMessage.warnMessage(var1, var17.getMessage());
+                  } catch (ItemLoadException exception) {
+                     SendMessage.warnMessage(value, exception.getMessage());
                      return false;
                   }
                case "permission":
@@ -666,45 +666,45 @@ public class EditItem extends SubCommad {
                   }
 
                   SendMessage.warnMessage(
-                     var1, "The permission is already prefixed using 'OnyxShop.shop." + this.section + ".item.<permission>', no need to prefix it again."
+                     value, "The permission is already prefixed using 'OnyxShop.shop." + this.section + ".item.<permission>', no need to prefix it again."
                   );
                   return false;
                case "buy-prices.prices":
                case "sell-prices.prices":
                case "economy":
-                  Double var10 = null;
+                  Double amount = null;
                   if (this.key.equals("buy-prices.prices") || this.key.equals("sell-prices.prices")) {
                      try {
-                        var10 = this.methods.getPrice(var1, this.value.toString().split("::")[1]);
-                        if (var10 == null) {
+                        amount = this.methods.getPrice(value, this.value.toString().split("::")[1]);
+                        if (amount == null) {
                            return false;
                         }
 
                         this.value = this.value.toString().split("::")[0];
-                     } catch (ArrayIndexOutOfBoundsException var16) {
-                        SendMessage.warnMessage(var1, "A price needs to be specified.");
+                     } catch (ArrayIndexOutOfBoundsException exception) {
+                        SendMessage.warnMessage(value, "A price needs to be specified.");
                         return false;
                      }
                   }
 
                   if (this.value.toString().equalsIgnoreCase("handItem")) {
-                     if (!(var1 instanceof Player)) {
-                        SendMessage.warnMessage(var1, Lang.REAL_PLAYER.get());
+                     if (!(value instanceof Player)) {
+                        SendMessage.warnMessage(value, Lang.REAL_PLAYER.get());
                         return false;
                      }
 
-                     Player var34 = (Player)var1;
-                     if (var34.getItemInHand().getType() == Material.AIR) {
-                        SendMessage.warnMessage(var1, "Item cannot be air");
+                     Player player = (Player)value;
+                     if (player.getItemInHand().getType() == Material.AIR) {
+                        SendMessage.warnMessage(value, "Item cannot be air");
                         return false;
                      }
 
-                     this.value = "ITEM:" + ItemFormatter.deserialize(var34.getItemInHand(), Arrays.asList(var2).contains("-unsafe"));
+                     this.value = "ITEM:" + ItemFormatter.deserialize(player.getItemInHand(), Arrays.asList(values).contains("-unsafe"));
                   } else {
-                     EcoType var35 = EconomyType.getFromString(this.value.toString());
-                     if (var35 == null) {
+                     EcoType ecoType = EconomyType.getFromString(this.value.toString());
+                     if (ecoType == null) {
                         SendMessage.warnMessage(
-                           var1,
+                           value,
                            "Could not find a economy type such as '"
                               + this.value.toString()
                               + "', valid values are: "
@@ -713,31 +713,31 @@ public class EditItem extends SubCommad {
                         return false;
                      }
 
-                     if (var35.getType() == EconomyType.ITEM) {
-                        ItemFormat var37 = new ItemFormat(var35.getCurrency(), this.section + ".pages." + this.itemLoc + ".economy", 0);
-                        if (var37.getItem() == null) {
-                           SendMessage.warnMessage(var1, var37.getErrorMessage());
+                     if (ecoType.getType() == EconomyType.ITEM) {
+                        ItemFormat itemFormat = new ItemFormat(ecoType.getCurrency(), this.section + ".pages." + this.itemLoc + ".economy", 0);
+                        if (itemFormat.getItem() == null) {
+                           SendMessage.warnMessage(value, itemFormat.getErrorMessage());
                            return false;
                         }
                      }
                   }
 
-                  if (var10 != null) {
-                     this.value = this.value + "::" + var10;
+                  if (amount != null) {
+                     this.value = this.value + "::" + amount;
                   }
 
                   return true;
                case "skull-texture":
-                  if (var5 != XMaterial.PLAYER_HEAD.parseMaterial()) {
-                     SendMessage.warnMessage(var1, Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
+                  if (material != XMaterial.PLAYER_HEAD.parseMaterial()) {
+                     SendMessage.warnMessage(value, Lang.MATERIAL_NEEDS_TO_BE_SKULL.get());
                      return false;
                   }
 
                   try {
                      Base64.getDecoder().decode(this.value.toString());
                      return true;
-                  } catch (IllegalArgumentException var15) {
-                     SendMessage.warnMessage(var1, ChatColor.RED + "Not a valid Base64 string");
+                  } catch (IllegalArgumentException exception) {
+                     SendMessage.warnMessage(value, ChatColor.RED + "Not a valid Base64 string");
                      return false;
                   }
                case "auto-restock-global":
@@ -747,8 +747,8 @@ public class EditItem extends SubCommad {
                   try {
                      TimeUtils.getTime(this.value.toString());
                      return true;
-                  } catch (ParseException var14) {
-                     SendMessage.warnMessage(var1, var14.getMessage());
+                  } catch (ParseException exception) {
+                     SendMessage.warnMessage(value, exception.getMessage());
                      return false;
                   }
                case "auto-restock-player-frequency":
@@ -756,39 +756,39 @@ public class EditItem extends SubCommad {
                case "auto-restock-player-sell-frequency":
                case "auto-restock-global-sell-frequency":
                   try {
-                     LinkedList var11 = this.plugin.getScheduleManager().validate(this.value.toString());
-                     if (var11.isEmpty()) {
-                        SendMessage.warnMessage(var1, "Invalid cron expression, this schedule will not fire again.");
+                     LinkedList values2 = this.plugin.getScheduleManager().validate(this.value.toString());
+                     if (values2.isEmpty()) {
+                        SendMessage.warnMessage(value, "Invalid cron expression, this schedule will not fire again.");
                         return false;
                      }
 
-                     StringBuilder var12 = new StringBuilder();
+                     StringBuilder builder = new StringBuilder();
 
-                     for (int var13 = 0; var13 < var11.size(); var13++) {
-                        var12.append(
+                     for (int size = 0; size < values2.size(); size++) {
+                        builder.append(
                            ChatColor.GRAY
                               + "-"
                               + ChatColor.GREEN
                               + " "
-                              + TimeUtils.getDateTime(((Date)var11.get(var13)).getTime())
-                              + (var13 != var11.size() ? "\n" : "")
+                              + TimeUtils.getDateTime(((Date)values2.get(size)).getTime())
+                              + (size != values2.size() ? "\n" : "")
                         );
                      }
 
-                     SendMessage.infoMessage(var1, "Loaded cron job with following schedule dates loaded(up to 5):\n" + var12.toString());
+                     SendMessage.infoMessage(value, "Loaded cron job with following schedule dates loaded(up to 5):\n" + builder.toString());
                      return true;
-                  } catch (RuntimeException var28) {
-                     if (!(var1 instanceof ConsoleCommandSender)) {
-                        SendMessage.warnMessage(var1, "Invalid cron expression format with reason(See console for more details): " + var28.getMessage());
+                  } catch (RuntimeException exception) {
+                     if (!(value instanceof ConsoleCommandSender)) {
+                        SendMessage.warnMessage(value, "Invalid cron expression format with reason(See console for more details): " + exception.getMessage());
                      }
 
                      SendMessage.warnMessage("Invalid cron expression format specified while executing command");
-                     var28.printStackTrace();
+                     exception.printStackTrace();
                      return false;
                   }
                case "action":
-                  if (Arrays.stream(ActionItem.Action.values()).noneMatch(var1x -> var1x.name().equalsIgnoreCase(this.value.toString()))) {
-                     SendMessage.warnMessage(var1, Lang.INVALID_ITEM_ACTION.get().replace("%action%", this.value.toString()));
+                  if (Arrays.stream(ActionItem.Action.values()).noneMatch(element -> element.name().equalsIgnoreCase(this.value.toString()))) {
+                     SendMessage.warnMessage(value, Lang.INVALID_ITEM_ACTION.get().replace("%action%", this.value.toString()));
                      return false;
                   }
 
@@ -800,17 +800,17 @@ public class EditItem extends SubCommad {
       }
    }
 
-   private List<String> getTabcompletionForValue(String var1, String var2, String var3, String var4) {
-      if (!this.isSection(var1) || !this.isItemLoc(var2) || !this.isAction(var3)) {
+   private List<String> getTabcompletionForValue(String text, String text2, String text3, String text4) {
+      if (!this.isSection(text) || !this.isItemLoc(text2) || !this.isAction(text3)) {
          return new ArrayList<>();
-      } else if (var3.equalsIgnoreCase("remove") && this.listKeys.contains(var4)) {
-         return ConfigManager.getShop(var1).getStringList(this.getItemLoc(var1, var2) + "." + var4);
-      } else if (var3.equalsIgnoreCase("remove")) {
-         ArrayList var5 = new ArrayList();
-         var5.add(ConfigManager.getShop(var1).get(this.getItemLoc(var1, var2) + "." + var4, "").toString());
-         return var5;
+      } else if (text3.equalsIgnoreCase("remove") && this.listKeys.contains(text4)) {
+         return ConfigManager.getShop(text).getStringList(this.getItemLoc(text, text2) + "." + text4);
+      } else if (text3.equalsIgnoreCase("remove")) {
+         ArrayList values = new ArrayList();
+         values.add(ConfigManager.getShop(text).get(this.getItemLoc(text, text2) + "." + text4, "").toString());
+         return values;
       } else {
-         switch (var4) {
+         switch (text4) {
             case "material":
             case "recipes":
                return this.plugin.getSupportedMatNames();
@@ -846,22 +846,22 @@ public class EditItem extends SubCommad {
             case "buy-prices.prices":
             case "sell-prices.prices":
             case "economy":
-               List<String> var7 = this.plugin.getEcoHandler().getRegistered().stream().map(var0 -> {
-                  String var1x = var0.toString();
-                  if (var0.getType() == EconomyType.ITEM) {
-                     var1x = var0.getCurrency();
+               List<String> values = this.plugin.getEcoHandler().getRegistered().stream().map(element -> {
+                  String text5 = element.toString();
+                  if (element.getType() == EconomyType.ITEM) {
+                     text5 = element.getCurrency();
                   }
 
-                  return var1x;
+                  return text5;
                }).collect(Collectors.toList());
-               var7.add("ITEM:material:EMERALD name:&a&lGem Stone id:Gems");
-               var7.add("ITEM:material:GOLD_NUGGET");
-               var7.add("handItem");
+               values.add("ITEM:material:EMERALD name:&a&lGem Stone id:Gems");
+               values.add("ITEM:material:GOLD_NUGGET");
+               values.add("handItem");
                if (!this.key.equals("buy-prices.prices") && !this.key.equals("sell-prices.prices")) {
-                  return var7;
+                  return values;
                }
 
-               return var7.stream().map(var0 -> var0 + "::130").collect(Collectors.toList());
+               return values.stream().map(element -> element + "::130").collect(Collectors.toList());
             case "max-buy":
             case "max-sell":
             case "min-buy":
@@ -881,19 +881,19 @@ public class EditItem extends SubCommad {
                return Arrays.asList("display::Name", "Damage", "Enchantments", "HideTags");
             case "colors":
             case "fade-colors":
-               return Arrays.stream(FireworkUtil.FireworkColor.values()).map(var0 -> var0.name()).collect(Collectors.toList());
+               return Arrays.stream(FireworkUtil.FireworkColor.values()).map(element -> element.name()).collect(Collectors.toList());
             case "shape":
-               return Arrays.stream(Type.values()).map(var0 -> var0.name()).collect(Collectors.toList());
+               return Arrays.stream(Type.values()).map(element -> element.name()).collect(Collectors.toList());
             case "duration":
                return Arrays.asList("1", "2", "3");
             case "stack-size":
-               ArrayList var8 = new ArrayList();
+               ArrayList values2 = new ArrayList();
 
-               for (int var9 = 1; var9 < 64; var9++) {
-                  var8.add(String.valueOf(var9));
+               for (int index = 1; index < 64; index++) {
+                  values2.add(String.valueOf(index));
                }
 
-               return var8;
+               return values2;
             case "instrument":
                return CreateItemMethodes.Horn.getValues();
             case "section":
@@ -939,197 +939,197 @@ public class EditItem extends SubCommad {
 
    private List<String> getAvailableKeys() {
       try {
-         ArrayList var1 = new ArrayList<>(this.plugin.getSection(this.section).isActionItem(this.section, this.itemLoc) ? this.actionKeys : this.allKeys);
-         ArrayList var2 = new ArrayList(ConfigManager.getShop(this.section).getConfigurationSection(this.getItemLoc(this.section, this.itemLoc)).getKeys(false));
+         ArrayList values = new ArrayList<>(this.plugin.getSection(this.section).isActionItem(this.section, this.itemLoc) ? this.actionKeys : this.allKeys);
+         ArrayList shopIds = new ArrayList(ConfigManager.getShop(this.section).getConfigurationSection(this.getItemLoc(this.section, this.itemLoc)).getKeys(false));
          if (this.action.equalsIgnoreCase("add")) {
-            var1.removeAll(var2);
-            var1.addAll(
+            values.removeAll(shopIds);
+            values.addAll(
                this.plugin.getSection(this.section).isActionItem(this.section, this.itemLoc)
                   ? Arrays.asList("lore", "displaylore", "enchantments", "potiontypes", "item-flags")
                   : this.listKeys
             );
-            return var1;
+            return values;
          }
 
          if (this.action.equalsIgnoreCase("remove")) {
-            return var2;
+            return shopIds;
          }
 
          if (this.action.equalsIgnoreCase("set")) {
-            var1.addAll(
+            values.addAll(
                this.plugin.getSection(this.section).isActionItem(this.section, this.itemLoc)
                   ? Arrays.asList("lore", "displaylore", "enchantments", "potiontypes", "item-flags")
                   : this.listKeys
             );
-            return var1;
+            return values;
          }
-      } catch (NullPointerException var3) {
+      } catch (NullPointerException exception) {
       }
 
       return new ArrayList<>();
    }
 
    private List<String> getAllKeys() {
-      ArrayList var1 = new ArrayList();
-      var1.add("material");
-      var1.add("buy");
-      var1.add("sell");
-      var1.add("name");
-      var1.add("displayname");
-      var1.add("hidePricingLore");
-      var1.add("slot");
-      var1.add("stack-size");
-      var1.add("enchantment-glint");
-      var1.add("spawnertype");
-      var1.add("skullowner");
-      var1.add("armorcolor");
-      var1.add("duration");
-      var1.add("armor-trim.pattern");
-      var1.add("armor-trim.type");
-      var1.add("flicker");
-      var1.add("trail");
-      var1.add("shape");
-      var1.add("instrument");
-      var1.add("section");
-      var1.add("stew-effect");
-      var1.add("ominous-strength");
-      var1.add("hidden");
-      var1.add("max-buy");
-      var1.add("max-sell");
-      var1.add("min-buy");
-      var1.add("min-sell");
-      var1.add("prior-lore");
-      var1.add("close-menu");
-      var1.add("NBTData");
-      var1.add("buy-prices.require-all");
-      var1.add("sell-prices.give-all");
-      var1.add("requireItem");
-      var1.add("giveItem");
-      var1.add("level-requirement");
-      var1.add("skull-texture");
-      var1.add("economy");
-      var1.add("permission");
-      var1.add("hideUtilLore");
-      var1.add("refill-stock");
-      var1.add("stock-limit-global");
-      var1.add("auto-restock-global");
-      var1.add("auto-restock-global-frequency");
-      var1.add("stock-limit-player");
-      var1.add("auto-restock-player");
-      var1.add("auto-restock-player-frequency");
-      var1.add("sell-limit-global");
-      var1.add("auto-restock-global-sell");
-      var1.add("auto-restock-global-sell-frequency");
-      var1.add("sell-limit-player");
-      var1.add("auto-restock-player-sell");
-      var1.add("auto-restock-player-sell-frequency");
-      var1.add("action");
-      return var1;
+      ArrayList values = new ArrayList();
+      values.add("material");
+      values.add("buy");
+      values.add("sell");
+      values.add("name");
+      values.add("displayname");
+      values.add("hidePricingLore");
+      values.add("slot");
+      values.add("stack-size");
+      values.add("enchantment-glint");
+      values.add("spawnertype");
+      values.add("skullowner");
+      values.add("armorcolor");
+      values.add("duration");
+      values.add("armor-trim.pattern");
+      values.add("armor-trim.type");
+      values.add("flicker");
+      values.add("trail");
+      values.add("shape");
+      values.add("instrument");
+      values.add("section");
+      values.add("stew-effect");
+      values.add("ominous-strength");
+      values.add("hidden");
+      values.add("max-buy");
+      values.add("max-sell");
+      values.add("min-buy");
+      values.add("min-sell");
+      values.add("prior-lore");
+      values.add("close-menu");
+      values.add("NBTData");
+      values.add("buy-prices.require-all");
+      values.add("sell-prices.give-all");
+      values.add("requireItem");
+      values.add("giveItem");
+      values.add("level-requirement");
+      values.add("skull-texture");
+      values.add("economy");
+      values.add("permission");
+      values.add("hideUtilLore");
+      values.add("refill-stock");
+      values.add("stock-limit-global");
+      values.add("auto-restock-global");
+      values.add("auto-restock-global-frequency");
+      values.add("stock-limit-player");
+      values.add("auto-restock-player");
+      values.add("auto-restock-player-frequency");
+      values.add("sell-limit-global");
+      values.add("auto-restock-global-sell");
+      values.add("auto-restock-global-sell-frequency");
+      values.add("sell-limit-player");
+      values.add("auto-restock-player-sell");
+      values.add("auto-restock-player-sell-frequency");
+      values.add("action");
+      return values;
    }
 
    private List<String> getListKeys() {
-      ArrayList var1 = new ArrayList();
-      var1.add("enchantments");
-      var1.add("potiontypes");
-      var1.add("lore");
-      var1.add("displaylore");
-      var1.add("recipes");
-      var1.add("colors");
-      var1.add("fade-colors");
-      var1.add("buy-commands");
-      var1.add("sell-commands");
-      var1.add("click-commands");
-      var1.add("buy-prices.prices");
-      var1.add("sell-prices.prices");
-      var1.add("ignored-tags");
-      return var1;
+      ArrayList values = new ArrayList();
+      values.add("enchantments");
+      values.add("potiontypes");
+      values.add("lore");
+      values.add("displaylore");
+      values.add("recipes");
+      values.add("colors");
+      values.add("fade-colors");
+      values.add("buy-commands");
+      values.add("sell-commands");
+      values.add("click-commands");
+      values.add("buy-prices.prices");
+      values.add("sell-prices.prices");
+      values.add("ignored-tags");
+      return values;
    }
 
    private List<String> getAvailableActions() {
-      ArrayList var1 = new ArrayList();
-      var1.add("add");
-      var1.add("set");
-      var1.add("remove");
-      return var1;
+      ArrayList values = new ArrayList();
+      values.add("add");
+      values.add("set");
+      values.add("remove");
+      return values;
    }
 
    private List<String> getExampleNBTTags() {
-      ArrayList var1 = new ArrayList();
-      var1.add("{CanDestroy:[\"minecraft:diamond_block\",\"#minecraft:iron_block\"]}");
-      var1.add("{PickupDelay:80}");
-      var1.add("{CanPlaceOn:[\"minecraft:grass_block\",\"#minecraft:dirt\",\"#minecraft:sand\",\"#minecraft:cobblestone\",\"#minecraft:oak_log\"]}");
-      var1.add("{Enchantments:[{id:\"9\",lvl:5},{id:\"17\",lvl:3},{id:\"12\",lvl:5},{id:\"13\",lvl:2},{id:\"11\",lvl:5}]}");
-      return var1;
+      ArrayList values = new ArrayList();
+      values.add("{CanDestroy:[\"minecraft:diamond_block\",\"#minecraft:iron_block\"]}");
+      values.add("{PickupDelay:80}");
+      values.add("{CanPlaceOn:[\"minecraft:grass_block\",\"#minecraft:dirt\",\"#minecraft:sand\",\"#minecraft:cobblestone\",\"#minecraft:oak_log\"]}");
+      values.add("{Enchantments:[{id:\"9\",lvl:5},{id:\"17\",lvl:3},{id:\"12\",lvl:5},{id:\"13\",lvl:2},{id:\"11\",lvl:5}]}");
+      return values;
    }
 
    private List<String> getExampleCommands() {
-      ArrayList var1 = new ArrayList();
-      var1.add("/tp <player> <player>");
-      var1.add("weather clear");
-      var1.add("time set day");
-      var1.add("/summon llama ~ ~1 ~");
-      return var1;
+      ArrayList values = new ArrayList();
+      values.add("/tp <player> <player>");
+      values.add("weather clear");
+      values.add("time set day");
+      values.add("/summon llama ~ ~1 ~");
+      return values;
    }
 
    private List<String> getExamplePlayerNames() {
-      ArrayList var1 = new ArrayList();
+      ArrayList playerNames = new ArrayList();
 
-      for (Player var3 : this.plugin.getServer().getOnlinePlayers()) {
-         var1.add(var3.getName());
+      for (Player player : this.plugin.getServer().getOnlinePlayers()) {
+         playerNames.add(player.getName());
       }
 
-      return var1;
+      return playerNames;
    }
 
    private List<String> getEntityNames() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (EntityType var5 : EntityType.values()) {
-         if (var5.isAlive()) {
+      for (EntityType entityType : EntityType.values()) {
+         if (entityType.isAlive()) {
             try {
-               EntityType.valueOf(var5.name());
-               var1.add(var5.name());
-            } catch (IllegalArgumentException var7) {
+               EntityType.valueOf(entityType.name());
+               values.add(entityType.name());
+            } catch (IllegalArgumentException exception) {
             }
          }
       }
 
-      return var1;
+      return values;
    }
 
-   private List<String> getValues(String var1, String var2, String var3) {
-      return ConfigManager.getShop(var1).getStringList(this.getItemLoc(var1, var2) + "." + var3);
+   private List<String> getValues(String text, String text2, String text3) {
+      return ConfigManager.getShop(text).getStringList(this.getItemLoc(text, text2) + "." + text3);
    }
 
-   private void updateOption(Object var1) {
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_EDITING_ITEM.get());
-      String var2 = this.getItemLoc(this.section, this.itemLoc);
+   private void updateOption(Object value) {
+      SendMessage.sendMessage(value, Lang.EDITSHOP_EDITING_ITEM.get());
+      String itemLoc = this.getItemLoc(this.section, this.itemLoc);
       if (this.listKeys.contains(this.key)) {
          if (this.action.equalsIgnoreCase("add")) {
-            List var3 = this.getValues(this.section, this.itemLoc, this.key);
-            var3.add(this.value.toString());
-            ConfigManager.getShop(this.section).set(var2 + "." + this.key, var3);
+            List sectionIds = this.getValues(this.section, this.itemLoc, this.key);
+            sectionIds.add(this.value.toString());
+            ConfigManager.getShop(this.section).set(itemLoc + "." + this.key, sectionIds);
          } else if (this.action.equalsIgnoreCase("set")) {
-            ConfigManager.getShop(this.section).set(var2 + "." + this.key, Collections.singletonList(this.value.toString()));
+            ConfigManager.getShop(this.section).set(itemLoc + "." + this.key, Collections.singletonList(this.value.toString()));
          } else if (this.action.equalsIgnoreCase("remove")) {
-            List var4 = this.getValues(this.section, this.itemLoc, this.key);
-            if (var4.size() == 1) {
-               ConfigManager.getShop(this.section).set(var2 + "." + this.key, null);
-            } else if (var4.size() >= 1) {
-               var4.remove(this.value.toString());
-               ConfigManager.getShop(this.section).set(var2 + "." + this.key, var4);
+            List itemIds = this.getValues(this.section, this.itemLoc, this.key);
+            if (itemIds.size() == 1) {
+               ConfigManager.getShop(this.section).set(itemLoc + "." + this.key, null);
+            } else if (itemIds.size() >= 1) {
+               itemIds.remove(this.value.toString());
+               ConfigManager.getShop(this.section).set(itemLoc + "." + this.key, itemIds);
             }
          }
       } else {
-         ConfigManager.getShop(this.section).set(var2 + "." + this.key, this.value);
+         ConfigManager.getShop(this.section).set(itemLoc + "." + this.key, this.value);
       }
 
       ConfigManager.saveShop(this.section);
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_EDIT_ITEM_SUCCESSFUL.get().replace("%itemPath%", var2));
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
+      SendMessage.sendMessage(value, Lang.EDITSHOP_EDIT_ITEM_SUCCESSFUL.get().replace("%itemPath%", itemLoc));
+      SendMessage.sendMessage(value, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
    }
 
-   private String getItemLoc(String var1, String var2) {
-      return (this.plugin.getShopType(var1) == ShopType.CATEGORY ? "pages." : "") + var2;
+   private String getItemLoc(String itemId, String text) {
+      return (this.plugin.getShopType(itemId) == ShopType.CATEGORY ? "pages." : "") + text;
    }
 }

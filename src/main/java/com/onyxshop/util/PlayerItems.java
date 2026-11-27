@@ -28,88 +28,88 @@ public class PlayerItems {
    public PlayerItems() {
    }
 
-   public static int giveItems(Player var0, ShopItem var1, int var2) {
-      int var3 = var1.getItemToGive().getMaxStackSize();
-      double var4 = (double)var2 / var3;
-      int var6 = (int)Math.floor(var4);
-      int var7 = var4 == Math.floor(var4) ? var6 : (int)Math.ceil(var4);
-      int var8 = var2;
-      ItemStack[] var9 = new ItemStack[var7];
-      if (var6 >= 1) {
-         for (int var10 = 0; var10 < var6; var10++) {
-            ItemStack var11 = new ItemStack(var1.getItemToGive());
-            if (!var1.getItgPlaceholders().isEmpty()) {
-               PlaceholderAPIHook.parsePlaceholders(var1, var11, var0);
+   public static int giveItems(Player player, ShopItem shopItem, int value) {
+      int maxStackSize = shopItem.getItemToGive().getMaxStackSize();
+      double amount = (double)value / maxStackSize;
+      int value2 = (int)Math.floor(amount);
+      int value3 = amount == Math.floor(amount) ? value2 : (int)Math.ceil(amount);
+      int value4 = value;
+      ItemStack[] itemStack = new ItemStack[value3];
+      if (value2 >= 1) {
+         for (int index = 0; index < value2; index++) {
+            ItemStack itemStack2 = new ItemStack(shopItem.getItemToGive());
+            if (!shopItem.getItgPlaceholders().isEmpty()) {
+               PlaceholderAPIHook.parsePlaceholders(shopItem, itemStack2, player);
             }
 
-            var11.setAmount(var3);
-            var9[var10] = var11;
-            var8 -= var3;
+            itemStack2.setAmount(maxStackSize);
+            itemStack[index] = itemStack2;
+            value4 -= maxStackSize;
          }
       }
 
-      if (var8 >= 1) {
-         ItemStack var12 = new ItemStack(var1.getItemToGive());
-         if (!var1.getItgPlaceholders().isEmpty()) {
-            PlaceholderAPIHook.parsePlaceholders(var1, var12, var0);
+      if (value4 >= 1) {
+         ItemStack itemStack2 = new ItemStack(shopItem.getItemToGive());
+         if (!shopItem.getItgPlaceholders().isEmpty()) {
+            PlaceholderAPIHook.parsePlaceholders(shopItem, itemStack2, player);
          }
 
-         var12.setAmount(var8);
-         var9[var7 - 1] = var12;
+         itemStack2.setAmount(value4);
+         itemStack[value3 - 1] = itemStack2;
       }
 
-      for (TaggableItemType var14 : var1.getTaggables()) {
-         switch (var14) {
+      for (TaggableItemType taggableItemType : shopItem.getTaggables()) {
+         switch (taggableItemType) {
             case EXECUTABLE_ITEMS:
-               var9 = Arrays.stream(var9).map(var1x -> ExecutableItemsHook.tag(var1x, var0)).collect(Collectors.toList()).toArray(new ItemStack[var7]);
+               itemStack = Arrays.stream(itemStack).map(element -> ExecutableItemsHook.tag(element, player)).collect(Collectors.toList()).toArray(new ItemStack[value3]);
                break;
             case UPGRADEABLE_SPAWNERS:
-               var9 = Arrays.stream(var9).map(var1x -> UpgradeableSpawnersHook.tag(var1x, var0)).collect(Collectors.toList()).toArray(new ItemStack[var7]);
+               itemStack = Arrays.stream(itemStack).map(element -> UpgradeableSpawnersHook.tag(element, player)).collect(Collectors.toList()).toArray(new ItemStack[value3]);
                break;
             case MYTHIC_MOBS_ITEM:
-               var9 = Arrays.stream(var9).map(var1x -> MythicMobsHook.tag(var1x, var0)).collect(Collectors.toList()).toArray(new ItemStack[var7]);
+               itemStack = Arrays.stream(itemStack).map(element -> MythicMobsHook.tag(element, player)).collect(Collectors.toList()).toArray(new ItemStack[value3]);
                break;
             case CRAFT_ENGINE:
-               var9 = Arrays.stream(var9).map(var1x -> CraftEngineHook.tag(var1x, var0)).collect(Collectors.toList()).toArray(new ItemStack[var7]);
+               itemStack = Arrays.stream(itemStack).map(element -> CraftEngineHook.tag(element, player)).collect(Collectors.toList()).toArray(new ItemStack[value3]);
          }
       }
 
-      return addItems(var0, var9);
+      return addItems(player, itemStack);
    }
 
-   private static int addItems(Player var0, ItemStack[] var1) {
-      HashMap<Integer, ItemStack> var2 = var0.getInventory().addItem(var1);
-      int var7 = 0;
-      if (!var2.isEmpty()) {
+   private static int addItems(Player player, ItemStack[] playerNames) {
+      HashMap<Integer, ItemStack> map = player.getInventory().addItem(playerNames);
+      int value = 0;
+      if (!map.isEmpty()) {
          if (OnyxShop.getInstance().dropItemsOnGround) {
-            Location var3 = var0.getLocation();
-            World var4 = var0.getWorld();
+            Location location = player.getLocation();
+            World world = player.getWorld();
 
-            for (ItemStack var6 : var2.values()) {
-               var4.dropItem(var3, var6);
+            for (ItemStack itemStack : map.values()) {
+               world.dropItem(location, itemStack);
             }
 
-            SendMessage.chatToPlayer(var0, Lang.NOT_ENOUGH_SPACE_INSIDE_INVENTORY.get());
+            SendMessage.chatToPlayer(player, Lang.NOT_ENOUGH_SPACE_INSIDE_INVENTORY.get());
          } else {
-            for (ItemStack var9 : var2.values()) {
-               var7 += var9.getAmount();
+            for (ItemStack itemStack : map.values()) {
+               value += itemStack.getAmount();
             }
 
-            SendMessage.chatToPlayer(var0, Lang.COULD_NOT_STORE_ALL_ITEMS.get().replace("%amount%", Integer.toString(var7)));
+            SendMessage.chatToPlayer(player, Lang.COULD_NOT_STORE_ALL_ITEMS.get().replace("%amount%", Integer.toString(value)));
          }
       }
 
-      var0.updateInventory();
-      return var7;
+      player.updateInventory();
+      return value;
    }
 
-   public static boolean canSell(ShopItem var0, Player var1) {
-      if (var0.isSellCommand() && !var0.isRequireItem()) {
+   public static boolean canSell(ShopItem shopItem, Player player) {
+      if (shopItem.isSellCommand() && !shopItem.isRequireItem()) {
          return true;
       } else {
-         for (int var2 = 0; var2 < 36; var2++) {
-            ItemStack var3 = var1.getInventory().getItem(var2);
-            if (var3 != null && !var3.getType().equals(Material.AIR) && var0.match(var3)) {
+         for (int index = 0; index < 36; index++) {
+            ItemStack itemStack = player.getInventory().getItem(index);
+            if (itemStack != null && !itemStack.getType().equals(Material.AIR) && shopItem.match(itemStack)) {
                return true;
             }
          }
@@ -118,99 +118,99 @@ public class PlayerItems {
       }
    }
 
-   public static ArrayList<ItemStack> getSellAble(ShopItem var0, Player var1, int var2) {
-      return getSellAble(var0, var1, var2, true);
+   public static ArrayList<ItemStack> getSellAble(ShopItem shopItem, Player player, int value) {
+      return getSellAble(shopItem, player, value, true);
    }
 
-   public static ArrayList<ItemStack> getSellAble(ShopItem var0, Player var1, int var2, boolean var3) {
-      if (var3 && var0.isMaxSell(var2)) {
-         var2 = var0.getMaxSell();
+   public static ArrayList<ItemStack> getSellAble(ShopItem shopItem, Player player, int value, boolean flag) {
+      if (flag && shopItem.isMaxSell(value)) {
+         value = shopItem.getMaxSell();
       }
 
-      ArrayList var4 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (int var5 = 0; var5 < 36; var5++) {
-         ItemStack var6 = var1.getInventory().getItem(var5);
-         if (var6 != null && !var6.getType().equals(Material.AIR) && var0.match(var6)) {
-            if (var2 < var6.getAmount()) {
-               ItemStack var7 = new ItemStack(var6);
-               var7.setAmount(var2);
-               var4.add(var7);
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = player.getInventory().getItem(index);
+         if (itemStack != null && !itemStack.getType().equals(Material.AIR) && shopItem.match(itemStack)) {
+            if (value < itemStack.getAmount()) {
+               ItemStack itemStack2 = new ItemStack(itemStack);
+               itemStack2.setAmount(value);
+               values.add(itemStack2);
                break;
             }
 
-            var4.add(var6);
-            var2 -= var6.getAmount();
+            values.add(itemStack);
+            value -= itemStack.getAmount();
          }
       }
 
-      return var4;
+      return values;
    }
 
-   public static boolean canPay(Player var0, EcoType var1, double var2) {
-      int var4 = 0;
-      int var5 = ((ItemEconomy)plugin.getEcoHandler().getEcon(var1)).getItem().getMaxStackSize();
+   public static boolean canPay(Player player, EcoType ecoType, double amount) {
+      int value = 0;
+      int maxStackSize = ((ItemEconomy)plugin.getEcoHandler().getEcon(ecoType)).getItem().getMaxStackSize();
 
-      for (int var6 = 0; var6 < 36; var6++) {
-         ItemStack var7 = var0.getInventory().getItem(var6);
-         if (var7 == null || var7.getType().equals(Material.AIR)) {
-            var4 += var5;
-         } else if (var7.isSimilar(((ItemEconomy)plugin.getEcoHandler().getEcon(var1)).getItem()) && var7.getAmount() < var5) {
-            var4 += var5 - var7.getAmount();
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = player.getInventory().getItem(index);
+         if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
+            value += maxStackSize;
+         } else if (itemStack.isSimilar(((ItemEconomy)plugin.getEcoHandler().getEcon(ecoType)).getItem()) && itemStack.getAmount() < maxStackSize) {
+            value += maxStackSize - itemStack.getAmount();
          }
       }
 
-      return var4 >= var2;
+      return value >= amount;
    }
 
-   public static boolean canBuy(Player var0, ShopItem var1) {
-      return var0.getInventory().firstEmpty() != -1
-         || Arrays.stream(var0.getInventory().getContents())
-            .anyMatch(var1x -> var1x != null && var1x.isSimilar(var1.getItemToGive()) && var1x.getAmount() < var1x.getMaxStackSize());
+   public static boolean canBuy(Player player, ShopItem shopItem) {
+      return player.getInventory().firstEmpty() != -1
+         || Arrays.stream(player.getInventory().getContents())
+            .anyMatch(element -> element != null && element.isSimilar(shopItem.getItemToGive()) && element.getAmount() < element.getMaxStackSize());
    }
 
-   public static int getFinalAmount(ShopItem var0, Player var1, int var2) {
-      return getFinalAmount(var0, var1, var2, true);
+   public static int getFinalAmount(ShopItem shopItem, Player player, int amount) {
+      return getFinalAmount(shopItem, player, amount, true);
    }
 
-   public static int getFinalAmount(ShopItem var0, Player var1, int var2, boolean var3) {
-      int var4 = 0;
-      int var5 = var0.getItemToGive().getMaxStackSize();
-      List var6 = Arrays.asList(var1.getInventory().getContents());
+   public static int getFinalAmount(ShopItem shopItem, Player player, int amount, boolean flag) {
+      int value = 0;
+      int maxStackSize = shopItem.getItemToGive().getMaxStackSize();
+      List values = Arrays.asList(player.getInventory().getContents());
 
-      for (int var7 = 0; var7 < 36; var7++) {
-         ItemStack var8 = (ItemStack)var6.get(var7);
-         if (var8 == null || var8.getType().equals(Material.AIR)) {
-            var4 += var5;
-         } else if (var8.isSimilar(var0.getItemToGive()) && var8.getAmount() < var5) {
-            var4 += var5 - var8.getAmount();
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = (ItemStack)values.get(index);
+         if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
+            value += maxStackSize;
+         } else if (itemStack.isSimilar(shopItem.getItemToGive()) && itemStack.getAmount() < maxStackSize) {
+            value += maxStackSize - itemStack.getAmount();
          }
       }
 
-      if (var3 && var0.isMaxBuy(var4)) {
-         var4 = var0.getMaxBuy();
+      if (flag && shopItem.isMaxBuy(value)) {
+         value = shopItem.getMaxBuy();
       }
 
-      return !plugin.dropItemsOnGround ? Math.min(var2, var4) : var2;
+      return !plugin.dropItemsOnGround ? Math.min(amount, value) : amount;
    }
 
-   public static String getRawDisplayName(Material var0, ItemMeta var1) {
-      if (var1.hasDisplayName()) {
-         return plugin.getMetaUtils().getRawDisplayName(var1);
+   public static String getRawDisplayName(Material material, ItemMeta itemMeta) {
+      if (itemMeta.hasDisplayName()) {
+         return plugin.getMetaUtils().getRawDisplayName(itemMeta);
       } else {
-         return ServerInfo.supportsComponents() && var1.hasItemName() ? plugin.getMetaUtils().getRawItemName(var1) : plugin.getMaterialName(var0.name());
+         return ServerInfo.supportsComponents() && itemMeta.hasItemName() ? plugin.getMetaUtils().getRawItemName(itemMeta) : plugin.getMaterialName(material.name());
       }
    }
 
-   public static String getDisplayName(ItemMeta var0) {
-      if (var0.hasDisplayName()) {
-         return plugin.getMetaUtils().getRawDisplayName(var0);
+   public static String getDisplayName(ItemMeta itemMeta) {
+      if (itemMeta.hasDisplayName()) {
+         return plugin.getMetaUtils().getRawDisplayName(itemMeta);
       } else {
-         return ServerInfo.supportsComponents() && var0.hasItemName() ? plugin.getMetaUtils().getRawItemName(var0) : null;
+         return ServerInfo.supportsComponents() && itemMeta.hasItemName() ? plugin.getMetaUtils().getRawItemName(itemMeta) : null;
       }
    }
 
-   public static boolean hasCustomName(ItemMeta var0) {
-      return var0.hasDisplayName() || ServerInfo.supportsComponents() && var0.hasItemName();
+   public static boolean hasCustomName(ItemMeta itemMeta) {
+      return itemMeta.hasDisplayName() || ServerInfo.supportsComponents() && itemMeta.hasItemName();
    }
 }

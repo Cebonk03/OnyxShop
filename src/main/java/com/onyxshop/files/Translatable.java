@@ -21,9 +21,9 @@ public interface Translatable {
    char YELLOW = 'e';
    char WHITE = 'f';
 
-   Translatable replace(String var1, String var2);
+   Translatable replace(String text, String text2);
 
-   Translatable replace(String var1, Translatable var2);
+   Translatable replace(String text, Translatable text2);
 
    String getLegacy();
 
@@ -36,20 +36,20 @@ public interface Translatable {
 
    List<Translatable> getLines();
 
-   Translatable translate(Player var1);
+   Translatable translate(Player player);
 
-   Translatable get(Player var1);
+   Translatable get(Player player);
 
    boolean isEmpty();
 
    Translatable.Builder builder();
 
    public interface Builder {
-      Translatable.Builder append(Translatable var1);
+      Translatable.Builder append(Translatable text);
 
-      Translatable.Builder append(String var1);
+      Translatable.Builder append(String text);
 
-      Translatable.Builder color(char var1);
+      Translatable.Builder color(char character);
 
       Translatable build();
    }

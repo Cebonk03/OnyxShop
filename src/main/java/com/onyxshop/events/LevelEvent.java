@@ -16,31 +16,31 @@ public class LevelEvent implements Listener {
    }
 
    @EventHandler
-   public void onPlayerLevelChange(PlayerLevelChangeEvent var1) {
-      Player var2 = var1.getPlayer();
-      double var3 = ConfigManager.getConfig().getDouble("leveleventmoney5/10/15");
-      double var5 = ConfigManager.getConfig().getDouble("leveleventmoney20/25/30");
-      Translatable var7 = Lang.LEVEL_EVENT_MESSAGE.get(var2).replace("%amount%", OnyxShop.getInstance().formatPrice((EcoType)null, var3));
-      Translatable var8 = Lang.LEVEL_EVENT_MESSAGE.get(var2).replace("%amount%", OnyxShop.getInstance().formatPrice((EcoType)null, var5));
+   public void onPlayerLevelChange(PlayerLevelChangeEvent event) {
+      Player player = event.getPlayer();
+      double amount = ConfigManager.getConfig().getDouble("leveleventmoney5/10/15");
+      double amount2 = ConfigManager.getConfig().getDouble("leveleventmoney20/25/30");
+      Translatable text = Lang.LEVEL_EVENT_MESSAGE.get(player).replace("%amount%", OnyxShop.getInstance().formatPrice((EcoType)null, amount));
+      Translatable text2 = Lang.LEVEL_EVENT_MESSAGE.get(player).replace("%amount%", OnyxShop.getInstance().formatPrice((EcoType)null, amount2));
       if (ConfigManager.getConfig().getBoolean("enable-levelevent")) {
-         if (var2.getLevel() == 5) {
-            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(var2, var3);
-            SendMessage.chatToPlayer(var2, var7);
-         } else if (var2.getLevel() == 10) {
-            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(var2, var3);
-            SendMessage.chatToPlayer(var2, var7);
-         } else if (var2.getLevel() == 15) {
-            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(var2, var3);
-            SendMessage.chatToPlayer(var2, var7);
-         } else if (var2.getLevel() == 20) {
-            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(var2, var3);
-            SendMessage.chatToPlayer(var2, var8);
-         } else if (var2.getLevel() == 25) {
-            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(var2, var3);
-            SendMessage.chatToPlayer(var2, var8);
-         } else if (var2.getLevel() == 30) {
-            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(var2, var3);
-            SendMessage.chatToPlayer(var2, var8);
+         if (player.getLevel() == 5) {
+            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(player, amount);
+            SendMessage.chatToPlayer(player, text);
+         } else if (player.getLevel() == 10) {
+            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(player, amount);
+            SendMessage.chatToPlayer(player, text);
+         } else if (player.getLevel() == 15) {
+            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(player, amount);
+            SendMessage.chatToPlayer(player, text);
+         } else if (player.getLevel() == 20) {
+            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(player, amount);
+            SendMessage.chatToPlayer(player, text2);
+         } else if (player.getLevel() == 25) {
+            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(player, amount);
+            SendMessage.chatToPlayer(player, text2);
+         } else if (player.getLevel() == 30) {
+            OnyxShop.getInstance().getEcoHandler().getDefaultProvider().depositBalance(player, amount);
+            SendMessage.chatToPlayer(player, text2);
          }
       }
    }

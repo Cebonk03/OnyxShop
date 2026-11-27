@@ -20,9 +20,9 @@ public class DeleteItem extends SubCommad {
    String section;
    String itemLoc;
 
-   public DeleteItem(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public DeleteItem(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -41,51 +41,51 @@ public class DeleteItem extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 1) {
-         this.section = this.methods.getSection(var1, var2[1]);
+   public void perform(Object value, String[] values) {
+      if (values.length > 1) {
+         this.section = this.methods.getSection(value, values[1]);
          if (this.section != null) {
-            if (var2.length > 2) {
-               this.itemLoc = this.methods.getItemLoc(var1, this.section, var2[2]);
+            if (values.length > 2) {
+               this.itemLoc = this.methods.getItemLoc(value, this.section, values[2]);
                if (this.itemLoc != null) {
-                  this.removeItem(var1);
+                  this.removeItem(value);
                }
             } else {
-               SendMessage.sendMessage(var1, this.getSyntax());
+               SendMessage.sendMessage(value, this.getSyntax());
             }
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 2:
-            if (!var1[1].isEmpty()) {
-               ArrayList var3 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[1], this.plugin.getShopSections(), var3);
-               Collections.sort(var3);
-               return var3;
+            if (!values[1].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[1], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 3:
-            if (this.isSection(var1[1])) {
-               if (!var1[2].isEmpty()) {
-                  ArrayList var2 = new ArrayList();
-                  StringUtil.copyPartialMatches(var1[2], this.plugin.getSection(var1[1]).getItemLocs(), var2);
-                  Collections.sort(var2);
-                  return var2;
+            if (this.isSection(values[1])) {
+               if (!values[2].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
+                  StringUtil.copyPartialMatches(values[2], this.plugin.getSection(values[1]).getItemLocs(), values2);
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return this.plugin.getSection(var1[1]).getItemLocs();
+               return this.plugin.getSection(values[1]).getItemLocs();
             }
 
             return null;
@@ -94,22 +94,22 @@ public class DeleteItem extends SubCommad {
       }
    }
 
-   private boolean isSection(String var1) {
-      return this.plugin.getShopSections().contains(var1);
+   private boolean isSection(String sectionId) {
+      return this.plugin.getShopSections().contains(sectionId);
    }
 
-   private List<String> getClosest(String var1, Set<String> var2) {
-      ArrayList var3 = new ArrayList();
-      StringUtil.copyPartialMatches(var1, var2, var3);
-      Collections.sort(var3);
-      return var3;
+   private List<String> getClosest(String text, Set<String> values) {
+      ArrayList values2 = new ArrayList();
+      StringUtil.copyPartialMatches(text, values, values2);
+      Collections.sort(values2);
+      return values2;
    }
 
-   private void removeItem(Object var1) {
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_REMOVING_ITEM.get());
+   private void removeItem(Object value) {
+      SendMessage.sendMessage(value, Lang.EDITSHOP_REMOVING_ITEM.get());
       ConfigManager.getShop(this.section).set("pages." + this.itemLoc, null);
       ConfigManager.saveShop(this.section);
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_REMOVE_ITEM_SUCCESSFUL.get().replace("%itemPath%", this.section + "." + this.itemLoc));
-      SendMessage.sendMessage(var1, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
+      SendMessage.sendMessage(value, Lang.EDITSHOP_REMOVE_ITEM_SUCCESSFUL.get().replace("%itemPath%", this.section + "." + this.itemLoc));
+      SendMessage.sendMessage(value, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
    }
 }

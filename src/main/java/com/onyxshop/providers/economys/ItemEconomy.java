@@ -37,8 +37,8 @@ public class ItemEconomy implements EconomyProvider, DelayedItemProvider {
    private boolean RGB;
    private PriceFormatter.Format priceFormat;
 
-   public ItemEconomy(String var1, String var2, int var3) {
-      this.itemFormat = new ItemFormat(var1, var2, var3);
+   public ItemEconomy(String itemId, String text, int value) {
+      this.itemFormat = new ItemFormat(itemId, text, value);
    }
 
    @Override
@@ -53,14 +53,14 @@ public class ItemEconomy implements EconomyProvider, DelayedItemProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      this.plugin = var1;
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      this.plugin = plugin;
       if (this.itemFormat.getItem() == null) {
-         String var6 = this.itemFormat.getErrorMessage();
-         if (var6.contains("Item provider not enabled yet!")) {
+         String errorMessage = this.itemFormat.getErrorMessage();
+         if (errorMessage.contains("Item provider not enabled yet!")) {
             this.wait = true;
          } else {
-            throw new EconomyLoadException(var6);
+            throw new EconomyLoadException(errorMessage);
          }
       } else {
          this.item = this.itemFormat.getItem();
@@ -70,7 +70,7 @@ public class ItemEconomy implements EconomyProvider, DelayedItemProvider {
             if (XMaterial.matchXMaterial(this.item.getType()) == XMaterial.PLAYER_HEAD) {
                this.iTags.add("SkullOwner::Id");
             }
-         } catch (IllegalArgumentException var5) {
+         } catch (IllegalArgumentException exception) {
          }
 
          SendMessage.infoMessage("Successfully loaded item economy '" + this.itemFormat.getId() + "'");
@@ -78,107 +78,107 @@ public class ItemEconomy implements EconomyProvider, DelayedItemProvider {
             SendMessage.logDebugMessage("Ignored tags: " + String.join(", ", this.iTags));
          }
 
-         String var2 = ConfigManager.getPathIgnoreCase("currency-formats.item:" + this.itemFormat.getId());
-         if (!ConfigManager.getConfig().contains(var2)) {
-            var2 = ConfigManager.getPathIgnoreCase("currency-formats.item");
+         String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.item:" + this.itemFormat.getId());
+         if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+            pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.item");
          }
 
-         String var3 = var1.getMaterialName(this.item.getType().toString());
-         String var4 = this.item.hasItemMeta() && this.item.getItemMeta().hasDisplayName() ? this.item.getItemMeta().getDisplayName() : var3;
-         this.formatSingular(var2, var4, var3);
-         this.formatPlural(var2, var4, var3);
+         String materialName = plugin.getMaterialName(this.item.getType().toString());
+         String itemId = this.item.hasItemMeta() && this.item.getItemMeta().hasDisplayName() ? this.item.getItemMeta().getDisplayName() : materialName;
+         this.formatSingular(pathIgnoreCase, itemId, materialName);
+         this.formatPlural(pathIgnoreCase, itemId, materialName);
          this.RGB = ChatUtil.hasRGB(this.singular) || ChatUtil.hasRGB(this.plural);
          this.friendly = ChatUtil.formatColors(
-            ConfigManager.getConfig().getString(var2 + ".friendly", var4).replace("%material-name%", var3).replace("%item-name%", var4)
+            ConfigManager.getConfig().getString(pathIgnoreCase + ".friendly", itemId).replace("%material-name%", materialName).replace("%item-name%", itemId)
          );
-         this.priceFormat = PriceFormatter.getFormatter(var2);
+         this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
       }
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
+   public double getBalance(OfflinePlayer offlinePlayer) {
       try {
-         return this.getItems((Player)var1);
-      } catch (ClassCastException var3) {
-         SendMessage.warnMessage("Error occurred while retrieving item balance from " + var1.getName());
-         var3.printStackTrace();
+         return this.getItems((Player)offlinePlayer);
+      } catch (ClassCastException exception) {
+         SendMessage.warnMessage("Error occurred while retrieving item balance from " + offlinePlayer.getName());
+         exception.printStackTrace();
          return 0.0;
       }
    }
 
-   private int getItems(Player var1) {
-      int var2 = 0;
+   private int getItems(Player player) {
+      int value = 0;
 
-      for (int var3 = 0; var3 < 36; var3++) {
-         ItemStack var4 = var1.getInventory().getItem(var3);
-         if (var4 != null && !var4.getType().equals(Material.AIR) && this.equals(var4)) {
-            var2 += var4.getAmount();
+      for (int index = 0; index < 36; index++) {
+         ItemStack itemStack = player.getInventory().getItem(index);
+         if (itemStack != null && !itemStack.getType().equals(Material.AIR) && this.equals(itemStack)) {
+            value += itemStack.getAmount();
          }
       }
 
-      return var2;
+      return value;
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
       try {
-         HashMap<Integer, ItemStack> var4 = ((Player)var1).getInventory().addItem(this.getItems(Math.round(var2)));
-         if (!var4.isEmpty()) {
-            for (ItemStack var6 : var4.values()) {
-               ((Player)var1).getWorld().dropItem(((Player)var1).getLocation(), var6);
+         HashMap<Integer, ItemStack> map = ((Player)offlinePlayer).getInventory().addItem(this.getItems(Math.round(balance)));
+         if (!map.isEmpty()) {
+            for (ItemStack itemStack : map.values()) {
+               ((Player)offlinePlayer).getWorld().dropItem(((Player)offlinePlayer).getLocation(), itemStack);
             }
 
-            SendMessage.chatToPlayer((Player)var1, Lang.NOT_ENOUGH_SPACE_INSIDE_INVENTORY.get());
+            SendMessage.chatToPlayer((Player)offlinePlayer, Lang.NOT_ENOUGH_SPACE_INSIDE_INVENTORY.get());
          }
-      } catch (ClassCastException var7) {
-         SendMessage.warnMessage("Error occurred while depositing item economy to " + var1.getName());
-         var7.printStackTrace();
+      } catch (ClassCastException exception) {
+         SendMessage.warnMessage("Error occurred while depositing item economy to " + offlinePlayer.getName());
+         exception.printStackTrace();
       }
    }
 
-   private ItemStack[] getItems(double var1) {
-      ItemStack[] var3 = new ItemStack[(int)Math.ceil(var1 / this.item.getMaxStackSize())];
-      int var4 = (int)Math.round(var1);
+   private ItemStack[] getItems(double amount) {
+      ItemStack[] itemIds = new ItemStack[(int)Math.ceil(amount / this.item.getMaxStackSize())];
+      int value = (int)Math.round(amount);
 
-      for (int var5 = 0; var5 < var3.length; var5++) {
-         int var6 = Math.min(var4, this.item.getMaxStackSize());
-         ItemStack var7 = new ItemStack(this.item);
-         var7.setAmount(var6);
-         var3[var5] = var7;
-         var4 -= var6;
+      for (int index = 0; index < itemIds.length; index++) {
+         int size = Math.min(value, this.item.getMaxStackSize());
+         ItemStack itemStack = new ItemStack(this.item);
+         itemStack.setAmount(size);
+         itemIds[index] = itemStack;
+         value -= size;
       }
 
-      return var3;
+      return itemIds;
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      int var4 = (int)Math.round(var2);
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      int value = (int)Math.round(balance);
       try {
-         for (int var5 = 0; var5 < 36; var5++) {
-            ItemStack var6 = ((Player)var1).getInventory().getItem(var5);
-            if (var6 != null && !var6.getType().equals(Material.AIR) && this.equals(var6)) {
-               if (var6.getAmount() > var4) {
-                  var6.setAmount(var6.getAmount() - var4);
-                  var4 = 0;
+         for (int index = 0; index < 36; index++) {
+            ItemStack itemStack = ((Player)offlinePlayer).getInventory().getItem(index);
+            if (itemStack != null && !itemStack.getType().equals(Material.AIR) && this.equals(itemStack)) {
+               if (itemStack.getAmount() > value) {
+                  itemStack.setAmount(itemStack.getAmount() - value);
+                  value = 0;
                   break;
                }
 
-               var4 -= var6.getAmount();
-               ((Player)var1).getInventory().clear(var5);
+               value -= itemStack.getAmount();
+               ((Player)offlinePlayer).getInventory().clear(index);
             }
          }
-      } catch (ClassCastException var7) {
-         SendMessage.warnMessage("Error occurred while withdrawing item economy from " + var1.getName());
-         var7.printStackTrace();
+      } catch (ClassCastException exception) {
+         SendMessage.warnMessage("Error occurred while withdrawing item economy from " + offlinePlayer.getName());
+         exception.printStackTrace();
          return false;
       }
 
-      return var4 <= 0;
+      return value <= 0;
    }
 
-   private boolean equals(ItemStack var1) {
-      return this.iTags.isEmpty() ? this.item.isSimilar(var1) : this.plugin.versionHandler.isSimilar(var1, this.item, this.iTags);
+   private boolean equals(ItemStack itemStack) {
+      return this.iTags.isEmpty() ? this.item.isSimilar(itemStack) : this.plugin.versionHandler.isSimilar(itemStack, this.item, this.iTags);
    }
 
    @Override
@@ -212,13 +212,13 @@ public class ItemEconomy implements EconomyProvider, DelayedItemProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -237,27 +237,27 @@ public class ItemEconomy implements EconomyProvider, DelayedItemProvider {
       return this.item;
    }
 
-   private void formatSingular(String var1, String var2, String var3) {
-      String var4 = ConfigManager.getConfig().getString(var1 + ".singular", var2);
-      var4 = ChatUtil.formatColors(var4.replace("%material-name%", var3).replace("%item-name%", var2));
-      if (this.isSymbol(ChatColor.stripColor(var4))) {
-         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var4).getLegacy();
+   private void formatSingular(String text, String text2, String text3) {
+      String text4 = ConfigManager.getConfig().getString(text + ".singular", text2);
+      text4 = ChatUtil.formatColors(text4.replace("%material-name%", text3).replace("%item-name%", text2));
+      if (this.isSymbol(ChatColor.stripColor(text4))) {
+         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text4).getLegacy();
       } else {
-         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var4).getLegacy();
+         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text4).getLegacy();
       }
    }
 
-   private void formatPlural(String var1, String var2, String var3) {
-      String var4 = ConfigManager.getConfig().getString(var1 + ".plural", var2);
-      var4 = ChatUtil.formatColors(var4.replace("%material-name%", var3).replace("%item-name%", var2));
-      if (this.isSymbol(ChatColor.stripColor(var4))) {
-         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var4).getLegacy();
+   private void formatPlural(String text, String text2, String text3) {
+      String text4 = ConfigManager.getConfig().getString(text + ".plural", text2);
+      text4 = ChatUtil.formatColors(text4.replace("%material-name%", text3).replace("%item-name%", text2));
+      if (this.isSymbol(ChatColor.stripColor(text4))) {
+         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text4).getLegacy();
       } else {
-         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var4).getLegacy();
+         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text4).getLegacy();
       }
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

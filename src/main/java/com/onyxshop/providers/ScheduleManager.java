@@ -23,8 +23,8 @@ public class ScheduleManager {
    private Scheduler scheduler;
    private final OnyxShop plugin;
 
-   public ScheduleManager(OnyxShop var1) {
-      this.plugin = var1;
+   public ScheduleManager(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    private Scheduler getScheduler() {
@@ -32,74 +32,74 @@ public class ScheduleManager {
          try {
             this.scheduler = new StdSchedulerFactory().getScheduler();
             this.scheduler.start();
-         } catch (SchedulerException var2) {
+         } catch (SchedulerException exception) {
             SendMessage.warnMessage("A unknown error occurred while creating a new cron scheduler");
-            var2.printStackTrace();
+            exception.printStackTrace();
          }
       }
 
       return this.scheduler;
    }
 
-   public Date schedule(JobDetail var1, Trigger var2) throws SchedulerException {
-      Class var3 = var1.getJobClass();
+   public Date schedule(JobDetail jobDetail, Trigger trigger) throws SchedulerException {
+      Class type = jobDetail.getJobClass();
       try {
-         if (var3 == RestockItemStock.class) {
-            return this.getScheduler().scheduleJob(var1, var2);
-         } else if (var3 == RestockItemLimit.class) {
-            return this.getScheduler().scheduleJob(var1, var2);
+         if (type == RestockItemStock.class) {
+            return this.getScheduler().scheduleJob(jobDetail, trigger);
+         } else if (type == RestockItemLimit.class) {
+            return this.getScheduler().scheduleJob(jobDetail, trigger);
          } else {
-            return var3 == RotationJob.class ? this.getScheduler().scheduleJob(var1, var2) : null;
+            return type == RotationJob.class ? this.getScheduler().scheduleJob(jobDetail, trigger) : null;
          }
-      } catch (SchedulerException var4) {
-         var4.printStackTrace();
+      } catch (SchedulerException exception) {
+         exception.printStackTrace();
          return null;
       }
    }
 
-   public boolean hasJob(JobKey var1) {
+   public boolean hasJob(JobKey jobKey) {
       try {
-         return this.getScheduler().checkExists(var1);
-      } catch (SchedulerException var3) {
+         return this.getScheduler().checkExists(jobKey);
+      } catch (SchedulerException exception) {
          return false;
       }
    }
 
-   public Trigger getJob(TriggerKey var1) {
+   public Trigger getJob(TriggerKey triggerKey) {
       try {
-         return this.getScheduler().getTrigger(var1);
-      } catch (SchedulerException var3) {
+         return this.getScheduler().getTrigger(triggerKey);
+      } catch (SchedulerException exception) {
          return null;
       }
    }
 
-   public Long getNextFire(TriggerKey var1) {
+   public Long getNextFire(TriggerKey triggerKey) {
       try {
-         return this.getScheduler().getTrigger(var1).getNextFireTime().toInstant().toEpochMilli();
-      } catch (SchedulerException var3) {
+         return this.getScheduler().getTrigger(triggerKey).getNextFireTime().toInstant().toEpochMilli();
+      } catch (SchedulerException exception) {
          return null;
       }
    }
 
-   public LinkedList<Date> validate(String var1) {
-      CronTrigger var2 = TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule(var1)).build();
-      LinkedList var3 = new LinkedList();
-      Date var4 = var2.getFireTimeAfter(new Date());
-      if (var4 == null) {
-         return var3;
+   public LinkedList<Date> validate(String text) {
+      CronTrigger cronTrigger = TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule(text)).build();
+      LinkedList values = new LinkedList();
+      Date date = cronTrigger.getFireTimeAfter(new Date());
+      if (date == null) {
+         return values;
       } else {
-         var3.add(var4);
+         values.add(date);
 
-         for (int var5 = 0; var5 < 5; var5++) {
-            var4 = var2.getFireTimeAfter(var4);
-            if (var4 == null) {
+         for (int index = 0; index < 5; index++) {
+            date = cronTrigger.getFireTimeAfter(date);
+            if (date == null) {
                break;
             }
 
-            var3.add(var4);
+            values.add(date);
          }
 
-         return var3;
+         return values;
       }
    }
 
@@ -108,9 +108,9 @@ public class ScheduleManager {
          try {
             SendMessage.logDebugMessage("Stopping cron scheduler, this can take some time if existing jobs are running...");
             this.scheduler.shutdown(true);
-         } catch (SchedulerException var2) {
+         } catch (SchedulerException exception) {
             SendMessage.warnMessage("A error occurred while stopping the cron scheduler");
-            var2.printStackTrace();
+            exception.printStackTrace();
          }
       }
    }
@@ -120,11 +120,11 @@ public class ScheduleManager {
       public final String path;
       public final int mode;
 
-      public Item(String var1, int var2) {
-         String[] var3 = var1.split("\\.", 2);
-         this.section = var3[0];
-         this.path = var3[1];
-         this.mode = var2;
+      public Item(String itemId, int value) {
+         String[] values = itemId.split("\\.", 2);
+         this.section = values[0];
+         this.path = values[1];
+         this.mode = value;
       }
 
       public String getItemPath() {
@@ -132,12 +132,12 @@ public class ScheduleManager {
       }
 
       @Override
-      public boolean equals(Object var1) {
-         if (this == var1) {
+      public boolean equals(Object value) {
+         if (this == value) {
             return true;
-         } else if (var1 != null && this.getClass() == var1.getClass()) {
-            ScheduleManager.Item var2 = (ScheduleManager.Item)var1;
-            return this.section.equals(var2.section) && this.path.equals(var2.path) && this.mode == var2.mode;
+         } else if (value != null && this.getClass() == value.getClass()) {
+            ScheduleManager.Item item = (ScheduleManager.Item)value;
+            return this.section.equals(item.section) && this.path.equals(item.path) && this.mode == item.mode;
          } else {
             return false;
          }

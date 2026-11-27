@@ -24,13 +24,13 @@ public class CraftEngineHook implements ItemProvider, Listener {
    private final OnyxShop plugin;
    private boolean isReady = false;
 
-   public CraftEngineHook(OnyxShop var1) {
-      this.plugin = var1;
-      var1.getServer().getPluginManager().registerEvents(this, var1);
+   public CraftEngineHook(OnyxShop plugin) {
+      this.plugin = plugin;
+      plugin.getServer().getPluginManager().registerEvents(this, plugin);
    }
 
    @EventHandler
-   public void onItemsLoad(CraftEngineReloadEvent var1) {
+   public void onItemsLoad(CraftEngineReloadEvent event) {
       SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getType().getName()));
       this.isReady = true;
       this.plugin.getItemManager().check();
@@ -48,37 +48,37 @@ public class CraftEngineHook implements ItemProvider, Listener {
    }
 
    @Override
-   public ItemStack getItem(String var1) throws ItemLoadException {
+   public ItemStack getItem(String itemId) throws ItemLoadException {
       if (!this.isReady) {
          return null;
       } else {
          try {
-            BukkitItemDefinition var2 = CraftEngineItems.byId(Key.of(var1));
-            if (var2 == null) {
-               throw new ItemLoadException(Lang.UNKNOWN_THIRD_PARTY_ITEM.get().replace("%id%", var1).replace("%plugin%", "CraftEngine"));
+            BukkitItemDefinition bukkitItemDefinition = CraftEngineItems.byId(Key.of(itemId));
+            if (bukkitItemDefinition == null) {
+               throw new ItemLoadException(Lang.UNKNOWN_THIRD_PARTY_ITEM.get().replace("%id%", itemId).replace("%plugin%", "CraftEngine"));
             } else {
-               return var2.buildBukkitItem();
+               return bukkitItemDefinition.buildBukkitItem();
             }
-         } catch (Exception var4) {
-            String var3;
-            if (!(var4 instanceof ItemLoadException)) {
-               var3 = Lang.ERROR_CREATING_THIRD_PARTY_ITEM.get().getLegacy().replace("%id%", var1).replace("%plugin%", "CraftEngine");
-               var4.printStackTrace();
+         } catch (Exception exception) {
+            String text;
+            if (!(exception instanceof ItemLoadException)) {
+               text = Lang.ERROR_CREATING_THIRD_PARTY_ITEM.get().getLegacy().replace("%id%", itemId).replace("%plugin%", "CraftEngine");
+               exception.printStackTrace();
             } else {
-               var3 = var4.getMessage();
+               text = exception.getMessage();
             }
 
-            throw new ItemLoadException("Failed to load CraftEngine item with reason: " + var3);
+            throw new ItemLoadException("Failed to load CraftEngine item with reason: " + text);
          }
       }
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      return Optional.ofNullable(CraftEngineItems.getCustomItemId(var1)).<String>map(Key::asString).orElse(null);
+   public String getItem(ItemStack itemStack) {
+      return Optional.ofNullable(CraftEngineItems.getCustomItemId(itemStack)).<String>map(Key::asString).orElse(null);
    }
 
-   public static ItemStack tag(ItemStack var0, Player var1) {
-      return CraftEngineItems.byItemStack(var0).buildBukkitItem(ItemBuildContext.of(BukkitAdaptor.adapt(var1)), var0.getAmount());
+   public static ItemStack tag(ItemStack itemStack, Player player) {
+      return CraftEngineItems.byItemStack(itemStack).buildBukkitItem(ItemBuildContext.of(BukkitAdaptor.adapt(player)), itemStack.getAmount());
    }
 }

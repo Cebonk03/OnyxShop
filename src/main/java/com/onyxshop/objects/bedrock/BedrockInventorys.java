@@ -26,8 +26,8 @@ public class BedrockInventorys {
    private boolean onlyForToutch;
    private boolean doubleClickForToutch;
 
-   public BedrockInventorys(OnyxShop var1) {
-      this.plugin = var1;
+   public BedrockInventorys(OnyxShop plugin) {
+      this.plugin = plugin;
       this.api = FloodgateApi.getInstance();
       this.reload();
    }
@@ -39,70 +39,70 @@ public class BedrockInventorys {
       BedrockItemIcons.init(this.plugin);
    }
 
-   public boolean isEnabledFor(Player var1) {
+   public boolean isEnabledFor(Player player) {
       if (!this.onlyForToutch) {
          return true;
       } else {
-         FloodgatePlayer var2 = this.api.getPlayer(var1.getUniqueId());
-         return var2 != null && this.isTouch(var2);
+         FloodgatePlayer floodgatePlayer = this.api.getPlayer(player.getUniqueId());
+         return floodgatePlayer != null && this.isTouch(floodgatePlayer);
       }
    }
 
-   public void openMainMenu(Player var1) {
-      FloodgatePlayer var2 = this.api.getPlayer(var1.getUniqueId());
-      if (var2 != null) {
+   public void openMainMenu(Player player) {
+      FloodgatePlayer floodgatePlayer = this.api.getPlayer(player.getUniqueId());
+      if (floodgatePlayer != null) {
          if (this.gridForms) {
-            new MainMenu(this.plugin, true).openGridForm(this.plugin, var1, var2, this.usesDoubleClick(var2));
+            new MainMenu(this.plugin, true).openGridForm(this.plugin, player, floodgatePlayer, this.usesDoubleClick(floodgatePlayer));
          } else {
-            new MainMenu(this.plugin, false).openForm(this.plugin, var1, var2);
+            new MainMenu(this.plugin, false).openForm(this.plugin, player, floodgatePlayer);
          }
       }
    }
 
    public void openShopSection(
-      Player var1,
-      ShopSection var2,
-      int var3,
-      boolean var4,
-      String var5,
-      Map<Integer, ItemStack> var6,
-      List<String> var7,
-      ItemStack var8,
-      Translatable var9,
-      int var10,
-      boolean var11
+      Player player,
+      ShopSection section,
+      int value,
+      boolean flag,
+      String shopId,
+      Map<Integer, ItemStack> map,
+      List<String> sectionIds,
+      ItemStack itemStack,
+      Translatable text,
+      int value2,
+      boolean flag2
    ) {
-      FloodgatePlayer var12 = this.api.getPlayer(var1.getUniqueId());
-      if (var12 != null) {
+      FloodgatePlayer floodgatePlayer = this.api.getPlayer(player.getUniqueId());
+      if (floodgatePlayer != null) {
          if (this.gridForms) {
-            new com.onyxshop.objects.bedrock.inventorys.ShopSection(true, var2, var3, var4, var5, var6, var7, var8, var9, var10, var11)
-               .openGridForm(this.plugin, var1, var12, this.usesDoubleClick(var12));
+            new com.onyxshop.objects.bedrock.inventorys.ShopSection(true, section, value, flag, shopId, map, sectionIds, itemStack, text, value2, flag2)
+               .openGridForm(this.plugin, player, floodgatePlayer, this.usesDoubleClick(floodgatePlayer));
          } else {
-            new com.onyxshop.objects.bedrock.inventorys.ShopSection(false, var2, var3, var4, var5, var6, var7, var8, var9, var10, var11)
-               .openForm(this.plugin, var1, var12);
+            new com.onyxshop.objects.bedrock.inventorys.ShopSection(false, section, value, flag, shopId, map, sectionIds, itemStack, text, value2, flag2)
+               .openForm(this.plugin, player, floodgatePlayer);
          }
       }
    }
 
-   public void openTransactionMenu(TransactionMenu var1) {
-      Player var2 = var1.getPlayer();
-      FloodgatePlayer var3 = this.api.getPlayer(var2.getUniqueId());
-      if (var3 != null) {
+   public void openTransactionMenu(TransactionMenu transactionMenu) {
+      Player player = transactionMenu.getPlayer();
+      FloodgatePlayer floodgatePlayer = this.api.getPlayer(player.getUniqueId());
+      if (floodgatePlayer != null) {
          if (this.gridForms) {
-            new com.onyxshop.objects.bedrock.inventorys.TransactionMenu(true, var1)
-               .openGridForm(this.plugin, var2, var3, this.usesDoubleClick(var3));
+            new com.onyxshop.objects.bedrock.inventorys.TransactionMenu(true, transactionMenu)
+               .openGridForm(this.plugin, player, floodgatePlayer, this.usesDoubleClick(floodgatePlayer));
          } else {
-            new com.onyxshop.objects.bedrock.inventorys.TransactionMenu(false, var1).openForm(this.plugin, var2, var3);
+            new com.onyxshop.objects.bedrock.inventorys.TransactionMenu(false, transactionMenu).openForm(this.plugin, player, floodgatePlayer);
          }
       }
    }
 
-   private boolean usesDoubleClick(FloodgatePlayer var1) {
-      return this.doubleClickForToutch && this.isTouch(var1);
+   private boolean usesDoubleClick(FloodgatePlayer floodgatePlayer) {
+      return this.doubleClickForToutch && this.isTouch(floodgatePlayer);
    }
 
-   private boolean isTouch(FloodgatePlayer var1) {
-      DeviceOs var2 = var1.getDeviceOs();
-      return var2 != null && this.TOUCH_DEVICES.contains(var2.name()) ? true : var1.getInputMode() == InputMode.TOUCH;
+   private boolean isTouch(FloodgatePlayer floodgatePlayer) {
+      DeviceOs deviceOs = floodgatePlayer.getDeviceOs();
+      return deviceOs != null && this.TOUCH_DEVICES.contains(deviceOs.name()) ? true : floodgatePlayer.getInputMode() == InputMode.TOUCH;
    }
 }

@@ -36,9 +36,9 @@ public final class LoreFormatter {
    private int item;
    private List<LoreFormatter.StaticLore> itemLore;
 
-   public LoreFormatter(OnyxShop var1) {
-      this.plugin = var1;
-      this.components = var1.paperMeta;
+   public LoreFormatter(OnyxShop plugin) {
+      this.plugin = plugin;
+      this.components = plugin.paperMeta;
       if (this.plugin.getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
          this.plugin.runTaskLaterAsync(this::init, 5L);
       } else {
@@ -47,449 +47,449 @@ public final class LoreFormatter {
    }
 
    private void init() {
-      List<String> var1 = ConfigManager.getConfig().getStringList("lore-arrangement");
-      int var2 = var1.indexOf("item-lore");
-      if (var2 == -1) {
+      List<String> stringList = ConfigManager.getConfig().getStringList("lore-arrangement");
+      int index = stringList.indexOf("item-lore");
+      if (index == -1) {
          SendMessage.warnMessage("Failed to load lore arrangement, cannot find 'item-lore' which is required!");
-         var1 = ConfigManager.getConfig().getDef().getStringList("lore-arrangement");
-         var2 = var1.indexOf("item-lore");
+         stringList = ConfigManager.getConfig().getDef().getStringList("lore-arrangement");
+         index = stringList.indexOf("item-lore");
       }
 
-      String var3 = "display-lore-layout.";
-      ArrayList<LoreFormatter.DisplayLore> var4 = new ArrayList<>();
+      String lore = "display-lore-layout.";
+      ArrayList<LoreFormatter.DisplayLore> values = new ArrayList<>();
 
-      for (String var6 : var1) {
-         int var7 = var1.indexOf(var6);
-         ConfigurationSection var8 = null;
-         if (!var6.equals("item-lore")) {
-            var8 = ConfigManager.getConfig().getConfigurationSection(var3 + var6);
-            if (var8 == null) {
-               SendMessage.warnMessage("Cannot find lore format for %part% inside config.yml, using default...".replace("%part%", var6));
-               var8 = ConfigManager.getConfig().getDef().getConfigurationSection(var3 + var6);
+      for (String text : stringList) {
+         int value = stringList.indexOf(text);
+         ConfigurationSection section = null;
+         if (!text.equals("item-lore")) {
+            section = ConfigManager.getConfig().getConfigurationSection(lore + text);
+            if (section == null) {
+               SendMessage.warnMessage("Cannot find lore format for %part% inside config.yml, using default...".replace("%part%", text));
+               section = ConfigManager.getConfig().getDef().getConfigurationSection(lore + text);
             }
          }
 
-         switch (var6) {
+         switch (text) {
             case "special-lore":
-               var4.add(new LoreFormatter.SpecialLore(var8, var7 > var2));
+               values.add(new LoreFormatter.SpecialLore(section, value > index));
                break;
             case "item-requirements":
-               var4.add(new LoreFormatter.RequirementLore());
+               values.add(new LoreFormatter.RequirementLore());
                break;
             case "buy-prices":
-               var4.add(new LoreFormatter.BuyLore(var8, var7 > var2));
+               values.add(new LoreFormatter.BuyLore(section, value > index));
                break;
             case "sell-prices":
-               var4.add(new LoreFormatter.SellLore(var8, var7 > var2));
+               values.add(new LoreFormatter.SellLore(section, value > index));
                break;
             case "decoration-lore":
-               var4.add(new LoreFormatter.DecorationLore(var8));
+               values.add(new LoreFormatter.DecorationLore(section));
                break;
             case "item-lore":
-               this.item = var7;
-               var4.add(new LoreFormatter.ItemLore());
+               this.item = value;
+               values.add(new LoreFormatter.ItemLore());
                break;
             case "item-stock":
-               var4.add(new LoreFormatter.StockLore(var8, var7 > var2));
+               values.add(new LoreFormatter.StockLore(section, value > index));
                break;
             case "sell-limit":
-               var4.add(new LoreFormatter.LimitLore(var8, var7 > var2));
+               values.add(new LoreFormatter.LimitLore(section, value > index));
                break;
             case "admin-lore":
-               var4.add(new LoreFormatter.AdminLore(var8, var7 > var2));
+               values.add(new LoreFormatter.AdminLore(section, value > index));
          }
       }
 
-      this.displayLore = var4;
-      ArrayList var16 = new ArrayList();
+      this.displayLore = values;
+      ArrayList values2 = new ArrayList();
 
-      for (String var18 : var1) {
-         ConfigurationSection var19 = ConfigManager.getConfig().getConfigurationSection(var3 + var18);
-         if (var19 == null && !var18.equals("item-lore")) {
-            SendMessage.warnMessage("Cannot find lore format for %part% inside config.yml, using default...".replace("%part%", var18));
-            var19 = ConfigManager.getConfig().getDef().getConfigurationSection(var3 + var18);
+      for (String text : stringList) {
+         ConfigurationSection section = ConfigManager.getConfig().getConfigurationSection(lore + text);
+         if (section == null && !text.equals("item-lore")) {
+            SendMessage.warnMessage("Cannot find lore format for %part% inside config.yml, using default...".replace("%part%", text));
+            section = ConfigManager.getConfig().getDef().getConfigurationSection(lore + text);
          }
 
-         switch (var18) {
+         switch (text) {
             case "buy-prices":
-               var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.BUY_LORE, var19.getStringList("normal")));
+               values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.BUY_LORE, section.getStringList("normal")));
                break;
             case "sell-prices":
-               var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.SELL_LORE, var19.getStringList("normal")));
+               values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.SELL_LORE, section.getStringList("normal")));
                if (this.plugin.MMB && !Lang.SHIFT_RIGHT_CLICK_SELL_ALL.get().getLegacy().isEmpty()) {
-                  var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.SELL_ALL_LORE, var19.getStringList("sell-all")));
+                  values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.SELL_ALL_LORE, section.getStringList("sell-all")));
                }
                break;
             case "decoration-lore":
-               for (String var12 : ConfigManager.getConfig().getConfigurationSection(var3 + var18).getKeys(false)) {
-                  List var13 = ConfigManager.getConfig().getStringList(var3 + var18 + "." + var12);
-                  if (!var13.isEmpty()) {
-                     switch (var12) {
+               for (String sectionId : ConfigManager.getConfig().getConfigurationSection(lore + text).getKeys(false)) {
+                  List stringList2 = ConfigManager.getConfig().getStringList(lore + text + "." + sectionId);
+                  if (!stringList2.isEmpty()) {
+                     switch (sectionId) {
                         case "extra-lore":
-                           var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE, var13));
+                           values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE, stringList2));
                            break;
                         case "extra-buy-lore":
-                           var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE_BUY, var13));
+                           values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE_BUY, stringList2));
                            break;
                         case "extra-sell-all-lore":
                            if (this.plugin.MMB && !Lang.SHIFT_RIGHT_CLICK_SELL_ALL.get().getLegacy().isEmpty()) {
-                              var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE_SELL_ALL, var13));
+                              values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE_SELL_ALL, stringList2));
                            }
                            break;
                         case "extra-sell-lore":
-                           var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE_SELL, var13));
+                           values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.DECORATION_LORE_SELL, stringList2));
                      }
                   }
                }
                break;
             case "item-lore":
-               var16.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.ITEM_LORE, (List<String>)null));
+               values2.add(new LoreFormatter.StaticLore(LoreFormatter.LoreType.ITEM_LORE, (List<String>)null));
          }
       }
 
-      this.itemLore = var16;
-      this.actionAdminLore = new LoreFormatter.ActionAdminLore(ConfigManager.getConfig().getConfigurationSection(var3 + ".admin-lore"), false);
+      this.itemLore = values2;
+      this.actionAdminLore = new LoreFormatter.ActionAdminLore(ConfigManager.getConfig().getConfigurationSection(lore + ".admin-lore"), false);
    }
 
    public ItemStack format(
-      ActionItem var1, ItemStack var2, Player var3, EcoType var4, String var5, boolean var6, boolean var7, boolean var8, boolean var9, int var10, int var11
+      ActionItem actionItem, ItemStack itemStack, Player player, EcoType ecoType, String itemId, boolean flag, boolean flag2, boolean flag3, boolean flag4, int value, int value2
    ) {
-      if (var1.hasPlaceholders() && var1.getPlaceholders().containsKey(-1)) {
-         var2 = this.setDisplayname(var2, var1.getPlaceholders().get(-1), var3, var1, var4, var6, var7, var10, var11);
+      if (actionItem.hasPlaceholders() && actionItem.getPlaceholders().containsKey(-1)) {
+         itemStack = this.setDisplayname(itemStack, actionItem.getPlaceholders().get(-1), player, actionItem, ecoType, flag, flag2, value, value2);
       }
 
-      Object var12 = this.components
-         ? (var6 ? new LoreFormatter.ComponentLore(var2) : new LoreFormatter.RawComponentLore(var2))
-         : (var6 && !var7 ? new LoreFormatter.FastLore(var2) : new LoreFormatter.ShopLore(var2));
-      if (!var1.isHideIfUnmet() && var1.getRequirements() != null) {
-         for (ItemRequirement var14 : var1.getRequirements()) {
-            if (!var14.isMet(var3)) {
-               ((LoreFormatter.Lore)var12).addAll(var14.getLore(var3, var6, var7));
+      Object value3 = this.components
+         ? (flag ? new LoreFormatter.ComponentLore(itemStack) : new LoreFormatter.RawComponentLore(itemStack))
+         : (flag && !flag2 ? new LoreFormatter.FastLore(itemStack) : new LoreFormatter.ShopLore(itemStack));
+      if (!actionItem.isHideIfUnmet() && actionItem.getRequirements() != null) {
+         for (ItemRequirement itemRequirement : actionItem.getRequirements()) {
+            if (!itemRequirement.isMet(player)) {
+               ((LoreFormatter.Lore)value3).addAll(itemRequirement.getLore(player, flag, flag2));
             }
          }
       }
 
-      ((LoreFormatter.Lore)var12).addAll(this.parsePlaceholders(var1, var3, var4, var6, var7, var10, var11));
-      this.actionAdminLore.apply(var1, var3, (LoreFormatter.Lore)var12, var5, var6, var7, var8, var9);
-      return ((LoreFormatter.Lore)var12).form();
+      ((LoreFormatter.Lore)value3).addAll(this.parsePlaceholders(actionItem, player, ecoType, flag, flag2, value, value2));
+      this.actionAdminLore.apply(actionItem, player, (LoreFormatter.Lore)value3, itemId, flag, flag2, flag3, flag4);
+      return ((LoreFormatter.Lore)value3).form();
    }
 
    public ItemStack format(
-      LoreFormatter.PageIndex var1,
-      ShopItem var2,
-      ItemStack var3,
-      Player var4,
-      String var5,
-      boolean var6,
-      boolean var7,
-      boolean var8,
-      boolean var9,
-      boolean var10,
-      boolean var11,
-      boolean var12,
-      boolean var13,
-      boolean var14,
-      boolean var15,
-      boolean var16,
-      boolean var17,
-      int var18,
-      int var19
+      LoreFormatter.PageIndex pageIndex,
+      ShopItem shopItem,
+      ItemStack itemStack,
+      Player player,
+      String text,
+      boolean flag,
+      boolean flag2,
+      boolean flag3,
+      boolean flag4,
+      boolean flag5,
+      boolean flag6,
+      boolean flag7,
+      boolean flag8,
+      boolean flag9,
+      boolean flag10,
+      boolean flag11,
+      boolean flag12,
+      int value,
+      int value2
    ) {
-      if (var2.hasPlaceholders() && var2.getPlaceholders().containsKey(-1)) {
-         var3 = this.setDisplayname(var3, var2.getPlaceholders().get(-1), var4, var2, var9, var10, var17, var6, var7, var18, var19);
+      if (shopItem.hasPlaceholders() && shopItem.getPlaceholders().containsKey(-1)) {
+         itemStack = this.setDisplayname(itemStack, shopItem.getPlaceholders().get(-1), player, shopItem, flag4, flag5, flag12, flag, flag2, value, value2);
       }
 
-      Object var20 = this.components
-         ? (var6 ? new LoreFormatter.ComponentLore(var3) : new LoreFormatter.RawComponentLore(var3))
-         : (var6 && !var7 && !var8 ? new LoreFormatter.FastLore(var3) : new LoreFormatter.ShopLore(var3));
+      Object value3 = this.components
+         ? (flag ? new LoreFormatter.ComponentLore(itemStack) : new LoreFormatter.RawComponentLore(itemStack))
+         : (flag && !flag2 && !flag3 ? new LoreFormatter.FastLore(itemStack) : new LoreFormatter.ShopLore(itemStack));
 
-      for (LoreFormatter.DisplayLore var22 : var2.isPriorLore() ? this.priorLore() : this.displayLore) {
-         if (var22 instanceof LoreFormatter.ItemLore) {
-            ((LoreFormatter.Lore)var20).addAll(this.parsePlaceholders(var2, var4, var6, var7 || var8, var9, var10, var17, var18, var19));
-         } else if (var22 instanceof LoreFormatter.RequirementLore) {
-            if (!var2.isHideIfUnmet() && var2.getRequirements() != null) {
-               for (ItemRequirement var24 : var2.getRequirements()) {
-                  if (!var24.isMet(var4)) {
-                     ((LoreFormatter.Lore)var20).addAll(var24.getLore(var4, var6, var7 || var8));
+      for (LoreFormatter.DisplayLore displayLore : shopItem.isPriorLore() ? this.priorLore() : this.displayLore) {
+         if (displayLore instanceof LoreFormatter.ItemLore) {
+            ((LoreFormatter.Lore)value3).addAll(this.parsePlaceholders(shopItem, player, flag, flag2 || flag3, flag4, flag5, flag12, value, value2));
+         } else if (displayLore instanceof LoreFormatter.RequirementLore) {
+            if (!shopItem.isHideIfUnmet() && shopItem.getRequirements() != null) {
+               for (ItemRequirement itemRequirement : shopItem.getRequirements()) {
+                  if (!itemRequirement.isMet(player)) {
+                     ((LoreFormatter.Lore)value3).addAll(itemRequirement.getLore(player, flag, flag2 || flag3));
                   }
                }
             }
-         } else if (!(var22 instanceof LoreFormatter.BuyLore) && !(var22 instanceof LoreFormatter.SellLore)) {
-            if (var22 instanceof LoreFormatter.AdminLore) {
-               var22.apply(var2, var4, (LoreFormatter.Lore)var20, var5, var6, var7 || var8, var13, var14);
-            } else if (var22 instanceof LoreFormatter.SpecialLore) {
-               var22.apply(var2, var4, (LoreFormatter.Lore)var20, var5, var6, var7 || var8, var17, var15);
-            } else if (var22 instanceof LoreFormatter.StockLore) {
-               if (var2.getLimitedStockMode() != 0 && !var2.isDisplayItem() && !var2.isHideUtilLore() && var11) {
-                  var22.apply(var1, var2, var4, (LoreFormatter.Lore)var20, var5, var6, var7 || var8);
+         } else if (!(displayLore instanceof LoreFormatter.BuyLore) && !(displayLore instanceof LoreFormatter.SellLore)) {
+            if (displayLore instanceof LoreFormatter.AdminLore) {
+               displayLore.apply(shopItem, player, (LoreFormatter.Lore)value3, text, flag, flag2 || flag3, flag8, flag9);
+            } else if (displayLore instanceof LoreFormatter.SpecialLore) {
+               displayLore.apply(shopItem, player, (LoreFormatter.Lore)value3, text, flag, flag2 || flag3, flag12, flag10);
+            } else if (displayLore instanceof LoreFormatter.StockLore) {
+               if (shopItem.getLimitedStockMode() != 0 && !shopItem.isDisplayItem() && !shopItem.isHideUtilLore() && flag6) {
+                  displayLore.apply(pageIndex, shopItem, player, (LoreFormatter.Lore)value3, text, flag, flag2 || flag3);
                }
-            } else if (var22 instanceof LoreFormatter.LimitLore) {
-               if (var2.getLimitedSellMode() != 0 && !var2.isDisplayItem() && !var2.isHideUtilLore() && var12) {
-                  var22.apply(var1, var2, var4, (LoreFormatter.Lore)var20, var5, var6, var7 || var8);
+            } else if (displayLore instanceof LoreFormatter.LimitLore) {
+               if (shopItem.getLimitedSellMode() != 0 && !shopItem.isDisplayItem() && !shopItem.isHideUtilLore() && flag7) {
+                  displayLore.apply(pageIndex, shopItem, player, (LoreFormatter.Lore)value3, text, flag, flag2 || flag3);
                }
-            } else if (var22 instanceof LoreFormatter.DecorationLore) {
-               var22.apply(var2, var4, (LoreFormatter.Lore)var20, var5, var6, var7, var8);
+            } else if (displayLore instanceof LoreFormatter.DecorationLore) {
+               displayLore.apply(shopItem, player, (LoreFormatter.Lore)value3, text, flag, flag2, flag3);
             }
-         } else if (!var2.isHidePricingLore() && !var2.hasItemError() && !var2.isDisplayItem()) {
-            var22.apply(var1, var2, var4, (LoreFormatter.Lore)var20, var5, var6, var7 || var8, var9, var10, var16, var17);
+         } else if (!shopItem.isHidePricingLore() && !shopItem.hasItemError() && !shopItem.isDisplayItem()) {
+            displayLore.apply(pageIndex, shopItem, player, (LoreFormatter.Lore)value3, text, flag, flag2 || flag3, flag4, flag5, flag11, flag12);
          }
       }
 
-      return ((LoreFormatter.Lore)var20).form();
+      return ((LoreFormatter.Lore)value3).form();
    }
 
    private List<LoreFormatter.DisplayLore> priorLore() {
-      ArrayList var1 = new ArrayList<>(this.displayLore);
-      var1.add(0, var1.remove(this.item));
-      return var1;
+      ArrayList values = new ArrayList<>(this.displayLore);
+      values.add(0, values.remove(this.item));
+      return values;
    }
 
    public List<LoreFormatter.StaticLore> getItemLore() {
       return this.itemLore;
    }
 
-   private void addLore(ShopItem var1, LoreFormatter.FastLore var2, String var3, int var4, boolean var5) {
-      if (var5) {
-         this.plugin.versionHandler.addItemLore(var2, var3);
+   private void addLore(ShopItem shopItem, LoreFormatter.FastLore fastLore, String lore, int value, boolean flag) {
+      if (flag) {
+         this.plugin.versionHandler.addItemLore(fastLore, lore);
       } else {
-         this.plugin.versionHandler.addItemLore(var2, var3, var4);
+         this.plugin.versionHandler.addItemLore(fastLore, lore, value);
       }
    }
 
    private ItemStack setDisplayname(
-      ItemStack var1, Placeholder var2, Player var3, ShopItem var4, boolean var5, boolean var6, boolean var7, boolean var8, boolean var9, int var10, int var11
+      ItemStack itemStack, Placeholder placeholder, Player player, ShopItem shopItem, boolean flag, boolean flag2, boolean flag3, boolean flag4, boolean flag5, int value, int value2
    ) {
-      String var12 = var2.translate(
-         var3, var4.isPriceLore() ? this.pricePlaceholders(var2.getRaw(), var4, var3, var5, var6, var7, var10, var11) : new Replacement[0]
+      String text = placeholder.translate(
+         player, shopItem.isPriceLore() ? this.pricePlaceholders(placeholder.getRaw(), shopItem, player, flag, flag2, flag3, value, value2) : new Replacement[0]
       );
-      if (var8 && !this.components && !var9) {
-         return this.plugin.versionHandler.setDisplayname(var1, this.plugin.versionHandler.toNBT(var12));
+      if (flag4 && !this.components && !flag5) {
+         return this.plugin.versionHandler.setDisplayname(itemStack, this.plugin.versionHandler.toNBT(text));
       } else {
-         ItemMeta var13 = var1.getItemMeta();
-         this.plugin.getMetaUtils().setRawDisplayName(var13, var12);
-         var1.setItemMeta(var13);
-         return var1;
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         this.plugin.getMetaUtils().setRawDisplayName(itemMeta, text);
+         itemStack.setItemMeta(itemMeta);
+         return itemStack;
       }
    }
 
    private ItemStack setDisplayname(
-      ItemStack var1, Placeholder var2, Player var3, ActionItem var4, EcoType var5, boolean var6, boolean var7, int var8, int var9
+      ItemStack itemStack, Placeholder placeholder, Player player, ActionItem actionItem, EcoType ecoType, boolean flag, boolean flag2, int value, int value2
    ) {
-      String var10 = var2.translate(var3, this.actionPlaceholders(var4, var3, var5, var8, var9));
-      if (!this.components && var6 && !var7) {
-         return this.plugin.versionHandler.setDisplayname(var1, this.plugin.versionHandler.toNBT(var10));
+      String text = placeholder.translate(player, this.actionPlaceholders(actionItem, player, ecoType, value, value2));
+      if (!this.components && flag && !flag2) {
+         return this.plugin.versionHandler.setDisplayname(itemStack, this.plugin.versionHandler.toNBT(text));
       } else {
-         ItemMeta var11 = var1.getItemMeta();
-         this.plugin.getMetaUtils().setRawDisplayName(var11, var10);
-         var1.setItemMeta(var11);
-         return var1;
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         this.plugin.getMetaUtils().setRawDisplayName(itemMeta, text);
+         itemStack.setItemMeta(itemMeta);
+         return itemStack;
       }
    }
 
-   private LoreFormatter.DynamicLoreList getDynamicLoreList(List<String> var1, String var2, String... var3) {
+   private LoreFormatter.DynamicLoreList getDynamicLoreList(List<String> lores, String text, String... values) {
       return (LoreFormatter.DynamicLoreList)(this.components
-         ? new LoreFormatter.DynamicCompLoreList(var1, var2, var3)
-         : new LoreFormatter.DynamicBukkitLoreList(var1, var2, var3));
+         ? new LoreFormatter.DynamicCompLoreList(lores, text, values)
+         : new LoreFormatter.DynamicBukkitLoreList(lores, text, values));
    }
 
-   private static LoreFormatter.LocalizedLore getLocalized(Map<Locale, LoreFormatter.LocalizedLore> var0, Player var1) {
-      LoreFormatter.LocalizedLore var2 = (LoreFormatter.LocalizedLore)var0.get(UserManager.getUser(var1).getLocale());
-      return var2 != null ? var2 : (LoreFormatter.LocalizedLore)var0.get(Lang.getDefaultLocale());
+   private static LoreFormatter.LocalizedLore getLocalized(Map<Locale, LoreFormatter.LocalizedLore> map, Player player) {
+      LoreFormatter.LocalizedLore localizedLore = (LoreFormatter.LocalizedLore)map.get(UserManager.getUser(player).getLocale());
+      return localizedLore != null ? localizedLore : (LoreFormatter.LocalizedLore)map.get(Lang.getDefaultLocale());
    }
 
-   private List<String> getStringList(ConfigurationSection var1, String var2) {
-      return (List<String>)(var1.get(var2) instanceof List ? var1.getStringList(var2) : new ArrayList<>(Collections.singletonList(var1.getString(var2))));
+   private List<String> getStringList(ConfigurationSection section, String sectionId) {
+      return (List<String>)(section.get(sectionId) instanceof List ? section.getStringList(sectionId) : new ArrayList<>(Collections.singletonList(section.getString(sectionId))));
    }
 
-   private boolean isEmpty(List<String> var1) {
-      return var1.stream().allMatch(String::isEmpty);
+   private boolean isEmpty(List<String> values) {
+      return values.stream().allMatch(String::isEmpty);
    }
 
-   private String translate(String var1) {
-      return this.translate(var1, Lang.getDefaultLocale());
+   private String translate(String text) {
+      return this.translate(text, Lang.getDefaultLocale());
    }
 
-   private String translate(String var1, Locale var2) {
-      if (var1 == null) {
+   private String translate(String text, Locale locale) {
+      if (text == null) {
          return "";
       } else {
-         while (var1.contains("%translations-")) {
+         while (text.contains("%translations-")) {
             try {
-               Lang var3 = Lang.valueOf(var1.split("%translations-")[1].split("%")[0].toUpperCase(Locale.ENGLISH).replace("-", "_"));
-               var1 = var1.replace("%translations-" + var3.getKey() + "%", var3.getRaw(var2));
-            } catch (IllegalArgumentException var4) {
+               Lang lang = Lang.valueOf(text.split("%translations-")[1].split("%")[0].toUpperCase(Locale.ENGLISH).replace("-", "_"));
+               text = text.replace("%translations-" + lang.getKey() + "%", lang.getRaw(locale));
+            } catch (IllegalArgumentException exception) {
             }
          }
 
-         return this.components ? ChatUtil.getAdventureUtils().formatLegacyToMini(var1) : ChatUtil.formatColors(var1);
+         return this.components ? ChatUtil.getAdventureUtils().formatLegacyToMini(text) : ChatUtil.formatColors(text);
       }
    }
 
-   private List<String> translate(List<String> var1) {
-      return this.translate(var1, Lang.getDefaultLocale());
+   private List<String> translate(List<String> values) {
+      return this.translate(values, Lang.getDefaultLocale());
    }
 
-   private List<String> translate(List<String> var1, Locale var2) {
-      if (var1.isEmpty()) {
-         return var1;
+   private List<String> translate(List<String> values, Locale locale) {
+      if (values.isEmpty()) {
+         return values;
       } else {
-         ArrayList var3 = new ArrayList();
+         ArrayList values2 = new ArrayList();
 
-         for (String var5 : var1) {
-            while (var5.contains("%translations-")) {
+         for (String text : values) {
+            while (text.contains("%translations-")) {
                try {
-                  Lang var6 = Lang.valueOf(var5.split("%translations-")[1].split("%")[0].toUpperCase(Locale.ENGLISH).replace("-", "_"));
-                  var5 = var5.replace("%translations-" + var6.getKey() + "%", var6.getRaw(var2).replace("\\n", "\n"));
-               } catch (IllegalArgumentException var10) {
+                  Lang lang = Lang.valueOf(text.split("%translations-")[1].split("%")[0].toUpperCase(Locale.ENGLISH).replace("-", "_"));
+                  text = text.replace("%translations-" + lang.getKey() + "%", lang.getRaw(locale).replace("\\n", "\n"));
+               } catch (IllegalArgumentException exception) {
                }
             }
 
-            for (String var9 : var5.split("\n")) {
-               var3.add(this.components ? ChatUtil.getAdventureUtils().formatLegacyToMini(var9) : ChatUtil.formatColors(var9));
+            for (String text2 : text.split("\n")) {
+               values2.add(this.components ? ChatUtil.getAdventureUtils().formatLegacyToMini(text2) : ChatUtil.formatColors(text2));
             }
          }
 
-         return var3;
+         return values2;
       }
    }
 
-   private String getBuyPrice(String var1, ShopItem var2, Player var3, boolean var4, boolean var5) {
-      if (var2.isBuyAble()) {
-         if (!var5 && !var4) {
-            return var2.isABuyPricing()
-               ? var2.getABuyPrice().formatBuyPrices(var1.split("%buyPrice%")[0], null, var2.getStackSize(), true)
-               : this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var2.getStackSize(), true));
+   private String getBuyPrice(String price, ShopItem shopItem, Player player, boolean flag, boolean flag2) {
+      if (shopItem.isBuyAble()) {
+         if (!flag2 && !flag) {
+            return shopItem.isABuyPricing()
+               ? shopItem.getABuyPrice().formatBuyPrices(price.split("%buyPrice%")[0], null, shopItem.getStackSize(), true)
+               : this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(shopItem.getStackSize(), true));
          } else {
-            return var2.isABuyPricing()
-               ? var2.getABuyPrice().formatBuyPrices(var1.split("%buyPrice%")[0], null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
-               : this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var3, var2.getStackSize(), true));
+            return shopItem.isABuyPricing()
+               ? shopItem.getABuyPrice().formatBuyPrices(price.split("%buyPrice%")[0], null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
+               : this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(player, shopItem.getStackSize(), true));
          }
       } else {
-         return Lang.ITEM_CANNOT_BE_BOUGHT.get(var3).getLegacy();
+         return Lang.ITEM_CANNOT_BE_BOUGHT.get(player).getLegacy();
       }
    }
 
-   private String getSellPrice(String var1, ShopItem var2, Player var3, boolean var4, boolean var5) {
-      if (var2.isSellAble()) {
-         if (!var5 && !var4) {
-            return var2.isASellPricing()
-               ? var2.getASellPrice().formatSellPrices(var1.split("%sellPrice%")[0], null, var2.getStackSize(), true)
-               : this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice(var2.getStackSize(), true));
+   private String getSellPrice(String price, ShopItem shopItem, Player player, boolean flag, boolean flag2) {
+      if (shopItem.isSellAble()) {
+         if (!flag2 && !flag) {
+            return shopItem.isASellPricing()
+               ? shopItem.getASellPrice().formatSellPrices(price.split("%sellPrice%")[0], null, shopItem.getStackSize(), true)
+               : this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(shopItem.getStackSize(), true));
          } else {
-            return var2.isASellPricing()
-               ? var2.getASellPrice().formatSellPrices(var1.split("%sellPrice%")[0], null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
-               : this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice(var3, var2.getStackSize(), true));
+            return shopItem.isASellPricing()
+               ? shopItem.getASellPrice().formatSellPrices(price.split("%sellPrice%")[0], null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+               : this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(player, shopItem.getStackSize(), true));
          }
       } else {
-         return Lang.ITEM_CANNOT_BE_SOLD.get(var3).getLegacy();
+         return Lang.ITEM_CANNOT_BE_SOLD.get(player).getLegacy();
       }
    }
 
-   private String getBuyPriceRaw(ShopItem var1, Player var2, boolean var3, boolean var4) {
-      if (var1.isBuyAble()) {
-         if (!var4 && !var3) {
-            return var1.isABuyPricing()
-               ? var1.getABuyPrice()
-                  .getBuyPrices(null, var1.getStackSize(), true)
+   private String getBuyPriceRaw(ShopItem shopItem, Player player, boolean flag, boolean flag2) {
+      if (shopItem.isBuyAble()) {
+         if (!flag2 && !flag) {
+            return shopItem.isABuyPricing()
+               ? shopItem.getABuyPrice()
+                  .getBuyPrices(null, shopItem.getStackSize(), true)
                   .entrySet()
                   .stream()
-                  .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                  .map(entry -> entry.getKey() + ": " + entry.getValue())
                   .collect(Collectors.joining(", "))
-               : String.valueOf(var1.getBuyPrice(var1.getStackSize(), true));
+               : String.valueOf(shopItem.getBuyPrice(shopItem.getStackSize(), true));
          } else {
-            return var1.isABuyPricing()
-               ? var1.getABuyPrice()
-                  .getBuyPrices(null, var2, var1.getStackSize(), var1.getBuyModifiers(), true)
+            return shopItem.isABuyPricing()
+               ? shopItem.getABuyPrice()
+                  .getBuyPrices(null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
                   .entrySet()
                   .stream()
-                  .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                  .map(entry -> entry.getKey() + ": " + entry.getValue())
                   .collect(Collectors.joining(", "))
-               : String.valueOf(var1.getBuyPrice(var2, var1.getStackSize(), true));
-         }
-      } else {
-         return "-1";
-      }
-   }
-
-   private String getSellPriceRaw(ShopItem var1, Player var2, boolean var3, boolean var4) {
-      if (var1.isSellAble()) {
-         if (!var4 && !var3) {
-            return var1.isASellPricing()
-               ? var1.getASellPrice()
-                  .getSellPrices(null, var1.getStackSize(), true)
-                  .entrySet()
-                  .stream()
-                  .map(var0 -> var0.getKey() + ": " + var0.getValue())
-                  .collect(Collectors.joining(", "))
-               : String.valueOf(var1.getSellPrice(var1.getStackSize(), true));
-         } else {
-            return var1.isASellPricing()
-               ? var1.getASellPrice()
-                  .getSellPrices(null, var2, var1.getStackSize(), var1.getSellModifiers(), true)
-                  .entrySet()
-                  .stream()
-                  .map(var0 -> var0.getKey() + ": " + var0.getValue())
-                  .collect(Collectors.joining(", "))
-               : String.valueOf(var1.getSellPrice(var2, var1.getStackSize(), true));
+               : String.valueOf(shopItem.getBuyPrice(player, shopItem.getStackSize(), true));
          }
       } else {
          return "-1";
       }
    }
 
-   private Replacement[] pricePlaceholders(String var1, ShopItem var2, Player var3, boolean var4, boolean var5, boolean var6, int var7, int var8) {
+   private String getSellPriceRaw(ShopItem shopItem, Player player, boolean flag, boolean flag2) {
+      if (shopItem.isSellAble()) {
+         if (!flag2 && !flag) {
+            return shopItem.isASellPricing()
+               ? shopItem.getASellPrice()
+                  .getSellPrices(null, shopItem.getStackSize(), true)
+                  .entrySet()
+                  .stream()
+                  .map(entry -> entry.getKey() + ": " + entry.getValue())
+                  .collect(Collectors.joining(", "))
+               : String.valueOf(shopItem.getSellPrice(shopItem.getStackSize(), true));
+         } else {
+            return shopItem.isASellPricing()
+               ? shopItem.getASellPrice()
+                  .getSellPrices(null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+                  .entrySet()
+                  .stream()
+                  .map(entry -> entry.getKey() + ": " + entry.getValue())
+                  .collect(Collectors.joining(", "))
+               : String.valueOf(shopItem.getSellPrice(player, shopItem.getStackSize(), true));
+         }
+      } else {
+         return "-1";
+      }
+   }
+
+   private Replacement[] pricePlaceholders(String price, ShopItem shopItem, Player player, boolean flag, boolean flag2, boolean flag3, int value, int value2) {
       return new Replacement[]{
-         new Replacement("%buyPrice%", () -> this.getBuyPrice(var1, var2, var3, var4, var6)),
-         new Replacement("%sellPrice%", () -> this.getSellPrice(var1, var2, var3, var5, var6)),
-         new Replacement("%buyPriceRaw%", () -> this.getBuyPriceRaw(var2, var3, var4, var6)),
-         new Replacement("%sellPriceRaw%", () -> this.getSellPriceRaw(var2, var3, var5, var6)),
-         new Replacement("%player_displayname%", () -> this.plugin.getDisplayName(var3)),
+         new Replacement("%buyPrice%", () -> this.getBuyPrice(price, shopItem, player, flag, flag3)),
+         new Replacement("%sellPrice%", () -> this.getSellPrice(price, shopItem, player, flag2, flag3)),
+         new Replacement("%buyPriceRaw%", () -> this.getBuyPriceRaw(shopItem, player, flag, flag3)),
+         new Replacement("%sellPriceRaw%", () -> this.getSellPriceRaw(shopItem, player, flag2, flag3)),
+         new Replacement("%player_displayname%", () -> this.plugin.getDisplayName(player)),
          new Replacement(
-            "%player_balance%", () -> this.plugin.formatPrice(var2.getEcoType(), this.plugin.getEcoHandler().getEcon(var2.getEcoType()).getBalance(var3))
+            "%player_balance%", () -> this.plugin.formatPrice(shopItem.getEcoType(), this.plugin.getEcoHandler().getEcon(shopItem.getEcoType()).getBalance(player))
          ),
-         new Replacement("%page%", () -> String.valueOf(var7)),
-         new Replacement("%pages%", () -> String.valueOf(var8))
+         new Replacement("%page%", () -> String.valueOf(value)),
+         new Replacement("%pages%", () -> String.valueOf(value2))
       };
    }
 
-   private String[] parsePlaceholders(ShopItem var1, Player var2, boolean var3, boolean var4, boolean var5, boolean var6, boolean var7, int var8, int var9) {
-      String[] var10 = var1.getLore().get(var3, var4);
+   private String[] parsePlaceholders(ShopItem shopItem, Player player, boolean flag, boolean flag2, boolean flag3, boolean flag4, boolean flag5, int value, int value2) {
+      String[] lores = shopItem.getLore().get(flag, flag2);
 
-      for (Entry<Integer, Placeholder> var12 : var1.getPlaceholders().entrySet()) {
-         if ((Integer)var12.getKey() != -1) {
-            var10[var12.getKey()] = ((Placeholder)var12.getValue())
+      for (Entry<Integer, Placeholder> entry : shopItem.getPlaceholders().entrySet()) {
+         if ((Integer)entry.getKey() != -1) {
+            lores[entry.getKey()] = ((Placeholder)entry.getValue())
                .translate(
-                  var10[var12.getKey()],
-                  var2,
-                  var1.isPriceLore()
-                     ? this.pricePlaceholders(((Placeholder)var12.getValue()).getRaw(), var1, var2, var5, var6, var7, var8, var9)
+                  lores[entry.getKey()],
+                  player,
+                  shopItem.isPriceLore()
+                     ? this.pricePlaceholders(((Placeholder)entry.getValue()).getRaw(), shopItem, player, flag3, flag4, flag5, value, value2)
                      : new Replacement[0]
                );
          }
       }
 
-      return var10;
+      return lores;
    }
 
-   private Replacement[] actionPlaceholders(ActionItem var1, Player var2, EcoType var3, int var4, int var5) {
+   private Replacement[] actionPlaceholders(ActionItem actionItem, Player player, EcoType ecoType, int value, int value2) {
       return new Replacement[]{
-         new Replacement("%player_displayname%", () -> this.plugin.getDisplayName(var2)),
-         new Replacement("%player_balance%", () -> this.plugin.formatPrice(var3, this.plugin.getEcoHandler().getEcon(var3).getBalance(var2))),
-         new Replacement("%page%", () -> String.valueOf(var4)),
-         new Replacement("%pages%", () -> String.valueOf(var5))
+         new Replacement("%player_displayname%", () -> this.plugin.getDisplayName(player)),
+         new Replacement("%player_balance%", () -> this.plugin.formatPrice(ecoType, this.plugin.getEcoHandler().getEcon(ecoType).getBalance(player))),
+         new Replacement("%page%", () -> String.valueOf(value)),
+         new Replacement("%pages%", () -> String.valueOf(value2))
       };
    }
 
-   private String[] parsePlaceholders(ActionItem var1, Player var2, EcoType var3, boolean var4, boolean var5, int var6, int var7) {
-      String[] var8 = var1.getLore().get(var4, var5);
+   private String[] parsePlaceholders(ActionItem actionItem, Player player, EcoType ecoType, boolean flag, boolean flag2, int value, int value2) {
+      String[] lores = actionItem.getLore().get(flag, flag2);
 
-      for (Entry<Integer, Placeholder> var10 : var1.getPlaceholders().entrySet()) {
-         if ((Integer)var10.getKey() != -1) {
-            var8[var10.getKey()] = ((Placeholder)var10.getValue()).translate(var8[var10.getKey()], var2, this.actionPlaceholders(var1, var2, var3, var6, var7));
+      for (Entry<Integer, Placeholder> entry : actionItem.getPlaceholders().entrySet()) {
+         if ((Integer)entry.getKey() != -1) {
+            lores[entry.getKey()] = ((Placeholder)entry.getValue()).translate(lores[entry.getKey()], player, this.actionPlaceholders(actionItem, player, ecoType, value, value2));
          }
       }
 
-      return var8;
+      return lores;
    }
 
    private final class ActionAdminLore {
@@ -497,23 +497,23 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList itemIndex;
       private final boolean after;
 
-      public ActionAdminLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
+      public ActionAdminLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
          this.itemEditor = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "item-editor"), Lang.SHIFT_CLICK_ITEM_EDITOR.get().toString()
+            LoreFormatter.this.getStringList(section, "item-editor"), Lang.SHIFT_CLICK_ITEM_EDITOR.get().toString()
          );
          this.itemIndex = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "item-index"), Lang.ITEM_LOCATION_IN_SHOP.get().toString(), "%shopsection%", "%itemLoc%"
+            LoreFormatter.this.getStringList(section, "item-index"), Lang.ITEM_LOCATION_IN_SHOP.get().toString(), "%shopsection%", "%itemLoc%"
          );
       }
 
-      public void apply(ActionItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
-         if (var7[0]) {
-            var3.addAll(this.itemEditor.get(var5, var6, var2));
+      public void apply(ActionItem actionItem, Player player, LoreFormatter.Lore lore, String itemId, boolean flag, boolean flag2, boolean... playerNames) {
+         if (playerNames[0]) {
+            lore.addAll(this.itemEditor.get(flag, flag2, player));
          }
 
-         if (var7[1]) {
-            var3.addAll(this.itemIndex.get(var5, var6, var2, "%shopsection%", var4, "%itemLoc%", var1.itemLoc));
+         if (playerNames[1]) {
+            lore.addAll(this.itemIndex.get(flag, flag2, player, "%shopsection%", itemId, "%itemLoc%", actionItem.itemLoc));
          }
       }
    }
@@ -523,30 +523,30 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList itemIndex;
       private final boolean after;
 
-      public AdminLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
+      public AdminLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
          this.itemEditor = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "item-editor"), Lang.SHIFT_CLICK_ITEM_EDITOR.get().toString()
+            LoreFormatter.this.getStringList(section, "item-editor"), Lang.SHIFT_CLICK_ITEM_EDITOR.get().toString()
          );
          this.itemIndex = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "item-index"), Lang.ITEM_LOCATION_IN_SHOP.get().toString(), "%shopsection%", "%itemLoc%"
+            LoreFormatter.this.getStringList(section, "item-index"), Lang.ITEM_LOCATION_IN_SHOP.get().toString(), "%shopsection%", "%itemLoc%"
          );
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
-         if (var7[0]) {
-            var3.addAll(this.itemEditor.get(var5, var6, var2));
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
+         if (itemIds[0]) {
+            lore.addAll(this.itemEditor.get(flag, flag2, player));
          }
 
-         if (var7[1]) {
-            var3.addAll(this.itemIndex.get(var5, var6, var2, "%shopsection%", var4, "%itemLoc%", var1.itemLoc));
+         if (itemIds[1]) {
+            lore.addAll(this.itemIndex.get(flag, flag2, player, "%shopsection%", shopId, "%itemLoc%", shopItem.itemLoc));
          }
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
       }
    }
@@ -560,153 +560,153 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList discountedBuyPrices;
       private final boolean after;
 
-      public BuyLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
-         this.disabled = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("disabled"), Lang.ITEM_CANNOT_BE_BOUGHT.get().toString());
-         this.undefined = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("undefined"), "");
+      public BuyLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
+         this.disabled = LoreFormatter.this.getDynamicLoreList(section.getStringList("disabled"), Lang.ITEM_CANNOT_BE_BOUGHT.get().toString());
+         this.undefined = LoreFormatter.this.getDynamicLoreList(section.getStringList("undefined"), "");
          this.buyPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("normal"), Lang.LEFT_CLICK_BUY.get().toString(), "%buyPrice%", "%buyPriceRaw%"
+            section.getStringList("normal"), Lang.LEFT_CLICK_BUY.get().toString(), "%buyPrice%", "%buyPriceRaw%"
          );
          this.dynamicBuyPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("dynamic-price"), Lang.DYNAMIC_BUY_PRICE.get().toString(), "%dpp%", "%buyPrice%", "%buyPriceRaw%", "%dynamicBuyPrice%"
+            section.getStringList("dynamic-price"), Lang.DYNAMIC_BUY_PRICE.get().toString(), "%dpp%", "%buyPrice%", "%buyPriceRaw%", "%dynamicBuyPrice%"
          );
          this.seasonalBuyPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("seasonal"), Lang.SEASONAL_BUY_PRICE.get().toString(), "%dpp%", "%buyPrice%", "%buyPriceRaw%", "%seasonalBuyPrice%"
+            section.getStringList("seasonal"), Lang.SEASONAL_BUY_PRICE.get().toString(), "%dpp%", "%buyPrice%", "%buyPriceRaw%", "%seasonalBuyPrice%"
          );
          this.discountedBuyPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("discounted"), Lang.DISCOUNTED_BUY_PRICE.get().toString(), "%dpp%", "%buyPrice%", "%buyPriceRaw%", "%discountedPrice%"
+            section.getStringList("discounted"), Lang.DISCOUNTED_BUY_PRICE.get().toString(), "%dpp%", "%buyPrice%", "%buyPriceRaw%", "%discountedPrice%"
          );
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
-         this.apply(null, var1, var2, var3, var4, var5, var6, var7);
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
+         this.apply(null, shopItem, player, lore, shopId, flag, flag2, itemIds);
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
-         if (var2.isBuyLore()) {
-            if (var2.isBuyAble()) {
-               if (var8[3]) {
-                  var4.addAll(
+         if (shopItem.isBuyLore()) {
+            if (shopItem.isBuyAble()) {
+               if (shopIds[3]) {
+                  lore.addAll(
                      this.seasonalBuyPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%dpp%",
-                           var2.isDynamicPricing() && var8[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(var2, var3, true) : "",
+                           shopItem.isDynamicPricing() && shopIds[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(shopItem, player, true) : "",
                            "%buyPrice%",
                            ChatColor.stripColor(
-                              var2.isABuyPricing()
-                                 ? var2.getABuyPrice().formatBuyPrices(null)
-                                 : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice())
+                              shopItem.isABuyPricing()
+                                 ? shopItem.getABuyPrice().formatBuyPrices(null)
+                                 : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice())
                            ),
                            "%buyPriceRaw%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice()
-                                 .getBuyPrices(null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice()
+                                 .getBuyPrices(null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getBuyPrice(var3, var2.getStackSize(), true, var1)),
+                              : String.valueOf(shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%seasonalBuyPrice%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice().formatBuyPrices(null, null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var3, var2.getStackSize(), true, var1))
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice().formatBuyPrices(null, null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
-               } else if (var8[0] && CalculateAmount.calculateDiscount(var3, var5, var2.getBuyPrice()) != var2.getBuyPrice()) {
-                  var4.addAll(
+               } else if (shopIds[0] && CalculateAmount.calculateDiscount(player, lore2, shopItem.getBuyPrice()) != shopItem.getBuyPrice()) {
+                  lore.addAll(
                      this.discountedBuyPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%dpp%",
-                           var2.isDynamicPricing() && var8[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(var2, var3, true) : "",
+                           shopItem.isDynamicPricing() && shopIds[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(shopItem, player, true) : "",
                            "%buyPrice%",
                            ChatColor.stripColor(
-                              var2.isABuyPricing()
-                                 ? var2.getABuyPrice().formatBuyPrices(null)
-                                 : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice())
+                              shopItem.isABuyPricing()
+                                 ? shopItem.getABuyPrice().formatBuyPrices(null)
+                                 : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice())
                            ),
                            "%buyPriceRaw%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice()
-                                 .getBuyPrices(null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice()
+                                 .getBuyPrices(null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getBuyPrice(var3, var2.getStackSize(), true, var1)),
+                              : String.valueOf(shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%discountedPrice%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice().formatBuyPrices(null, null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var3, var2.getStackSize(), true, var1))
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice().formatBuyPrices(null, null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
-               } else if (var2.isDynamicPricing() && var8[2] && var2.getBuyPrice(1, true, var1) != var2.getBuyPriceRaw(1)) {
-                  var4.addAll(
+               } else if (shopItem.isDynamicPricing() && shopIds[2] && shopItem.getBuyPrice(1, true, pageIndex) != shopItem.getBuyPriceRaw(1)) {
+                  lore.addAll(
                      this.dynamicBuyPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%dpp%",
-                           LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(var2, var3, true),
+                           LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(shopItem, player, true),
                            "%buyPrice%",
                            ChatColor.stripColor(
-                              var2.isABuyPricing()
-                                 ? var2.getABuyPrice().formatBuyPrices(null)
-                                 : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice())
+                              shopItem.isABuyPricing()
+                                 ? shopItem.getABuyPrice().formatBuyPrices(null)
+                                 : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice())
                            ),
                            "%buyPriceRaw%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice()
-                                 .getBuyPrices(null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice()
+                                 .getBuyPrices(null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getBuyPrice(var3, var2.getStackSize(), true, var1)),
+                              : String.valueOf(shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%dynamicBuyPrice%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice().formatBuyPrices(null, null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var3, var2.getStackSize(), true, var1))
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice().formatBuyPrices(null, null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
                } else {
-                  var4.addAll(
+                  lore.addAll(
                      this.buyPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%buyPrice%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice().formatBuyPrices(null, null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getBuyPrice(var3, var2.getStackSize(), true, var1)),
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice().formatBuyPrices(null, null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%buyPriceRaw%",
-                           var2.isABuyPricing()
-                              ? var2.getABuyPrice()
-                                 .getBuyPrices(null, var3, var2.getStackSize(), var2.getBuyModifiers(), true)
+                           shopItem.isABuyPricing()
+                              ? shopItem.getABuyPrice()
+                                 .getBuyPrices(null, player, shopItem.getStackSize(), shopItem.getBuyModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getBuyPrice(var3, var2.getStackSize(), true, var1))
+                              : String.valueOf(shopItem.getBuyPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
                }
             } else {
-               var4.addAll(this.disabled.get(var6, var7, var3));
+               lore.addAll(this.disabled.get(flag, flag2, player));
             }
          } else {
-            var4.addAll(this.undefined.get(var6, var7, var3));
+            lore.addAll(this.undefined.get(flag, flag2, player));
          }
       }
    }
@@ -715,18 +715,18 @@ public final class LoreFormatter {
       private final List<String> lore = new ArrayList<>();
       private final ItemStack item;
 
-      public ComponentLore(ItemStack nullx) {
-         this.item = nullx;
+      public ComponentLore(ItemStack itemStack) {
+         this.item = itemStack;
       }
 
       @Override
-      public void addAll(String[] var1) {
-         this.lore.addAll(Arrays.asList(var1));
+      public void addAll(String[] values) {
+         this.lore.addAll(Arrays.asList(values));
       }
 
       @Override
-      public void add(String var1) {
-         this.lore.add(var1);
+      public void add(String text) {
+         this.lore.add(text);
       }
 
       @Override
@@ -735,9 +735,9 @@ public final class LoreFormatter {
             return (ItemStack)ReflectUtil.invokeStaticLegacyMethod(
                "setLore", LoreFormatter.this.plugin.getMetaUtils().getClass(), new Class[]{ItemStack.class, ArrayList.class}, this.item, this.lore
             );
-         } catch (Exception var2) {
+         } catch (Exception exception) {
             SendMessage.warnMessage("Failed to display component lore on shop item");
-            var2.printStackTrace();
+            exception.printStackTrace();
             return null;
          }
       }
@@ -750,86 +750,86 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList sellAllLore;
       private final LoreFormatter.DynamicLoreList manageLore;
 
-      public DecorationLore(ConfigurationSection nullx) {
-         this.lore = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("extra-lore"), "");
-         this.buyLore = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("extra-buy-lore"), "");
-         this.sellLore = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("extra-sell-lore"), "");
-         this.sellAllLore = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("extra-sell-all-lore"), "");
-         this.manageLore = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("extra-view-lore"), "");
+      public DecorationLore(ConfigurationSection section) {
+         this.lore = LoreFormatter.this.getDynamicLoreList(section.getStringList("extra-lore"), "");
+         this.buyLore = LoreFormatter.this.getDynamicLoreList(section.getStringList("extra-buy-lore"), "");
+         this.sellLore = LoreFormatter.this.getDynamicLoreList(section.getStringList("extra-sell-lore"), "");
+         this.sellAllLore = LoreFormatter.this.getDynamicLoreList(section.getStringList("extra-sell-all-lore"), "");
+         this.manageLore = LoreFormatter.this.getDynamicLoreList(section.getStringList("extra-view-lore"), "");
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
-         if (var1.isDecorationLore()) {
-            var3.addAll(this.lore.get(var5, var6 || var7[0], var2));
-            if (!var7[0]) {
-               if (var1.isBuyAble() && var1.isBuyLore()) {
-                  var3.addAll(this.buyLore.get(var5, var6 || var7[0], var2));
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
+         if (shopItem.isDecorationLore()) {
+            lore.addAll(this.lore.get(flag, flag2 || itemIds[0], player));
+            if (!itemIds[0]) {
+               if (shopItem.isBuyAble() && shopItem.isBuyLore()) {
+                  lore.addAll(this.buyLore.get(flag, flag2 || itemIds[0], player));
                }
 
-               if (var1.isSellAble() && var1.isSellLore()) {
+               if (shopItem.isSellAble() && shopItem.isSellLore()) {
                   if (LoreFormatter.this.plugin.MMB) {
-                     var3.addAll(this.sellAllLore.get(var5, var6 || var7[0], var2));
+                     lore.addAll(this.sellAllLore.get(flag, flag2 || itemIds[0], player));
                   }
 
-                  var3.addAll(this.sellLore.get(var5, var6 || var7[0], var2));
+                  lore.addAll(this.sellLore.get(flag, flag2 || itemIds[0], player));
                }
             } else {
-               var3.addAll(this.manageLore.get(var5, var7[0], var2));
+               lore.addAll(this.manageLore.get(flag, itemIds[0], player));
             }
          }
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
       }
    }
 
    private interface DisplayLore {
-      void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7);
+      void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds);
 
-      void apply(LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8);
+      void apply(LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds);
    }
 
    private final class DynamicBukkitLoreList implements LoreFormatter.DynamicLoreList {
       private final LoreFormatter.LocalizedLore lore;
       private final Map<Locale, LoreFormatter.LocalizedLore> localizedLore;
 
-      public DynamicBukkitLoreList(List<String> nullx, String nullxx, String... nullxxx) {
-         String[] var5 = nullx != null
-            ? (!LoreFormatter.this.isEmpty(nullx) ? LoreFormatter.this.translate(nullx).toArray(new String[nullx.size()]) : new String[0])
-            : LoreFormatter.this.translate(nullxx).split("\n");
-         String[] var6 = Arrays.stream(var5).map(var1 -> LoreFormatter.this.plugin.versionHandler.toNBT(var1)).toArray(String[]::new);
-         this.lore = !LoreFormatter.this.plugin.perPlayerLanguages ? new LoreFormatter.LocalizedLore(var5, var6, nullxxx) : null;
-         this.localizedLore = LoreFormatter.this.plugin.perPlayerLanguages ? this.getlocalizedLore(nullx, nullxx, nullxxx) : null;
+      public DynamicBukkitLoreList(List<String> lores, String text, String... values) {
+         String[] values2 = lores != null
+            ? (!LoreFormatter.this.isEmpty(lores) ? LoreFormatter.this.translate(lores).toArray(new String[lores.size()]) : new String[0])
+            : LoreFormatter.this.translate(text).split("\n");
+         String[] values3 = Arrays.stream(values2).map(element -> LoreFormatter.this.plugin.versionHandler.toNBT(element)).toArray(String[]::new);
+         this.lore = !LoreFormatter.this.plugin.perPlayerLanguages ? new LoreFormatter.LocalizedLore(values2, values3, values) : null;
+         this.localizedLore = LoreFormatter.this.plugin.perPlayerLanguages ? this.getlocalizedLore(lores, text, values) : null;
       }
 
-      private Map<Locale, LoreFormatter.LocalizedLore> getlocalizedLore(List<String> var1, String var2, String... var3) {
-         HashMap var4 = new HashMap();
+      private Map<Locale, LoreFormatter.LocalizedLore> getlocalizedLore(List<String> lores, String text, String... values) {
+         HashMap map = new HashMap();
 
-         for (Locale var6 : Lang.getLocales()) {
-            String[] var7 = var1 != null
-               ? (!LoreFormatter.this.isEmpty(var1) ? LoreFormatter.this.translate(var1, var6).toArray(new String[0]) : new String[0])
-               : LoreFormatter.this.translate(var2, var6).split("\n");
-            String[] var8 = Arrays.stream(var7).map(var1x -> LoreFormatter.this.plugin.versionHandler.toNBT(var1x)).toArray(String[]::new);
-            var4.put(var6, new LoreFormatter.LocalizedLore(var7, var8, var3));
+         for (Locale locale : Lang.getLocales()) {
+            String[] values2 = lores != null
+               ? (!LoreFormatter.this.isEmpty(lores) ? LoreFormatter.this.translate(lores, locale).toArray(new String[0]) : new String[0])
+               : LoreFormatter.this.translate(text, locale).split("\n");
+            String[] values3 = Arrays.stream(values2).map(element -> LoreFormatter.this.plugin.versionHandler.toNBT(element)).toArray(String[]::new);
+            map.put(locale, new LoreFormatter.LocalizedLore(values2, values3, values));
          }
 
-         return var4;
+         return map;
       }
 
       @Override
-      public String[] get(boolean var1, boolean var2, Player var3, String... var4) {
-         LoreFormatter.LocalizedLore var5 = this.localizedLore != null ? LoreFormatter.getLocalized(this.localizedLore, var3) : this.lore;
-         String[] var6 = (String[])(var1 && !var2 ? var5.fastLore : var5.lore).clone();
+      public String[] get(boolean flag, boolean flag2, Player player, String... playerNames) {
+         LoreFormatter.LocalizedLore localizedLore = this.localizedLore != null ? LoreFormatter.getLocalized(this.localizedLore, player) : this.lore;
+         String[] text = (String[])(flag && !flag2 ? localizedLore.fastLore : localizedLore.lore).clone();
 
-         for (Entry<Integer, Placeholder> var8 : var5.placeholders.entrySet()) {
-            var6[var8.getKey()] = ((Placeholder)var8.getValue()).translate(var6[var8.getKey()], var3, var4);
+         for (Entry<Integer, Placeholder> entry : localizedLore.placeholders.entrySet()) {
+            text[entry.getKey()] = ((Placeholder)entry.getValue()).translate(text[entry.getKey()], player, playerNames);
          }
 
-         return var6;
+         return text;
       }
    }
 
@@ -837,67 +837,67 @@ public final class LoreFormatter {
       private final LoreFormatter.LocalizedLore lore;
       private final Map<Locale, LoreFormatter.LocalizedLore> localizedLore;
 
-      public DynamicCompLoreList(List<String> nullx, String nullxx, String... nullxxx) {
-         String[] var5 = nullx != null
-            ? (!LoreFormatter.this.isEmpty(nullx) ? LoreFormatter.this.translate(nullx).toArray(new String[nullx.size()]) : new String[0])
-            : LoreFormatter.this.translate(nullxx).split("\n");
-         String[] var6 = Arrays.stream(var5).map(ChatUtil::getGsonComponent).toArray(String[]::new);
-         this.lore = !LoreFormatter.this.plugin.perPlayerLanguages ? new LoreFormatter.LocalizedLore(var5, var6, nullxxx) : null;
-         this.localizedLore = LoreFormatter.this.plugin.perPlayerLanguages ? this.getlocalizedLore(nullx, nullxx, nullxxx) : null;
+      public DynamicCompLoreList(List<String> lores, String text, String... values) {
+         String[] values2 = lores != null
+            ? (!LoreFormatter.this.isEmpty(lores) ? LoreFormatter.this.translate(lores).toArray(new String[lores.size()]) : new String[0])
+            : LoreFormatter.this.translate(text).split("\n");
+         String[] values3 = Arrays.stream(values2).map(ChatUtil::getGsonComponent).toArray(String[]::new);
+         this.lore = !LoreFormatter.this.plugin.perPlayerLanguages ? new LoreFormatter.LocalizedLore(values2, values3, values) : null;
+         this.localizedLore = LoreFormatter.this.plugin.perPlayerLanguages ? this.getlocalizedLore(lores, text, values) : null;
       }
 
-      private Map<Locale, LoreFormatter.LocalizedLore> getlocalizedLore(List<String> var1, String var2, String... var3) {
-         HashMap var4 = new HashMap();
+      private Map<Locale, LoreFormatter.LocalizedLore> getlocalizedLore(List<String> lores, String text, String... values) {
+         HashMap map = new HashMap();
 
-         for (Locale var6 : Lang.getLocales()) {
-            String[] var7 = var1 != null
-               ? (!LoreFormatter.this.isEmpty(var1) ? LoreFormatter.this.translate(var1, var6).toArray(new String[0]) : new String[0])
-               : LoreFormatter.this.translate(var2, var6).split("\n");
-            String[] var8 = Arrays.stream(var7).map(ChatUtil::getGsonComponent).toArray(String[]::new);
-            var4.put(var6, new LoreFormatter.LocalizedLore(var7, var8, var3));
+         for (Locale locale : Lang.getLocales()) {
+            String[] values2 = lores != null
+               ? (!LoreFormatter.this.isEmpty(lores) ? LoreFormatter.this.translate(lores, locale).toArray(new String[0]) : new String[0])
+               : LoreFormatter.this.translate(text, locale).split("\n");
+            String[] values3 = Arrays.stream(values2).map(ChatUtil::getGsonComponent).toArray(String[]::new);
+            map.put(locale, new LoreFormatter.LocalizedLore(values2, values3, values));
          }
 
-         return var4;
+         return map;
       }
 
       @Override
-      public String[] get(boolean var1, boolean var2, Player var3, String... var4) {
-         LoreFormatter.LocalizedLore var5 = this.localizedLore != null ? LoreFormatter.getLocalized(this.localizedLore, var3) : this.lore;
-         String[] var6 = (String[])(var1 ? var5.fastLore : var5.lore).clone();
+      public String[] get(boolean flag, boolean flag2, Player player, String... playerNames) {
+         LoreFormatter.LocalizedLore localizedLore = this.localizedLore != null ? LoreFormatter.getLocalized(this.localizedLore, player) : this.lore;
+         String[] text = (String[])(flag ? localizedLore.fastLore : localizedLore.lore).clone();
 
-         for (Entry<Integer, Placeholder> var8 : var5.placeholders.entrySet()) {
-            var6[var8.getKey()] = ((Placeholder)var8.getValue()).translate(var6[var8.getKey()], var3, var4);
+         for (Entry<Integer, Placeholder> entry : localizedLore.placeholders.entrySet()) {
+            text[entry.getKey()] = ((Placeholder)entry.getValue()).translate(text[entry.getKey()], player, playerNames);
          }
 
-         return var6;
+         return text;
       }
    }
 
    private interface DynamicLoreList {
-      String[] get(boolean var1, boolean var2, Player var3, String... var4);
+      String[] get(boolean flag, boolean flag2, Player player, String... playerNames);
    }
 
    private final class FastLore implements LoreFormatter.Lore {
       private final Object lore = LoreFormatter.this.plugin.versionHandler.emptyList();
       private final ItemStack stack;
 
-      public FastLore(ItemStack nullx) {
-         this.stack = nullx;
+      public FastLore(ItemStack itemStack) {
+         this.stack = itemStack;
       }
 
       @Override
-      public void add(String var1) {
-         LoreFormatter.this.plugin.versionHandler.addItemLore(this.lore, var1);
+      public void add(String text) {
+         LoreFormatter.this.plugin.versionHandler.addItemLore(this.lore, text);
       }
 
-      public void add(String var1, int var2) {
-         LoreFormatter.this.plugin.versionHandler.addItemLore(this.lore, var1, var2);
+      public void add(String text, int value) {
+         LoreFormatter.this.plugin.versionHandler.addItemLore(this.lore, text, value);
       }
 
       @Override
-      public void addAll(String[] var1) {
-         for (String var5 : var1) {
-            this.add(var5);
+      public void addAll(String[] values) {
+         for (String text : values) {
+            this.add(text);
          }
       }
 
@@ -912,12 +912,12 @@ public final class LoreFormatter {
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
       }
    }
@@ -928,49 +928,49 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList restocking;
       private final boolean after;
 
-      public LimitLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
+      public LimitLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
          this.currentLimit = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "current-limit"), Lang.SELL_LIMIT.get().toString(), "%limit%"
+            LoreFormatter.this.getStringList(section, "current-limit"), Lang.SELL_LIMIT.get().toString(), "%limit%"
          );
          this.reachedLimit = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "limit-reached"), Lang.SELL_LIMIT_REACHED.get().toString()
+            LoreFormatter.this.getStringList(section, "limit-reached"), Lang.SELL_LIMIT_REACHED.get().toString()
          );
          this.restocking = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "restocking"), Lang.SELL_LIMIT_RESTOCKING.get().toString(), "%time%"
+            LoreFormatter.this.getStringList(section, "restocking"), Lang.SELL_LIMIT_RESTOCKING.get().toString(), "%time%"
          );
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
-         int var9 = LoreFormatter.this.plugin.getLimitedSellProvider().getItemLimit(var2, var3.getUniqueId(), true, true, var1);
-         if (var9 >= 0) {
-            var4.addAll(this.currentLimit.get(var6, var7, var3, "%limit%", String.valueOf(var9)));
-         } else if (var9 == -1) {
-            var4.addAll(
-               this.restocking.get(var6, var7, var3, "%time%", LoreFormatter.this.plugin.getLimitedSellProvider().getTimeLeftToRestock(var2.getItemPath()))
+         int itemLimit = LoreFormatter.this.plugin.getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true, true, pageIndex);
+         if (itemLimit >= 0) {
+            lore.addAll(this.currentLimit.get(flag, flag2, player, "%limit%", String.valueOf(itemLimit)));
+         } else if (itemLimit == -1) {
+            lore.addAll(
+               this.restocking.get(flag, flag2, player, "%time%", LoreFormatter.this.plugin.getLimitedSellProvider().getTimeLeftToRestock(shopItem.getItemPath()))
             );
-         } else if (var9 == -2) {
-            var4.addAll(
+         } else if (itemLimit == -2) {
+            lore.addAll(
                this.restocking
                   .get(
-                     var6,
-                     var7,
-                     var3,
+                     flag,
+                     flag2,
+                     player,
                      "%time%",
-                     LoreFormatter.this.plugin.getLimitedSellProvider().getTimeLeftToRestock(var3.getUniqueId(), var2.getItemPath())
+                     LoreFormatter.this.plugin.getLimitedSellProvider().getTimeLeftToRestock(player.getUniqueId(), shopItem.getItemPath())
                   )
             );
-         } else if (var9 != -3 && var9 != -4) {
-            var4.addAll(this.currentLimit.get(var6, var7, var3, "%limit%", String.valueOf(var9)));
+         } else if (itemLimit != -3 && itemLimit != -4) {
+            lore.addAll(this.currentLimit.get(flag, flag2, player, "%limit%", String.valueOf(itemLimit)));
          } else {
-            var4.addAll(this.reachedLimit.get(var6, var7, var3));
+            lore.addAll(this.reachedLimit.get(flag, flag2, player));
          }
       }
    }
@@ -980,25 +980,25 @@ public final class LoreFormatter {
       private final String[] lore;
       private final String[] fastLore;
 
-      private LocalizedLore(String[] var1, String[] var2, String... var3) {
-         this.lore = var1;
-         this.fastLore = var2;
-         int var4 = 0;
+      private LocalizedLore(String[] lores, String[] values, String... values2) {
+         this.lore = lores;
+         this.fastLore = values;
+         int value = 0;
 
-         for (String var8 : var1) {
-            if (Placeholder.isPlaceholder(var8, var3)) {
-               this.placeholders.put(var4, new Placeholder(var8, var3));
+         for (String text : lores) {
+            if (Placeholder.isPlaceholder(text, values2)) {
+               this.placeholders.put(value, new Placeholder(text, values2));
             }
 
-            var4++;
+            value++;
          }
       }
    }
 
    private interface Lore {
-      void addAll(String[] var1);
+      void addAll(String[] values);
 
-      void add(String var1);
+      void add(String text);
 
       ItemStack form();
    }
@@ -1022,9 +1022,9 @@ public final class LoreFormatter {
       public final int page;
       private List<ShopItem> items;
 
-      public PageIndex(String var1, int var2) {
-         this.section = var1;
-         this.page = var2;
+      public PageIndex(String text, int page) {
+         this.section = text;
+         this.page = page;
       }
 
       public List<ShopItem> getItems() {
@@ -1040,18 +1040,18 @@ public final class LoreFormatter {
       private final ArrayList<String> lore = new ArrayList<>();
       private final ItemStack item;
 
-      public RawComponentLore(ItemStack nullx) {
-         this.item = nullx;
+      public RawComponentLore(ItemStack itemStack) {
+         this.item = itemStack;
       }
 
       @Override
-      public void addAll(String[] var1) {
-         this.lore.addAll(Arrays.asList(var1));
+      public void addAll(String[] values) {
+         this.lore.addAll(Arrays.asList(values));
       }
 
       @Override
-      public void add(String var1) {
-         this.lore.add(var1);
+      public void add(String text) {
+         this.lore.add(text);
       }
 
       @Override
@@ -1060,9 +1060,9 @@ public final class LoreFormatter {
             return (ItemStack)ReflectUtil.invokeStaticLegacyMethod(
                "setRawLore", LoreFormatter.this.plugin.getMetaUtils().getClass(), new Class[]{ItemStack.class, ArrayList.class}, this.item, this.lore
             );
-         } catch (Exception var2) {
+         } catch (Exception exception) {
             SendMessage.warnMessage("Failed to display component lore on shop item");
-            var2.printStackTrace();
+            exception.printStackTrace();
             return null;
          }
       }
@@ -1073,12 +1073,12 @@ public final class LoreFormatter {
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
       }
    }
@@ -1093,158 +1093,158 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList sellAllLore;
       private final boolean after;
 
-      public SellLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
-         this.disabled = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("disabled"), Lang.ITEM_CANNOT_BE_SOLD.get().toString());
-         this.undefined = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("undefined"), "");
+      public SellLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
+         this.disabled = LoreFormatter.this.getDynamicLoreList(section.getStringList("disabled"), Lang.ITEM_CANNOT_BE_SOLD.get().toString());
+         this.undefined = LoreFormatter.this.getDynamicLoreList(section.getStringList("undefined"), "");
          this.sellPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("normal"), Lang.RIGHT_CLICK_SELL.get().toString(), "%sellPrice%", "%sellPriceRaw%"
+            section.getStringList("normal"), Lang.RIGHT_CLICK_SELL.get().toString(), "%sellPrice%", "%sellPriceRaw%"
          );
          this.dynamicSellPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("dynamic-price"), Lang.DYNAMIC_SELL_PRICE.get().toString(), "%dpp%", "%sellPrice%", "%sellPriceRaw%", "%dynamicSellPrice%"
+            section.getStringList("dynamic-price"), Lang.DYNAMIC_SELL_PRICE.get().toString(), "%dpp%", "%sellPrice%", "%sellPriceRaw%", "%dynamicSellPrice%"
          );
          this.seasonalSellPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("seasonal"), Lang.SEASONAL_SELL_PRICE.get().toString(), "%dpp%", "%sellPrice%", "%sellPriceRaw%", "%seasonalSellPrice%"
+            section.getStringList("seasonal"), Lang.SEASONAL_SELL_PRICE.get().toString(), "%dpp%", "%sellPrice%", "%sellPriceRaw%", "%seasonalSellPrice%"
          );
          this.multipliedSellPrices = LoreFormatter.this.getDynamicLoreList(
-            nullx.getStringList("multiplied"), Lang.MULTIPLIED_SELL_PRICE.get().toString(), "%dpp%", "%sellPrice%", "%sellPriceRaw%", "%multipliedPrice%"
+            section.getStringList("multiplied"), Lang.MULTIPLIED_SELL_PRICE.get().toString(), "%dpp%", "%sellPrice%", "%sellPriceRaw%", "%multipliedPrice%"
          );
-         this.sellAllLore = LoreFormatter.this.getDynamicLoreList(nullx.getStringList("sell-all"), Lang.SHIFT_RIGHT_CLICK_SELL_ALL.get().toString());
+         this.sellAllLore = LoreFormatter.this.getDynamicLoreList(section.getStringList("sell-all"), Lang.SHIFT_RIGHT_CLICK_SELL_ALL.get().toString());
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
-         this.apply(null, var1, var2, var3, var4, var5, var6, var7);
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
+         this.apply(null, shopItem, player, lore, shopId, flag, flag2, itemIds);
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
-         if (var2.isSellLore()) {
-            if (var2.isSellAble()) {
-               if (var8[3]) {
-                  var4.addAll(
+         if (shopItem.isSellLore()) {
+            if (shopItem.isSellAble()) {
+               if (shopIds[3]) {
+                  lore.addAll(
                      this.seasonalSellPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%dpp%",
-                           var2.isDynamicPricing() && var8[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(var2, var3, false) : "",
+                           shopItem.isDynamicPricing() && shopIds[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(shopItem, player, false) : "",
                            "%sellPrice%",
                            ChatColor.stripColor(
-                              var2.isASellPricing()
-                                 ? var2.getASellPrice().formatSellPrices(null)
-                                 : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice())
+                              shopItem.isASellPricing()
+                                 ? shopItem.getASellPrice().formatSellPrices(null)
+                                 : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice())
                            ),
                            "%sellPriceRaw%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice()
-                                 .getSellPrices(null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice()
+                                 .getSellPrices(null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getSellPrice(var3, var2.getStackSize(), true, var1)),
+                              : String.valueOf(shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%seasonalSellPrice%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice().formatSellPrices(null, null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice(var3, var2.getStackSize(), true, var1))
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice().formatSellPrices(null, null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
-               } else if (var8[1] && CalculateAmount.calculateMultiplier(var3, var5, var2.getSellPrice()) != var2.getSellPrice()) {
-                  var4.addAll(
+               } else if (shopIds[1] && CalculateAmount.calculateMultiplier(player, lore2, shopItem.getSellPrice()) != shopItem.getSellPrice()) {
+                  lore.addAll(
                      this.multipliedSellPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%dpp%",
-                           var2.isDynamicPricing() && var8[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(var2, var3, false) : "",
+                           shopItem.isDynamicPricing() && shopIds[2] ? LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(shopItem, player, false) : "",
                            "%sellPrice%",
                            ChatColor.stripColor(
-                              var2.isASellPricing()
-                                 ? var2.getASellPrice().formatSellPrices(null)
-                                 : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice())
+                              shopItem.isASellPricing()
+                                 ? shopItem.getASellPrice().formatSellPrices(null)
+                                 : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice())
                            ),
                            "%sellPriceRaw%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice()
-                                 .getSellPrices(null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice()
+                                 .getSellPrices(null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getSellPrice(var3, var2.getStackSize(), true, var1)),
+                              : String.valueOf(shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%multipliedPrice%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice().formatSellPrices(null, null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice(var3, var2.getStackSize(), true, var1))
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice().formatSellPrices(null, null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
-               } else if (var2.isDynamicPricing() && var8[2] && var2.getSellPrice(1, true, var1) != var2.getSellPriceRaw(1)) {
-                  var4.addAll(
+               } else if (shopItem.isDynamicPricing() && shopIds[2] && shopItem.getSellPrice(1, true, pageIndex) != shopItem.getSellPriceRaw(1)) {
+                  lore.addAll(
                      this.dynamicSellPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%dpp%",
-                           LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(var2, var3, false),
+                           LoreFormatter.this.plugin.getDynamicPricingProvider().getStatus(shopItem, player, false),
                            "%sellPrice%",
                            ChatColor.stripColor(
-                              var2.isASellPricing()
-                                 ? var2.getASellPrice().formatSellPrices(null)
-                                 : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice())
+                              shopItem.isASellPricing()
+                                 ? shopItem.getASellPrice().formatSellPrices(null)
+                                 : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice())
                            ),
                            "%sellPriceRaw%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice()
-                                 .getSellPrices(null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice()
+                                 .getSellPrices(null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getSellPrice(var3, var2.getStackSize(), true, var1)),
+                              : String.valueOf(shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%dynamicSellPrice%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice().formatSellPrices(null, null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice(var3, var2.getStackSize(), true, var1))
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice().formatSellPrices(null, null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
                } else {
-                  var4.addAll(
+                  lore.addAll(
                      this.sellPrices
                         .get(
-                           var6,
-                           var7,
-                           var3,
+                           flag,
+                           flag2,
+                           player,
                            "%sellPrice%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice().formatSellPrices(null, null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
-                              : LoreFormatter.this.plugin.formatPrice(var2.getEcoType(), var2.getSellPrice(var3, var2.getStackSize(), true, var1)),
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice().formatSellPrices(null, null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
+                              : LoreFormatter.this.plugin.formatPrice(shopItem.getEcoType(), shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex)),
                            "%sellPriceRaw%",
-                           var2.isASellPricing()
-                              ? var2.getASellPrice()
-                                 .getSellPrices(null, var3, var2.getStackSize(), var2.getSellModifiers(), true)
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice()
+                                 .getSellPrices(null, player, shopItem.getStackSize(), shopItem.getSellModifiers(), true)
                                  .entrySet()
                                  .stream()
-                                 .map(var0 -> var0.getKey() + ": " + var0.getValue())
+                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                  .collect(Collectors.joining(", "))
-                              : String.valueOf(var2.getSellPrice(var3, var2.getStackSize(), true, var1))
+                              : String.valueOf(shopItem.getSellPrice(player, shopItem.getStackSize(), true, pageIndex))
                         )
                   );
                }
 
                if (LoreFormatter.this.plugin.MMB) {
-                  var4.addAll(this.sellAllLore.get(var6, var7, var3));
+                  lore.addAll(this.sellAllLore.get(flag, flag2, player));
                }
             } else {
-               var4.addAll(this.disabled.get(var6, var7, var3));
+               lore.addAll(this.disabled.get(flag, flag2, player));
             }
          } else {
-            var4.addAll(this.undefined.get(var6, var7, var3));
+            lore.addAll(this.undefined.get(flag, flag2, player));
          }
       }
    }
@@ -1253,31 +1253,31 @@ public final class LoreFormatter {
       private final List<String> lore = new ArrayList<>();
       private final ItemStack stack;
 
-      public ShopLore(ItemStack nullx) {
-         this.stack = nullx;
+      public ShopLore(ItemStack itemStack) {
+         this.stack = itemStack;
       }
 
       @Override
-      public void add(String var1) {
-         this.lore.add(var1);
+      public void add(String text) {
+         this.lore.add(text);
       }
 
-      public void add(String var1, int var2) {
-         this.lore.add(var2, var1);
+      public void add(String text, int value) {
+         this.lore.add(value, text);
       }
 
       @Override
-      public void addAll(String[] var1) {
-         for (String var5 : var1) {
-            this.add(var5);
+      public void addAll(String[] values) {
+         for (String text : values) {
+            this.add(text);
          }
       }
 
       @Override
       public ItemStack form() {
-         ItemMeta var1 = this.stack.getItemMeta();
-         var1.setLore(this.lore);
-         this.stack.setItemMeta(var1);
+         ItemMeta itemMeta = this.stack.getItemMeta();
+         itemMeta.setLore(this.lore);
+         this.stack.setItemMeta(itemMeta);
          return this.stack;
       }
    }
@@ -1289,63 +1289,63 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList seasonalPrice;
       private final boolean after;
 
-      public SpecialLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
+      public SpecialLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
          this.itemPerms = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "missing-item-permission.without-rank"), Lang.MISSING_REQUIRED_ITEM_PERMISSIONS.get().toString()
+            LoreFormatter.this.getStringList(section, "missing-item-permission.without-rank"), Lang.MISSING_REQUIRED_ITEM_PERMISSIONS.get().toString()
          );
          this.itemPermsRank = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "missing-item-permission.with-rank"), Lang.MISSING_REQUIRED_ITEM_PERMISSIONS_RANK.get().toString()
+            LoreFormatter.this.getStringList(section, "missing-item-permission.with-rank"), Lang.MISSING_REQUIRED_ITEM_PERMISSIONS_RANK.get().toString()
          );
          this.alreadyPurchased = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "already-purchased"), Lang.ALREADY_PURCHASED_ITEM.get().toString()
+            LoreFormatter.this.getStringList(section, "already-purchased"), Lang.ALREADY_PURCHASED_ITEM.get().toString()
          );
          this.seasonalPrice = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "seasonal-pricing"), Lang.ITEM_SEASONAL_PRICE.get().toString(), "%season-icon%", "%season-name%"
+            LoreFormatter.this.getStringList(section, "seasonal-pricing"), Lang.ITEM_SEASONAL_PRICE.get().toString(), "%season-icon%", "%season-name%"
          );
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
-         if (var7[0]) {
-            var3.addAll(
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
+         if (itemIds[0]) {
+            lore.addAll(
                this.seasonalPrice
                   .get(
-                     var5,
-                     var6,
-                     var2,
+                     flag,
+                     flag2,
+                     player,
                      "%season-icon%",
-                     SeasonProvider.getSeason(var2.getWorld().getName()).getIcon(),
+                     SeasonProvider.getSeason(player.getWorld().getName()).getIcon(),
                      "%season-name%",
-                     SeasonProvider.getSeason(var2.getWorld().getName()).getName()
+                     SeasonProvider.getSeason(player.getWorld().getName()).getName()
                   )
             );
          }
 
-         if (!var1.isPermRequirement()) {
-            if (var7[1]) {
-               var3.addAll(this.alreadyPurchased.get(var5, var6, var2));
+         if (!shopItem.isPermRequirement()) {
+            if (itemIds[1]) {
+               lore.addAll(this.alreadyPurchased.get(flag, flag2, player));
             }
-         } else if (!var7[1]) {
-            var3.addAll(this.getMissingRequiredPerms(var2, var1.getPermission(), var4, var5, var6));
+         } else if (!itemIds[1]) {
+            lore.addAll(this.getMissingRequiredPerms(player, shopItem.getPermission(), shopId, flag, flag2));
          }
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
       }
 
-      private String[] getMissingRequiredPerms(Player var1, String var2, String var3, boolean var4, boolean var5) {
+      private String[] getMissingRequiredPerms(Player player, String playerName, String text, boolean flag, boolean flag2) {
          if (LoreFormatter.this.plugin.getPermissionManager().getProvider() != null && LoreFormatter.this.plugin.permissionRankName) {
-            String var6 = LoreFormatter.this.plugin.getPermissionManager().getProvider().getGroupName("OnyxShop.shop." + var3 + ".item." + var2);
-            if (var6 != null) {
-               return this.itemPermsRank.get(var4, var5, var1, "%rank_name%", var6);
+            String groupName = LoreFormatter.this.plugin.getPermissionManager().getProvider().getGroupName("OnyxShop.shop." + text + ".item." + playerName);
+            if (groupName != null) {
+               return this.itemPermsRank.get(flag, flag2, player, "%rank_name%", groupName);
             }
          }
 
-         return this.itemPerms.get(var4, var5, var1);
+         return this.itemPerms.get(flag, flag2, player);
       }
    }
 
@@ -1353,25 +1353,25 @@ public final class LoreFormatter {
       public final LoreFormatter.LoreType type;
       public final List<String> lore;
 
-      public StaticLore(LoreFormatter.LoreType nullx, String[] nullxx) {
-         this.type = nullx;
-         this.lore = nullxx == null && nullx == LoreFormatter.LoreType.ITEM_LORE
+      public StaticLore(LoreFormatter.LoreType loreType, String[] lores) {
+         this.type = loreType;
+         this.lore = lores == null && loreType == LoreFormatter.LoreType.ITEM_LORE
             ? null
             : LoreFormatter.this.translate(
-               nullx != LoreFormatter.LoreType.BUY_LORE && nullx != LoreFormatter.LoreType.SELL_LORE
-                  ? Arrays.asList(nullxx)
-                  : Arrays.stream(nullxx).map(var0 -> var0.replace("%dpp%", "").replace("%dps%", "")).collect(Collectors.toList())
+               loreType != LoreFormatter.LoreType.BUY_LORE && loreType != LoreFormatter.LoreType.SELL_LORE
+                  ? Arrays.asList(lores)
+                  : Arrays.stream(lores).map(element -> element.replace("%dpp%", "").replace("%dps%", "")).collect(Collectors.toList())
             );
       }
 
-      public StaticLore(LoreFormatter.LoreType nullx, List<String> nullxx) {
-         this.type = nullx;
-         this.lore = nullxx == null && nullx == LoreFormatter.LoreType.ITEM_LORE
+      public StaticLore(LoreFormatter.LoreType loreType, List<String> lores) {
+         this.type = loreType;
+         this.lore = lores == null && loreType == LoreFormatter.LoreType.ITEM_LORE
             ? null
             : (
-               nullx != LoreFormatter.LoreType.BUY_LORE && nullx != LoreFormatter.LoreType.SELL_LORE
-                  ? LoreFormatter.this.translate(nullxx)
-                  : LoreFormatter.this.translate(nullxx).stream().map(var0 -> var0.replace("%dpp%", "").replace("%dps%", "")).collect(Collectors.toList())
+               loreType != LoreFormatter.LoreType.BUY_LORE && loreType != LoreFormatter.LoreType.SELL_LORE
+                  ? LoreFormatter.this.translate(lores)
+                  : LoreFormatter.this.translate(lores).stream().map(element -> element.replace("%dpp%", "").replace("%dps%", "")).collect(Collectors.toList())
             );
       }
    }
@@ -1382,49 +1382,49 @@ public final class LoreFormatter {
       private final LoreFormatter.DynamicLoreList restocking;
       private final boolean after;
 
-      public StockLore(ConfigurationSection nullx, boolean nullxx) {
-         this.after = nullxx;
+      public StockLore(ConfigurationSection section, boolean flag) {
+         this.after = flag;
          this.currentStock = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "current-stock"), Lang.CURRENT_ITEM_STOCK.get().toString(), "%itemStock%"
+            LoreFormatter.this.getStringList(section, "current-stock"), Lang.CURRENT_ITEM_STOCK.get().toString(), "%itemStock%"
          );
          this.outOfStock = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "out-of-stock"), Lang.ITEM_OUT_OF_STOCK.get().toString()
+            LoreFormatter.this.getStringList(section, "out-of-stock"), Lang.ITEM_OUT_OF_STOCK.get().toString()
          );
          this.restocking = LoreFormatter.this.getDynamicLoreList(
-            LoreFormatter.this.getStringList(nullx, "restocking"), Lang.RESTOCKING_ITEM.get().toString(), "%time%"
+            LoreFormatter.this.getStringList(section, "restocking"), Lang.RESTOCKING_ITEM.get().toString(), "%time%"
          );
       }
 
       @Override
-      public void apply(ShopItem var1, Player var2, LoreFormatter.Lore var3, String var4, boolean var5, boolean var6, boolean... var7) {
+      public void apply(ShopItem shopItem, Player player, LoreFormatter.Lore lore, String shopId, boolean flag, boolean flag2, boolean... itemIds) {
       }
 
       @Override
       public void apply(
-         LoreFormatter.PageIndex var1, ShopItem var2, Player var3, LoreFormatter.Lore var4, String var5, boolean var6, boolean var7, boolean... var8
+         LoreFormatter.PageIndex pageIndex, ShopItem shopItem, Player player, LoreFormatter.Lore lore, String lore2, boolean flag, boolean flag2, boolean... shopIds
       ) {
-         int var9 = LoreFormatter.this.plugin.getLimitedStockProvider().getItemStock(var2, var3.getUniqueId(), true, true, var1);
-         if (var9 >= 0) {
-            var4.addAll(this.currentStock.get(var6, var7, var3, "%itemStock%", String.valueOf(var9)));
-         } else if (var9 == -1) {
-            var4.addAll(
-               this.restocking.get(var6, var7, var3, "%time%", LoreFormatter.this.plugin.getLimitedStockProvider().getTimeLeftToRestock(var2.getItemPath()))
+         int itemStock = LoreFormatter.this.plugin.getLimitedStockProvider().getItemStock(shopItem, player.getUniqueId(), true, true, pageIndex);
+         if (itemStock >= 0) {
+            lore.addAll(this.currentStock.get(flag, flag2, player, "%itemStock%", String.valueOf(itemStock)));
+         } else if (itemStock == -1) {
+            lore.addAll(
+               this.restocking.get(flag, flag2, player, "%time%", LoreFormatter.this.plugin.getLimitedStockProvider().getTimeLeftToRestock(shopItem.getItemPath()))
             );
-         } else if (var9 == -2) {
-            var4.addAll(
+         } else if (itemStock == -2) {
+            lore.addAll(
                this.restocking
                   .get(
-                     var6,
-                     var7,
-                     var3,
+                     flag,
+                     flag2,
+                     player,
                      "%time%",
-                     LoreFormatter.this.plugin.getLimitedStockProvider().getTimeLeftToRestock(var3.getUniqueId(), var2.getItemPath())
+                     LoreFormatter.this.plugin.getLimitedStockProvider().getTimeLeftToRestock(player.getUniqueId(), shopItem.getItemPath())
                   )
             );
-         } else if (var9 != -3 && var9 != -4) {
-            var4.addAll(this.currentStock.get(var6, var7, var3, "%itemStock%", String.valueOf(var9)));
+         } else if (itemStock != -3 && itemStock != -4) {
+            lore.addAll(this.currentStock.get(flag, flag2, player, "%itemStock%", String.valueOf(itemStock)));
          } else {
-            var4.addAll(this.outOfStock.get(var6, var7, var3));
+            lore.addAll(this.outOfStock.get(flag, flag2, player));
          }
       }
    }

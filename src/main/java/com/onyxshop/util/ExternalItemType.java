@@ -7,16 +7,16 @@ public class ExternalItemType extends ItemType {
    private final String provider;
    private final String providerPrefix;
 
-   public ExternalItemType(Plugin var1, String var2) {
+   public ExternalItemType(Plugin plugin, String itemId) {
       super(ItemProviderType.EXTERNAL);
-      this.provider = var1.getName();
-      this.providerPrefix = var2;
+      this.provider = plugin.getName();
+      this.providerPrefix = itemId;
    }
 
-   public ExternalItemType(String var1) {
+   public ExternalItemType(String itemId) {
       super(ItemProviderType.EXTERNAL);
       this.provider = "";
-      this.providerPrefix = var1;
+      this.providerPrefix = itemId;
    }
 
    @Override
@@ -30,12 +30,12 @@ public class ExternalItemType extends ItemType {
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 instanceof ExternalItemType) {
-         ExternalItemType var2 = (ExternalItemType)var1;
-         return var2.providerPrefix.equals(this.providerPrefix);
+      } else if (value instanceof ExternalItemType) {
+         ExternalItemType externalItemType = (ExternalItemType)value;
+         return externalItemType.providerPrefix.equals(this.providerPrefix);
       } else {
          return false;
       }

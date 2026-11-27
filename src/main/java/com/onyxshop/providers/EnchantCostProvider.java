@@ -19,37 +19,37 @@ public class EnchantCostProvider {
    private final OnyxShop plugin;
    private final Map<String, EnchantCost> costs = new HashMap<>();
 
-   public EnchantCostProvider(OnyxShop var1) {
-      this.plugin = var1;
+   public EnchantCostProvider(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    public void reload() {
       this.costs.clear();
-      File var1 = new File(this.plugin.getDataFolder(), "enchant-costs.yml");
-      if (!var1.exists()) {
+      File file = new File(this.plugin.getDataFolder(), "enchant-costs.yml");
+      if (!file.exists()) {
          this.plugin.saveResource("enchant-costs.yml", false);
       }
 
       try {
-         YamlConfiguration var2 = OnyxShop.getInstance().loadConfiguration(var1);
-         ConfigurationSection var3 = var2.getConfigurationSection("enchants");
-         if (var3 == null) {
+         YamlConfiguration config = OnyxShop.getInstance().loadConfiguration(file);
+         ConfigurationSection section = config.getConfigurationSection("enchants");
+         if (section == null) {
             return;
          }
 
-         for (String var5 : var3.getKeys(false)) {
+         for (String text : section.getKeys(false)) {
             try {
-               EnchantCost var6 = EnchantCost.load(var3.getConfigurationSection(var5));
-               this.costs.put(var5.toLowerCase(Locale.ENGLISH), var6);
-            } catch (EnchantCostLoadException var7) {
-               SendMessage.warnMessage("Failed to load enchantment cost from enchant-costs.yml: " + var7.getMessage());
+               EnchantCost enchantCost = EnchantCost.load(section.getConfigurationSection(text));
+               this.costs.put(text.toLowerCase(Locale.ENGLISH), enchantCost);
+            } catch (EnchantCostLoadException exception) {
+               SendMessage.warnMessage("Failed to load enchantment cost from enchant-costs.yml: " + exception.getMessage());
             }
          }
 
          SendMessage.infoMessage(Lang.ENCHANTMENT_COSTS_LOADED.get().replace("%amount%", String.valueOf(this.costs.size())));
-      } catch (ConfigLoadException var8) {
+      } catch (ConfigLoadException exception) {
          SendMessage.errorMessage(Lang.ERROR_LOADING_ENCHANTMENT_COSTS.get());
-         var8.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
@@ -57,42 +57,42 @@ public class EnchantCostProvider {
       return this.costs.isEmpty();
    }
 
-   public double getEnchantAddition(ItemStack var1, ItemStack var2, double var3) {
+   public double getEnchantAddition(ItemStack itemStack, ItemStack itemStack2, double amount) {
       if (this.costs.isEmpty()) {
          return 0.0;
       } else {
-         Map<String, Integer> var5 = this.getEnchantLevels(var2);
-         double var6 = 0.0;
+         Map<String, Integer> enchantLevels = this.getEnchantLevels(itemStack2);
+         double amount2 = 0.0;
 
-         for (Entry var9 : this.getEnchantLevels(var1).entrySet()) {
-            EnchantCost var10 = this.costs.get(var9.getKey());
-            if (var10 != null) {
-               var6 += var10.getCost(var3, (Integer)var9.getValue(), var5.getOrDefault(var9.getKey(), 0));
+         for (Entry entry : this.getEnchantLevels(itemStack).entrySet()) {
+            EnchantCost enchantCost = this.costs.get(entry.getKey());
+            if (enchantCost != null) {
+               amount2 += enchantCost.getCost(amount, (Integer)entry.getValue(), enchantLevels.getOrDefault(entry.getKey(), 0));
             }
          }
 
-         return var6;
+         return amount2;
       }
    }
 
-   private Map<String, Integer> getEnchantLevels(ItemStack var1) {
-      HashMap var2 = new HashMap();
+   private Map<String, Integer> getEnchantLevels(ItemStack itemStack) {
+      HashMap map = new HashMap();
 
-      for (String var4 : this.plugin.enchantsProvider.getEnchantKeys(var1)) {
-         int var5 = var4.lastIndexOf(58);
-         String var6 = var4;
-         int var7 = 1;
-         if (var5 > 0) {
+      for (String text : this.plugin.enchantsProvider.getEnchantKeys(itemStack)) {
+         int index = text.lastIndexOf(58);
+         String text2 = text;
+         int value = 1;
+         if (index > 0) {
             try {
-               var6 = var4.substring(0, var5);
-               var7 = Integer.parseInt(var4.substring(var5 + 1));
-            } catch (NumberFormatException var9) {
+               text2 = text.substring(0, index);
+               value = Integer.parseInt(text.substring(index + 1));
+            } catch (NumberFormatException exception) {
             }
          }
 
-         var2.put(var6.toLowerCase(Locale.ENGLISH), var7);
+         map.put(text2.toLowerCase(Locale.ENGLISH), value);
       }
 
-      return var2;
+      return map;
    }
 }

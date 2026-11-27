@@ -21,74 +21,74 @@ public class CalculateAmount {
    private static OnyxShop plugin;
    private static final DecimalFormat f = new DecimalFormat("0.00");
 
-   public CalculateAmount(OnyxShop var1) {
-      plugin = var1;
+   public CalculateAmount(OnyxShop plugin2) {
+      plugin = plugin2;
    }
 
-   public List<String> loadItemsInOrder(ItemLayout var1, String var2, String var3, Integer var4, int var5) {
-      LinkedList<String> var6 = new LinkedList<>();
-      String var7 = "pages." + var3 + ".items";
+   public List<String> loadItemsInOrder(ItemLayout itemLayout, String itemId, String text, Integer value, int value2) {
+      LinkedList<String> values = new LinkedList<>();
+      String text2 = "pages." + text + ".items";
 
-      for (String var9 : ConfigManager.getShop(var2).getConfigurationSection(var7).getKeys(false)) {
-         if (!ConfigManager.getShop(var2).getBoolean(var7 + "." + var9 + ".hidden")) {
+      for (String shopId : ConfigManager.getShop(itemId).getConfigurationSection(text2).getKeys(false)) {
+         if (!ConfigManager.getShop(itemId).getBoolean(text2 + "." + shopId + ".hidden")) {
             try {
-               String var10 = ConfigManager.getShop(var2).getString(var7 + "." + var9 + ".slot");
-               ArrayList<Integer> var11 = this.getSlots(var10);
-               if (var11 != null && var11.stream().allMatch(var0 -> var0 >= 0)) {
-                  for (int var13 : var11) {
-                     while (var1.containsKey(var13)) {
-                        var13++;
+               String text3 = ConfigManager.getShop(itemId).getString(text2 + "." + shopId + ".slot");
+               ArrayList<Integer> slots = this.getSlots(text3);
+               if (slots != null && slots.stream().allMatch(element -> element >= 0)) {
+                  for (int value3 : slots) {
+                     while (itemLayout.containsKey(value3)) {
+                        value3++;
                      }
 
-                     var1.set(var13, var3 + ".items." + var9);
+                     itemLayout.set(value3, text + ".items." + shopId);
                   }
                } else {
-                  var6.add(var3 + ".items." + var9);
+                  values.add(text + ".items." + shopId);
                }
-            } catch (NumberFormatException var14) {
+            } catch (NumberFormatException exception) {
                SendMessage.warnMessage(
                   "Invalid slot index for format '"
-                     + ConfigManager.getShop(var2).getString(var7 + "." + var9 + ".slot")
+                     + ConfigManager.getShop(itemId).getString(text2 + "." + shopId + ".slot")
                      + "' for item '"
-                     + var2
+                     + itemId
                      + "."
-                     + var9
+                     + shopId
                      + "'"
                );
             }
          }
       }
 
-      for (String var16 : var6) {
-         var1.add(var16);
+      for (String text3 : values) {
+         itemLayout.add(text3);
       }
 
-      return var1.build(var4, var5);
+      return itemLayout.build(value, value2);
    }
 
-   public ArrayList<Integer> getSlots(String var1) {
-      if (var1 == null) {
+   public ArrayList<Integer> getSlots(String text) {
+      if (text == null) {
          return null;
       } else {
          try {
-            return new ArrayList<>(Collections.singletonList(Integer.parseInt(var1) - 1));
-         } catch (NumberFormatException var10) {
-            ArrayList<Integer> var3 = new ArrayList<>();
-            var1 = StringUtils.deleteWhitespace(var1);
+            return new ArrayList<>(Collections.singletonList(Integer.parseInt(text) - 1));
+         } catch (NumberFormatException exception) {
+            ArrayList<Integer> values = new ArrayList<>();
+            text = StringUtils.deleteWhitespace(text);
 
-            for (String var7 : var1.split(",")) {
-               String[] var8 = var7.split("-");
-               if (var8.length == 2) {
-                  for (int var9 = Integer.parseInt(var8[0]) - 1; var9 < Integer.parseInt(var8[1]); var9++) {
-                     var3.add(var9);
+            for (String text2 : text.split(",")) {
+               String[] values2 = text2.split("-");
+               if (values2.length == 2) {
+                  for (int index = Integer.parseInt(values2[0]) - 1; index < Integer.parseInt(values2[1]); index++) {
+                     values.add(index);
                   }
-               } else if (var8.length == 1) {
-                  var3.add(Integer.parseInt(var8[0]) - 1);
+               } else if (values2.length == 1) {
+                  values.add(Integer.parseInt(values2[0]) - 1);
                }
             }
 
-            if (!var3.isEmpty()) {
-               return var3;
+            if (!values.isEmpty()) {
+               return values;
             } else {
                throw new NumberFormatException();
             }
@@ -96,197 +96,197 @@ public class CalculateAmount {
       }
    }
 
-   public static double calculateDiscount(Player var0, String var1, double var2) {
-      double var4 = 0.0;
+   public static double calculateDiscount(Player player, String playerName, double amount) {
+      double amount2 = 0.0;
 
-      for (String var7 : plugin.getDiscounts(var1).keySet()) {
-         if (PermissionsCache.hasPermission(var0, "OnyxShop.discounts." + var7)) {
-            double var8 = plugin.getDiscounts(var1).get(var7);
-            if (var4 == 0.0 || var4 < var8) {
-               var4 = var8;
+      for (String key : plugin.getDiscounts(playerName).keySet()) {
+         if (PermissionsCache.hasPermission(player, "OnyxShop.discounts." + key)) {
+            double amount3 = plugin.getDiscounts(playerName).get(key);
+            if (amount2 == 0.0 || amount2 < amount3) {
+               amount2 = amount3;
             }
          }
       }
 
-      return Math.max(0.0, var2 - var2 / 100.0 * var4);
+      return Math.max(0.0, amount - amount / 100.0 * amount2);
    }
 
-   public static double calculateMultiplier(Player var0, String var1, double var2) {
-      double var4 = 0.0;
+   public static double calculateMultiplier(Player player, String playerName, double amount) {
+      double amount2 = 0.0;
 
-      for (String var7 : plugin.getMultipliers(var1).keySet()) {
-         if (PermissionsCache.hasPermission(var0, "OnyxShop.sell-multipliers." + var7)) {
-            double var8 = plugin.getMultipliers(var1).get(var7);
-            if (var4 == 0.0 || var4 < var8) {
-               var4 = var8;
+      for (String key : plugin.getMultipliers(playerName).keySet()) {
+         if (PermissionsCache.hasPermission(player, "OnyxShop.sell-multipliers." + key)) {
+            double amount3 = plugin.getMultipliers(playerName).get(key);
+            if (amount2 == 0.0 || amount2 < amount3) {
+               amount2 = amount3;
             }
          }
       }
 
-      return Math.max(0.0, var2 + var2 / 100.0 * var4);
+      return Math.max(0.0, amount + amount / 100.0 * amount2);
    }
 
    public Map<Integer, String> getMainMenuItemSlots() {
-      int var1 = plugin.mainMenuSize;
+      int size = plugin.mainMenuSize;
       if (plugin.navBar.isEnableMainNav()) {
-         var1 -= 9;
+         size -= 9;
       }
 
-      ArrayList<Integer> var2 = new ArrayList<>();
-      ArrayList<String> var3 = new ArrayList<>();
-      HashMap<Integer, String> var4 = new HashMap<>();
+      ArrayList<Integer> values = new ArrayList<>();
+      ArrayList<String> values2 = new ArrayList<>();
+      HashMap<Integer, String> map = new HashMap<>();
 
-      for (String var6 : plugin.getShopSections()) {
-         if (!ConfigManager.getSection(var6).getBoolean("hidden") && !ConfigManager.getSection(var6).getBoolean("sub-section")) {
-            String var7 = ConfigManager.getSection(var6).getString("slot");
-            if (var7 == null) {
-               var3.add(var6);
+      for (String itemId : plugin.getShopSections()) {
+         if (!ConfigManager.getSection(itemId).getBoolean("hidden") && !ConfigManager.getSection(itemId).getBoolean("sub-section")) {
+            String text = ConfigManager.getSection(itemId).getString("slot");
+            if (text == null) {
+               values2.add(itemId);
             } else {
-               ArrayList<Integer> var8;
+               ArrayList<Integer> numbers;
                try {
-                  var8 = this.getSlots(var7);
-               } catch (NumberFormatException var12) {
-                  var3.add(var6);
+                  numbers = this.getSlots(text);
+               } catch (NumberFormatException exception) {
+                  values2.add(itemId);
                   continue;
                }
 
-               ArrayList<Integer> var9 = new ArrayList<>();
+               ArrayList<Integer> values3 = new ArrayList<>();
 
-               for (Integer var11 : var8) {
-                  if (var11 >= 0 && var11 < var1) {
-                     if (var2.contains(var11)) {
-                        if (var8.size() != 1 && !var9.isEmpty()) {
+               for (Integer value : numbers) {
+                  if (value >= 0 && value < size) {
+                     if (values.contains(value)) {
+                        if (numbers.size() != 1 && !values3.isEmpty()) {
                            SendMessage.errorMessage(
                               "Slot '%slot%' for shop %section% is already used, skipping slot..."
-                                 .replace("%section%", var6)
-                                 .replace("%slot%", String.valueOf(var11))
+                                 .replace("%section%", itemId)
+                                 .replace("%slot%", String.valueOf(value))
                            );
                         } else {
-                           var3.add(var6);
+                           values2.add(itemId);
                         }
                      } else {
-                        var2.add(var11);
-                        var4.put(var11, var6);
-                        var9.add(var11);
+                        values.add(value);
+                        map.put(value, itemId);
+                        values3.add(value);
                      }
-                  } else if (var8.size() != 1 && !var9.isEmpty()) {
+                  } else if (numbers.size() != 1 && !values3.isEmpty()) {
                      SendMessage.errorMessage(
                         "Slot '%slot%' for shop %section% out of bounds for 0-%maxInvSize%, skipping slot..."
-                           .replace("%section%", var6)
-                           .replace("%slot%", String.valueOf(var11))
-                           .replace("%maxInvSize%", String.valueOf(var1))
+                           .replace("%section%", itemId)
+                           .replace("%slot%", String.valueOf(value))
+                           .replace("%maxInvSize%", String.valueOf(size))
                      );
                   } else {
                      SendMessage.errorMessage(
-                        Lang.CANNOT_DISPLAY_SHOPSECTION.get().replace("%shopsection%", var6).replace("%maxInvSize%", String.valueOf(var1))
+                        Lang.CANNOT_DISPLAY_SHOPSECTION.get().replace("%shopsection%", itemId).replace("%maxInvSize%", String.valueOf(size))
                      );
-                     var3.add(var6);
+                     values2.add(itemId);
                   }
                }
             }
          }
       }
 
-      for (String var14 : var3) {
-         int var15 = 0;
+      for (String text : values2) {
+         int value = 0;
 
-         while (var2.contains(var15)) {
-            var15++;
+         while (values.contains(value)) {
+            value++;
          }
 
-         if (var15 >= var1) {
-            SendMessage.errorMessage(Lang.CANNOT_DISPLAY_SHOPSECTION.get().replace("%shopsection%", var14).replace("%maxInvSize%", String.valueOf(var1)));
+         if (value >= size) {
+            SendMessage.errorMessage(Lang.CANNOT_DISPLAY_SHOPSECTION.get().replace("%shopsection%", text).replace("%maxInvSize%", String.valueOf(size)));
          } else {
-            var4.put(var15, var14);
-            var2.add(var15);
+            map.put(value, text);
+            values.add(value);
             SendMessage.errorMessage(
                "The place of shop "
-                  + var14
+                  + text
                   + " in the main shop-inventory has automatically been changed to '"
-                  + var15
+                  + value
                   + "' because it was already used or could not be found."
             );
          }
       }
 
-      return var4;
+      return map;
    }
 
-   public static int getInvSlots(int var0) {
-      int[] var1 = new int[]{1, 2, 3, 4, 5, 6};
-      if (var0 != 1 && var0 != 2 && var0 != 3 && var0 != 4 && var0 != 5 && var0 != 6) {
-         int var2 = 0;
-         int var3 = Math.abs(var1[0] - var0);
+   public static int getInvSlots(int value) {
+      int[] value2 = new int[]{1, 2, 3, 4, 5, 6};
+      if (value != 1 && value != 2 && value != 3 && value != 4 && value != 5 && value != 6) {
+         int value3 = 0;
+         int value4 = Math.abs(value2[0] - value);
 
-         for (int var4 = 1; var4 < var1.length; var4++) {
-            int var5 = Math.abs(var1[var4] - var0);
-            if (var5 < var3) {
-               var2 = var4;
-               var3 = var5;
+         for (int index = 1; index < value2.length; index++) {
+            int value6 = Math.abs(value2[index] - value);
+            if (value6 < value4) {
+               value3 = index;
+               value4 = value6;
             }
          }
 
-         var0 = var1[var2];
+         value = value2[value3];
       }
 
-      return var0 * 9;
+      return value * 9;
    }
 
-   public static int getMainInvSlots(User var0) {
-      return plugin.resizeGUI && var0.isBedrock() ? 54 : plugin.mainMenuSize;
+   public static int getMainInvSlots(User user) {
+      return plugin.resizeGUI && user.isBedrock() ? 54 : plugin.mainMenuSize;
    }
 
-   public static int getInvSlots(User var0, int var1) {
-      return plugin.resizeGUI && var0.isBedrock() ? 54 : getSlots(var1);
+   public static int getInvSlots(User user, int value) {
+      return plugin.resizeGUI && user.isBedrock() ? 54 : getSlots(value);
    }
 
-   public static int getInvSlotsDef(User var0, int var1) {
-      return plugin.resizeGUI && var0.isBedrock() ? 54 : var1;
+   public static int getInvSlotsDef(User user, int value) {
+      return plugin.resizeGUI && user.isBedrock() ? 54 : value;
    }
 
-   public static List<String> splitLongString(String var0) {
-      ArrayList var1 = new ArrayList();
-      String[] var2 = var0.split(" ");
-      String[] var3 = ChatColor.stripColor(var0).split(" ");
-      int var4 = 0;
-      StringBuilder var5 = new StringBuilder();
+   public static List<String> splitLongString(String text) {
+      ArrayList values = new ArrayList();
+      String[] values2 = text.split(" ");
+      String[] values3 = ChatColor.stripColor(text).split(" ");
+      int value = 0;
+      StringBuilder builder = new StringBuilder();
 
-      for (int var6 = 0; var6 < var3.length; var6++) {
-         String var7 = var3[var6];
-         var4 += var7.length() + 1;
-         if (var4 < 46 && !var7.contains("\n")) {
-            if (var5.length() != 0) {
-               var5.append(" ");
+      for (int index = 0; index < values3.length; index++) {
+         String text2 = values3[index];
+         value += text2.length() + 1;
+         if (value < 46 && !text2.contains("\n")) {
+            if (builder.length() != 0) {
+               builder.append(" ");
             }
 
-            var5.append(var2[var6]);
+            builder.append(values2[index]);
          } else {
-            String var8 = var5.toString();
-            var1.add(var8);
-            var4 = var7.length();
-            var5 = new StringBuilder();
-            if (!var7.contains("\n")) {
-               var5.append(ChatColor.getLastColors(var8)).append(var2[var6]);
+            String text3 = builder.toString();
+            values.add(text3);
+            value = text2.length();
+            builder = new StringBuilder();
+            if (!text2.contains("\n")) {
+               builder.append(ChatColor.getLastColors(text3)).append(values2[index]);
             }
          }
       }
 
-      var1.add(var5.toString());
-      return var1;
+      values.add(builder.toString());
+      return values;
    }
 
-   public static int getSlots(int var0) {
-      byte var1 = 54;
-      if (var0 <= 9 && var0 > 0) {
-         var1 = 18;
-      } else if (var0 <= 18 && var0 > 9) {
-         var1 = 27;
-      } else if (var0 <= 27 && var0 > 18) {
-         var1 = 36;
-      } else if (var0 <= 36 && var0 > 27) {
-         var1 = 45;
+   public static int getSlots(int value) {
+      byte value2 = 54;
+      if (value <= 9 && value > 0) {
+         value2 = 18;
+      } else if (value <= 18 && value > 9) {
+         value2 = 27;
+      } else if (value <= 27 && value > 18) {
+         value2 = 36;
+      } else if (value <= 36 && value > 27) {
+         value2 = 45;
       }
 
-      return var1;
+      return value2;
    }
 }

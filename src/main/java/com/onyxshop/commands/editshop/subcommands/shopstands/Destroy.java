@@ -18,9 +18,9 @@ public class Destroy extends SubCommad {
    private final Methods methods;
    private final OnyxShop plugin;
 
-   public Destroy(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public Destroy(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -39,47 +39,47 @@ public class Destroy extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.shopstands." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.shopstands." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         int var3;
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         int value2;
          try {
-            var3 = Integer.parseInt(var2[2]);
-         } catch (NumberFormatException var5) {
-            SendMessage.warnMessage(var1, Lang.NO_VALID_AMOUNT.get());
+            value2 = Integer.parseInt(values[2]);
+         } catch (NumberFormatException exception) {
+            SendMessage.warnMessage(value, Lang.NO_VALID_AMOUNT.get());
             return;
          }
 
-         Stand var4 = this.plugin.getStandProvider().getStand(var3);
-         if (var4 == null) {
-            SendMessage.warnMessage(var1, Lang.UNKNOWN_SHOP_STAND_ID.get().replace("%id%", String.valueOf(var3)));
+         Stand stand = this.plugin.getStandProvider().getStand(value2);
+         if (stand == null) {
+            SendMessage.warnMessage(value, Lang.UNKNOWN_SHOP_STAND_ID.get().replace("%id%", String.valueOf(value2)));
          } else {
-            this.plugin.getStandProvider().destroy(var4);
-            SendMessage.infoMessage(var1, Lang.REMOVED_SHOP_STAND.get().replace("%location%", var4.getLoc().toString()));
+            this.plugin.getStandProvider().destroy(stand);
+            SendMessage.infoMessage(value, Lang.REMOVED_SHOP_STAND.get().replace("%location%", stand.getLoc().toString()));
          }
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               ArrayList var2 = new ArrayList();
+            if (!values[2].isEmpty()) {
+               ArrayList values2 = new ArrayList();
                StringUtil.copyPartialMatches(
-                  var1[2], this.plugin.getStandProvider().getStands().stream().map(var0 -> String.valueOf(var0.getId())).collect(Collectors.toList()), var2
+                  values[2], this.plugin.getStandProvider().getStands().stream().map(element -> String.valueOf(element.getId())).collect(Collectors.toList()), values2
                );
-               Collections.sort(var2);
-               return var2;
+               Collections.sort(values2);
+               return values2;
             }
 
-            return this.plugin.getStandProvider().getStands().stream().map(var0 -> String.valueOf(var0.getId())).collect(Collectors.toList());
+            return this.plugin.getStandProvider().getStands().stream().map(element -> String.valueOf(element.getId())).collect(Collectors.toList());
          default:
             return null;
       }

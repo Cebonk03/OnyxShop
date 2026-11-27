@@ -58,7 +58,7 @@ public class PlayerProfile implements NavItem {
    }
 
    @Override
-   public boolean isStatic(int var1, int var2) {
+   public boolean isStatic(int value, int value2) {
       return false;
    }
 
@@ -68,9 +68,9 @@ public class PlayerProfile implements NavItem {
    }
 
    @Override
-   public NavBar.ItemAction getAction(int var1, int var2) {
+   public NavBar.ItemAction getAction(int value, int value2) {
       return this.paginatedItem == null
-            || var2 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || var1 != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || var1 != var2)
+            || value2 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || value != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || value != value2)
          ? this.action
          : this.paginatedItem.getA();
    }
@@ -81,8 +81,8 @@ public class PlayerProfile implements NavItem {
    }
 
    @Override
-   public List<String> getCommands(int var1) {
-      return var1 == 1 && this.paginatedItem != null && !this.paginatedItem.isDisabled() ? this.paginatedItem.getCommands() : this.commands;
+   public List<String> getCommands(int value) {
+      return value == 1 && this.paginatedItem != null && !this.paginatedItem.isDisabled() ? this.paginatedItem.getCommands() : this.commands;
    }
 
    @Override
@@ -91,353 +91,353 @@ public class PlayerProfile implements NavItem {
    }
 
    @Override
-   public String getBedrockTexture(int var1, int var2) {
+   public String getBedrockTexture(int value, int value2) {
       return this.paginatedItem == null
-            || var2 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || var1 != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || var1 != var2)
+            || value2 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || value != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || value != value2)
          ? this.bedrockTexture
          : this.paginatedItem.getBedrockTexture();
    }
 
-   public PlayerProfile(ConfigurationSection var1, ItemStack var2) throws ItemLoadException {
-      LocalizedItemStack var3 = OnyxShop.getInstance().createItem.createFillItem(var1, null);
-      if (var3 == null || var3.getItem().getType().equals(Material.AIR)) {
+   public PlayerProfile(ConfigurationSection section, ItemStack itemStack) throws ItemLoadException {
+      LocalizedItemStack localizedItemStack = OnyxShop.getInstance().createItem.createFillItem(section, null);
+      if (localizedItemStack == null || localizedItemStack.getItem().getType().equals(Material.AIR)) {
          this.disabled = true;
-      } else if (!var3.getItem().getType().equals(XMaterial.PLAYER_HEAD.parseMaterial())) {
+      } else if (!localizedItemStack.getItem().getType().equals(XMaterial.PLAYER_HEAD.parseMaterial())) {
          throw new ItemLoadException("Item material needs to be of type PLAYER_HEAD when using option skullowner: %player_name%");
       } else {
-         this.placeholders = this.getPlaceholders(var3);
-         if (var1.getBoolean("paginated.enabled")) {
-            ConfigurationSection var4 = var1.getConfigurationSection("paginated.orElse");
-            if (var4 != null && !var4.getKeys(false).isEmpty()) {
-               this.paginatedItem = new PlayerProfile.Paginated(var4);
+         this.placeholders = this.getPlaceholders(localizedItemStack);
+         if (section.getBoolean("paginated.enabled")) {
+            ConfigurationSection section2 = section.getConfigurationSection("paginated.orElse");
+            if (section2 != null && !section2.getKeys(false).isEmpty()) {
+               this.paginatedItem = new PlayerProfile.Paginated(section2);
             } else {
-               this.paginatedItem = new PlayerProfile.Paginated(var2);
+               this.paginatedItem = new PlayerProfile.Paginated(itemStack);
             }
          }
 
-         this.action = this.getAction(var1, var2);
-         this.navBarItem = var3;
-         this.bedrockTexture = var1.getString("bedrock-texture");
+         this.action = this.getAction(section, itemStack);
+         this.navBarItem = localizedItemStack;
+         this.bedrockTexture = section.getString("bedrock-texture");
       }
    }
 
-   private NavBar.ItemAction getAction(ConfigurationSection var1, ItemStack var2) {
-      if (!var1.contains("action")) {
+   private NavBar.ItemAction getAction(ConfigurationSection section, ItemStack itemStack) {
+      if (!section.contains("action")) {
          return NavBar.ItemAction.NONE;
       } else {
-         NavBar.ItemAction var3 = NavBar.ItemAction.getFromString(var1.getString("action"));
-         switch (var3) {
+         NavBar.ItemAction itemAction = NavBar.ItemAction.getFromString(section.getString("action"));
+         switch (itemAction) {
             case COMMAND:
-               this.commands = var1.getStringList("commands");
-               this.closeMenu = var1.getBoolean("close-menu");
+               this.commands = section.getStringList("commands");
+               this.closeMenu = section.getBoolean("close-menu");
                break;
             case CYCLE_CURRENCY:
-               this.onlyMultiplePrices = var1.getBoolean("when-multiple-prices", true);
+               this.onlyMultiplePrices = section.getBoolean("when-multiple-prices", true);
                break;
             case TOGGLE_MODE:
-               this.onlyGeyser = var1.getBoolean("onlyEnableForGeyserPlayers", true);
+               this.onlyGeyser = section.getBoolean("onlyEnableForGeyserPlayers", true);
             case PAGE_BACK:
             case PAGE_NEXT:
-               if (this.paginatedItem == null && var1.getBoolean("paginated.enabled", true)) {
-                  this.paginatedItem = new PlayerProfile.Paginated(var2);
+               if (this.paginatedItem == null && section.getBoolean("paginated.enabled", true)) {
+                  this.paginatedItem = new PlayerProfile.Paginated(itemStack);
                }
          }
 
-         return var3;
+         return itemAction;
       }
    }
 
    @Override
-   public ItemStack getItem(Player var1) {
-      ItemStack var2;
-      if (UserManager.getUser(var1).isBedrock()) {
-         var2 = OnyxShop.getInstance().navBar.getCustomPlayerProfile(var1);
-         if (var2 == null) {
-            var2 = this.navBarItem.getItem(var1);
-            if (!var2.hasItemMeta()) {
-               return var2;
+   public ItemStack getItem(Player player) {
+      ItemStack itemStack;
+      if (UserManager.getUser(player).isBedrock()) {
+         itemStack = OnyxShop.getInstance().navBar.getCustomPlayerProfile(player);
+         if (itemStack == null) {
+            itemStack = this.navBarItem.getItem(player);
+            if (!itemStack.hasItemMeta()) {
+               return itemStack;
             }
 
-            SkullUtil.setSkullTexture(var2, null, var1.getName(), true);
+            SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
          }
       } else {
          if (this.onlyGeyser) {
             return new ItemStack(Material.AIR);
          }
 
-         var2 = this.navBarItem.getItem(var1);
-         if (!var2.hasItemMeta()) {
-            return var2;
+         itemStack = this.navBarItem.getItem(player);
+         if (!itemStack.hasItemMeta()) {
+            return itemStack;
          }
 
-         SkullUtil.setSkullTexture(var2, null, var1.getName(), true);
+         SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
       }
 
-      ItemMeta var3 = var2.getItemMeta();
-      Map var4 = getPlaceholdersFor(this.placeholders, var1);
-      if (!var4.isEmpty()) {
-         this.translateLore(var1, null, var3, var4);
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      Map placeholdersFor = getPlaceholdersFor(this.placeholders, player);
+      if (!placeholdersFor.isEmpty()) {
+         this.translateLore(player, null, itemMeta, placeholdersFor);
       }
 
-      var2.setItemMeta(var3);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
    @Override
-   public ItemStack getItem(Player var1, EcoType var2, ShopSearch.QueryMethod var3, int var4, int var5) {
+   public ItemStack getItem(Player player, EcoType ecoType, ShopSearch.QueryMethod queryMethod, int value, int value2) {
       if (this.paginatedItem == null
-         || var5 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || var4 != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || var4 != var5)) {
-         ItemStack var6;
-         if (UserManager.getUser(var1).isBedrock()) {
-            var6 = OnyxShop.getInstance().navBar.getCustomPlayerProfile(var1);
-            if (var6 == null) {
-               var6 = this.navBarItem.getItem(var1);
-               if (!var6.hasItemMeta()) {
-                  return var6;
+         || value2 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || value != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || value != value2)) {
+         ItemStack itemStack;
+         if (UserManager.getUser(player).isBedrock()) {
+            itemStack = OnyxShop.getInstance().navBar.getCustomPlayerProfile(player);
+            if (itemStack == null) {
+               itemStack = this.navBarItem.getItem(player);
+               if (!itemStack.hasItemMeta()) {
+                  return itemStack;
                }
 
-               SkullUtil.setSkullTexture(var6, null, var1.getName(), true);
+               SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
             }
          } else {
-            var6 = this.navBarItem.getItem(var1);
-            if (!var6.hasItemMeta()) {
-               return var6;
+            itemStack = this.navBarItem.getItem(player);
+            if (!itemStack.hasItemMeta()) {
+               return itemStack;
             }
 
-            SkullUtil.setSkullTexture(var6, null, var1.getName(), true);
+            SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
          }
 
-         ItemMeta var7 = var6.getItemMeta();
-         Map var8 = getPlaceholdersFor(this.placeholders, var1);
-         if (!var8.isEmpty()) {
-            this.translateLore(var1, var2, var7, var8, var3, var4, var5);
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         Map placeholdersFor = getPlaceholdersFor(this.placeholders, player);
+         if (!placeholdersFor.isEmpty()) {
+            this.translateLore(player, ecoType, itemMeta, placeholdersFor, queryMethod, value, value2);
          }
 
-         var6.setItemMeta(var7);
-         return var6;
+         itemStack.setItemMeta(itemMeta);
+         return itemStack;
       } else {
-         return this.paginatedItem.getItem(var1, var2, var3, var4, var5);
+         return this.paginatedItem.getItem(player, ecoType, queryMethod, value, value2);
       }
    }
 
    @Override
-   public ItemStack getItem(Player var1, EcoType var2, int var3, int var4) {
+   public ItemStack getItem(Player player, EcoType ecoType, int value, int value2) {
       if (this.paginatedItem == null
-         || var4 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || var3 != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || var3 != var4)) {
-         ItemStack var5;
-         if (UserManager.getUser(var1).isBedrock()) {
-            var5 = OnyxShop.getInstance().navBar.getCustomPlayerProfile(var1);
-            if (var5 == null) {
-               var5 = this.navBarItem.getItem(var1);
-               if (!var5.hasItemMeta()) {
-                  return var5;
+         || value2 != 1 && (this.action != NavBar.ItemAction.PAGE_BACK || value != 1) && (this.action != NavBar.ItemAction.PAGE_NEXT || value != value2)) {
+         ItemStack itemStack;
+         if (UserManager.getUser(player).isBedrock()) {
+            itemStack = OnyxShop.getInstance().navBar.getCustomPlayerProfile(player);
+            if (itemStack == null) {
+               itemStack = this.navBarItem.getItem(player);
+               if (!itemStack.hasItemMeta()) {
+                  return itemStack;
                }
 
-               SkullUtil.setSkullTexture(var5, null, var1.getName(), true);
+               SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
             }
          } else {
-            var5 = this.navBarItem.getItem(var1);
-            if (!var5.hasItemMeta()) {
-               return var5;
+            itemStack = this.navBarItem.getItem(player);
+            if (!itemStack.hasItemMeta()) {
+               return itemStack;
             }
 
-            SkullUtil.setSkullTexture(var5, null, var1.getName(), true);
+            SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
          }
 
-         ItemMeta var6 = var5.getItemMeta();
-         Map var7 = getPlaceholdersFor(this.placeholders, var1);
-         if (!var7.isEmpty()) {
-            this.translateLore(var1, var2, var6, var7, var3, var4);
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         Map placeholdersFor = getPlaceholdersFor(this.placeholders, player);
+         if (!placeholdersFor.isEmpty()) {
+            this.translateLore(player, ecoType, itemMeta, placeholdersFor, value, value2);
          }
 
-         var5.setItemMeta(var6);
-         return var5;
+         itemStack.setItemMeta(itemMeta);
+         return itemStack;
       } else {
-         return this.paginatedItem.getItem(var1, var2, var3, var4);
+         return this.paginatedItem.getItem(player, ecoType, value, value2);
       }
    }
 
    @Override
-   public ItemStack getItem(Player var1, Transaction.Mode var2, ShopItem var3, EcoType var4) {
-      if ((!this.onlyGeyser || UserManager.getUser(var1).isBedrock())
-         && (!this.onlyMultiplePrices || (var2 != Transaction.Mode.BUY || var3.isABuyPricing()) && (var2 != Transaction.Mode.SELL || var3.isASellPricing()))) {
-         ItemStack var5;
-         if (UserManager.getUser(var1).isBedrock()) {
-            var5 = OnyxShop.getInstance().navBar.getCustomPlayerProfile(var1);
-            if (var5 == null) {
-               var5 = this.navBarItem.getItem(var1);
-               if (!var5.hasItemMeta()) {
-                  return var5;
+   public ItemStack getItem(Player player, Transaction.Mode mode, ShopItem shopItem, EcoType ecoType) {
+      if ((!this.onlyGeyser || UserManager.getUser(player).isBedrock())
+         && (!this.onlyMultiplePrices || (mode != Transaction.Mode.BUY || shopItem.isABuyPricing()) && (mode != Transaction.Mode.SELL || shopItem.isASellPricing()))) {
+         ItemStack itemStack;
+         if (UserManager.getUser(player).isBedrock()) {
+            itemStack = OnyxShop.getInstance().navBar.getCustomPlayerProfile(player);
+            if (itemStack == null) {
+               itemStack = this.navBarItem.getItem(player);
+               if (!itemStack.hasItemMeta()) {
+                  return itemStack;
                }
 
-               SkullUtil.setSkullTexture(var5, null, var1.getName(), true);
+               SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
             }
          } else {
             if (this.onlyGeyser) {
                return new ItemStack(Material.AIR);
             }
 
-            var5 = this.navBarItem.getItem(var1);
-            if (!var5.hasItemMeta()) {
-               return var5;
+            itemStack = this.navBarItem.getItem(player);
+            if (!itemStack.hasItemMeta()) {
+               return itemStack;
             }
 
-            SkullUtil.setSkullTexture(var5, null, var1.getName(), true);
+            SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
          }
 
-         ItemMeta var6 = var5.getItemMeta();
-         Map var7 = getPlaceholdersFor(this.placeholders, var1);
-         if (!var7.isEmpty()) {
-            this.translateLore(var1, var4, var6, var7);
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         Map placeholdersFor = getPlaceholdersFor(this.placeholders, player);
+         if (!placeholdersFor.isEmpty()) {
+            this.translateLore(player, ecoType, itemMeta, placeholdersFor);
          }
 
-         var5.setItemMeta(var6);
-         return var5;
+         itemStack.setItemMeta(itemMeta);
+         return itemStack;
       } else {
-         return this.paginatedItem != null ? this.paginatedItem.getItem(var1, var4, 0, 0) : new ItemStack(Material.AIR);
+         return this.paginatedItem != null ? this.paginatedItem.getItem(player, ecoType, 0, 0) : new ItemStack(Material.AIR);
       }
    }
 
-   private Map<Locale, Map<Integer, Placeholder>> getPlaceholders(LocalizedItemStack var1) {
-      HashMap var2 = new HashMap();
+   private Map<Locale, Map<Integer, Placeholder>> getPlaceholders(LocalizedItemStack localizedItemStack) {
+      HashMap map = new HashMap();
 
-      for (Entry var4 : var1.getVariants().entrySet()) {
-         var2.put((Locale)var4.getKey(), this.getPlaceholders((ItemStack)var4.getValue()));
+      for (Entry entry : localizedItemStack.getVariants().entrySet()) {
+         map.put((Locale)entry.getKey(), this.getPlaceholders((ItemStack)entry.getValue()));
       }
 
-      return var2;
+      return map;
    }
 
-   private Map<Integer, Placeholder> getPlaceholders(ItemStack var1) {
-      if (var1.hasItemMeta() && (var1.getItemMeta().hasDisplayName() || var1.getItemMeta().hasLore())) {
-         ItemMeta var2 = var1.getItemMeta();
-         HashMap var3 = new HashMap();
-         if (var2.hasDisplayName()) {
-            String var4 = OnyxShop.getInstance().getMetaUtils().getRawDisplayName(var2);
-            if (Placeholder.isPlaceholder(var4, localPlaceholders)) {
-               var3.put(-1, new Placeholder(var4, localPlaceholders));
+   private Map<Integer, Placeholder> getPlaceholders(ItemStack itemStack) {
+      if (itemStack.hasItemMeta() && (itemStack.getItemMeta().hasDisplayName() || itemStack.getItemMeta().hasLore())) {
+         ItemMeta itemMeta = itemStack.getItemMeta();
+         HashMap map = new HashMap();
+         if (itemMeta.hasDisplayName()) {
+            String rawDisplayName = OnyxShop.getInstance().getMetaUtils().getRawDisplayName(itemMeta);
+            if (Placeholder.isPlaceholder(rawDisplayName, localPlaceholders)) {
+               map.put(-1, new Placeholder(rawDisplayName, localPlaceholders));
             }
          }
 
-         if (var2.hasLore()) {
-            int var7 = 0;
+         if (itemMeta.hasLore()) {
+            int value = 0;
 
-            for (String var6 : OnyxShop.getInstance().getMetaUtils().getRawLore(var2)) {
-               if (Placeholder.isPlaceholder(var6, localPlaceholders)) {
-                  var3.put(var7, new Placeholder(var6, localPlaceholders));
+            for (String shopId : OnyxShop.getInstance().getMetaUtils().getRawLore(itemMeta)) {
+               if (Placeholder.isPlaceholder(shopId, localPlaceholders)) {
+                  map.put(value, new Placeholder(shopId, localPlaceholders));
                }
 
-               var7++;
+               value++;
             }
          }
 
-         return var3;
+         return map;
       } else {
          return Collections.EMPTY_MAP;
       }
    }
 
-   private static Map<Integer, Placeholder> getPlaceholdersFor(Map<Locale, Map<Integer, Placeholder>> var0, Player var1) {
-      if (var0 == null) {
+   private static Map<Integer, Placeholder> getPlaceholdersFor(Map<Locale, Map<Integer, Placeholder>> map, Player player) {
+      if (map == null) {
          return Collections.EMPTY_MAP;
       } else {
-         Map var2 = (Map)var0.get(UserManager.getUser(var1).getLocale());
-         return var2 != null ? var2 : var0.getOrDefault(Lang.getDefaultLocale(), Collections.EMPTY_MAP);
+         Map map2 = (Map)map.get(UserManager.getUser(player).getLocale());
+         return map2 != null ? map2 : map.getOrDefault(Lang.getDefaultLocale(), Collections.EMPTY_MAP);
       }
    }
 
-   private void translateLore(Player var1, EcoType var2, ItemMeta var3, Map<Integer, Placeholder> var4, ShopSearch.QueryMethod var5, int var6, int var7) {
-      if (var4.containsKey(-1)) {
+   private void translateLore(Player player, EcoType ecoType, ItemMeta itemMeta, Map<Integer, Placeholder> map, ShopSearch.QueryMethod queryMethod, int value, int value2) {
+      if (map.containsKey(-1)) {
          OnyxShop.getInstance()
             .getMetaUtils()
-            .setRawDisplayName(var3, ((Placeholder)var4.get(-1)).translate(var1, this.getPlaceholders(var1, var2, var6, var7, var5)));
+            .setRawDisplayName(itemMeta, ((Placeholder)map.get(-1)).translate(player, this.getPlaceholders(player, ecoType, value, value2, queryMethod)));
       }
 
-      if (var3.hasLore()) {
-         List var8 = OnyxShop.getInstance().getMetaUtils().getRawLore(var3);
+      if (itemMeta.hasLore()) {
+         List rawLore = OnyxShop.getInstance().getMetaUtils().getRawLore(itemMeta);
 
-         for (Integer var10 : var4.keySet()) {
-            if (var10 != -1) {
-               var8.set(var10, ((Placeholder)var4.get(var10)).translate(var1, this.getPlaceholders(var1, var2, var6, var7, var5)));
+         for (Integer value3 : map.keySet()) {
+            if (value3 != -1) {
+               rawLore.set(value3, ((Placeholder)map.get(value3)).translate(player, this.getPlaceholders(player, ecoType, value, value2, queryMethod)));
             }
          }
 
-         OnyxShop.getInstance().getMetaUtils().setRawLore(var3, var8);
+         OnyxShop.getInstance().getMetaUtils().setRawLore(itemMeta, rawLore);
       }
    }
 
-   private void translateLore(Player var1, EcoType var2, ItemMeta var3, Map<Integer, Placeholder> var4, int var5, int var6) {
-      if (var4.containsKey(-1)) {
+   private void translateLore(Player player, EcoType ecoType, ItemMeta itemMeta, Map<Integer, Placeholder> map, int value, int value2) {
+      if (map.containsKey(-1)) {
          OnyxShop.getInstance()
             .getMetaUtils()
-            .setRawDisplayName(var3, ((Placeholder)var4.get(-1)).translate(var1, this.getPlaceholders(var1, var2, var5, var6)));
+            .setRawDisplayName(itemMeta, ((Placeholder)map.get(-1)).translate(player, this.getPlaceholders(player, ecoType, value, value2)));
       }
 
-      if (var3.hasLore()) {
-         List var7 = OnyxShop.getInstance().getMetaUtils().getRawLore(var3);
+      if (itemMeta.hasLore()) {
+         List rawLore = OnyxShop.getInstance().getMetaUtils().getRawLore(itemMeta);
 
-         for (Integer var9 : var4.keySet()) {
-            if (var9 != -1) {
-               var7.set(var9, ((Placeholder)var4.get(var9)).translate(var1, this.getPlaceholders(var1, var2, var5, var6)));
+         for (Integer value3 : map.keySet()) {
+            if (value3 != -1) {
+               rawLore.set(value3, ((Placeholder)map.get(value3)).translate(player, this.getPlaceholders(player, ecoType, value, value2)));
             }
          }
 
-         OnyxShop.getInstance().getMetaUtils().setRawLore(var3, var7);
+         OnyxShop.getInstance().getMetaUtils().setRawLore(itemMeta, rawLore);
       }
    }
 
-   private void translateLore(Player var1, EcoType var2, ItemMeta var3, Map<Integer, Placeholder> var4) {
-      if (var4.containsKey(-1)) {
+   private void translateLore(Player player, EcoType ecoType, ItemMeta itemMeta, Map<Integer, Placeholder> map) {
+      if (map.containsKey(-1)) {
          OnyxShop.getInstance()
             .getMetaUtils()
-            .setRawDisplayName(var3, ((Placeholder)var4.get(-1)).translate(var1, this.getPlaceholders(var1, var2, 0, 0)));
+            .setRawDisplayName(itemMeta, ((Placeholder)map.get(-1)).translate(player, this.getPlaceholders(player, ecoType, 0, 0)));
       }
 
-      if (var3.hasLore()) {
-         List var5 = OnyxShop.getInstance().getMetaUtils().getRawLore(var3);
+      if (itemMeta.hasLore()) {
+         List rawLore = OnyxShop.getInstance().getMetaUtils().getRawLore(itemMeta);
 
-         for (Integer var7 : var4.keySet()) {
-            if (var7 != -1) {
-               var5.set(var7, ((Placeholder)var4.get(var7)).translate(var1, this.getPlaceholders(var1, var2, 0, 0)));
+         for (Integer value : map.keySet()) {
+            if (value != -1) {
+               rawLore.set(value, ((Placeholder)map.get(value)).translate(player, this.getPlaceholders(player, ecoType, 0, 0)));
             }
          }
 
-         OnyxShop.getInstance().getMetaUtils().setRawLore(var3, var5);
+         OnyxShop.getInstance().getMetaUtils().setRawLore(itemMeta, rawLore);
       }
    }
 
-   private Replacement[] getPlaceholders(Player var1, EcoType var2, int var3, int var4) {
+   private Replacement[] getPlaceholders(Player player, EcoType ecoType, int value, int value2) {
       return new Replacement[]{
-         new Replacement("%player_name%", var1::getName),
-         new Replacement("%player_displayname%", () -> OnyxShop.getInstance().getDisplayName(var1)),
-         new Replacement("%player_level%", () -> String.valueOf(var1.getLevel())),
+         new Replacement("%player_name%", player::getName),
+         new Replacement("%player_displayname%", () -> OnyxShop.getInstance().getDisplayName(player)),
+         new Replacement("%player_level%", () -> String.valueOf(player.getLevel())),
          new Replacement(
             "%player_balance%",
-            () -> OnyxShop.getInstance().formatPrice(var2, OnyxShop.getInstance().getEcoHandler().getEcon(var2).getBalance(var1))
+            () -> OnyxShop.getInstance().formatPrice(ecoType, OnyxShop.getInstance().getEcoHandler().getEcon(ecoType).getBalance(player))
          ),
-         new Replacement("%page%", () -> String.valueOf(var3)),
-         new Replacement("%pages%", () -> String.valueOf(var4))
+         new Replacement("%page%", () -> String.valueOf(value)),
+         new Replacement("%pages%", () -> String.valueOf(value2))
       };
    }
 
-   private Replacement[] getPlaceholders(Player var1, EcoType var2, int var3, int var4, ShopSearch.QueryMethod var5) {
+   private Replacement[] getPlaceholders(Player player, EcoType ecoType, int value, int value2, ShopSearch.QueryMethod queryMethod) {
       return new Replacement[]{
-         new Replacement("%player_name%", var1::getName),
-         new Replacement("%player_displayname%", () -> OnyxShop.getInstance().getDisplayName(var1)),
-         new Replacement("%player_level%", () -> String.valueOf(var1.getLevel())),
+         new Replacement("%player_name%", player::getName),
+         new Replacement("%player_displayname%", () -> OnyxShop.getInstance().getDisplayName(player)),
+         new Replacement("%player_level%", () -> String.valueOf(player.getLevel())),
          new Replacement(
             "%player_balance%",
-            () -> OnyxShop.getInstance().formatPrice(var2, OnyxShop.getInstance().getEcoHandler().getEcon(var2).getBalance(var1))
+            () -> OnyxShop.getInstance().formatPrice(ecoType, OnyxShop.getInstance().getEcoHandler().getEcon(ecoType).getBalance(player))
          ),
-         new Replacement("%page%", () -> String.valueOf(var3)),
-         new Replacement("%pages%", () -> String.valueOf(var4)),
-         new Replacement("%search-method%", var5::getName)
+         new Replacement("%page%", () -> String.valueOf(value)),
+         new Replacement("%pages%", () -> String.valueOf(value2)),
+         new Replacement("%search-method%", queryMethod::getName)
       };
    }
 
-   private Translatable replaceTranslations(String var1) {
+   private Translatable replaceTranslations(String text) {
       return SendMessage.fromConfig(
-         var1.replace("%translations-shopsearch-change-search-method%", Lang.SHOPSEARCH_CHANGE_SEARCH_METHOD.get().toString())
+         text.replace("%translations-shopsearch-change-search-method%", Lang.SHOPSEARCH_CHANGE_SEARCH_METHOD.get().toString())
             .replace("%translations-previous-page%", Lang.PREVIOUS_PAGE.get().toString())
             .replace(
                "%translations-current-page%",
@@ -462,33 +462,33 @@ public class PlayerProfile implements NavItem {
       private Map<Locale, Map<Integer, Placeholder>> placeholders;
       private String bedrockTexture;
 
-      public Paginated(ItemStack nullx) {
-         if (nullx == null) {
+      public Paginated(ItemStack itemStack) {
+         if (itemStack == null) {
             this.disabled = true;
             this.orElse = new LocalizedItemStack(new ItemStack(Material.AIR));
          } else {
-            this.orElse = new LocalizedItemStack(nullx);
+            this.orElse = new LocalizedItemStack(itemStack);
          }
 
          this.action = NavBar.ItemAction.NONE;
       }
 
-      public Paginated(ConfigurationSection nullx) {
-         if (nullx.getString("skullowner").equals("%player_name%")) {
+      public Paginated(ConfigurationSection section) {
+         if (section.getString("skullowner").equals("%player_name%")) {
             this.skullOwner = true;
             this.staticItem = false;
          }
 
-         LocalizedItemStack var3 = OnyxShop.getInstance().createItem.createFillItem(nullx, null);
-         if (var3 != null && !var3.getItem().getType().equals(Material.AIR)) {
-            this.placeholders = PlayerProfile.this.getPlaceholders(var3);
-            if (this.placeholders.values().stream().anyMatch(var0 -> !var0.isEmpty())) {
+         LocalizedItemStack localizedItemStack = OnyxShop.getInstance().createItem.createFillItem(section, null);
+         if (localizedItemStack != null && !localizedItemStack.getItem().getType().equals(Material.AIR)) {
+            this.placeholders = PlayerProfile.this.getPlaceholders(localizedItemStack);
+            if (this.placeholders.values().stream().anyMatch(element -> !element.isEmpty())) {
                this.staticItem = false;
             }
 
-            this.action = PlayerProfile.this.getAction(nullx, null);
-            this.orElse = var3;
-            this.bedrockTexture = nullx.getString("bedrock-texture");
+            this.action = PlayerProfile.this.getAction(section, null);
+            this.orElse = localizedItemStack;
+            this.bedrockTexture = section.getString("bedrock-texture");
          } else {
             this.disabled = true;
          }
@@ -510,51 +510,51 @@ public class PlayerProfile implements NavItem {
          return this.commands;
       }
 
-      public ItemStack getItem(Player var1, EcoType var2, ShopSearch.QueryMethod var3, int var4, int var5) {
+      public ItemStack getItem(Player player, EcoType ecoType, ShopSearch.QueryMethod queryMethod, int value, int value2) {
          if (!this.staticItem && this.orElse != null) {
-            ItemStack var6 = this.orElse.getItem(var1);
-            if (!var6.hasItemMeta()) {
-               return var6;
+            ItemStack itemStack = this.orElse.getItem(player);
+            if (!itemStack.hasItemMeta()) {
+               return itemStack;
             } else {
-               if (var6.getType().equals(XMaterial.PLAYER_HEAD.parseMaterial()) && this.skullOwner) {
-                  SkullUtil.setSkullTexture(var6, null, var1.getName(), true);
+               if (itemStack.getType().equals(XMaterial.PLAYER_HEAD.parseMaterial()) && this.skullOwner) {
+                  SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
                }
 
-               ItemMeta var7 = var6.getItemMeta();
-               Map var8 = PlayerProfile.getPlaceholdersFor(this.placeholders, var1);
-               if (!var8.isEmpty()) {
-                  PlayerProfile.this.translateLore(var1, var2, var7, var8, var3, var4, var5);
+               ItemMeta itemMeta = itemStack.getItemMeta();
+               Map placeholdersFor = PlayerProfile.getPlaceholdersFor(this.placeholders, player);
+               if (!placeholdersFor.isEmpty()) {
+                  PlayerProfile.this.translateLore(player, ecoType, itemMeta, placeholdersFor, queryMethod, value, value2);
                }
 
-               var6.setItemMeta(var7);
-               return var6;
+               itemStack.setItemMeta(itemMeta);
+               return itemStack;
             }
          } else {
-            return this.orElse == null ? null : this.orElse.getItem(var1);
+            return this.orElse == null ? null : this.orElse.getItem(player);
          }
       }
 
-      public ItemStack getItem(Player var1, EcoType var2, int var3, int var4) {
+      public ItemStack getItem(Player player, EcoType ecoType, int value, int value2) {
          if (!this.staticItem && this.orElse != null) {
-            ItemStack var5 = this.orElse.getItem(var1);
-            if (!var5.hasItemMeta()) {
-               return var5;
+            ItemStack itemStack = this.orElse.getItem(player);
+            if (!itemStack.hasItemMeta()) {
+               return itemStack;
             } else {
-               if (var5.getType().equals(XMaterial.PLAYER_HEAD.parseMaterial()) && this.skullOwner) {
-                  SkullUtil.setSkullTexture(var5, null, var1.getName(), true);
+               if (itemStack.getType().equals(XMaterial.PLAYER_HEAD.parseMaterial()) && this.skullOwner) {
+                  SkullUtil.setSkullTexture(itemStack, null, player.getName(), true);
                }
 
-               ItemMeta var6 = var5.getItemMeta();
-               Map var7 = PlayerProfile.getPlaceholdersFor(this.placeholders, var1);
-               if (!var7.isEmpty()) {
-                  PlayerProfile.this.translateLore(var1, var2, var6, var7, var3, var4);
+               ItemMeta itemMeta = itemStack.getItemMeta();
+               Map placeholdersFor = PlayerProfile.getPlaceholdersFor(this.placeholders, player);
+               if (!placeholdersFor.isEmpty()) {
+                  PlayerProfile.this.translateLore(player, ecoType, itemMeta, placeholdersFor, value, value2);
                }
 
-               var5.setItemMeta(var6);
-               return var5;
+               itemStack.setItemMeta(itemMeta);
+               return itemStack;
             }
          } else {
-            return this.orElse == null ? null : this.orElse.getItem(var1);
+            return this.orElse == null ? null : this.orElse.getItem(player);
          }
       }
    }

@@ -11,18 +11,18 @@ public class SQLBatch {
    private final SQLBatch.Type type;
    private final SQLBatchQueue queue;
 
-   public SQLBatch(OnyxShop var1, Database var2, SQLBatch.Type var3) {
-      this.database = var2;
-      this.type = var3;
-      this.queue = new SQLBatchQueue(var1, var2);
+   public SQLBatch(OnyxShop plugin, Database database, SQLBatch.Type type) {
+      this.database = database;
+      this.type = type;
+      this.queue = new SQLBatchQueue(plugin, database);
    }
 
-   public void addQuery(Query var1) {
-      this.batch.remove(var1);
-      this.batch.add(var1);
+   public void addQuery(Query query) {
+      this.batch.remove(query);
+      this.batch.add(query);
       if (this.batch.size() == 20) {
-         LinkedHashSet var2 = new LinkedHashSet<>(this.batch);
-         this.queue.addToQueue(this.type, var2);
+         LinkedHashSet values = new LinkedHashSet<>(this.batch);
+         this.queue.addToQueue(this.type, values);
          this.batch.clear();
       }
    }

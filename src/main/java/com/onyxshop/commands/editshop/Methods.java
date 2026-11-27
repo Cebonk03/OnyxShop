@@ -13,62 +13,62 @@ import org.bukkit.ChatColor;
 public class Methods {
    private final OnyxShop plugin;
 
-   public Methods(OnyxShop var1) {
-      this.plugin = var1;
+   public Methods(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
-   public String getSection(Object var1, String var2) {
-      if (this.plugin.getShopSections().contains(var2)) {
-         return var2;
+   public String getSection(Object value, String sectionId) {
+      if (this.plugin.getShopSections().contains(sectionId)) {
+         return sectionId;
       } else {
-         SendMessage.sendMessage(var1, Lang.NO_SHOP_FOUND.get());
+         SendMessage.sendMessage(value, Lang.NO_SHOP_FOUND.get());
          return null;
       }
    }
 
-   public String getMaterial(Object var1, String var2) {
-      Optional var3 = XMaterial.matchXMaterial((String)var2);
-      if (var3.isPresent()) {
-         if (((XMaterial)var3.get()).parseItem() != null) {
-            return (String)var2;
+   public String getMaterial(Object value, String materialName) {
+      Optional optional = XMaterial.matchXMaterial((String)materialName);
+      if (optional.isPresent()) {
+         if (((XMaterial)optional.get()).parseItem() != null) {
+            return (String)materialName;
          }
 
-         SendMessage.warnMessage(var1, Lang.MATERIAL_NOT_SUPPORTED.get());
+         SendMessage.warnMessage(value, Lang.MATERIAL_NOT_SUPPORTED.get());
       } else {
-         SendMessage.warnMessage(var1, Lang.ITEM_MATERIAL_NULL.get().replace("%material%", ChatColor.DARK_RED + var2));
+         SendMessage.warnMessage(value, Lang.ITEM_MATERIAL_NULL.get().replace("%material%", ChatColor.DARK_RED + materialName));
       }
 
       return null;
    }
 
-   public Double getPrice(Object var1, Object var2) {
+   public Double getPrice(Object value, Object value2) {
       try {
-         return Double.parseDouble(var2.toString());
-      } catch (NumberFormatException var4) {
-         SendMessage.sendMessage(var1, Lang.NO_VALID_AMOUNT.get());
+         return Double.parseDouble(value2.toString());
+      } catch (NumberFormatException exception) {
+         SendMessage.sendMessage(value, Lang.NO_VALID_AMOUNT.get());
          return null;
       }
    }
 
-   public String getShopItemLoc(Object var1, String var2, String var3) {
-      if (this.plugin.getSection(var2).getItemLocs().contains(var3)) {
-         if (this.plugin.getSection(var2).isActionItem(var2, var3)) {
-            SendMessage.sendMessage(var1, Lang.CANNOT_DO_THAT_ACTION_ITEM.get());
+   public String getShopItemLoc(Object value, String shopId, String itemId) {
+      if (this.plugin.getSection(shopId).getItemLocs().contains(itemId)) {
+         if (this.plugin.getSection(shopId).isActionItem(shopId, itemId)) {
+            SendMessage.sendMessage(value, Lang.CANNOT_DO_THAT_ACTION_ITEM.get());
             return null;
          } else {
-            return var3;
+            return itemId;
          }
       } else {
-         SendMessage.sendMessage(var1, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", var2).replace("%itemLoc%", var3));
+         SendMessage.sendMessage(value, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", shopId).replace("%itemLoc%", itemId));
          return null;
       }
    }
 
-   public String getItemLoc(Object var1, String var2, String var3) {
-      if (this.plugin.getSection(var2).getItemLocs().contains(var3)) {
-         return var3;
+   public String getItemLoc(Object value, String itemId, String text) {
+      if (this.plugin.getSection(itemId).getItemLocs().contains(text)) {
+         return text;
       } else {
-         SendMessage.sendMessage(var1, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", var2).replace("%itemLoc%", var3));
+         SendMessage.sendMessage(value, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", itemId).replace("%itemLoc%", text));
          return null;
       }
    }
@@ -81,31 +81,31 @@ public class Methods {
       return Arrays.asList("&aGreen carpet", "&bDiamond", "&c&lRedstone dust", "&0Bedrock", "#979797Gunpowder", "&aRed flower");
    }
 
-   public Integer getMainMenuSlot(Object var1, String var2) {
+   public Integer getMainMenuSlot(Object value, String text) {
       try {
-         int var3 = Integer.parseInt(var2);
-         if (this.plugin.getMainMenuItemSlots().containsKey(var3)) {
+         int slot = Integer.parseInt(text);
+         if (this.plugin.getMainMenuItemSlots().containsKey(slot)) {
             SendMessage.sendMessage(
-               var1, Lang.SLOT_ALREADY_IN_USE.get().replace("%available-slots%", Arrays.toString(this.getAvailableMainMenuSlots().toArray()))
+               value, Lang.SLOT_ALREADY_IN_USE.get().replace("%available-slots%", Arrays.toString(this.getAvailableMainMenuSlots().toArray()))
             );
             return null;
          } else {
-            return var3;
+            return slot;
          }
-      } catch (NumberFormatException var4) {
-         SendMessage.sendMessage(var1, Lang.SLOT_NEEDS_TO_BE_NUMBER.get());
+      } catch (NumberFormatException exception) {
+         SendMessage.sendMessage(value, Lang.SLOT_NEEDS_TO_BE_NUMBER.get());
          return null;
       }
    }
 
    public List<String> getAvailableMainMenuSlots() {
-      ArrayList var1 = new ArrayList();
+      ArrayList values = new ArrayList();
 
-      for (int var2 = 1; var2 < 46; var2++) {
-         var1.add(String.valueOf(var2));
+      for (int index = 1; index < 46; index++) {
+         values.add(String.valueOf(index));
       }
 
-      this.plugin.getMainMenuItemSlots().keySet().forEach(var1x -> var1.remove(String.valueOf(var1x)));
-      return var1;
+      this.plugin.getMainMenuItemSlots().keySet().forEach(entry -> values.remove(String.valueOf(entry)));
+      return values;
    }
 }

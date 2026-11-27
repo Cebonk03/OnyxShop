@@ -20,8 +20,8 @@ import org.json.simple.JSONObject;
 public class StandStorage {
    private final File file;
 
-   public StandStorage(OnyxShop var1) {
-      this.file = new File(var1.getDataFolder() + File.separator + "stands.json");
+   public StandStorage(OnyxShop plugin) {
+      this.file = new File(plugin.getDataFolder() + File.separator + "stands.json");
 
       try {
          if (!this.file.getParentFile().exists()) {
@@ -33,99 +33,99 @@ public class StandStorage {
          }
 
          if (this.file.length() == 0L) {
-            FileOutputStream var2 = new FileOutputStream(this.file);
-            var2.write("[]".getBytes());
-            var2.close();
+            FileOutputStream fileOutputStream = new FileOutputStream(this.file);
+            fileOutputStream.write("[]".getBytes());
+            fileOutputStream.close();
          }
-      } catch (IOException var3) {
+      } catch (IOException exception) {
          SendMessage.warnMessage(Lang.ERROR_CREATING_STANDS_STORAGE.get());
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
    public Set<Stand> getStoredStands() {
-      HashSet var1 = new HashSet();
+      HashSet values = new HashSet();
 
       try {
-         FileReader var2 = new FileReader(this.file);
+         FileReader fileReader = new FileReader(this.file);
 
          try {
-            for (Object var4 : JsonUtil.parseArray(var2)) {
+            for (Object value : JsonUtil.parseArray(fileReader)) {
                try {
-                  JSONObject var5 = (JSONObject)var4;
-                  int var6 = JsonUtil.getLong(var5, "stand_id").intValue();
-                  SimpleLocation var7 = new SimpleLocation(JsonUtil.getString(var5, "location"), var6);
-                  StandType var8 = StandType.fromName(JsonUtil.getString(var5, "type"));
-                  String var9 = JsonUtil.getString(var5, "item");
-                  StandSettings var10 = new StandSettings(JsonUtil.getString(var5, "settings"));
-                  var1.add(new Stand(var6, var7, var9, var8, var10));
-               } catch (Exception var12) {
-                  SendMessage.errorMessage(Lang.ERROR_LOADING_SHOP_STAND.get().replace("%stand%", var4.toString()).replace("%reason%", var12.getMessage()));
+                  JSONObject jsonObject = (JSONObject)value;
+                  int id = JsonUtil.getLong(jsonObject, "stand_id").intValue();
+                  SimpleLocation simpleLocation = new SimpleLocation(JsonUtil.getString(jsonObject, "location"), id);
+                  StandType standType = StandType.fromName(JsonUtil.getString(jsonObject, "type"));
+                  String text = JsonUtil.getString(jsonObject, "item");
+                  StandSettings standSettings = new StandSettings(JsonUtil.getString(jsonObject, "settings"));
+                  values.add(new Stand(id, simpleLocation, text, standType, standSettings));
+               } catch (Exception exception) {
+                  SendMessage.errorMessage(Lang.ERROR_LOADING_SHOP_STAND.get().replace("%stand%", value.toString()).replace("%reason%", exception.getMessage()));
                }
             }
-         } catch (Throwable var13) {
+         } catch (Throwable exception) {
             try {
-               var2.close();
-            } catch (Throwable var11) {
-               var13.addSuppressed(var11);
+               fileReader.close();
+            } catch (Throwable exception2) {
+               exception.addSuppressed(exception2);
             }
 
-            throw var13;
+            throw exception;
          }
 
-         var2.close();
-      } catch (Exception var14) {
+         fileReader.close();
+      } catch (Exception exception) {
          SendMessage.warnMessage(Lang.ERROR_LOADING_SHOP_STANDS.get());
-         var14.printStackTrace();
+         exception.printStackTrace();
       }
 
-      return var1;
+      return values;
    }
 
-   public void save(Set<Stand> var1) {
-      this.saveToFile(var1);
+   public void save(Set<Stand> values) {
+      this.saveToFile(values);
    }
 
-   private void saveToFile(Set<Stand> var1) {
-      JSONArray var2 = this.toJSON(var1);
-      if (var2 != null) {
-         SendMessage.logDebugMessage(Lang.SAVING_SHOP_STANDS.get().replace("%count%", String.valueOf(var1.size())));
+   private void saveToFile(Set<Stand> values) {
+      JSONArray jsonArray = this.toJSON(values);
+      if (jsonArray != null) {
+         SendMessage.logDebugMessage(Lang.SAVING_SHOP_STANDS.get().replace("%count%", String.valueOf(values.size())));
 
          try {
-            FileWriter var3 = new FileWriter(this.file);
+            FileWriter fileWriter = new FileWriter(this.file);
 
             try {
-               var3.write(var2.toJSONString());
-               var3.flush();
-            } catch (Throwable var7) {
+               fileWriter.write(jsonArray.toJSONString());
+               fileWriter.flush();
+            } catch (Throwable exception) {
                try {
-                  var3.close();
-               } catch (Throwable var6) {
-                  var7.addSuppressed(var6);
+                  fileWriter.close();
+               } catch (Throwable exception2) {
+                  exception.addSuppressed(exception2);
                }
 
-               throw var7;
+               throw exception;
             }
 
-            var3.close();
-         } catch (IOException var8) {
+            fileWriter.close();
+         } catch (IOException exception) {
             SendMessage.warnMessage(Lang.ERROR_SAVING_SHOP_STANDS.get());
-            var8.printStackTrace();
+            exception.printStackTrace();
          }
       }
    }
 
-   private JSONArray toJSON(Set<Stand> var1) {
-      if (var1.isEmpty()) {
+   private JSONArray toJSON(Set<Stand> values) {
+      if (values.isEmpty()) {
          return null;
       } else {
-         JSONArray var2 = new JSONArray();
+         JSONArray jsonArray = new JSONArray();
 
-         for (Stand var4 : var1) {
-            var2.add(var4.serialize());
+         for (Stand stand : values) {
+            jsonArray.add(stand.serialize());
          }
 
-         return var2;
+         return jsonArray;
       }
    }
 }

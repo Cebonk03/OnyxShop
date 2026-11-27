@@ -15,32 +15,32 @@ public class DelayedItemHandler implements Listener {
    private final Collection<DelayedItemProvider> PROVIDERS = new ArrayList<>();
    private final OnyxShop plugin;
 
-   public DelayedItemHandler(OnyxShop var1) {
-      this.plugin = var1;
-      this.plugin.getServer().getPluginManager().registerEvents(this, var1);
+   public DelayedItemHandler(OnyxShop plugin) {
+      this.plugin = plugin;
+      this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
    }
 
-   public void registerProvider(DelayedItemProvider var1) {
-      this.PROVIDERS.add(var1);
+   public void registerProvider(DelayedItemProvider delayedItemProvider) {
+      this.PROVIDERS.add(delayedItemProvider);
    }
 
    @EventHandler
-   public void onLoad(ProviderLoadEvent var1) {
-      if (var1.getProviderType() == DelayedLoadListener.Type.ITEMS) {
-         for (DelayedItemProvider var3 : this.PROVIDERS) {
+   public void onLoad(ProviderLoadEvent event) {
+      if (event.getProviderType() == DelayedLoadListener.Type.ITEMS) {
+         for (DelayedItemProvider delayedItemProvider : this.PROVIDERS) {
             try {
-               var3.load();
-            } catch (EconomyLoadException var5) {
-               SendMessage.errorMessage("Failed to load item economy after waiting for item providers at " + var3.getPath() + ", reason:\n" + var5.getMessage());
-            } catch (ItemRequirementLoadException var6) {
+               delayedItemProvider.load();
+            } catch (EconomyLoadException exception) {
+               SendMessage.errorMessage("Failed to load item economy after waiting for item providers at " + delayedItemProvider.getPath() + ", reason:\n" + exception.getMessage());
+            } catch (ItemRequirementLoadException exception) {
                SendMessage.errorMessage(
-                  "Failed to load item requirement for shop item '" + var3.getPath() + "' after waiting for item providers with reason: " + var6.getMessage()
+                  "Failed to load item requirement for shop item '" + delayedItemProvider.getPath() + "' after waiting for item providers with reason: " + exception.getMessage()
                );
             }
          }
 
          ProviderLoadEvent.getHandlerList().unregister(this);
-         if (this.PROVIDERS.stream().anyMatch(var0 -> var0 instanceof ItemEconomy)) {
+         if (this.PROVIDERS.stream().anyMatch(element -> element instanceof ItemEconomy)) {
             this.plugin.getEcoHandler().mayContinue();
          }
       }

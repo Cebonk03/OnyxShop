@@ -23,96 +23,96 @@ public class LimitedStockOptions extends ItemEditor {
    private final ShopItem item;
    private final LimitedStockOptions.Type type;
 
-   public LimitedStockOptions(Player var1, ShopItem var2, LimitedStockOptions.Type var3) {
-      this.item = var2;
-      this.type = var3;
-      this.initInventory(var1);
+   public LimitedStockOptions(Player player, ShopItem shopItem, LimitedStockOptions.Type type) {
+      this.item = shopItem;
+      this.type = type;
+      this.initInventory(player);
       this.fillInventory();
-      this.open(var1);
+      this.open(player);
    }
 
-   private void initInventory(Player var1) {
+   private void initInventory(Player player) {
       this.inv = OnyxShop.getInstance()
          .getMetaUtils()
          .createInventory(
             this,
             18,
             TitleManager.get(
-               this.type == LimitedStockOptions.Type.GLOBAL ? TitleManager.Menu.ITEM_EDITOR_GLOBAL_STOCK : TitleManager.Menu.ITEM_EDITOR_PLAYER_STOCK, var1
+               this.type == LimitedStockOptions.Type.GLOBAL ? TitleManager.Menu.ITEM_EDITOR_GLOBAL_STOCK : TitleManager.Menu.ITEM_EDITOR_PLAYER_STOCK, player
             )
          );
-      ConfigurationSection var2 = ConfigManager.getShop(this.item.section).getConfigurationSection("pages." + this.item.itemLoc);
-      com.onyxshop.methodes.ItemEditor.Option var3 = this.type == LimitedStockOptions.Type.GLOBAL
+      ConfigurationSection section = ConfigManager.getShop(this.item.section).getConfigurationSection("pages." + this.item.itemLoc);
+      com.onyxshop.methodes.ItemEditor.Option option = this.type == LimitedStockOptions.Type.GLOBAL
          ? com.onyxshop.methodes.ItemEditor.Option.GLOBAL_STOCK_LIMIT
          : com.onyxshop.methodes.ItemEditor.Option.PLAYER_STOCK_LIMIT;
-      com.onyxshop.methodes.ItemEditor.Option var4 = this.type == LimitedStockOptions.Type.GLOBAL
+      com.onyxshop.methodes.ItemEditor.Option option2 = this.type == LimitedStockOptions.Type.GLOBAL
          ? com.onyxshop.methodes.ItemEditor.Option.GLOBAL_STOCK_TIMER
          : com.onyxshop.methodes.ItemEditor.Option.PLAYER_STOCK_TIMER;
-      com.onyxshop.methodes.ItemEditor.Option var5 = this.type == LimitedStockOptions.Type.GLOBAL
+      com.onyxshop.methodes.ItemEditor.Option option3 = this.type == LimitedStockOptions.Type.GLOBAL
          ? com.onyxshop.methodes.ItemEditor.Option.GLOBAL_STOCK_FREQUENCY
          : com.onyxshop.methodes.ItemEditor.Option.PLAYER_STOCK_FREQUENCY;
-      ItemBuilder var6 = new ItemBuilder((this.type == LimitedStockOptions.Type.GLOBAL ? XMaterial.ENDER_CHEST : XMaterial.CHEST).parseItem())
-         .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", var3.getName()));
-      if (var2.contains(var3.getKey())) {
-         var6.withLore(Lang.CURRENT_VALUE.get().replace("%option%", var3.getName()).getLegacy() + ChatColor.GREEN + var2.getInt(var3.getKey()));
+      ItemBuilder itemBuilder = new ItemBuilder((this.type == LimitedStockOptions.Type.GLOBAL ? XMaterial.ENDER_CHEST : XMaterial.CHEST).parseItem())
+         .withDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", option.getName()));
+      if (section.contains(option.getKey())) {
+         itemBuilder.withLore(Lang.CURRENT_VALUE.get().replace("%option%", option.getName()).getLegacy() + ChatColor.GREEN + section.getInt(option.getKey()));
       }
 
-      this.inv.setItem(0, this.setEditOption(var6.build(), var3));
-      ItemBuilder var7 = new ItemBuilder(XMaterial.CLOCK.parseItem());
-      if (var2.contains(var5.getKey())) {
-         List<Translatable> var8 = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
-         var8.forEach(var2x -> var2x.replace("%option%", var4.getName()).replace("%option2%", var5.getName()));
-         var7.setCDisplayName((Translatable)var8.get(0));
-         var7.setCLore(var8.size() > 0 ? var8.subList(1, var8.size()) : var8);
-         this.inv.setItem(1, var7.build());
+      this.inv.setItem(0, this.setEditOption(itemBuilder.build(), option));
+      ItemBuilder itemBuilder2 = new ItemBuilder(XMaterial.CLOCK.parseItem());
+      if (section.contains(option3.getKey())) {
+         List<Translatable> multiple = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
+         multiple.forEach(entry -> entry.replace("%option%", option2.getName()).replace("%option2%", option3.getName()));
+         itemBuilder2.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder2.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         this.inv.setItem(1, itemBuilder2.build());
       } else {
-         var7.setDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", var4.getName()));
-         if (var2.getString(var4.getKey()) != null) {
-            var7.withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", var4.getName()) + ChatColor.GREEN + var2.getString(var4.getKey()));
+         itemBuilder2.setDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", option2.getName()));
+         if (section.getString(option2.getKey()) != null) {
+            itemBuilder2.withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", option2.getName()) + ChatColor.GREEN + section.getString(option2.getKey()));
          }
 
-         this.inv.setItem(1, this.setEditOption(var7.build(), var4));
+         this.inv.setItem(1, this.setEditOption(itemBuilder2.build(), option2));
       }
 
-      ItemBuilder var12 = new ItemBuilder(XMaterial.DAYLIGHT_DETECTOR.parseItem());
-      if (var2.contains(var4.getKey())) {
-         List<Translatable> var9 = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
-         var9.forEach(var2x -> var2x.replace("%option%", var5.getName()).replace("%option2%", var4.getName()));
-         var12.setCDisplayName((Translatable)var9.get(0));
-         var12.setCLore(var9.size() > 0 ? var9.subList(1, var9.size()) : var9);
-         this.inv.setItem(2, var12.build());
+      ItemBuilder itemBuilder3 = new ItemBuilder(XMaterial.DAYLIGHT_DETECTOR.parseItem());
+      if (section.contains(option2.getKey())) {
+         List<Translatable> multiple = Lang.DISABLED_OPTION_CONFLICT.getMultiple();
+         multiple.forEach(entry -> entry.replace("%option%", option3.getName()).replace("%option2%", option2.getName()));
+         itemBuilder3.setCDisplayName((Translatable)multiple.get(0));
+         itemBuilder3.setCLore(multiple.size() > 0 ? multiple.subList(1, multiple.size()) : multiple);
+         this.inv.setItem(2, itemBuilder3.build());
       } else {
-         var12.setDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", var5.getName()));
-         if (var2.getString(var5.getKey()) != null) {
-            var12.withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", var5.getName()) + ChatColor.GREEN + var2.getString(var5.getKey()));
+         itemBuilder3.setDisplayName(Lang.EDIT_OPTION_OF_ITEM.get().replace("%option%", option3.getName()));
+         if (section.getString(option3.getKey()) != null) {
+            itemBuilder3.withLore(Lang.CURRENT_VALUE.get().getLegacy().replace("%option%", option3.getName()) + ChatColor.GREEN + section.getString(option3.getKey()));
 
             try {
-               LinkedList var13 = OnyxShop.getInstance().getScheduleManager().validate(var2.getString(var5.getKey()));
-               if (!var13.isEmpty()) {
-                  var12.addLore(" ");
-                  var12.addLore(ChatColor.GREEN + "Next schedule times(up to 5):");
+               LinkedList shopIds = OnyxShop.getInstance().getScheduleManager().validate(section.getString(option3.getKey()));
+               if (!shopIds.isEmpty()) {
+                  itemBuilder3.addLore(" ");
+                  itemBuilder3.addLore(ChatColor.GREEN + "Next schedule times(up to 5):");
 
-                  for (int var10 = 0; var10 < var13.size(); var10++) {
-                     var12.addLore(ChatColor.GRAY + "-" + ChatColor.GREEN + " " + TimeUtils.getDateTime(((Date)var13.get(var10)).getTime()));
+                  for (int size = 0; size < shopIds.size(); size++) {
+                     itemBuilder3.addLore(ChatColor.GRAY + "-" + ChatColor.GREEN + " " + TimeUtils.getDateTime(((Date)shopIds.get(size)).getTime()));
                   }
                }
-            } catch (RuntimeException var11) {
+            } catch (RuntimeException exception) {
             }
          }
 
-         this.inv.setItem(2, this.setEditOption(var12.build(), var5));
+         this.inv.setItem(2, this.setEditOption(itemBuilder3.build(), option3));
       }
 
-      this.inv.setItem(9, OnyxShop.getInstance().createItem.getPlayerReminder(var1, false));
+      this.inv.setItem(9, OnyxShop.getInstance().createItem.getPlayerReminder(player, false));
       this.inv.setItem(17, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
    }
 
-   private ItemStack setNBTString(ItemStack var1, String var2, String var3) {
-      return OnyxShop.getInstance().versionHandler.setOnyxNbtString(var1, var2, var3);
+   private ItemStack setNBTString(ItemStack itemStack, String itemId, String text) {
+      return OnyxShop.getInstance().versionHandler.setOnyxNbtString(itemStack, itemId, text);
    }
 
-   private ItemStack setEditOption(ItemStack var1, com.onyxshop.methodes.ItemEditor.Option var2) {
-      return OnyxShop.getInstance().versionHandler.setEditOption(var1, var2.getKey());
+   private ItemStack setEditOption(ItemStack itemStack, com.onyxshop.methodes.ItemEditor.Option option) {
+      return OnyxShop.getInstance().versionHandler.setEditOption(itemStack, option.getKey());
    }
 
    public ShopItem getItem() {

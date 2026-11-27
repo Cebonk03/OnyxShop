@@ -36,42 +36,42 @@ public class ShopSection extends BedrockInventory {
    private String[] buttonItemLoc;
 
    public ShopSection(
-      boolean var1,
-      com.onyxshop.objects.shops.ShopSection var2,
-      int var3,
-      boolean var4,
-      String var5,
-      Map<Integer, ItemStack> var6,
-      List<String> var7,
-      ItemStack var8,
-      Translatable var9,
-      int var10,
-      boolean var11
+      boolean flag,
+      com.onyxshop.objects.shops.ShopSection section,
+      int value,
+      boolean flag2,
+      String text,
+      Map<Integer, ItemStack> map,
+      List<String> values,
+      ItemStack itemStack,
+      Translatable text2,
+      int value2,
+      boolean flag3
    ) {
-      super(var1 ? var10 : countButtons(var7, var10, var11));
-      this.section = var2;
-      this.page = var3;
-      this.disabledBackButton = var4;
-      this.rootSection = var5;
-      this.pageContents = var6;
-      this.itemOrder = var7;
-      this.fillItem = var8;
-      this.title = var9;
-      this.size = var10;
-      this.navBarEnabled = var11;
+      super(flag ? value2 : countButtons(values, value2, flag3));
+      this.section = section;
+      this.page = value;
+      this.disabledBackButton = flag2;
+      this.rootSection = text;
+      this.pageContents = map;
+      this.itemOrder = values;
+      this.fillItem = itemStack;
+      this.title = text2;
+      this.size = value2;
+      this.navBarEnabled = flag3;
    }
 
-   private static int countButtons(List<String> var0, int var1, boolean var2) {
-      int var3 = var2 ? var1 - 9 : var1;
-      int var4 = 0;
+   private static int countButtons(List<String> values, int amount, boolean flag) {
+      int value = flag ? amount - 9 : amount;
+      int value2 = 0;
 
-      for (int var5 = 0; var5 < var3 && var5 < var0.size(); var5++) {
-         if (var0.get(var5) != null) {
-            var4++;
+      for (int size = 0; size < value && size < values.size(); size++) {
+         if (values.get(size) != null) {
+            value2++;
          }
       }
 
-      return var4 + (var2 ? 9 : 0);
+      return value2 + (flag ? 9 : 0);
    }
 
    public String getSection() {
@@ -99,178 +99,178 @@ public class ShopSection extends BedrockInventory {
    }
 
    @Override
-   public void openForm(OnyxShop var1, Player var2, FloodgatePlayer var3) {
-      this.p = var2;
-      Builder var4 = (Builder)SimpleForm.builder().title(this.title.getBedrockLegacy());
+   public void openForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer) {
+      this.p = player;
+      Builder builder = (Builder)SimpleForm.builder().title(this.title.getBedrockLegacy());
       this.buttonItemLoc = new String[this.items.length];
-      int var5 = this.navBarEnabled ? this.size - 9 : this.size;
-      int var6 = 0;
+      int size = this.navBarEnabled ? this.size - 9 : this.size;
+      int value = 0;
 
-      for (int var7 = 0; var7 < var5 && var7 < this.itemOrder.size(); var7++) {
-         String var8 = this.itemOrder.get(var7);
-         ItemStack var9 = var8 == null ? null : this.pageContents.get(var7);
-         if (var9 != null) {
-            this.buttonItemLoc[var6] = var8;
-            this.addItem(var4, var9, var6++, this.getBedrockTexture(var8));
+      for (int index = 0; index < size && index < this.itemOrder.size(); index++) {
+         String itemId = this.itemOrder.get(index);
+         ItemStack itemStack = itemId == null ? null : this.pageContents.get(index);
+         if (itemStack != null) {
+            this.buttonItemLoc[value] = itemId;
+            this.addItem(builder, itemStack, value++, this.getBedrockTexture(itemId));
          }
       }
 
-      int var11 = var6;
+      int value2 = value;
       if (this.navBarEnabled) {
-         ItemStack[] var12 = var1.navBar.getShopNavBar(this.getSection(), var2, this.page, this.getAllPages());
-         String[] var13 = var1.navBar.getShopNavTextures(this.getSection(), this.page, this.getAllPages());
+         ItemStack[] shopNavBar = plugin.navBar.getShopNavBar(this.getSection(), player, this.page, this.getAllPages());
+         String[] shopNavTextures = plugin.navBar.getShopNavTextures(this.getSection(), this.page, this.getAllPages());
 
-         for (int var10 = 0; var10 < var12.length; var10++) {
-            if (var12[var10] != null) {
-               this.addItem(var4, var12[var10], var6++, var13[var10]);
+         for (int index = 0; index < shopNavBar.length; index++) {
+            if (shopNavBar[index] != null) {
+               this.addItem(builder, shopNavBar[index], value++, shopNavTextures[index]);
             }
          }
       }
 
-      var4.validResultHandler(var5x -> {
-         int var6x = var5x.clickedButtonId();
-         if (this.items[var6x] != null) {
-            if (this.navBarEnabled && var6x >= var11) {
-               if (!var1.navBar.execute(this, var2, var6x - var11, this.page)) {
-                  this.openForm(var1, var2, var3);
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            if (this.navBarEnabled && id >= value2) {
+               if (!plugin.navBar.execute(this, player, id - value2, this.page)) {
+                  this.openForm(plugin, player, floodgatePlayer);
                }
             } else {
-               if (!this.handleItemClick(var1, var2, var3, this.buttonItemLoc[var6x])) {
-                  this.openForm(var1, var2, var3);
+               if (!this.handleItemClick(plugin, player, floodgatePlayer, this.buttonItemLoc[id])) {
+                  this.openForm(plugin, player, floodgatePlayer);
                }
             }
          }
       });
-      var3.sendForm(var4);
+      floodgatePlayer.sendForm(builder);
    }
 
    @Override
-   public void openGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4) {
-      this.p = var2;
-      this.buildGridForm(var1, var2, var3, var4);
+   public void openGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag) {
+      this.p = player;
+      this.buildGridForm(plugin, player, floodgatePlayer, flag);
    }
 
-   private void buildGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4) {
-      Builder var5 = (Builder)SimpleForm.builder().title(this.getTitle(this.title, this.size, 99, var4));
-      int var6 = this.navBarEnabled ? this.size - 9 : this.size;
+   private void buildGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag) {
+      Builder builder = (Builder)SimpleForm.builder().title(this.getTitle(this.title, this.size, 99, flag));
+      int size = this.navBarEnabled ? this.size - 9 : this.size;
 
-      for (int var7 = 0; var7 < var6; var7++) {
-         ItemStack var8 = this.pageContents.get(var7);
-         if (var8 == null) {
+      for (int index = 0; index < size; index++) {
+         ItemStack itemStack = this.pageContents.get(index);
+         if (itemStack == null) {
             if (this.fillItem != null) {
-               this.addGridItem(var5, this.fillItem, true, var7, false);
+               this.addGridItem(builder, this.fillItem, true, index, false);
             } else {
-               var5.button("null");
+               builder.button("null");
             }
          } else {
-            this.addGridItem(var5, var8, false, var7, false, this.getBedrockTexture(this.itemOrder.get(var7)));
+            this.addGridItem(builder, itemStack, false, index, false, this.getBedrockTexture(this.itemOrder.get(index)));
          }
       }
 
       if (this.navBarEnabled) {
-         int var11 = this.size - 9;
-         ItemStack[] var12 = var1.navBar.getShopNavBar(this.getSection(), var2, this.page, this.getAllPages());
-         String[] var9 = var1.navBar.getShopNavTextures(this.getSection(), this.page, this.getAllPages());
+         int value = this.size - 9;
+         ItemStack[] shopNavBar = plugin.navBar.getShopNavBar(this.getSection(), player, this.page, this.getAllPages());
+         String[] shopNavTextures = plugin.navBar.getShopNavTextures(this.getSection(), this.page, this.getAllPages());
 
-         for (int var10 = 0; var10 < var12.length; var10++) {
-            if (var12[var10] != null && var12[var10].getType() != Material.AIR) {
-               this.addGridItem(var5, var12[var10], false, var11, false, var9[var10]);
+         for (int index = 0; index < shopNavBar.length; index++) {
+            if (shopNavBar[index] != null && shopNavBar[index].getType() != Material.AIR) {
+               this.addGridItem(builder, shopNavBar[index], false, value, false, shopNavTextures[index]);
             } else {
-               var5.button("null");
+               builder.button("null");
             }
 
-            var11++;
+            value++;
          }
       }
 
-      var5.validResultHandler(var6x -> {
-         int var7x = var6x.clickedButtonId();
-         if (this.items[var7x] != null) {
-            this.handleClick(var5, var1, var2, var3, var7x, -1, var4);
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            this.handleClick(builder, plugin, player, floodgatePlayer, id, -1, flag);
          }
       });
-      var3.sendForm(var5);
+      floodgatePlayer.sendForm(builder);
    }
 
-   private void reopenGridForm(Builder var1, OnyxShop var2, Player var3, FloodgatePlayer var4, boolean var5, int var6, int var7) {
-      if (var5 && var6 != var7) {
-         var1 = (Builder)SimpleForm.builder().title(this.getTitle(this.title, this.size, var6, var5));
+   private void reopenGridForm(Builder builder, OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag, int value, int value2) {
+      if (flag && value != value2) {
+         builder = (Builder)SimpleForm.builder().title(this.getTitle(this.title, this.size, value, flag));
 
-         for (int var8 = 0; var8 < this.items.length; var8++) {
-            if (this.items[var8] != null) {
-               this.readdGridItem(var1, var8, var6 == var8);
+         for (int index = 0; index < this.items.length; index++) {
+            if (this.items[index] != null) {
+               this.readdGridItem(builder, index, value == index);
             } else {
-               var1.button("null");
+               builder.button("null");
             }
          }
 
-         var7 = var6;
+         value2 = value;
       }
 
-      int var10 = var7;
-      Builder var9 = var1;
-      var1.validResultHandler(var7x -> {
-         int var8x = var7x.clickedButtonId();
-         if (this.items[var8x] != null) {
-            this.handleClick(var9, var2, var3, var4, var8x, var10, var5);
+      int value3 = value2;
+      Builder builder2 = builder;
+      builder.validResultHandler(element -> {
+         int id = element.clickedButtonId();
+         if (this.items[id] != null) {
+            this.handleClick(builder2, plugin, player, floodgatePlayer, id, value3, flag);
          }
       });
-      var4.sendForm(var1);
+      floodgatePlayer.sendForm(builder);
    }
 
-   private void handleClick(Builder var1, OnyxShop var2, Player var3, FloodgatePlayer var4, int var5, int var6, boolean var7) {
-      if (var7 && var6 != var5) {
-         this.reopenGridForm(var1, var2, var3, var4, var7, var5, var6);
-      } else if (this.items[var5].isFillItem()) {
-         this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
-      } else if (this.navBarEnabled && var5 >= this.size - 9 && var5 <= this.size - 1) {
-         if (!var2.navBar.execute(this, var3, var5 - (this.size - 9), this.page)) {
-            this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
+   private void handleClick(Builder builder, OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, int value, int value2, boolean flag) {
+      if (flag && value2 != value) {
+         this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, value, value2);
+      } else if (this.items[value].isFillItem()) {
+         this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
+      } else if (this.navBarEnabled && value >= this.size - 9 && value <= this.size - 1) {
+         if (!plugin.navBar.execute(this, player, value - (this.size - 9), this.page)) {
+            this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
          }
       } else {
-         if (!this.handleItemClick(var2, var3, var4, this.itemOrder.get(var5))) {
-            this.reopenGridForm(var1, var2, var3, var4, var7, 99, var6);
+         if (!this.handleItemClick(plugin, player, floodgatePlayer, this.itemOrder.get(value))) {
+            this.reopenGridForm(builder, plugin, player, floodgatePlayer, flag, 99, value2);
          }
       }
    }
 
-   private String getBedrockTexture(String var1) {
-      DisplayItem var2 = var1 == null ? null : this.section.getDisplayItem(this.getSection() + "." + var1);
-      return var2 instanceof ShopItem ? ((ShopItem)var2).getBedrockTexture() : null;
+   private String getBedrockTexture(String text) {
+      DisplayItem displayItem = text == null ? null : this.section.getDisplayItem(this.getSection() + "." + text);
+      return displayItem instanceof ShopItem ? ((ShopItem)displayItem).getBedrockTexture() : null;
    }
 
-   private boolean handleItemClick(OnyxShop var1, Player var2, FloodgatePlayer var3, String var4) {
-      if (var4 == null) {
+   private boolean handleItemClick(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, String itemId) {
+      if (itemId == null) {
          return false;
       } else {
-         DisplayItem var5 = this.section.getDisplayItem(this.getSection() + "." + var4);
-         if (var5 == null) {
+         DisplayItem displayItem = this.section.getDisplayItem(this.getSection() + "." + itemId);
+         if (displayItem == null) {
             return false;
-         } else if (var5 instanceof ActionItem) {
-            return var1.navBar.execute(this, var2, ((ActionItem)var5).getAction(), this.page);
-         } else if (var5.hasItemError()) {
-            SendMessage.chatToPlayer(var2, Lang.ITEM_ERROR.get(var2));
+         } else if (displayItem instanceof ActionItem) {
+            return plugin.navBar.execute(this, player, ((ActionItem)displayItem).getAction(), this.page);
+         } else if (displayItem.hasItemError()) {
+            SendMessage.chatToPlayer(player, Lang.ITEM_ERROR.get(player));
             return false;
-         } else if (!var5.canPurchase(var2, "shop", false) || !var1.menuHandler.isAllowedGamemode(var2)) {
+         } else if (!displayItem.canPurchase(player, "shop", false) || !plugin.menuHandler.isAllowedGamemode(player)) {
             return false;
-         } else if (!var5.meetsRequirements(var2, false)) {
+         } else if (!displayItem.meetsRequirements(player, false)) {
             return false;
          } else {
-            if (var5.isClickCommand() && var1.commandItems) {
-               CommandHelper.executeCommandItem(var5, var2, CommandType.CLICK);
+            if (displayItem.isClickCommand() && plugin.commandItems) {
+               CommandHelper.executeCommandItem(displayItem, player, CommandType.CLICK);
             }
 
-            ShopItem var6 = (ShopItem)var5;
-            if (var6.isLinked()) {
-               if (PermissionsCache.hasPermission(var2, "OnyxShop.shop." + var6.getSubSection().toLowerCase())) {
-                  var1.getSection(var6.getSubSection()).openShopSection(var2, this.disabledBackButton, var6.section);
+            ShopItem shopItem = (ShopItem)displayItem;
+            if (shopItem.isLinked()) {
+               if (PermissionsCache.hasPermission(player, "OnyxShop.shop." + shopItem.getSubSection().toLowerCase())) {
+                  plugin.getSection(shopItem.getSubSection()).openShopSection(player, this.disabledBackButton, shopItem.section);
                } else {
-                  SendMessage.chatToPlayer(var2, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(var2));
+                  SendMessage.chatToPlayer(player, Lang.NO_PERMISSIONS_TO_OPEN_SHOP.get(player));
                }
 
                return true;
-            } else if (!var6.isDisplayItem() && (var6.isBuyAble() || var6.isSellAble())) {
-               this.openItemActionForm(var1, var2, var3, var6);
+            } else if (!shopItem.isDisplayItem() && (shopItem.isBuyAble() || shopItem.isSellAble())) {
+               this.openItemActionForm(plugin, player, floodgatePlayer, shopItem);
                return true;
             } else {
                return false;
@@ -279,79 +279,79 @@ public class ShopSection extends BedrockInventory {
       }
    }
 
-   private void openItemActionForm(OnyxShop var1, Player var2, FloodgatePlayer var3, ShopItem var4) {
-      String var5 = var4.getDisplayname();
-      if (var4.hasCustomName()) {
-         var5 = var1.getMetaUtils().getDisplayName(var4.getShopItem().getItemMeta()).getBedrockLegacy();
+   private void openItemActionForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, ShopItem shopItem) {
+      String displayname = shopItem.getDisplayname();
+      if (shopItem.hasCustomName()) {
+         displayname = plugin.getMetaUtils().getDisplayName(shopItem.getShopItem().getItemMeta()).getBedrockLegacy();
       }
 
-      Builder var6 = (Builder)SimpleForm.builder().title(var5);
-      ArrayList<Runnable> var7 = new ArrayList<>();
-      if (var4.isBuyAble()) {
-         var6.button(Lang.BUY.get(var2).getBedrockLegacy());
-         var7.add(() -> this.executeBuy(var1, var2, var4));
+      Builder builder = (Builder)SimpleForm.builder().title(displayname);
+      ArrayList<Runnable> values = new ArrayList<>();
+      if (shopItem.isBuyAble()) {
+         builder.button(Lang.BUY.get(player).getBedrockLegacy());
+         values.add(() -> this.executeBuy(plugin, player, shopItem));
       }
 
-      if (var4.isSellAble()) {
-         var6.button(Lang.SELL.get(var2).getBedrockLegacy());
-         var7.add(() -> this.executeSell(var1, var2, var4));
-         if (var1.MMB) {
-            var6.button(Lang.SELL_ALL.get(var2).getBedrockLegacy());
-            var7.add(() -> this.executeSellAll(var1, var2, var4));
+      if (shopItem.isSellAble()) {
+         builder.button(Lang.SELL.get(player).getBedrockLegacy());
+         values.add(() -> this.executeSell(plugin, player, shopItem));
+         if (plugin.MMB) {
+            builder.button(Lang.SELL_ALL.get(player).getBedrockLegacy());
+            values.add(() -> this.executeSellAll(plugin, player, shopItem));
          }
       }
 
-      var6.button(Lang.BACK.get(var2).getBedrockLegacy());
-      var7.add(() -> this.refresh(var1, var2));
-      var6.validResultHandler(var1x -> ((Runnable)var7.get(var1x.clickedButtonId())).run());
-      var3.sendForm(var6);
+      builder.button(Lang.BACK.get(player).getBedrockLegacy());
+      values.add(() -> this.refresh(plugin, player));
+      builder.validResultHandler(element -> ((Runnable)values.get(element.clickedButtonId())).run());
+      floodgatePlayer.sendForm(builder);
    }
 
-   private void executeBuy(OnyxShop var1, Player var2, ShopItem var3) {
-      if (var3.getMaxBuy() == -1) {
-         if (var3.isABuyPricing()) {
-            var1.menuHandler.purchaseItemA(var2, var3);
+   private void executeBuy(OnyxShop plugin, Player player, ShopItem shopItem) {
+      if (shopItem.getMaxBuy() == -1) {
+         if (shopItem.isABuyPricing()) {
+            plugin.menuHandler.purchaseItemA(player, shopItem);
          } else {
-            var1.menuHandler.purchaseItem(var2, var3);
+            plugin.menuHandler.purchaseItem(player, shopItem);
          }
 
-         this.refresh(var1, var2);
+         this.refresh(plugin, player);
       } else {
          new com.onyxshop.objects.TransactionMenu(
-               var2, var3, this.rootSection, this.disabledBackButton, Transaction.Mode.BUY, Transaction.Type.BUY_SCREEN, 1
+               player, shopItem, this.rootSection, this.disabledBackButton, Transaction.Mode.BUY, Transaction.Type.BUY_SCREEN, 1
             )
             .open(false);
       }
    }
 
-   private void executeSell(OnyxShop var1, Player var2, ShopItem var3) {
-      if (var3.getMaxSell() == -1) {
-         if (var3.isASellPricing()) {
-            var1.menuHandler.sellItemA(var2, var3, var3.getStackSize());
+   private void executeSell(OnyxShop plugin, Player player, ShopItem shopItem) {
+      if (shopItem.getMaxSell() == -1) {
+         if (shopItem.isASellPricing()) {
+            plugin.menuHandler.sellItemA(player, shopItem, shopItem.getStackSize());
          } else {
-            var1.menuHandler.sellItem(var2, var3, var3.getStackSize());
+            plugin.menuHandler.sellItem(player, shopItem, shopItem.getStackSize());
          }
 
-         this.refresh(var1, var2);
+         this.refresh(plugin, player);
       } else {
          new com.onyxshop.objects.TransactionMenu(
-               var2, var3, this.rootSection, this.disabledBackButton, Transaction.Mode.SELL, Transaction.Type.SELL_SCREEN, 1
+               player, shopItem, this.rootSection, this.disabledBackButton, Transaction.Mode.SELL, Transaction.Type.SELL_SCREEN, 1
             )
             .open(false);
       }
    }
 
-   private void executeSellAll(OnyxShop var1, Player var2, ShopItem var3) {
-      if (var3.isASellPricing()) {
-         var1.menuHandler.sellItemA(var2, var3, Integer.MAX_VALUE);
+   private void executeSellAll(OnyxShop plugin, Player player, ShopItem shopItem) {
+      if (shopItem.isASellPricing()) {
+         plugin.menuHandler.sellItemA(player, shopItem, Integer.MAX_VALUE);
       } else {
-         var1.menuHandler.sellItem(var2, var3, Integer.MAX_VALUE);
+         plugin.menuHandler.sellItem(player, shopItem, Integer.MAX_VALUE);
       }
 
-      this.refresh(var1, var2);
+      this.refresh(plugin, player);
    }
 
-   private void refresh(OnyxShop var1, Player var2) {
-      var1.getSection(this.getSection()).openShopSection(var2, this.page, this.disabledBackButton, this.rootSection);
+   private void refresh(OnyxShop plugin, Player player) {
+      plugin.getSection(this.getSection()).openShopSection(player, this.page, this.disabledBackButton, this.rootSection);
    }
 }

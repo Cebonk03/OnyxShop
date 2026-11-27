@@ -27,19 +27,19 @@ public class UploadLayout extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var1 instanceof Player) {
-         new MarketplaceIntegration().startUpload((Player)var1);
+   public void perform(Object value, String[] values) {
+      if (value instanceof Player) {
+         new MarketplaceIntegration().startUpload((Player)value);
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
+   public List<String> getTabCompletion(String[] values) {
       return null;
    }
 }

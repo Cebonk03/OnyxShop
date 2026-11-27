@@ -16,83 +16,83 @@ public class Gradient {
    private final List<ChatColor> colors = new ArrayList<>();
    private final Pattern rbgPattern = Pattern.compile("#[a-fA-F0-9]{6}");
 
-   public Gradient(String var1, String var2, String var3) {
-      int var4 = var3.indexOf(var1);
-      int var5 = var3.indexOf(var2) + var2.length();
-      this.start = var3.substring(0, var4);
-      this.end = var3.substring(var5);
+   public Gradient(String text, String text2, String text3) {
+      int index = text3.indexOf(text);
+      int value = text3.indexOf(text2) + text2.length();
+      this.start = text3.substring(0, index);
+      this.end = text3.substring(value);
       this.format = this.getFormat(this.start);
-      this.original = var3.substring(var4, var5).replace(var1, "").replace(var2, "");
-      Color var6 = this.getColor(var1);
-      if (var6 == null) {
-         var6 = Color.decode("#D4AF37");
+      this.original = text3.substring(index, value).replace(text, "").replace(text2, "");
+      Color color = this.getColor(text);
+      if (color == null) {
+         color = Color.decode("#D4AF37");
       }
 
-      Color var7 = this.getColor(var2);
-      if (var7 == null) {
-         var7 = Color.decode("#FADA6F");
+      Color color2 = this.getColor(text2);
+      if (color2 == null) {
+         color2 = Color.decode("#FADA6F");
       }
 
-      for (int var8 = 0; var8 < this.original.length(); var8++) {
-         float var9 = (float)var8 / this.original.length();
-         int var10 = (int)(var7.getRed() * var9 + var6.getRed() * (1.0F - var9));
-         int var11 = (int)(var7.getGreen() * var9 + var6.getGreen() * (1.0F - var9));
-         int var12 = (int)(var7.getBlue() * var9 + var6.getBlue() * (1.0F - var9));
-         this.colors.add(ChatColor.of(new Color(var10, var11, var12)));
+      for (int index2 = 0; index2 < this.original.length(); index2++) {
+         float amount = (float)index2 / this.original.length();
+         int value3 = (int)(color2.getRed() * amount + color.getRed() * (1.0F - amount));
+         int value4 = (int)(color2.getGreen() * amount + color.getGreen() * (1.0F - amount));
+         int value5 = (int)(color2.getBlue() * amount + color.getBlue() * (1.0F - amount));
+         this.colors.add(ChatColor.of(new Color(value3, value4, value5)));
       }
    }
 
-   private Color getColor(String var1) {
-      Matcher var2 = this.rbgPattern.matcher(var1);
-      if (var2.find()) {
+   private Color getColor(String text) {
+      Matcher matcher = this.rbgPattern.matcher(text);
+      if (matcher.find()) {
          try {
-            return Color.decode(var1.substring(var2.start(), var2.end()));
-         } catch (NumberFormatException var4) {
-            SendMessage.warnMessage("Invalid rgb format for '" + var1 + "', using default gradient colors...");
+            return Color.decode(text.substring(matcher.start(), matcher.end()));
+         } catch (NumberFormatException exception) {
+            SendMessage.warnMessage("Invalid rgb format for '" + text + "', using default gradient colors...");
          }
       } else {
-         SendMessage.warnMessage("Invalid rgb format for '" + var1 + "', using default gradient colors...");
+         SendMessage.warnMessage("Invalid rgb format for '" + text + "', using default gradient colors...");
       }
 
       return null;
    }
 
-   public ChatColor getColor(int var1) {
-      return this.colors.get(var1);
+   public ChatColor getColor(int value) {
+      return this.colors.get(value);
    }
 
    public String get() {
-      int var1 = 0;
-      StringBuilder var2 = new StringBuilder();
-      var2.append(this.start);
+      int value = 0;
+      StringBuilder builder = new StringBuilder();
+      builder.append(this.start);
 
-      for (char var6 : this.original.toCharArray()) {
-         var2.append(this.getColor(var1)).append(this.format).append(var6);
-         var1++;
+      for (char character : this.original.toCharArray()) {
+         builder.append(this.getColor(value)).append(this.format).append(character);
+         value++;
       }
 
-      var2.append(this.end);
-      return var2.toString();
+      builder.append(this.end);
+      return builder.toString();
    }
 
-   private String getFormat(String var1) {
-      String var2 = "";
-      int var3 = var1.length();
+   private String getFormat(String text) {
+      String text2 = "";
+      int value = text.length();
 
-      for (int var4 = var3 - 1; var4 > -1; var4--) {
-         char var5 = var1.charAt(var4);
-         if ((var5 == 167 || var5 == '&') && var4 < var3 - 1) {
-            char var6 = var1.charAt(var4 + 1);
-            org.bukkit.ChatColor var7 = org.bukkit.ChatColor.getByChar(var6);
-            if (var7 != null && var7.isFormat()) {
-               var2 = var7.toString() + var2;
-               if (var7.isColor() || var7.equals(org.bukkit.ChatColor.RESET)) {
+      for (int index = value - 1; index > -1; index--) {
+         char character = text.charAt(index);
+         if ((character == 167 || character == '&') && index < value - 1) {
+            char character2 = text.charAt(index + 1);
+            org.bukkit.ChatColor chatColor = org.bukkit.ChatColor.getByChar(character2);
+            if (chatColor != null && chatColor.isFormat()) {
+               text2 = chatColor.toString() + text2;
+               if (chatColor.isColor() || chatColor.equals(org.bukkit.ChatColor.RESET)) {
                   break;
                }
             }
          }
       }
 
-      return var2;
+      return text2;
    }
 }

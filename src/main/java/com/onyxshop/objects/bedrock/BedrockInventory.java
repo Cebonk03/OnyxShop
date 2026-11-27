@@ -16,128 +16,128 @@ public abstract class BedrockInventory {
    public Player p;
    private static final String TEXTURE_PREFIX = ":texture:";
 
-   public BedrockInventory(int var1) {
-      this.items = new BedrockInventory.FormItem[var1];
+   public BedrockInventory(int value) {
+      this.items = new BedrockInventory.FormItem[value];
    }
 
    public BedrockInventory.FormItem[] getItems() {
       return this.items;
    }
 
-   public abstract void openForm(OnyxShop var1, Player var2, FloodgatePlayer var3);
+   public abstract void openForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer);
 
-   public abstract void openGridForm(OnyxShop var1, Player var2, FloodgatePlayer var3, boolean var4);
+   public abstract void openGridForm(OnyxShop plugin, Player player, FloodgatePlayer floodgatePlayer, boolean flag);
 
-   public String getTitle(Translatable var1, int var2, int var3, boolean var4) {
-      String var5 = String.format("%02d", var3);
-      String var6 = String.format("%02d", var2);
-      String var7 = var1.getBedrockLegacy();
-      String var8 = "default";
-      int var9 = var7.indexOf(":texture:");
-      if (var9 != -1) {
-         int var10 = var9 + ":texture:".length();
-         int var11 = var7.indexOf(58, var10);
-         if (var11 != -1) {
-            String var12 = var7.substring(var10, var11);
-            if (!var12.isEmpty()) {
-               var8 = var12;
+   public String getTitle(Translatable text, int value, int value2, boolean flag) {
+      String title = String.format("%02d", value2);
+      String text2 = String.format("%02d", value);
+      String bedrockLegacy = text.getBedrockLegacy();
+      String text3 = "default";
+      int index = bedrockLegacy.indexOf(":texture:");
+      if (index != -1) {
+         int value3 = index + ":texture:".length();
+         int value4 = bedrockLegacy.indexOf(58, value3);
+         if (value4 != -1) {
+            String text4 = bedrockLegacy.substring(value3, value4);
+            if (!text4.isEmpty()) {
+               text3 = text4;
             }
 
-            var7 = var7.substring(0, var9) + var7.substring(var11 + 1);
+            bedrockLegacy = bedrockLegacy.substring(0, index) + bedrockLegacy.substring(value4 + 1);
          }
       }
 
-      return textureField(var8)
+      return textureField(text3)
          + "§"
-         + var5.charAt(0)
+         + title.charAt(0)
          + "§"
-         + var5.charAt(1)
+         + title.charAt(1)
          + "§E§S§G§U§I§"
-         + var6.charAt(0)
+         + text2.charAt(0)
          + "§"
-         + var6.charAt(1)
-         + (var4 ? "§k§r" : "§r§r")
+         + text2.charAt(1)
+         + (flag ? "§k§r" : "§r§r")
          + "§r"
-         + var7;
+         + bedrockLegacy;
    }
 
-   public static String textureField(String var0) {
-      if (var0 == null || var0.isEmpty()) {
-         var0 = "default";
+   public static String textureField(String text) {
+      if (text == null || text.isEmpty()) {
+         text = "default";
       }
 
-      if (var0.length() > 16) {
-         var0 = var0.substring(0, 16);
+      if (text.length() > 16) {
+         text = text.substring(0, 16);
       }
 
-      StringBuilder var1 = new StringBuilder(var0);
+      StringBuilder builder = new StringBuilder(text);
 
-      while (var1.length() < 16) {
-         var1.append('?');
+      while (builder.length() < 16) {
+         builder.append('?');
       }
 
-      return var1.toString();
+      return builder.toString();
    }
 
-   public String buildTooltip(ItemStack var1, boolean var2) {
-      int var3 = Math.min(Math.max(var1.getAmount(), 1), 99);
-      StringBuilder var4 = new StringBuilder(var2 ? String.format("stack#%02ddur#00§r", var3) : "");
-      MetaUtils var5 = OnyxShop.getInstance().getMetaUtils();
-      ItemMeta var6 = var1.hasItemMeta() ? var1.getItemMeta() : null;
-      if (var6 != null && var6.hasDisplayName()) {
-         var4.append(var5.getDisplayName(var6).getBedrockLegacy());
+   public String buildTooltip(ItemStack itemStack, boolean flag) {
+      int amount = Math.min(Math.max(itemStack.getAmount(), 1), 99);
+      StringBuilder builder = new StringBuilder(flag ? String.format("stack#%02ddur#00§r", amount) : "");
+      MetaUtils metaUtils = OnyxShop.getInstance().getMetaUtils();
+      ItemMeta itemMeta = itemStack.hasItemMeta() ? itemStack.getItemMeta() : null;
+      if (itemMeta != null && itemMeta.hasDisplayName()) {
+         builder.append(metaUtils.getDisplayName(itemMeta).getBedrockLegacy());
       } else {
-         var4.append(OnyxShop.getInstance().getMaterialName(var1.getType().name()));
+         builder.append(OnyxShop.getInstance().getMaterialName(itemStack.getType().name()));
       }
 
-      if (var2 && var6 != null && var6.hasLore()) {
-         for (Translatable var8 : var5.getLore(var6)) {
-            var4.append('\n').append(var8.getBedrockLegacy());
+      if (flag && itemMeta != null && itemMeta.hasLore()) {
+         for (Translatable text : metaUtils.getLore(itemMeta)) {
+            builder.append('\n').append(text.getBedrockLegacy());
          }
       }
 
-      return var4.toString();
+      return builder.toString();
    }
 
-   public Builder addGridItem(Builder var1, ItemStack var2, boolean var3, int var4, boolean var5) {
-      return this.addGridItem(var1, var2, var3, var4, var5, null);
+   public Builder addGridItem(Builder builder, ItemStack itemStack, boolean flag, int value, boolean flag2) {
+      return this.addGridItem(builder, itemStack, flag, value, flag2, null);
    }
 
-   public Builder addGridItem(Builder var1, ItemStack var2, boolean var3, int var4, boolean var5, String var6) {
-      BedrockInventory.FormItem var7 = new BedrockInventory.FormItem(var2, var3, var6, true);
-      if (var7.icon != null) {
-         var1.button(var7.getTooltip(var5), Type.PATH, var7.icon);
+   public Builder addGridItem(Builder builder, ItemStack itemStack, boolean flag, int value, boolean flag2, String itemId) {
+      BedrockInventory.FormItem formItem = new BedrockInventory.FormItem(itemStack, flag, itemId, true);
+      if (formItem.icon != null) {
+         builder.button(formItem.getTooltip(flag2), Type.PATH, formItem.icon);
       } else {
-         var1.button(var7.getTooltip(var5));
+         builder.button(formItem.getTooltip(flag2));
       }
 
-      this.items[var4] = var7;
-      return var1;
+      this.items[value] = formItem;
+      return builder;
    }
 
-   public Builder readdGridItem(Builder var1, int var2, boolean var3) {
-      if (this.items[var2].icon != null) {
-         var1.button(this.items[var2].getTooltip(var3), FormImage.of(Type.PATH, this.items[var2].icon));
+   public Builder readdGridItem(Builder builder, int value, boolean flag) {
+      if (this.items[value].icon != null) {
+         builder.button(this.items[value].getTooltip(flag), FormImage.of(Type.PATH, this.items[value].icon));
       } else {
-         var1.button(this.items[var2].getTooltip(var3), (FormImage)null);
+         builder.button(this.items[value].getTooltip(flag), (FormImage)null);
       }
 
-      return var1;
+      return builder;
    }
 
-   public Builder addItem(Builder var1, ItemStack var2, int var3) {
-      return this.addItem(var1, var2, var3, null);
+   public Builder addItem(Builder builder, ItemStack itemStack, int value) {
+      return this.addItem(builder, itemStack, value, null);
    }
 
-   public Builder addItem(Builder var1, ItemStack var2, int var3, String var4) {
-      this.items[var3] = new BedrockInventory.FormItem(var2, false, var4, false);
-      if (this.items[var3].icon != null) {
-         var1.button(this.items[var3].tooltip, FormImage.of(Type.PATH, this.items[var3].icon));
+   public Builder addItem(Builder builder, ItemStack itemStack, int value, String itemId) {
+      this.items[value] = new BedrockInventory.FormItem(itemStack, false, itemId, false);
+      if (this.items[value].icon != null) {
+         builder.button(this.items[value].tooltip, FormImage.of(Type.PATH, this.items[value].icon));
       } else {
-         var1.button(this.items[var3].tooltip);
+         builder.button(this.items[value].tooltip);
       }
 
-      return var1;
+      return builder;
    }
 
    public class FormItem {
@@ -145,14 +145,14 @@ public abstract class BedrockInventory {
       private final String icon;
       private final boolean fillItem;
 
-      public FormItem(ItemStack nullx, boolean nullxx, String nullxxx, boolean nullxxxx) {
-         this.tooltip = BedrockInventory.this.buildTooltip(nullx, nullxxxx);
-         this.icon = nullxxx != null ? nullxxx : (nullxxxx ? BedrockItemIcons.getIcon(nullx, BedrockInventory.this.p) : BedrockItemIcons.getTexturePath(nullx));
-         this.fillItem = nullxx;
+      public FormItem(ItemStack itemStack, boolean flag, String itemId, boolean flag2) {
+         this.tooltip = BedrockInventory.this.buildTooltip(itemStack, flag2);
+         this.icon = itemId != null ? itemId : (flag2 ? BedrockItemIcons.getIcon(itemStack, BedrockInventory.this.p) : BedrockItemIcons.getTexturePath(itemStack));
+         this.fillItem = flag;
       }
 
-      public String getTooltip(boolean var1) {
-         return var1 ? this.tooltip + "§1§3§3§7" : this.tooltip;
+      public String getTooltip(boolean flag) {
+         return flag ? this.tooltip + "§1§3§3§7" : this.tooltip;
       }
 
       public String getIcon() {

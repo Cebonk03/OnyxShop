@@ -18,33 +18,33 @@ public class PlayerPriceModifier {
       return this.itemModifiers;
    }
 
-   public void setSectionModifier(String var1, PriceModifierType var2, double var3) {
-      this.sectionModifiers.computeIfAbsent(var1, var0 -> new PriceModifierData()).set(var2, var3);
+   public void setSectionModifier(String sectionId, PriceModifierType priceModifierType, double price) {
+      this.sectionModifiers.computeIfAbsent(sectionId, key -> new PriceModifierData()).set(priceModifierType, price);
    }
 
-   public void removeSectionModifier(String var1, PriceModifierType var2) {
-      this.sectionModifiers.get(var1).remove(var2);
-      if (this.sectionModifiers.get(var1).keySet().isEmpty()) {
-         this.sectionModifiers.remove(var1);
+   public void removeSectionModifier(String sectionId, PriceModifierType priceModifierType) {
+      this.sectionModifiers.get(sectionId).remove(priceModifierType);
+      if (this.sectionModifiers.get(sectionId).keySet().isEmpty()) {
+         this.sectionModifiers.remove(sectionId);
       }
    }
 
-   public void removeSectionModifier(String var1) {
-      this.sectionModifiers.remove(var1);
+   public void removeSectionModifier(String sectionId) {
+      this.sectionModifiers.remove(sectionId);
    }
 
-   public void setItemModifier(String var1, PriceModifierType var2, double var3) {
-      this.itemModifiers.computeIfAbsent(var1, var0 -> new PriceModifierData()).set(var2, var3);
+   public void setItemModifier(String itemId, PriceModifierType priceModifierType, double price) {
+      this.itemModifiers.computeIfAbsent(itemId, key -> new PriceModifierData()).set(priceModifierType, price);
    }
 
-   public void removeItemModifier(String var1, PriceModifierType var2) {
-      this.itemModifiers.get(var1).remove(var2);
-      if (this.itemModifiers.get(var1).keySet().isEmpty()) {
-         this.itemModifiers.remove(var1);
+   public void removeItemModifier(String itemId, PriceModifierType priceModifierType) {
+      this.itemModifiers.get(itemId).remove(priceModifierType);
+      if (this.itemModifiers.get(itemId).keySet().isEmpty()) {
+         this.itemModifiers.remove(itemId);
       }
    }
 
-   public void removeItemModifier(String var1) {
-      this.itemModifiers.remove(var1);
+   public void removeItemModifier(String itemId) {
+      this.itemModifiers.remove(itemId);
    }
 }

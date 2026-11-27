@@ -36,8 +36,8 @@ public class UpdateHandler {
    public static final long token = new SecureRandom().nextLong();
 
    private static String getEndpoint() {
-      String var0 = ConfigManager.getConfig().getString("cloud-features.endpoint", "");
-      return var0.isEmpty() ? s : var0;
+      String text = ConfigManager.getConfig().getString("cloud-features.endpoint", "");
+      return text.isEmpty() ? s : text;
    }
 
    public static String getData() {
@@ -53,138 +53,138 @@ public class UpdateHandler {
    public UpdateHandler() {
    }
 
-   public static void checkForUpdate(Player var0) {
+   public static void checkForUpdate(Player player) {
       if (getEndpoint().isEmpty()) {
-         SendMessage.errorMessage(var0, Lang.CLOUD_DISABLED.get());
+         SendMessage.errorMessage(player, Lang.CLOUD_DISABLED.get());
          return;
       }
 
       OnyxShop.getInstance()
          .runKillableTask(
             () -> {
-               SendMessage.chatToPlayer(var0, ChatColor.translateAlternateColorCodes('&', "&aChecking for updates..."));
+               SendMessage.chatToPlayer(player, ChatColor.translateAlternateColorCodes('&', "&aChecking for updates..."));
 
                try {
-                  String var1 = OnyxShop.getInstance()
+                  String post = OnyxShop.getInstance()
                      .getPost(getEndpoint() + ":2096/val/update/" + getData() + i + "&version=" + OnyxShop.getInstance().getDescription().getVersion());
-                  if (var1 != null) {
-                     Map var2 = (Map)new Gson().fromJson(var1, Map.class);
-                     if (getVersion(OnyxShop.getInstance().getDescription().getVersion()) < getVersion((String)var2.get("version"))) {
+                  if (post != null) {
+                     Map map = (Map)new Gson().fromJson(post, Map.class);
+                     if (getVersion(OnyxShop.getInstance().getDescription().getVersion()) < getVersion((String)map.get("version"))) {
                         SendMessage.chatToPlayer(
-                           var0,
+                           player,
                            Lang.UPDATE_DETAILS
                               .get()
-                              .replace("%version%", (String)var2.get("version"))
-                              .replace("%title%", (String)var2.get("title"))
+                              .replace("%version%", (String)map.get("version"))
+                              .replace("%title%", (String)map.get("title"))
                               .replace(
                                  "%timestamp%",
-                                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Double.valueOf(String.valueOf(var2.get("time"))).longValue() * 1000L)
+                                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Double.valueOf(String.valueOf(map.get("time"))).longValue() * 1000L)
                               )
-                              .replace("%changelog%", (String)var2.get("description"))
+                              .replace("%changelog%", (String)map.get("description"))
                         );
-                        TextComponent var3 = new TextComponent(TextComponent.fromLegacyText(Lang.DISCORD_VALIDATION_REQUIRED.get().getLegacy()));
-                        var3.setClickEvent(new ClickEvent(Action.OPEN_URL, getEndpoint() + ":2096/val/authorize/?token=" + (String)var2.get("token")));
-                        SendMessage.chatToPlayer(var0, var3);
-                        checkVerification(var0, (String)var2.get("token"), (String)var2.get("version"), 6000L);
+                        TextComponent textComponent = new TextComponent(TextComponent.fromLegacyText(Lang.DISCORD_VALIDATION_REQUIRED.get().getLegacy()));
+                        textComponent.setClickEvent(new ClickEvent(Action.OPEN_URL, getEndpoint() + ":2096/val/authorize/?token=" + (String)map.get("token")));
+                        SendMessage.chatToPlayer(player, textComponent);
+                        checkVerification(player, (String)map.get("token"), (String)map.get("version"), 6000L);
                      } else {
-                        SendMessage.chatToPlayer(var0, Lang.NO_NEW_VERSION_FOUND.get());
+                        SendMessage.chatToPlayer(player, Lang.NO_NEW_VERSION_FOUND.get());
                      }
                   } else {
-                     SendMessage.chatToPlayer(var0, Lang.COULD_NOT_CHECK_FOR_UPDATES.get());
+                     SendMessage.chatToPlayer(player, Lang.COULD_NOT_CHECK_FOR_UPDATES.get());
                   }
-               } catch (JsonSyntaxException var4) {
-                  SendMessage.chatToPlayer(var0, Lang.UNABLE_TO_CHECK_FOR_UPDATES.get());
-                  var4.printStackTrace();
+               } catch (JsonSyntaxException exception) {
+                  SendMessage.chatToPlayer(player, Lang.UNABLE_TO_CHECK_FOR_UPDATES.get());
+                  exception.printStackTrace();
                }
             }
          );
    }
 
-   private static double getVersion(String var0) {
-      String var1 = var0.replace(".", "");
-      return var1.matches(".*[a-zA-Z].*") ? Double.parseDouble(var1.replace("b", ".").replace("-", "").replace("a", ".")) : Double.parseDouble(var1);
+   private static double getVersion(String text) {
+      String text2 = text.replace(".", "");
+      return text2.matches(".*[a-zA-Z].*") ? Double.parseDouble(text2.replace("b", ".").replace("-", "").replace("a", ".")) : Double.parseDouble(text2);
    }
 
-   private static void checkVerification(Player var0, String var1, String var2, long var3) {
-      long var7;
-      long var5 = var7 = var3 - 100L;
+   private static void checkVerification(Player player, String playerName, String text, long value) {
+      long value2;
+      long value3 = value2 = value - 100L;
       OnyxShop.getInstance().runKillableTaskLater(() -> {
          try {
-            if (((HttpURLConnection)new URL(getEndpoint() + ":2096/val/check/" + getData() + i + "&token=" + var1).openConnection()).getResponseCode() == 202) {
-               SendMessage.chatToPlayer(var0, Lang.VALIDATION_SUCCESSFUL.get());
-               downloadLatest(var0, var1, var2);
-            } else if (var5 != 0L) {
-               checkVerification(var0, var1, var2, var5);
+            if (((HttpURLConnection)new URL(getEndpoint() + ":2096/val/check/" + getData() + i + "&token=" + playerName).openConnection()).getResponseCode() == 202) {
+               SendMessage.chatToPlayer(player, Lang.VALIDATION_SUCCESSFUL.get());
+               downloadLatest(player, playerName, text);
+            } else if (value3 != 0L) {
+               checkVerification(player, playerName, text, value3);
             } else {
-               SendMessage.chatToPlayer(var0, Lang.VALIDATION_EXPIRED.get());
+               SendMessage.chatToPlayer(player, Lang.VALIDATION_EXPIRED.get());
             }
-         } catch (IOException var6) {
-            var6.printStackTrace();
+         } catch (IOException exception) {
+            exception.printStackTrace();
          }
       }, 100L);
    }
 
-   private static void downloadLatest(Player var0, String var1, String var2) {
-      String var3 = OnyxShop.getInstance().getDataFolder().getParent()
+   private static void downloadLatest(Player player, String playerName, String text) {
+      String shopId = OnyxShop.getInstance().getDataFolder().getParent()
          + File.separator
          + Bukkit.getServer().getUpdateFolder()
          + File.separator
          + "OnyxShop-"
-         + var2
+         + text
          + ".jar";
-      File var4 = new File(var3).getParentFile();
-      if (!var4.exists()) {
-         var4.mkdirs();
+      File file = new File(shopId).getParentFile();
+      if (!file.exists()) {
+         file.mkdirs();
       }
 
-      if (downloadFile(var1, new File(var3))) {
-         SendMessage.chatToPlayer(var0, Lang.UPDATE_DOWNLOAD_SUCCESS_RESTART.get());
+      if (downloadFile(playerName, new File(shopId))) {
+         SendMessage.chatToPlayer(player, Lang.UPDATE_DOWNLOAD_SUCCESS_RESTART.get());
       } else {
-         SendMessage.chatToPlayer(var0, Lang.UPDATE_DOWNLOAD_FAILED.get());
+         SendMessage.chatToPlayer(player, Lang.UPDATE_DOWNLOAD_FAILED.get());
       }
    }
 
-   private static boolean reloadPlugin(String var0) {
+   private static boolean reloadPlugin(String text) {
       try {
          UpdateHandler.Reloader.unload(OnyxShop.getInstance());
-         File var1 = new File(var0);
-         if (!var1.exists()) {
-            throw new NoSuchFileException("Failed to load downloaded file '" + var0 + "'");
+         File file = new File(text);
+         if (!file.exists()) {
+            throw new NoSuchFileException("Failed to load downloaded file '" + text + "'");
          } else {
-            UpdateHandler.Reloader.load(var1);
+            UpdateHandler.Reloader.load(file);
             return true;
          }
-      } catch (Exception var2) {
-         var2.printStackTrace();
+      } catch (Exception exception) {
+         exception.printStackTrace();
          return false;
       }
    }
 
-   private static boolean downloadFile(String var0, File var1) {
-      String var2 = ConfigManager.getConfig().getString("update-checker.endpoint", "");
-      String var3 = ConfigManager.getConfig().getString("update-checker.download-token", "");
-      if (var2.isEmpty() || var3.isEmpty()) {
+   private static boolean downloadFile(String text, File file) {
+      String text2 = ConfigManager.getConfig().getString("update-checker.endpoint", "");
+      String text3 = ConfigManager.getConfig().getString("update-checker.download-token", "");
+      if (text2.isEmpty() || text3.isEmpty()) {
          SendMessage.errorMessage(Lang.UPDATE_DISABLED.get());
          return false;
       }
 
       try {
-         URL var4 = new URL(var2 + "?token=" + var3 + "&version=" + var0);
-         BufferedInputStream var5 = new BufferedInputStream(var4.openStream());
-         FileOutputStream var6 = new FileOutputStream(var1);
-         byte[] var7 = new byte[1024];
+         URL url = new URL(text2 + "?token=" + text3 + "&version=" + text);
+         BufferedInputStream bufferedInputStream = new BufferedInputStream(url.openStream());
+         FileOutputStream fileOutputStream = new FileOutputStream(file);
+         byte[] value = new byte[1024];
 
-         int var8;
-         while ((var8 = var5.read(var7, 0, 1024)) != -1) {
-            var6.write(var7, 0, var8);
+         int value2;
+         while ((value2 = bufferedInputStream.read(value, 0, 1024)) != -1) {
+            fileOutputStream.write(value, 0, value2);
          }
 
-         var6.close();
-         var5.close();
-         return var1.exists();
-      } catch (Exception var9) {
+         fileOutputStream.close();
+         bufferedInputStream.close();
+         return file.exists();
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to download update");
-         var9.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
@@ -193,53 +193,53 @@ public class UpdateHandler {
       private Reloader() {
       }
 
-      public static void unload(Plugin var0) throws NoSuchFieldException , IllegalAccessException, IOException{
-         Bukkit.getPluginManager().disablePlugin(var0);
+      public static void unload(Plugin plugin) throws NoSuchFieldException , IllegalAccessException, IOException{
+         Bukkit.getPluginManager().disablePlugin(plugin);
 
          try {
-            Field var1 = Bukkit.getPluginManager().getClass().getDeclaredField("listeners");
-            var1.setAccessible(true);
-            Map<Object, java.util.List<org.bukkit.plugin.RegisteredListener>> var2 = (Map<Object, java.util.List<org.bukkit.plugin.RegisteredListener>>)var1.get(
+            Field field = Bukkit.getPluginManager().getClass().getDeclaredField("listeners");
+            field.setAccessible(true);
+            Map<Object, java.util.List<org.bukkit.plugin.RegisteredListener>> map = (Map<Object, java.util.List<org.bukkit.plugin.RegisteredListener>>)field.get(
                Bukkit.getPluginManager()
             );
-            var2.values().forEach(var1x -> var1x.removeIf(var1xx -> var1xx.getPlugin() == var0));
-         } catch (Exception var8) {
+            map.values().forEach(entry -> entry.removeIf(element -> element.getPlugin() == plugin));
+         } catch (Exception exception) {
          }
 
-         Field var9 = Bukkit.getPluginManager().getClass().getDeclaredField("commandMap");
-         var9.setAccessible(true);
-         SimpleCommandMap var3 = (SimpleCommandMap)var9.get(Bukkit.getPluginManager());
-         Field var10 = SimpleCommandMap.class.getDeclaredField("knownCommands");
-         var10.setAccessible(true);
-         Map<String, org.bukkit.command.Command> var4 = (Map<String, org.bukkit.command.Command>)var10.get(var3);
+         Field field = Bukkit.getPluginManager().getClass().getDeclaredField("commandMap");
+         field.setAccessible(true);
+         SimpleCommandMap simpleCommandMap = (SimpleCommandMap)field.get(Bukkit.getPluginManager());
+         Field field2 = SimpleCommandMap.class.getDeclaredField("knownCommands");
+         field2.setAccessible(true);
+         Map<String, org.bukkit.command.Command> map = (Map<String, org.bukkit.command.Command>)field2.get(simpleCommandMap);
 
-         for (Entry<String, org.bukkit.command.Command> var6 : var4.entrySet()) {
-            if (var6.getValue() instanceof PluginCommand) {
-               PluginCommand var7 = (PluginCommand)var6.getValue();
-               if (var7.getPlugin() == var0) {
-                  var7.unregister(var3);
+         for (Entry<String, org.bukkit.command.Command> entry : map.entrySet()) {
+            if (entry.getValue() instanceof PluginCommand) {
+               PluginCommand pluginCommand = (PluginCommand)entry.getValue();
+               if (pluginCommand.getPlugin() == plugin) {
+                  pluginCommand.unregister(simpleCommandMap);
                }
             }
          }
 
-         ClassLoader var11 = var0.getClass().getClassLoader();
-         if (var11 instanceof URLClassLoader) {
-            Field var12 = var11.getClass().getDeclaredField("plugin");
-            var12.setAccessible(true);
-            var12.set(var11, null);
-            Field var13 = var11.getClass().getDeclaredField("pluginInit");
-            var13.setAccessible(true);
-            var13.set(var11, null);
-            ((URLClassLoader)var11).close();
+         ClassLoader classLoader = plugin.getClass().getClassLoader();
+         if (classLoader instanceof URLClassLoader) {
+            Field field3 = classLoader.getClass().getDeclaredField("plugin");
+            field3.setAccessible(true);
+            field3.set(classLoader, null);
+            Field field4 = classLoader.getClass().getDeclaredField("pluginInit");
+            field4.setAccessible(true);
+            field4.set(classLoader, null);
+            ((URLClassLoader)classLoader).close();
          }
 
          System.gc();
       }
 
-      public static void load(File var0) throws InvalidPluginException, InvalidDescriptionException {
-         Plugin var1 = Bukkit.getPluginManager().loadPlugin(var0);
-         var1.onLoad();
-         Bukkit.getPluginManager().enablePlugin(var1);
+      public static void load(File file) throws InvalidPluginException, InvalidDescriptionException {
+         Plugin plugin = Bukkit.getPluginManager().loadPlugin(file);
+         plugin.onLoad();
+         Bukkit.getPluginManager().enablePlugin(plugin);
       }
    }
 }

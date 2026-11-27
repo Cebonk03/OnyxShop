@@ -17,13 +17,13 @@ public class SlimefunHook implements ItemProvider, Listener {
    private final OnyxShop plugin;
    private boolean isReady = false;
 
-   public SlimefunHook(OnyxShop var1) {
-      this.plugin = var1;
-      var1.getServer().getPluginManager().registerEvents(this, var1);
+   public SlimefunHook(OnyxShop plugin) {
+      this.plugin = plugin;
+      plugin.getServer().getPluginManager().registerEvents(this, plugin);
    }
 
    @EventHandler
-   public void onItemsLoad(SlimefunItemRegistryFinalizedEvent var1) {
+   public void onItemsLoad(SlimefunItemRegistryFinalizedEvent event) {
       SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getType().getName()));
       this.isReady = true;
       this.plugin.getItemManager().check();
@@ -41,14 +41,14 @@ public class SlimefunHook implements ItemProvider, Listener {
    }
 
    @Override
-   public ItemStack getItem(String var1) {
-      SlimefunItem var2 = SlimefunItem.getById(var1);
-      return var2 != null ? var2.getItem().clone() : null;
+   public ItemStack getItem(String itemId) {
+      SlimefunItem slimefunItem = SlimefunItem.getById(itemId);
+      return slimefunItem != null ? slimefunItem.getItem().clone() : null;
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      SlimefunItem var2 = SlimefunItem.getByItem(var1);
-      return var2 != null ? var2.getId() : null;
+   public String getItem(ItemStack itemStack) {
+      SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
+      return slimefunItem != null ? slimefunItem.getId() : null;
    }
 }

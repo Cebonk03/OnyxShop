@@ -7,23 +7,23 @@ public class UpdatePlayerStockQuery implements Query {
    private final String itemPath;
    private final int amount;
 
-   public UpdatePlayerStockQuery(String var1, int var2) {
-      this.itemPath = var1;
-      this.amount = var2;
+   public UpdatePlayerStockQuery(String playerName, int stock) {
+      this.itemPath = playerName;
+      this.amount = stock;
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.UPDATE_PLAYER_STOCK.init(var1, this.itemPath, this.amount);
+   public String format(String text) {
+      return SQLQueries.UPDATE_PLAYER_STOCK.init(text, this.itemPath, this.amount);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         UpdatePlayerStockQuery var2 = (UpdatePlayerStockQuery)var1;
-         return this.itemPath.equals(var2.itemPath);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         UpdatePlayerStockQuery updatePlayerStockQuery = (UpdatePlayerStockQuery)value;
+         return this.itemPath.equals(updatePlayerStockQuery.itemPath);
       } else {
          return false;
       }

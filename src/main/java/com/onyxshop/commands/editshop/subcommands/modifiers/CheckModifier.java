@@ -28,9 +28,9 @@ public class CheckModifier extends SubCommad {
    private final Methods methods;
    private final OnyxShop plugin;
 
-   public CheckModifier(OnyxShop var1, Methods var2) {
-      this.plugin = var1;
-      this.methods = var2;
+   public CheckModifier(OnyxShop plugin, Methods methods) {
+      this.plugin = plugin;
+      this.methods = methods;
    }
 
    @Override
@@ -49,262 +49,262 @@ public class CheckModifier extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.modifiers." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.modifiers." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
-      if (var2.length > 2) {
-         OfflinePlayer var3 = Bukkit.getOfflinePlayer(var2[2]);
-         Modifiers.ModifierLocation var4 = null;
-         PriceModifierType var5 = null;
-         if (var2.length > 3) {
+   public void perform(Object value, String[] values) {
+      if (values.length > 2) {
+         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(values[2]);
+         Modifiers.ModifierLocation modifierLocation = null;
+         PriceModifierType priceModifierType = null;
+         if (values.length > 3) {
             try {
-               var4 = Modifiers.ModifierLocation.valueOf(var2[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var13) {
+               modifierLocation = Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
                try {
-                  var5 = PriceModifierType.valueOf(var2[3].toUpperCase(Locale.ROOT));
-               } catch (IllegalArgumentException var12) {
-                  SendMessage.warnMessage(var1, ChatColor.RED + "Invalid type, should be SECTION, ITEM, BOTH, BUY or SELL");
+                  priceModifierType = PriceModifierType.valueOf(values[3].toUpperCase(Locale.ROOT));
+               } catch (IllegalArgumentException exception2) {
+                  SendMessage.warnMessage(value, ChatColor.RED + "Invalid type, should be SECTION, ITEM, BOTH, BUY or SELL");
                   return;
                }
             }
          }
 
-         String var6 = null;
-         if (var4 != null && var2.length > 4) {
-            var6 = this.methods.getSection(var1, var2[4]);
-            if (var6 == null) {
+         String text = null;
+         if (modifierLocation != null && values.length > 4) {
+            text = this.methods.getSection(value, values[4]);
+            if (text == null) {
                return;
             }
          }
 
-         String var7 = null;
-         if (var6 != null && var4 == Modifiers.ModifierLocation.ITEM && var2.length > 5) {
-            var7 = this.methods.getShopItemLoc(var1, var6, var2[5]);
-            if (var7 == null) {
+         String text2 = null;
+         if (text != null && modifierLocation == Modifiers.ModifierLocation.ITEM && values.length > 5) {
+            text2 = this.methods.getShopItemLoc(value, text, values[5]);
+            if (text2 == null) {
                return;
             }
          }
 
-         Modifiers.ModifierLocation var8 = var4;
-         PriceModifierType var9 = var5;
-         String var10 = var6;
-         String var11 = var7;
+         Modifiers.ModifierLocation modifierLocation2 = modifierLocation;
+         PriceModifierType priceModifierType2 = priceModifierType;
+         String text3 = text;
+         String text4 = text2;
          this.plugin
             .runTaskAsync(
                () -> {
-                  PlayerPriceModifier var7x = this.plugin.getModifierManager().loadCommandModifiersForPlayer(var3.getUniqueId());
-                  if (var7x == null) {
-                     SendMessage.infoMessage(var1, ChatColor.RED + "No modifiers found for this player");
+                  PlayerPriceModifier playerPriceModifier = this.plugin.getModifierManager().loadCommandModifiersForPlayer(offlinePlayer.getUniqueId());
+                  if (playerPriceModifier == null) {
+                     SendMessage.infoMessage(value, ChatColor.RED + "No modifiers found for this player");
                   } else {
-                     int var8x = 0;
+                     int value2 = 0;
 
-                     for (String var10x : var7x.getSectionModifiers().keySet()) {
-                        var8x += var7x.getSectionModifiers().get(var10x).keySet().size();
+                     for (String sectionId : playerPriceModifier.getSectionModifiers().keySet()) {
+                        value2 += playerPriceModifier.getSectionModifiers().get(sectionId).keySet().size();
                      }
 
-                     for (String var12x : var7x.getItemModifiers().keySet()) {
-                        var8x += var7x.getItemModifiers().get(var12x).keySet().size();
+                     for (String itemId : playerPriceModifier.getItemModifiers().keySet()) {
+                        value2 += playerPriceModifier.getItemModifiers().get(itemId).keySet().size();
                      }
 
                      SendMessage.infoMessage(
-                        var1,
+                        value,
                         Lang.CHECK_PLAYER_PRICE_MODIFIERS
                            .get()
-                           .replace("%player_name%", var3.getName() == null ? "null" : var3.getName())
-                           .replace("%player_uuid%", var3.getUniqueId().toString())
-                           .replace("%amount%", String.valueOf(var8x))
+                           .replace("%player_name%", offlinePlayer.getName() == null ? "null" : offlinePlayer.getName())
+                           .replace("%player_uuid%", offlinePlayer.getUniqueId().toString())
+                           .replace("%amount%", String.valueOf(value2))
                      );
-                     this.printModifiers(var1, var7x, var8, var10, var11, var9);
+                     this.printModifiers(value, playerPriceModifier, modifierLocation2, text3, text4, priceModifierType2);
                   }
                }
             );
       } else {
-         SendMessage.sendMessage(var1, this.getSyntax());
+         SendMessage.sendMessage(value, this.getSyntax());
       }
    }
 
-   private void printModifiers(Object var1, PlayerPriceModifier var2, Modifiers.ModifierLocation var3, String var4, String var5, PriceModifierType var6) {
-      StringBuilder var7 = new StringBuilder();
-      if ((var3 == null || var3 == Modifiers.ModifierLocation.SECTION) && !var2.getSectionModifiers().isEmpty()) {
-         var7.append(ChatColor.GOLD + "=== SECTION modifiers ===\n");
+   private void printModifiers(Object value, PlayerPriceModifier playerPriceModifier, Modifiers.ModifierLocation modifierLocation, String playerName, String price, PriceModifierType priceModifierType) {
+      StringBuilder builder = new StringBuilder();
+      if ((modifierLocation == null || modifierLocation == Modifiers.ModifierLocation.SECTION) && !playerPriceModifier.getSectionModifiers().isEmpty()) {
+         builder.append(ChatColor.GOLD + "=== SECTION modifiers ===\n");
 
-         for (Entry var9 : var2.getSectionModifiers().entrySet()) {
-            if (var4 == null || ((String)var9.getKey()).equalsIgnoreCase(var4)) {
-               var7.append(ChatColor.YELLOW + (String)var9.getKey() + ":\n");
-               PriceModifierData var10 = (PriceModifierData)var9.getValue();
-               Double var11 = var10.get(PriceModifierType.BOTH);
-               Double var12 = var10.get(PriceModifierType.BUY);
-               Double var13 = var10.get(PriceModifierType.SELL);
+         for (Entry entry : playerPriceModifier.getSectionModifiers().entrySet()) {
+            if (playerName == null || ((String)entry.getKey()).equalsIgnoreCase(playerName)) {
+               builder.append(ChatColor.YELLOW + (String)entry.getKey() + ":\n");
+               PriceModifierData priceModifierData = (PriceModifierData)entry.getValue();
+               Double amount = priceModifierData.get(PriceModifierType.BOTH);
+               Double amount2 = priceModifierData.get(PriceModifierType.BUY);
+               Double amount3 = priceModifierData.get(PriceModifierType.SELL);
 
-               for (PriceModifierType var15 : var10.keySet()) {
-                  if (var6 == null || var15 == var6) {
-                     String var16 = "";
-                     double var17 = var10.get(var15) - 100.0;
-                     if (var15 == PriceModifierType.BOTH) {
-                        if (var12 != null && var11 != null && var11 >= var12) {
-                           var16 = " (overrides BUY)";
-                        } else if (var13 != null && var11 != null && var11 >= var13) {
-                           var16 = " (overrides SELL)";
+               for (PriceModifierType priceModifierType2 : priceModifierData.keySet()) {
+                  if (priceModifierType == null || priceModifierType2 == priceModifierType) {
+                     String text = "";
+                     double amount4 = priceModifierData.get(priceModifierType2) - 100.0;
+                     if (priceModifierType2 == PriceModifierType.BOTH) {
+                        if (amount2 != null && amount != null && amount >= amount2) {
+                           text = " (overrides BUY)";
+                        } else if (amount3 != null && amount != null && amount >= amount3) {
+                           text = " (overrides SELL)";
                         }
-                     } else if (var15 == PriceModifierType.BUY) {
-                        if (var11 != null && var12 >= var11) {
-                           var16 = " (overrides BOTH)";
+                     } else if (priceModifierType2 == PriceModifierType.BUY) {
+                        if (amount != null && amount2 >= amount) {
+                           text = " (overrides BOTH)";
                         }
-                     } else if (var15 == PriceModifierType.SELL && var11 != null && var13 >= var11) {
-                        var16 = " (overrides BOTH)";
+                     } else if (priceModifierType2 == PriceModifierType.SELL && amount != null && amount3 >= amount) {
+                        text = " (overrides BOTH)";
                      }
 
-                     var7.append(
+                     builder.append(
                         ChatColor.GREEN
                            + "  - "
-                           + var15.name()
+                           + priceModifierType2.name()
                            + ": "
-                           + (var17 < 0.0 ? ChatColor.RED : ChatColor.GREEN + "+")
-                           + var17
+                           + (amount4 < 0.0 ? ChatColor.RED : ChatColor.GREEN + "+")
+                           + amount4
                            + "%"
                            + ChatColor.GRAY
-                           + var16
+                           + text
                            + "\n"
                      );
                   }
                }
 
-               var7.append("\n");
+               builder.append("\n");
             }
          }
       }
 
-      if ((var3 == null || var3 == Modifiers.ModifierLocation.ITEM) && !var2.getItemModifiers().isEmpty()) {
-         var7.append(ChatColor.GOLD + "=== ITEM modifiers ===\n");
+      if ((modifierLocation == null || modifierLocation == Modifiers.ModifierLocation.ITEM) && !playerPriceModifier.getItemModifiers().isEmpty()) {
+         builder.append(ChatColor.GOLD + "=== ITEM modifiers ===\n");
 
-         for (Entry var22 : var2.getItemModifiers().entrySet()) {
-            if ((var4 == null || ((String)var22.getKey()).startsWith(var4)) && (var5 == null || ((String)var22.getKey()).equalsIgnoreCase(var5))) {
-               var7.append(ChatColor.YELLOW + (String)var22.getKey() + ":\n");
-               PriceModifierData var23 = (PriceModifierData)var22.getValue();
-               Double var24 = var23.get(PriceModifierType.BOTH);
-               Double var25 = var23.get(PriceModifierType.BUY);
-               Double var26 = var23.get(PriceModifierType.SELL);
+         for (Entry entry : playerPriceModifier.getItemModifiers().entrySet()) {
+            if ((playerName == null || ((String)entry.getKey()).startsWith(playerName)) && (price == null || ((String)entry.getKey()).equalsIgnoreCase(price))) {
+               builder.append(ChatColor.YELLOW + (String)entry.getKey() + ":\n");
+               PriceModifierData priceModifierData = (PriceModifierData)entry.getValue();
+               Double amount = priceModifierData.get(PriceModifierType.BOTH);
+               Double amount2 = priceModifierData.get(PriceModifierType.BUY);
+               Double amount3 = priceModifierData.get(PriceModifierType.SELL);
 
-               for (PriceModifierType var28 : var23.keySet()) {
-                  if (var6 == null || var28 == var6) {
-                     String var29 = "";
-                     double var30 = var23.get(var28) - 100.0;
-                     boolean var19 = false;
-                     if (var2.getSectionModifiers().containsKey(((String)var22.getKey()).split("\\.", 2)[0])) {
-                        PriceModifierData var20 = var2.getSectionModifiers().get(((String)var22.getKey()).split("\\.", 2)[0]);
-                        if (var20 != null && (var28 == PriceModifierType.BOTH || var20.keySet().contains(var28))) {
-                           var19 = true;
+               for (PriceModifierType priceModifierType2 : priceModifierData.keySet()) {
+                  if (priceModifierType == null || priceModifierType2 == priceModifierType) {
+                     String text = "";
+                     double amount4 = priceModifierData.get(priceModifierType2) - 100.0;
+                     boolean flag = false;
+                     if (playerPriceModifier.getSectionModifiers().containsKey(((String)entry.getKey()).split("\\.", 2)[0])) {
+                        PriceModifierData priceModifierData2 = playerPriceModifier.getSectionModifiers().get(((String)entry.getKey()).split("\\.", 2)[0]);
+                        if (priceModifierData2 != null && (priceModifierType2 == PriceModifierType.BOTH || priceModifierData2.keySet().contains(priceModifierType2))) {
+                           flag = true;
                         }
                      }
 
-                     if (var19) {
-                        var29 = " (overrides SECTION modifier)";
-                     } else if (var28 == PriceModifierType.BOTH) {
-                        if (var25 != null && var24 != null && var24 >= var25) {
-                           var29 = " (overrides BUY)";
-                        } else if (var26 != null && var24 != null && var24 >= var26) {
-                           var29 = " (overrides SELL)";
+                     if (flag) {
+                        text = " (overrides SECTION modifier)";
+                     } else if (priceModifierType2 == PriceModifierType.BOTH) {
+                        if (amount2 != null && amount != null && amount >= amount2) {
+                           text = " (overrides BUY)";
+                        } else if (amount3 != null && amount != null && amount >= amount3) {
+                           text = " (overrides SELL)";
                         }
-                     } else if (var28 == PriceModifierType.BUY) {
-                        if (var24 != null && var25 >= var24) {
-                           var29 = " (overrides BOTH)";
+                     } else if (priceModifierType2 == PriceModifierType.BUY) {
+                        if (amount != null && amount2 >= amount) {
+                           text = " (overrides BOTH)";
                         }
-                     } else if (var28 == PriceModifierType.SELL && var24 != null && var26 >= var24) {
-                        var29 = " (overrides BOTH)";
+                     } else if (priceModifierType2 == PriceModifierType.SELL && amount != null && amount3 >= amount) {
+                        text = " (overrides BOTH)";
                      }
 
-                     var7.append(
+                     builder.append(
                         ChatColor.GREEN
                            + "  - "
-                           + var28.name()
+                           + priceModifierType2.name()
                            + ": "
-                           + (var30 < 0.0 ? ChatColor.RED : ChatColor.GREEN + "+")
-                           + var30
+                           + (amount4 < 0.0 ? ChatColor.RED : ChatColor.GREEN + "+")
+                           + amount4
                            + "%"
                            + ChatColor.GRAY
-                           + var29
+                           + text
                            + "\n"
                      );
                   }
                }
 
-               var7.append("\n");
+               builder.append("\n");
             }
          }
       }
 
-      SendMessage.infoMessageWithoutPrefix(var1, var7.toString());
+      SendMessage.infoMessageWithoutPrefix(value, builder.toString());
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      switch (var1.length) {
+   public List<String> getTabCompletion(String[] values) {
+      switch (values.length) {
          case 3:
-            if (!var1[2].isEmpty()) {
-               List var7 = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-               ArrayList var10 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[2], var7, var10);
-               Collections.sort(var10);
-               return var10;
+            if (!values[2].isEmpty()) {
+               List playerNames = this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[2], playerNames, values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getServer().getOnlinePlayers().stream().<String>map(Player::getName).collect(Collectors.toList());
          case 4:
-            List var2 = Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList());
-            var2.addAll(Arrays.stream(Modifiers.ModifierLocation.values()).map(Enum::name).collect(Collectors.toList()));
-            if (!var1[3].isEmpty()) {
-               ArrayList var9 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[3], var2, var9);
-               Collections.sort(var9);
-               return var9;
+            List prices = Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList());
+            prices.addAll(Arrays.stream(Modifiers.ModifierLocation.values()).map(Enum::name).collect(Collectors.toList()));
+            if (!values[3].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[3], prices, values2);
+               Collections.sort(values2);
+               return values2;
             }
 
-            return var2;
+            return prices;
          case 5:
             try {
-               Modifiers.ModifierLocation.valueOf(var1[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var6) {
+               Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
                return null;
             }
 
-            if (!var1[4].isEmpty()) {
-               ArrayList var8 = new ArrayList();
-               StringUtil.copyPartialMatches(var1[4], this.plugin.getShopSections(), var8);
-               Collections.sort(var8);
-               return var8;
+            if (!values[4].isEmpty()) {
+               ArrayList values2 = new ArrayList();
+               StringUtil.copyPartialMatches(values[4], this.plugin.getShopSections(), values2);
+               Collections.sort(values2);
+               return values2;
             }
 
             return this.plugin.getShopSections();
          case 6:
-            Modifiers.ModifierLocation var3;
+            Modifiers.ModifierLocation modifierLocation;
             try {
-               var3 = Modifiers.ModifierLocation.valueOf(var1[3].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException var5) {
+               modifierLocation = Modifiers.ModifierLocation.valueOf(values[3].toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
                return null;
             }
 
-            if (var3 == Modifiers.ModifierLocation.ITEM && !this.plugin.getShopSections().contains(var1[4])) {
+            if (modifierLocation == Modifiers.ModifierLocation.ITEM && !this.plugin.getShopSections().contains(values[4])) {
                return null;
             } else {
-               if (!var1[5].isEmpty()) {
-                  ArrayList var4 = new ArrayList();
+               if (!values[5].isEmpty()) {
+                  ArrayList values2 = new ArrayList();
                   StringUtil.copyPartialMatches(
-                     var1[5],
-                     (Iterable)(var3 == Modifiers.ModifierLocation.SECTION
+                     values[5],
+                     (Iterable)(modifierLocation == Modifiers.ModifierLocation.SECTION
                         ? Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList())
-                        : this.plugin.getSection(var1[4]).getShopItemLocs()),
-                     var4
+                        : this.plugin.getSection(values[4]).getShopItemLocs()),
+                     values2
                   );
-                  Collections.sort(var4);
-                  return var4;
+                  Collections.sort(values2);
+                  return values2;
                }
 
-               return var3 == Modifiers.ModifierLocation.SECTION
+               return modifierLocation == Modifiers.ModifierLocation.SECTION
                   ? Arrays.stream(PriceModifierType.values()).map(Enum::name).collect(Collectors.toList())
-                  : this.plugin.getSection(var1[4]).getShopItemLocs();
+                  : this.plugin.getSection(values[4]).getShopItemLocs();
             }
          default:
             return null;

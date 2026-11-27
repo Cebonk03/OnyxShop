@@ -14,22 +14,22 @@ import org.bukkit.entity.Player;
 public class QuestsIntegration implements QuestProvider {
    private final Quests questsAPI;
 
-   public QuestsIntegration(OnyxShop var1) {
-      this.questsAPI = (Quests)var1.getServer().getPluginManager().getPlugin("Quests");
+   public QuestsIntegration(OnyxShop plugin) {
+      this.questsAPI = (Quests)plugin.getServer().getPluginManager().getPlugin("Quests");
    }
 
    @Override
-   public void init(OnyxShop var1, QuestManager var2) {
+   public void init(OnyxShop plugin, QuestManager questManager) {
       if (!this.isReady()) {
          SendMessage.infoMessage(this.getName() + " found, waiting...");
-         var1.runTaskLater(() -> {
-            if (var1.getServer().getPluginManager().isPluginEnabled("Quests")) {
+         plugin.runTaskLater(() -> {
+            if (plugin.getServer().getPluginManager().isPluginEnabled("Quests")) {
                SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
             } else {
                SendMessage.warnMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", this.getName()));
             }
 
-            var2.onLoad();
+            questManager.onLoad();
          }, 5L);
       } else {
          SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
@@ -38,8 +38,8 @@ public class QuestsIntegration implements QuestProvider {
 
    @Override
    public boolean isReady() {
-      com.leonardobishop.quests.common.quest.QuestManager var1 = this.questsAPI.getQuestManager();
-      return var1 != null && !var1.getQuests().isEmpty();
+      com.leonardobishop.quests.common.quest.QuestManager questManager = this.questsAPI.getQuestManager();
+      return questManager != null && !questManager.getQuests().isEmpty();
    }
 
    @Override
@@ -48,20 +48,20 @@ public class QuestsIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean isLoaded(String var1) {
-      return this.questsAPI.getQuestManager().getQuestById(var1) != null;
+   public boolean isLoaded(String text) {
+      return this.questsAPI.getQuestManager().getQuestById(text) != null;
    }
 
    @Override
-   public String getQuestName(String var1) {
-      Quest var2 = this.questsAPI.getQuestManager().getQuestById(var1);
-      QItemStack var3 = ((BukkitQuestsPlugin)this.questsAPI).getQItemStackRegistry().getQuestItemStack(var2);
-      return var3.getName();
+   public String getQuestName(String name) {
+      Quest quest = this.questsAPI.getQuestManager().getQuestById(name);
+      QItemStack qItemStack = ((BukkitQuestsPlugin)this.questsAPI).getQItemStackRegistry().getQuestItemStack(quest);
+      return qItemStack.getName();
    }
 
    @Override
-   public boolean hasCompleted(Player var1, String var2) {
-      Quest var3 = this.questsAPI.getQuestManager().getQuestById(var2);
-      return this.questsAPI.getPlayerManager().getPlayer(var1.getUniqueId()).getQuestProgressFile().getQuestProgress(var3).isCompleted();
+   public boolean hasCompleted(Player player, String playerName) {
+      Quest quest = this.questsAPI.getQuestManager().getQuestById(playerName);
+      return this.questsAPI.getPlayerManager().getPlayer(player.getUniqueId()).getQuestProgressFile().getQuestProgress(quest).isCompleted();
    }
 }

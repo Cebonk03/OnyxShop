@@ -13,32 +13,32 @@ public class LevelRequirement implements com.onyxshop.providers.requirements.Ite
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public LevelRequirement(String var1, List<String> var2, String var3) throws ItemRequirementLoadException {
+   public LevelRequirement(String itemId, List<String> values, String text) throws ItemRequirementLoadException {
       try {
-         this.requirement = Integer.parseInt(var1);
-      } catch (NumberFormatException var5) {
-         throw new ItemRequirementLoadException("Invalid level for " + var1 + ", should be number");
+         this.requirement = Integer.parseInt(itemId);
+      } catch (NumberFormatException exception) {
+         throw new ItemRequirementLoadException("Invalid level for " + itemId + ", should be number");
       }
 
-      this.lore = RequirementManager.getLore(var2, Lang.LEVEL_REQUIREMENT_LORE.get().toString(), var1);
-      this.customMSG = var3;
+      this.lore = RequirementManager.getLore(values, Lang.LEVEL_REQUIREMENT_LORE.get().toString(), itemId);
+      this.customMSG = text;
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      return var1.getLevel() >= this.requirement;
+   public boolean isMet(Player player) {
+      return player.getLevel() >= this.requirement;
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
-      return this.lore.get(var1, var2, var3, "%progress%", String.valueOf(var1.getLevel()));
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
+      return this.lore.get(player, flag, flag2, "%progress%", String.valueOf(player.getLevel()));
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.LEVEL_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
-         SendMessage.chatToPlayer(var1, var2.replace("%requirement%", String.valueOf(this.requirement)).replace("%progress%", String.valueOf(var1.getLevel())));
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.LEVEL_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
+         SendMessage.chatToPlayer(player, text.replace("%requirement%", String.valueOf(this.requirement)).replace("%progress%", String.valueOf(player.getLevel())));
       }
    }
 }

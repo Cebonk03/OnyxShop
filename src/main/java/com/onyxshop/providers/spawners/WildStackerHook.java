@@ -29,34 +29,34 @@ public class WildStackerHook implements SpawnerProvider {
    private final String itemName;
    private final List<String> itemLore;
 
-   public WildStackerHook(WildStacker var1) {
-      this.ws = var1;
+   public WildStackerHook(WildStacker wildStacker) {
+      this.ws = wildStacker;
       this.wsconfig = OnyxShop.getInstance()
          .loadConfiguration(new File(OnyxShop.getInstance().getDataFolder().getParent() + "/WildStacker/config.yml"), "WildStacker config");
-      String var2 = this.wsconfig.getString("spawners.spawner-item.name", "Spawner");
-      this.itemName = var2 != null
-         ? ChatColor.translateAlternateColorCodes('&', var2.replace("{0}", String.valueOf(1)).replace("{1}", "%spawner-type%").replace("{2}", ""))
+      String text = this.wsconfig.getString("spawners.spawner-item.name", "Spawner");
+      this.itemName = text != null
+         ? ChatColor.translateAlternateColorCodes('&', text.replace("{0}", String.valueOf(1)).replace("{1}", "%spawner-type%").replace("{2}", ""))
          : ChatColor.GOLD + "x1 &f&o%spawner-type% Spawners";
-      List<String> var3 = this.wsconfig.getStringList("spawners.spawner-item.lore");
-      this.itemLore = var3 != null
-         ? var3.stream()
-            .map(var0 -> ChatColor.translateAlternateColorCodes('&', var0).replace("{0}", String.valueOf(1)).replace("{1}", "%spawner-type%"))
+      List<String> stringList = this.wsconfig.getStringList("spawners.spawner-item.lore");
+      this.itemLore = stringList != null
+         ? stringList.stream()
+            .map(element -> ChatColor.translateAlternateColorCodes('&', element).replace("{0}", String.valueOf(1)).replace("{1}", "%spawner-type%"))
             .collect(Collectors.toList())
          : Collections.singletonList(ChatColor.GRAY + "%spawner-type%");
       if (!this.upgrades.isEmpty()) {
          this.upgrades.clear();
       }
 
-      ArrayList<Integer> var4 = new ArrayList<>();
+      ArrayList<Integer> values = new ArrayList<>();
 
-      for (SpawnerUpgrade var6 : this.ws.getUpgradesManager().getAllUpgrades()) {
-         var4.add(var6.getId());
+      for (SpawnerUpgrade spawnerUpgrade : this.ws.getUpgradesManager().getAllUpgrades()) {
+         values.add(spawnerUpgrade.getId());
       }
 
-      Collections.sort(var4);
+      Collections.sort(values);
 
-      for (int var8 : var4) {
-         this.upgrades.add(this.ws.getUpgradesManager().getUpgrade(var8));
+      for (int value : values) {
+         this.upgrades.add(this.ws.getUpgradesManager().getUpgrade(value));
       }
    }
 
@@ -66,89 +66,89 @@ public class WildStackerHook implements SpawnerProvider {
    }
 
    @Override
-   public ItemStack setSpawnedType(@Nullable ShopItem var1, ItemStack var2, EntityType var3) throws ItemLoadException {
-      ItemMeta var4 = var2.getItemMeta();
-      if (var1 == null) {
-         BlockStateMeta var5 = (BlockStateMeta)var4;
-         CreatureSpawner var6 = (CreatureSpawner)var5.getBlockState();
-         var6.setSpawnedType(var3);
-         var5.setBlockState(var6);
-         var2 = OnyxShop.getInstance().versionHandler.setNBTInt(var2, "spawners-amount", 1);
+   public ItemStack setSpawnedType(@Nullable ShopItem shopItem, ItemStack itemStack, EntityType entityType) throws ItemLoadException {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      if (shopItem == null) {
+         BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+         CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+         creatureSpawner.setSpawnedType(entityType);
+         blockStateMeta.setBlockState(creatureSpawner);
+         itemStack = OnyxShop.getInstance().versionHandler.setNBTInt(itemStack, "spawners-amount", 1);
       }
 
-      String var7 = var4.hasDisplayName() ? var4.getDisplayName() : null;
-      List var8 = var4.hasLore() ? var4.getLore() : null;
-      if (var7 == null && this.itemName != null) {
-         var4.setDisplayName(this.itemName.replace("%spawner-type%", this.getEntityName(var3)));
+      String type = itemMeta.hasDisplayName() ? itemMeta.getDisplayName() : null;
+      List lores = itemMeta.hasLore() ? itemMeta.getLore() : null;
+      if (type == null && this.itemName != null) {
+         itemMeta.setDisplayName(this.itemName.replace("%spawner-type%", this.getEntityName(entityType)));
       }
 
-      if (var7 == null && this.itemName == null) {
-         OnyxShop.getInstance().getMetaUtils().setDisplayName(var4, SpawnerManager.getDefaultName(var3));
+      if (type == null && this.itemName == null) {
+         OnyxShop.getInstance().getMetaUtils().setDisplayName(itemMeta, SpawnerManager.getDefaultName(entityType));
       }
 
-      if (var8 == null && this.itemLore != null) {
-         var4.setLore(this.itemLore.stream().map(var2x -> var2x.replace("%spawner-type%", this.getEntityName(var3))).collect(Collectors.toList()));
+      if (lores == null && this.itemLore != null) {
+         itemMeta.setLore(this.itemLore.stream().map(element -> element.replace("%spawner-type%", this.getEntityName(entityType))).collect(Collectors.toList()));
       }
 
-      var2.setItemMeta(var4);
-      return var2;
+      itemStack.setItemMeta(itemMeta);
+      return itemStack;
    }
 
    @Override
-   public boolean isShopSpawner(ItemStack var1, ItemStack var2, List<String> var3) {
-      List var4 = NBTMaps.getTags(false, "spawners-amount", "spawners-upgrade", "display::Name", "display::Lore");
-      var4.addAll(var3);
-      return OnyxShop.getInstance().isSimilar(var1, var2, var4);
+   public boolean isShopSpawner(ItemStack itemStack, ItemStack itemStack2, List<String> shopIds) {
+      List tags = NBTMaps.getTags(false, "spawners-amount", "spawners-upgrade", "display::Name", "display::Lore");
+      tags.addAll(shopIds);
+      return OnyxShop.getInstance().isSimilar(itemStack, itemStack2, tags);
    }
 
    @Override
-   public Double getSpawnerSellPrice(ItemStack var1, double var2) {
-      return this.getSellPrice(var1, var2);
+   public Double getSpawnerSellPrice(ItemStack itemStack, double price) {
+      return this.getSellPrice(itemStack, price);
    }
 
    @Override
-   public String getSpawnedType(ItemStack var1) {
-      ItemMeta var2 = var1.getItemMeta();
-      BlockStateMeta var3 = (BlockStateMeta)var2;
-      CreatureSpawner var4 = (CreatureSpawner)var3.getBlockState();
-      return var4.getSpawnedType().name();
+   public String getSpawnedType(ItemStack itemStack) {
+      ItemMeta itemMeta = itemStack.getItemMeta();
+      BlockStateMeta blockStateMeta = (BlockStateMeta)itemMeta;
+      CreatureSpawner creatureSpawner = (CreatureSpawner)blockStateMeta.getBlockState();
+      return creatureSpawner.getSpawnedType().name();
    }
 
-   private Double getSellPrice(ItemStack var1, double var2) {
-      Integer var4 = OnyxShop.getInstance().versionHandler.getNBTInt(var1, NBTMaps.CUSTOM_DATA.getTag() + "spawners-amount");
-      var4 = var4 == null ? 1 : var4;
-      boolean var5 = this.wsconfig.getBoolean("spawners.spawner-upgrades.multiply-stack-amount", true);
-      Integer var6 = OnyxShop.getInstance().versionHandler.getNBTInt(var1, NBTMaps.CUSTOM_DATA.getTag() + "spawners-upgrade");
-      var6 = var6 != null && var6 != -1 ? var6 : 0;
-      double var7 = this.getTotalUpgradeCost(var6);
-      return var5 ? var4.intValue() * var7 + var4.intValue() * var2 : var7 + var4.intValue() * var2;
+   private Double getSellPrice(ItemStack itemStack, double price) {
+      Integer nbtInt = OnyxShop.getInstance().versionHandler.getNBTInt(itemStack, NBTMaps.CUSTOM_DATA.getTag() + "spawners-amount");
+      nbtInt = nbtInt == null ? 1 : nbtInt;
+      boolean flag = this.wsconfig.getBoolean("spawners.spawner-upgrades.multiply-stack-amount", true);
+      Integer nbtInt2 = OnyxShop.getInstance().versionHandler.getNBTInt(itemStack, NBTMaps.CUSTOM_DATA.getTag() + "spawners-upgrade");
+      nbtInt2 = nbtInt2 != null && nbtInt2 != -1 ? nbtInt2 : 0;
+      double totalUpgradeCost = this.getTotalUpgradeCost(nbtInt2);
+      return flag ? nbtInt.intValue() * totalUpgradeCost + nbtInt.intValue() * price : totalUpgradeCost + nbtInt.intValue() * price;
    }
 
-   private double getTotalUpgradeCost(Integer var1) {
-      if (var1 != null && var1 != 0) {
-         double var2 = 0.0;
+   private double getTotalUpgradeCost(Integer value) {
+      if (value != null && value != 0) {
+         double amount = 0.0;
 
-         for (SpawnerUpgrade var5 : this.upgrades) {
-            var2 += var5.getCost();
-            if (var5.getId() == var1) {
+         for (SpawnerUpgrade spawnerUpgrade : this.upgrades) {
+            amount += spawnerUpgrade.getCost();
+            if (spawnerUpgrade.getId() == value) {
                break;
             }
          }
 
-         return var2;
+         return amount;
       } else {
          return 0.0;
       }
    }
 
-   private String getEntityName(EntityType var1) {
-      String[] var2 = var1.name().toLowerCase().replace("_", " ").split(" ");
-      StringBuffer var3 = new StringBuffer();
+   private String getEntityName(EntityType entityType) {
+      String[] names = entityType.name().toLowerCase().replace("_", " ").split(" ");
+      StringBuffer stringBuffer = new StringBuffer();
 
-      for (int var4 = 0; var4 < var2.length; var4++) {
-         var3.append(Character.toUpperCase(var2[var4].charAt(0))).append(var2[var4].substring(1)).append(" ");
+      for (int index = 0; index < names.length; index++) {
+         stringBuffer.append(Character.toUpperCase(names[index].charAt(0))).append(names[index].substring(1)).append(" ");
       }
 
-      return var3.toString().trim();
+      return stringBuffer.toString().trim();
    }
 }

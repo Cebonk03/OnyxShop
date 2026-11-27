@@ -21,12 +21,12 @@ public class AuthRequest extends ShopInventory {
    private final OnyxShop plugin = OnyxShop.getInstance();
    private final Consumer<AuthRequest.AuthMethod> onComplete;
 
-   public AuthRequest(Player var1, Consumer<AuthRequest.AuthMethod> var2) {
+   public AuthRequest(Player player, Consumer<AuthRequest.AuthMethod> task) {
       this.inv = Bukkit.createInventory(this, 36, "§8§lAuthorization required");
-      this.onComplete = var2;
+      this.onComplete = task;
       this.buildPane();
       Bukkit.getPluginManager().registerEvents(this.listener, this.plugin);
-      var1.openInventory(this.inv);
+      player.openInventory(this.inv);
    }
 
    private void buildPane() {
@@ -60,9 +60,9 @@ public class AuthRequest extends ShopInventory {
 
    private void fillEmpty() {
       if (this.plugin.createItem.fillItem != null) {
-         for (int var1 = 0; var1 < this.inv.getSize(); var1++) {
-            if (this.inv.getItem(var1) == null) {
-               this.inv.setItem(var1, this.plugin.createItem.fillItem);
+         for (int size = 0; size < this.inv.getSize(); size++) {
+            if (this.inv.getItem(size) == null) {
+               this.inv.setItem(size, this.plugin.createItem.fillItem);
             }
          }
       }
@@ -85,30 +85,30 @@ public class AuthRequest extends ShopInventory {
       }
 
       @EventHandler
-      public void onInventoryClick(InventoryClickEvent var1) {
-         if (var1.getClickedInventory() != null
-            && var1.getClickedInventory() == AuthRequest.this.inv
-            && var1.getCurrentItem() != null
-            && var1.getCurrentItem().getType() != Material.AIR) {
-            var1.setCancelled(true);
-            if (var1.getCurrentItem().getType() != AuthRequest.this.plugin.createItem.fillItem.getType()) {
-               AuthRequest.AuthMethod var2 = null;
-               if (var1.getRawSlot() == 12) {
-                  var2 = AuthRequest.AuthMethod.TEMP;
-               } else if (var1.getRawSlot() == 14) {
-                  var2 = AuthRequest.AuthMethod.DISCORD;
+      public void onInventoryClick(InventoryClickEvent event) {
+         if (event.getClickedInventory() != null
+            && event.getClickedInventory() == AuthRequest.this.inv
+            && event.getCurrentItem() != null
+            && event.getCurrentItem().getType() != Material.AIR) {
+            event.setCancelled(true);
+            if (event.getCurrentItem().getType() != AuthRequest.this.plugin.createItem.fillItem.getType()) {
+               AuthRequest.AuthMethod authMethod = null;
+               if (event.getRawSlot() == 12) {
+                  authMethod = AuthRequest.AuthMethod.TEMP;
+               } else if (event.getRawSlot() == 14) {
+                  authMethod = AuthRequest.AuthMethod.DISCORD;
                }
 
                AuthRequest.this.quit();
-               var1.getWhoClicked().closeInventory();
-               AuthRequest.this.onComplete.accept(var2);
+               event.getWhoClicked().closeInventory();
+               AuthRequest.this.onComplete.accept(authMethod);
             }
          }
       }
 
       @EventHandler
-      public void onInventoryClose(InventoryCloseEvent var1) {
-         if (var1.getInventory() == AuthRequest.this.inv) {
+      public void onInventoryClose(InventoryCloseEvent event) {
+         if (event.getInventory() == AuthRequest.this.inv) {
             AuthRequest.this.quit();
          }
       }

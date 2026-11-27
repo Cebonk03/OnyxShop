@@ -42,193 +42,193 @@ public class SellGUI extends ShopInventory {
    public SellGUI() {
    }
 
-   public void open(Player var1) {
-      this.inv = this.plugin.getMetaUtils().createInventory(this, size, TitleManager.get(TitleManager.Menu.SELL_GUI, var1));
-      staticItems.forEach((var2, var3) -> this.inv.setItem(var2, var3.getItem(var1)));
-      this.plugin.navBar.addSellGUINavBar(this.inv, var1);
-      var1.openInventory(this.inv);
+   public void open(Player player) {
+      this.inv = this.plugin.getMetaUtils().createInventory(this, size, TitleManager.get(TitleManager.Menu.SELL_GUI, player));
+      staticItems.forEach((key, value) -> this.inv.setItem(key, value.getItem(player)));
+      this.plugin.navBar.addSellGUINavBar(this.inv, player);
+      player.openInventory(this.inv);
    }
 
-   public void sellItems(Player var1) {
-      Transaction.Result var2 = Transaction.Result.SUCCESS;
-      HashMap<Integer, SmartStack> var3 = new HashMap<>();
-      HashMap<ShopItem, Sold> var4 = new HashMap<>();
-      int var5 = 0;
+   public void sellItems(Player player) {
+      Transaction.Result result = Transaction.Result.SUCCESS;
+      HashMap<Integer, SmartStack> map = new HashMap<>();
+      HashMap<ShopItem, Sold> map2 = new HashMap<>();
+      int value = 0;
 
-      for (int var6 = 0; var6 <= size - (this.plugin.navBar.isEnableSellGUINav() ? 10 : 1); var6++) {
-         if (!staticItems.containsKey(var6)) {
-            ItemStack var7 = this.inv.getItem(var6);
-            if (var7 != null && var7.getType() != Material.AIR) {
-               ShopItem var8 = this.plugin.createItem.matchShopItem(var7, var1, "sellgui");
-               if (var8 != null && var8.isSellAble()) {
-                  int var16 = var7.getAmount();
-                  if (var8.isMaxSell(var4.getOrDefault(var8, new Sold()).getAmount() + var16)) {
-                     if (var4.getOrDefault(var8, new Sold()).getAmount() >= var8.getMaxSell()) {
+      for (int size2 = 0; size2 <= size - (this.plugin.navBar.isEnableSellGUINav() ? 10 : 1); size2++) {
+         if (!staticItems.containsKey(size2)) {
+            ItemStack itemStack = this.inv.getItem(size2);
+            if (itemStack != null && itemStack.getType() != Material.AIR) {
+               ShopItem shopItem = this.plugin.createItem.matchShopItem(itemStack, player, "sellgui");
+               if (shopItem != null && shopItem.isSellAble()) {
+                  int amount = itemStack.getAmount();
+                  if (shopItem.isMaxSell(map2.getOrDefault(shopItem, new Sold()).getAmount() + amount)) {
+                     if (map2.getOrDefault(shopItem, new Sold()).getAmount() >= shopItem.getMaxSell()) {
                         continue;
                      }
 
-                     var16 = var8.getMaxSell() - var4.getOrDefault(var8, new Sold()).getAmount();
+                     amount = shopItem.getMaxSell() - map2.getOrDefault(shopItem, new Sold()).getAmount();
                   }
 
-                  if (var8.getLimitedSellMode() != 0 && this.plugin.sellLimits) {
-                     int var10 = this.plugin.getLimitedSellProvider().getItemLimit(var8, var1.getUniqueId(), true);
-                     var16 = Math.min(var16, var10 - var4.getOrDefault(var8, new Sold()).getAmount());
-                     if (var16 <= 0) {
+                  if (shopItem.getLimitedSellMode() != 0 && this.plugin.sellLimits) {
+                     int itemLimit = this.plugin.getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true);
+                     amount = Math.min(amount, itemLimit - map2.getOrDefault(shopItem, new Sold()).getAmount());
+                     if (amount <= 0) {
                         continue;
                      }
                   }
 
-                  Sold var17 = var4.computeIfAbsent(var8, var0 -> new Sold());
-                  var17.addValues(var16, this.getPrices(var8, var1, var7, var16, var17.getAmount()));
-                  var5 += var16;
-                  ItemStack var11 = new ItemStack(var7);
-                  var11.setAmount(var7.getAmount() - var16);
-                  if (!var8.isSellCommand() || var8.isRequireItem()) {
-                     var3.put(var6, new SmartStack(var11));
-                     var17.addIndex(var6);
+                  Sold sold = map2.computeIfAbsent(shopItem, key -> new Sold());
+                  sold.addValues(amount, this.getPrices(shopItem, player, itemStack, amount, sold.getAmount()));
+                  value += amount;
+                  ItemStack itemStack2 = new ItemStack(itemStack);
+                  itemStack2.setAmount(itemStack.getAmount() - amount);
+                  if (!shopItem.isSellCommand() || shopItem.isRequireItem()) {
+                     map.put(size2, new SmartStack(itemStack2));
+                     sold.addIndex(size2);
                   }
-               } else if (this.plugin.sellShulkers && XMaterial.isShulker(var7.getType())) {
-                  Integer var9 = this.sellShulker(var4, var3, var1, var7, "sellgui", var6);
-                  if (var9 != null) {
-                     var5 += var9;
+               } else if (this.plugin.sellShulkers && XMaterial.isShulker(itemStack.getType())) {
+                  Integer value2 = this.sellShulker(map2, map, player, itemStack, "sellgui", size2);
+                  if (value2 != null) {
+                     value += value2;
                   }
                }
             }
          }
       }
 
-      for (Entry<ShopItem, Sold> var14 : new HashSet<>(var4.entrySet())) {
-         if (((ShopItem)var14.getKey()).isMinSell(((Sold)var14.getValue()).getAmount())) {
-            var4.remove(var14.getKey());
-            var5 -= ((Sold)var14.getValue()).getAmount();
-            ((Sold)var14.getValue()).getIndexes().forEach(var3::remove);
+      for (Entry<ShopItem, Sold> entry : new HashSet<>(map2.entrySet())) {
+         if (((ShopItem)entry.getKey()).isMinSell(((Sold)entry.getValue()).getAmount())) {
+            map2.remove(entry.getKey());
+            value -= ((Sold)entry.getValue()).getAmount();
+            ((Sold)entry.getValue()).getIndexes().forEach(map::remove);
          }
       }
 
-      Map<EcoType, Double> var13 = new HashMap<>();
-      HashMap<ShopItem, Integer> var15 = new HashMap<>();
-      if (var5 > 0) {
-         var13 = this.callPreTransactionEvent(this.getItems(var15, var4), this.getPrices(var4), var1, var5);
-         if (var13 != null) {
-            if (!var13.keySet().stream().allMatch(var0 -> var0.getType() != EconomyType.ITEM) && !this.canPay(var1, (Map<EcoType, Double>)var13)) {
-               SendMessage.chatToPlayer(var1, Lang.CANNOT_STORE_PAYMENT.get(var1));
-               var2 = Transaction.Result.CANT_STORE_PAYMENT;
+      Map<EcoType, Double> map3 = new HashMap<>();
+      HashMap<ShopItem, Integer> map4 = new HashMap<>();
+      if (value > 0) {
+         map3 = this.callPreTransactionEvent(this.getItems(map4, map2), this.getPrices(map2), player, value);
+         if (map3 != null) {
+            if (!map3.keySet().stream().allMatch(element -> element.getType() != EconomyType.ITEM) && !this.canPay(player, (Map<EcoType, Double>)map3)) {
+               SendMessage.chatToPlayer(player, Lang.CANNOT_STORE_PAYMENT.get(player));
+               result = Transaction.Result.CANT_STORE_PAYMENT;
             } else {
-               this.removeItems(this.inv, var3);
-               var4.forEach((var1x, var2x) -> {
-                  if (var1x.isSellCommand()) {
-                     CommandHelper.executeCommandItem(var1x, var1, CommandType.SELL, var2x.getPrices(), var2x.getAmount());
+               this.removeItems(this.inv, map);
+               map2.forEach((key, value2) -> {
+                  if (key.isSellCommand()) {
+                     CommandHelper.executeCommandItem(key, player, CommandType.SELL, value2.getPrices(), value2.getAmount());
                   }
                });
-               this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)var13, var1);
-               SendMessage.sendTransactionMessage(var1, var5, (Map<EcoType, Double>)var13, var15, Transaction.Type.SELL_GUI_SCREEN);
-               this.plugin.runTaskAsync(() -> this.sellItems(var15, var1.getUniqueId()));
+               this.plugin.getEcoHandler().deposit((Map<EcoType, Double>)map3, player);
+               SendMessage.sendTransactionMessage(player, value, (Map<EcoType, Double>)map3, map4, Transaction.Type.SELL_GUI_SCREEN);
+               this.plugin.runTaskAsync(() -> this.sellItems(map4, player.getUniqueId()));
             }
          } else {
-            var2 = Transaction.Result.TRANSACTION_CANCELLED;
+            result = Transaction.Result.TRANSACTION_CANCELLED;
          }
       } else {
-         var2 = Transaction.Result.NO_ITEMS_FOUND;
-         SendMessage.chatToPlayer(var1, Lang.NO_ITEM_FOUND.get(var1));
+         result = Transaction.Result.NO_ITEMS_FOUND;
+         SendMessage.chatToPlayer(player, Lang.NO_ITEM_FOUND.get(player));
       }
 
-      this.addUnsoldItems(var1);
-      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(var15, (Map<EcoType, Double>)var13, var1, var5, Transaction.Type.SELL_ALL_COMMAND, var2));
+      this.addUnsoldItems(player);
+      Bukkit.getPluginManager().callEvent(new PostTransactionEvent(map4, (Map<EcoType, Double>)map3, player, value, Transaction.Type.SELL_ALL_COMMAND, result));
    }
 
-   private void addUnsoldItems(Player var1) {
-      for (int var2 = 0; var2 <= size - (this.plugin.navBar.isEnableSellGUINav() ? 10 : 1); var2++) {
-         if (!staticItems.containsKey(var2)) {
-            ItemStack var3 = this.inv.getItem(var2);
-            if (var3 != null && var3.getType() != Material.AIR) {
-               for (ItemStack var5 : var1.getInventory().addItem(new ItemStack[]{var3}).values()) {
-                  var1.getWorld().dropItem(var1.getLocation(), var5);
+   private void addUnsoldItems(Player player) {
+      for (int size2 = 0; size2 <= size - (this.plugin.navBar.isEnableSellGUINav() ? 10 : 1); size2++) {
+         if (!staticItems.containsKey(size2)) {
+            ItemStack itemStack = this.inv.getItem(size2);
+            if (itemStack != null && itemStack.getType() != Material.AIR) {
+               for (ItemStack itemStack2 : player.getInventory().addItem(new ItemStack[]{itemStack}).values()) {
+                  player.getWorld().dropItem(player.getLocation(), itemStack2);
                }
             }
          }
       }
    }
 
-   private Integer sellShulker(Map<ShopItem, Sold> var1, Map<Integer, SmartStack> var2, Player var3, ItemStack var4, String var5, int var6) {
-      HashMap<ShopItem, Sold> var7 = new HashMap<>();
-      HashMap<Integer, ItemStack> var8 = new HashMap<>();
-      int var9 = 0;
-      if (var4.getItemMeta() instanceof BlockStateMeta) {
-         BlockStateMeta var10 = (BlockStateMeta)var4.getItemMeta();
-         if (var10.getBlockState() instanceof ShulkerBox) {
-            Inventory var11 = ((ShulkerBox)var10.getBlockState()).getInventory();
-            if (var11.isEmpty()) {
+   private Integer sellShulker(Map<ShopItem, Sold> map, Map<Integer, SmartStack> map2, Player player, ItemStack itemStack, String shopId, int value) {
+      HashMap<ShopItem, Sold> map3 = new HashMap<>();
+      HashMap<Integer, ItemStack> map4 = new HashMap<>();
+      int value2 = 0;
+      if (itemStack.getItemMeta() instanceof BlockStateMeta) {
+         BlockStateMeta blockStateMeta = (BlockStateMeta)itemStack.getItemMeta();
+         if (blockStateMeta.getBlockState() instanceof ShulkerBox) {
+            Inventory inventory = ((ShulkerBox)blockStateMeta.getBlockState()).getInventory();
+            if (inventory.isEmpty()) {
                return null;
             }
 
-            for (int var12 = 0; var12 < 27; var12++) {
-               ItemStack var13 = var11.getItem(var12);
-               if (var13 != null && !var13.getType().equals(Material.AIR)) {
-                  ShopItem var14 = this.plugin.createItem.matchShopItem(var13, var3, var5);
-                  if (var14 != null && var14.isSellAble()) {
-                     int var15 = var13.getAmount();
-                     if (var14.isMaxSell(var7.getOrDefault(var14, new Sold()).getAmount() + var1.getOrDefault(var14, new Sold()).getAmount() + var15)) {
-                        if (var7.getOrDefault(var14, new Sold()).getAmount() + var1.getOrDefault(var14, new Sold()).getAmount() >= var14.getMaxSell()) {
+            for (int index = 0; index < 27; index++) {
+               ItemStack itemStack2 = inventory.getItem(index);
+               if (itemStack2 != null && !itemStack2.getType().equals(Material.AIR)) {
+                  ShopItem shopItem = this.plugin.createItem.matchShopItem(itemStack2, player, shopId);
+                  if (shopItem != null && shopItem.isSellAble()) {
+                     int amount = itemStack2.getAmount();
+                     if (shopItem.isMaxSell(map3.getOrDefault(shopItem, new Sold()).getAmount() + map.getOrDefault(shopItem, new Sold()).getAmount() + amount)) {
+                        if (map3.getOrDefault(shopItem, new Sold()).getAmount() + map.getOrDefault(shopItem, new Sold()).getAmount() >= shopItem.getMaxSell()) {
                            continue;
                         }
 
-                        var15 = var14.getMaxSell() - (var7.getOrDefault(var14, new Sold()).getAmount() + var1.getOrDefault(var14, new Sold()).getAmount());
+                        amount = shopItem.getMaxSell() - (map3.getOrDefault(shopItem, new Sold()).getAmount() + map.getOrDefault(shopItem, new Sold()).getAmount());
                      }
 
-                     if (var14.getLimitedSellMode() != 0) {
-                        int var16 = this.plugin.getLimitedSellProvider().getItemLimit(var14, var3.getUniqueId(), true);
-                        var15 = Math.min(var15, var16 - (var7.getOrDefault(var14, new Sold()).getAmount() + var1.getOrDefault(var14, new Sold()).getAmount()));
-                        if (var15 < 0) {
+                     if (shopItem.getLimitedSellMode() != 0) {
+                        int itemLimit = this.plugin.getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true);
+                        amount = Math.min(amount, itemLimit - (map3.getOrDefault(shopItem, new Sold()).getAmount() + map.getOrDefault(shopItem, new Sold()).getAmount()));
+                        if (amount < 0) {
                            continue;
                         }
                      }
 
-                     Sold var22 = var7.computeIfAbsent(var14, var0 -> new Sold());
-                     var22.addValues(var15, this.getPrices(var14, var3, var13, var15, var22.getAmount()));
-                     var9 += var15;
-                     ItemStack var17 = new ItemStack(var13);
-                     var17.setAmount(var13.getAmount() - var15);
-                     if (!var14.isSellCommand() || var14.isRequireItem()) {
-                        var8.put(var12, var17);
-                        var22.addIndex(var12);
+                     Sold sold = map3.computeIfAbsent(shopItem, key -> new Sold());
+                     sold.addValues(amount, this.getPrices(shopItem, player, itemStack2, amount, sold.getAmount()));
+                     value2 += amount;
+                     ItemStack itemStack3 = new ItemStack(itemStack2);
+                     itemStack3.setAmount(itemStack2.getAmount() - amount);
+                     if (!shopItem.isSellCommand() || shopItem.isRequireItem()) {
+                        map4.put(index, itemStack3);
+                        sold.addIndex(index);
                      }
                   }
                }
             }
 
-            for (Entry<ShopItem, Sold> var20 : new HashSet<>(var7.entrySet())) {
-               if (((ShopItem)var20.getKey()).isMinSell(((Sold)var20.getValue()).getAmount())) {
-                  var7.remove(var20.getKey());
-                  var9 -= ((Sold)var20.getValue()).getAmount();
-                  ((Sold)var20.getValue()).getIndexes().forEach(var8::remove);
+            for (Entry<ShopItem, Sold> entry : new HashSet<>(map3.entrySet())) {
+               if (((ShopItem)entry.getKey()).isMinSell(((Sold)entry.getValue()).getAmount())) {
+                  map3.remove(entry.getKey());
+                  value2 -= ((Sold)entry.getValue()).getAmount();
+                  ((Sold)entry.getValue()).getIndexes().forEach(map4::remove);
                }
             }
 
-            if (!var7.isEmpty()) {
-               ItemStack var19 = new ItemStack(var4);
-               this.emptyShulker(new SmartStack.Shulker(var19, var8));
-               ShopItem var21 = this.plugin.createItem.matchShopItem(var19);
-               if (var21 != null && var21.getLimitedSellMode() != 0 && this.plugin.getLimitedSellProvider().getItemLimit(var21, var3.getUniqueId(), true) > 0) {
-                  var9++;
-                  var2.put(var6, new SmartStack(new ItemStack(Material.AIR)));
-                  var1.put(
+            if (!map3.isEmpty()) {
+               ItemStack itemStack2 = new ItemStack(itemStack);
+               this.emptyShulker(new SmartStack.Shulker(itemStack2, map4));
+               ShopItem shopItem = this.plugin.createItem.matchShopItem(itemStack2);
+               if (shopItem != null && shopItem.getLimitedSellMode() != 0 && this.plugin.getLimitedSellProvider().getItemLimit(shopItem, player.getUniqueId(), true) > 0) {
+                  value2++;
+                  map2.put(value, new SmartStack(new ItemStack(Material.AIR)));
+                  map.put(
                      new ShopItem.Shulker(
-                        var21, var19, var7.entrySet().stream().collect(Collectors.toMap(Entry::getKey, var0 -> ((Sold)var0.getValue()).getAmount()))
+                        shopItem, itemStack2, map3.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> ((Sold)entry.getValue()).getAmount()))
                      ),
-                     var7.computeIfAbsent(var21, var0 -> new Sold())
+                     map3.computeIfAbsent(shopItem, key -> new Sold())
                         .addValues(
                            1,
-                           var21.isASellPricing()
-                              ? var21.getASellPrice().getSellPrices(null, var3, 1, var21.getSellModifiers())
-                              : Collections.singletonMap(var21.getEcoType(), var21.getSellPrice(var3, 1))
+                           shopItem.isASellPricing()
+                              ? shopItem.getASellPrice().getSellPrices(null, player, 1, shopItem.getSellModifiers())
+                              : Collections.singletonMap(shopItem.getEcoType(), shopItem.getSellPrice(player, 1))
                         )
                   );
                } else {
-                  var2.put(var6, new SmartStack.Shulker(var4, var8));
-                  var7.forEach((var1x, var2x) -> var1.merge(var1x, var2x, Sold::addValue));
+                  map2.put(value, new SmartStack.Shulker(itemStack, map4));
+                  map3.forEach((key, value3) -> map.merge(key, value3, Sold::addValue));
                }
 
-               return var9;
+               return value2;
             }
          }
       }
@@ -236,56 +236,56 @@ public class SellGUI extends ShopInventory {
       return null;
    }
 
-   private Map<EcoType, Double> getPrices(ShopItem var1, Player var2, ItemStack var3, int var4, int var5) {
-      return var1.isASellPricing()
-         ? var1.getASellPrice()
-            .getSellPrices(var1.getASellPrice().isAll() ? null : var1.getASellPrice().getTypes().get(0), var2, var3, var4, var5, var1.getSellModifiers())
-         : Collections.singletonMap(var1.getEcoType(), var1.getSellPrice(var2, var3, var4, var5));
+   private Map<EcoType, Double> getPrices(ShopItem shopItem, Player player, ItemStack itemStack, int value, int value2) {
+      return shopItem.isASellPricing()
+         ? shopItem.getASellPrice()
+            .getSellPrices(shopItem.getASellPrice().isAll() ? null : shopItem.getASellPrice().getTypes().get(0), player, itemStack, value, value2, shopItem.getSellModifiers())
+         : Collections.singletonMap(shopItem.getEcoType(), shopItem.getSellPrice(player, itemStack, value, value2));
    }
 
-   private void removeItems(Inventory var1, Map<Integer, SmartStack> var2) {
-      var2.forEach((var2x, var3) -> {
-         if (var3 instanceof SmartStack.Shulker) {
-            this.emptyShulker((SmartStack.Shulker)var3);
-         } else if (var3.getItem().getAmount() != 0) {
-            var1.setItem(var2x, var3.getItem());
+   private void removeItems(Inventory inventory, Map<Integer, SmartStack> map) {
+      map.forEach((key, value) -> {
+         if (value instanceof SmartStack.Shulker) {
+            this.emptyShulker((SmartStack.Shulker)value);
+         } else if (value.getItem().getAmount() != 0) {
+            inventory.setItem(key, value.getItem());
          } else {
-            var1.clear(var2x);
+            inventory.clear(key);
          }
       });
    }
 
-   private void emptyShulker(SmartStack.Shulker var1) {
-      ItemStack var2 = var1.getItem();
-      BlockStateMeta var3 = (BlockStateMeta)var2.getItemMeta();
-      ShulkerBox var4 = (ShulkerBox)var3.getBlockState();
-      var1.getItems().forEach((var1x, var2x) -> {
-         if (var2x.getAmount() != 0) {
-            var4.getInventory().setItem(var1x, var2x);
+   private void emptyShulker(SmartStack.Shulker shulker) {
+      ItemStack itemStack = shulker.getItem();
+      BlockStateMeta blockStateMeta = (BlockStateMeta)itemStack.getItemMeta();
+      ShulkerBox shulkerBox = (ShulkerBox)blockStateMeta.getBlockState();
+      shulker.getItems().forEach((key, value) -> {
+         if (value.getAmount() != 0) {
+            shulkerBox.getInventory().setItem(key, value);
          } else {
-            var4.getInventory().clear(var1x);
+            shulkerBox.getInventory().clear(key);
          }
       });
-      var3.setBlockState(var4);
-      var2.setItemMeta(var3);
+      blockStateMeta.setBlockState(shulkerBox);
+      itemStack.setItemMeta(blockStateMeta);
    }
 
-   private boolean canPay(Player var1, Map<EcoType, Double> var2) {
-      for (EcoType var4 : var2.keySet().stream().filter(var0 -> var0.getType() == EconomyType.ITEM).collect(Collectors.toList())) {
-         ItemStack var5 = ((ItemEconomy)this.plugin.getEcoHandler().getEcon(var4)).getItem();
-         int var6 = 0;
-         int var7 = var5.getMaxStackSize();
+   private boolean canPay(Player player, Map<EcoType, Double> map) {
+      for (EcoType ecoType : map.keySet().stream().filter(element -> element.getType() == EconomyType.ITEM).collect(Collectors.toList())) {
+         ItemStack itemStack = ((ItemEconomy)this.plugin.getEcoHandler().getEcon(ecoType)).getItem();
+         int value = 0;
+         int maxStackSize = itemStack.getMaxStackSize();
 
-         for (int var8 = 0; var8 < 36; var8++) {
-            ItemStack var9 = var1.getInventory().getItem(var8);
-            if (var9 == null || var9.getType().equals(Material.AIR)) {
-               var6 += var7;
-            } else if (var9.isSimilar(var5) && var9.getAmount() < var7) {
-               var6 += var7 - var9.getAmount();
+         for (int index = 0; index < 36; index++) {
+            ItemStack itemStack2 = player.getInventory().getItem(index);
+            if (itemStack2 == null || itemStack2.getType().equals(Material.AIR)) {
+               value += maxStackSize;
+            } else if (itemStack2.isSimilar(itemStack) && itemStack2.getAmount() < maxStackSize) {
+               value += maxStackSize - itemStack2.getAmount();
             }
          }
 
-         if ((Double)var2.get(var4) > var6) {
+         if ((Double)map.get(ecoType) > value) {
             return false;
          }
       }
@@ -293,50 +293,50 @@ public class SellGUI extends ShopInventory {
       return true;
    }
 
-   private Map<ShopItem, Integer> getItems(Map<ShopItem, Integer> var1, Map<ShopItem, Sold> var2) {
-      for (Entry var4 : var2.entrySet()) {
-         var1.merge((ShopItem)var4.getKey(), ((Sold)var4.getValue()).getAmount(), Integer::sum);
+   private Map<ShopItem, Integer> getItems(Map<ShopItem, Integer> map, Map<ShopItem, Sold> map2) {
+      for (Entry entry : map2.entrySet()) {
+         map.merge((ShopItem)entry.getKey(), ((Sold)entry.getValue()).getAmount(), Integer::sum);
       }
 
-      return var1;
+      return map;
    }
 
-   private Map<EcoType, Double> getPrices(Map<ShopItem, Sold> var1) {
-      HashMap<EcoType, Double> var2 = new HashMap<>();
+   private Map<EcoType, Double> getPrices(Map<ShopItem, Sold> map) {
+      HashMap<EcoType, Double> map2 = new HashMap<>();
 
-      for (Entry var4 : var1.entrySet()) {
-         ((Sold)var4.getValue()).getPrices().forEach((var1x, var2x) -> var2.merge(var1x, var2x, Double::sum));
+      for (Entry entry : map.entrySet()) {
+         ((Sold)entry.getValue()).getPrices().forEach((key, value) -> map2.merge(key, value, Double::sum));
       }
 
-      return var2;
+      return map2;
    }
 
-   private void sellItems(Map<ShopItem, Integer> var1, UUID var2) {
+   private void sellItems(Map<ShopItem, Integer> map, UUID uniqueId) {
       if (this.plugin.sellLimits) {
-         var1.forEach((var2x, var3) -> {
-            if (var2x.getLimitedSellMode() != 0) {
-               this.plugin.getLimitedSellProvider().sellItems(var2x, var2, var3, true);
+         map.forEach((key, value) -> {
+            if (key.getLimitedSellMode() != 0) {
+               this.plugin.getLimitedSellProvider().sellItems(key, uniqueId, value, true);
             }
          });
       }
 
       if (this.plugin.itemStock) {
-         var1.forEach((var2x, var3) -> {
-            if (var2x.isRefillStock()) {
-               this.plugin.getLimitedStockProvider().sellItems(var2x, var2, var3);
+         map.forEach((key, value) -> {
+            if (key.isRefillStock()) {
+               this.plugin.getLimitedStockProvider().sellItems(key, uniqueId, value);
             }
          });
       }
 
       if (this.plugin.dynamicPricing) {
-         var1.forEach((var1x, var2x) -> this.plugin.getDynamicPricingProvider().sellItem(var1x.getItemPath(), var2x));
+         map.forEach((key, value) -> this.plugin.getDynamicPricingProvider().sellItem(key.getItemPath(), value));
       }
    }
 
-   private Map<EcoType, Double> callPreTransactionEvent(Map<ShopItem, Integer> var1, Map<EcoType, Double> var2, Player var3, int var4) {
-      PreTransactionEvent var5 = new PreTransactionEvent(var1, var2, var3, var4, Transaction.Type.SELL_GUI_SCREEN);
-      Bukkit.getPluginManager().callEvent(var5);
-      return var5.isCancelled() ? null : var5.getPrices();
+   private Map<EcoType, Double> callPreTransactionEvent(Map<ShopItem, Integer> map, Map<EcoType, Double> map2, Player player, int value) {
+      PreTransactionEvent preTransactionEvent = new PreTransactionEvent(map, map2, player, value, Transaction.Type.SELL_GUI_SCREEN);
+      Bukkit.getPluginManager().callEvent(preTransactionEvent);
+      return preTransactionEvent.isCancelled() ? null : preTransactionEvent.getPrices();
    }
 
    @Override
@@ -345,33 +345,33 @@ public class SellGUI extends ShopInventory {
    }
 
    private static void loadItems() {
-      for (String var1 : ConfigManager.getConfig().getConfigurationSection("sellgui-screen.items").getKeys(false)) {
-         ArrayList var2 = OnyxShop.getInstance()
+      for (String sectionId : ConfigManager.getConfig().getConfigurationSection("sellgui-screen.items").getKeys(false)) {
+         ArrayList slots = OnyxShop.getInstance()
             .calculateAmount
-            .getSlots(ConfigManager.getConfig().getString("sellgui-screen.items." + var1 + ".slot", null));
-         if (var2 == null) {
+            .getSlots(ConfigManager.getConfig().getString("sellgui-screen.items." + sectionId + ".slot", null));
+         if (slots == null) {
             SendMessage.warnMessage("Invalid slot for item, skipping...");
-            SendMessage.errorItemConfig("sellgui-screen.items." + var1);
+            SendMessage.errorItemConfig("sellgui-screen.items." + sectionId);
          } else {
-            LocalizedItemStack var3 = OnyxShop.getInstance()
+            LocalizedItemStack localizedItemStack = OnyxShop.getInstance()
                .createItem
-               .createFillItem(ConfigManager.getConfig().getConfigurationSection("sellgui-screen.items." + var1), null);
+               .createFillItem(ConfigManager.getConfig().getConfigurationSection("sellgui-screen.items." + sectionId), null);
 
-            for (int var4 = var2.size() - 1; var4 > -1; var4--) {
-               int var5 = (Integer)var2.get(var4);
-               if (var5 < (OnyxShop.getInstance().navBar.isEnableSellGUINav() ? size - 9 : size) && var5 >= 0) {
-                  staticItems.put(var5, var3);
+            for (int size2 = slots.size() - 1; size2 > -1; size2--) {
+               int value = (Integer)slots.get(size2);
+               if (value < (OnyxShop.getInstance().navBar.isEnableSellGUINav() ? size - 9 : size) && value >= 0) {
+                  staticItems.put(value, localizedItemStack);
                } else {
-                  SendMessage.warnMessage("Item slot " + var5 + " is out of bounds for menu size of " + size + ", skipping ...");
-                  SendMessage.errorItemConfig("sellgui-screen.items." + var1);
+                  SendMessage.warnMessage("Item slot " + value + " is out of bounds for menu size of " + size + ", skipping ...");
+                  SendMessage.errorItemConfig("sellgui-screen.items." + sectionId);
                }
             }
          }
       }
    }
 
-   public static boolean isFillItem(int var0) {
-      return staticItems.containsKey(var0);
+   public static boolean isFillItem(int value) {
+      return staticItems.containsKey(value);
    }
 
    static {

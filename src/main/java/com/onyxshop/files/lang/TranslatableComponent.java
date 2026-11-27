@@ -14,30 +14,30 @@ import org.bukkit.entity.Player;
 public class TranslatableComponent implements Translatable {
    private final String miniMessage;
 
-   public TranslatableComponent(String var1) {
-      this.miniMessage = ChatUtil.getAdventureUtils().formatLegacyToMini(var1);
+   public TranslatableComponent(String text) {
+      this.miniMessage = ChatUtil.getAdventureUtils().formatLegacyToMini(text);
    }
 
-   public TranslatableComponent(String var1, boolean var2) {
-      this.miniMessage = var1;
+   public TranslatableComponent(String text, boolean flag) {
+      this.miniMessage = text;
    }
 
-   public TranslatableComponent(Component var1) {
-      this.miniMessage = AdventureUtil.serialize(var1);
-   }
-
-   @Override
-   public Translatable replace(String var1, String var2) {
-      return this.miniMessage.indexOf(var1) == -1
-         ? this
-         : new TranslatableComponent(this.miniMessage.replace(var1, ChatUtil.getAdventureUtils().formatLegacyToMini(var2)), false);
+   public TranslatableComponent(Component component) {
+      this.miniMessage = AdventureUtil.serialize(component);
    }
 
    @Override
-   public Translatable replace(String var1, Translatable var2) {
-      return this.miniMessage.indexOf(var1) == -1
+   public Translatable replace(String text, String text2) {
+      return this.miniMessage.indexOf(text) == -1
          ? this
-         : new TranslatableComponent(this.miniMessage.replace(var1, ChatUtil.getAdventureUtils().formatLegacyToMini(var2.toString())), false);
+         : new TranslatableComponent(this.miniMessage.replace(text, ChatUtil.getAdventureUtils().formatLegacyToMini(text2)), false);
+   }
+
+   @Override
+   public Translatable replace(String text, Translatable text2) {
+      return this.miniMessage.indexOf(text) == -1
+         ? this
+         : new TranslatableComponent(this.miniMessage.replace(text, ChatUtil.getAdventureUtils().formatLegacyToMini(text2.toString())), false);
    }
 
    @Override
@@ -61,20 +61,20 @@ public class TranslatableComponent implements Translatable {
    }
 
    @Override
-   public Translatable translate(Player var1) {
-      return new TranslatableComponent(PlaceholderAPIHook.translate(var1, this.miniMessage));
+   public Translatable translate(Player player) {
+      return new TranslatableComponent(PlaceholderAPIHook.translate(player, this.miniMessage));
    }
 
    @Override
-   public Translatable get(Player var1) {
-      return new TranslatableComponent(PlaceholderAPIHook.translate(var1, this.miniMessage));
+   public Translatable get(Player player) {
+      return new TranslatableComponent(PlaceholderAPIHook.translate(player, this.miniMessage));
    }
 
    @Override
    public List<Translatable> getLines() {
       return Arrays.asList(this.toString().replaceAll("</\\w+>", "").replace("\\\\n", "\n").split("\n"))
          .stream()
-         .map(var0 -> new TranslatableComponent(var0, true))
+         .map(element -> new TranslatableComponent(element, true))
          .collect(Collectors.toList());
    }
 
@@ -91,25 +91,25 @@ public class TranslatableComponent implements Translatable {
    public static class ComponentBuilder implements Translatable.Builder {
       private StringBuilder component;
 
-      public ComponentBuilder(TranslatableComponent var1) {
-         this.component = new StringBuilder(var1.toString());
+      public ComponentBuilder(TranslatableComponent translatableComponent) {
+         this.component = new StringBuilder(translatableComponent.toString());
       }
 
       @Override
-      public Translatable.Builder append(Translatable var1) {
-         this.component.append(var1.toString());
+      public Translatable.Builder append(Translatable text) {
+         this.component.append(text.toString());
          return this;
       }
 
       @Override
-      public Translatable.Builder append(String var1) {
-         this.component.append(ChatUtil.getAdventureUtils().formatLegacyToMini(var1));
+      public Translatable.Builder append(String text) {
+         this.component.append(ChatUtil.getAdventureUtils().formatLegacyToMini(text));
          return this;
       }
 
       @Override
-      public Translatable.Builder color(char var1) {
-         this.component.append("<").append(PaperMeta.COLOR_MAP.get(var1).toString()).append(">");
+      public Translatable.Builder color(char character) {
+         this.component.append("<").append(PaperMeta.COLOR_MAP.get(character).toString()).append(">");
          return this;
       }
 

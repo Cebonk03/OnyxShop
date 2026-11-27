@@ -15,47 +15,47 @@ public class MainMenu extends ShopInventory {
    private final OnyxShop plugin = OnyxShop.getInstance();
    private ScheduledTask tickTask;
 
-   public static void open(Player var0) {
-      OnyxShop var1 = OnyxShop.getInstance();
-      if (var1.bedrock && var1.bedrockMenus && UserManager.getUser(var0).isBedrock() && var1.getBedrockInventorys().isEnabledFor(var0)) {
-         var1.getBedrockInventorys().openMainMenu(var0);
+   public static void open(Player player) {
+      OnyxShop plugin = OnyxShop.getInstance();
+      if (plugin.bedrock && plugin.bedrockMenus && UserManager.getUser(player).isBedrock() && plugin.getBedrockInventorys().isEnabledFor(player)) {
+         plugin.getBedrockInventorys().openMainMenu(player);
       } else {
-         new MainMenu(var0);
+         new MainMenu(player);
       }
    }
 
-   public MainMenu(Player var1) {
-      User var2 = UserManager.getUser(var1);
-      this.inv = this.plugin.getMetaUtils().createInventory(this, CalculateAmount.getMainInvSlots(var2), TitleManager.get(TitleManager.Menu.MAIN_MENU, var1));
-      this.init(var1);
-      this.plugin.navBar.addMainMenuNavBar(this.inv, var1);
-      this.open(var1, var2);
+   public MainMenu(Player player) {
+      User user = UserManager.getUser(player);
+      this.inv = this.plugin.getMetaUtils().createInventory(this, CalculateAmount.getMainInvSlots(user), TitleManager.get(TitleManager.Menu.MAIN_MENU, player));
+      this.init(player);
+      this.plugin.navBar.addMainMenuNavBar(this.inv, player);
+      this.open(player, user);
    }
 
-   private void open(Player var1, User var2) {
-      var2.setOpenNewGUI(true);
-      var1.openInventory(this.inv);
+   private void open(Player player, User user) {
+      user.setOpenNewGUI(true);
+      player.openInventory(this.inv);
    }
 
-   private void init(Player var1) {
-      this.plugin.getSectionItems().forEach((var2x, var3x) -> {
-         ItemStack var4 = var3x.getItem(var1);
-         if (!var3x.isHideIfNoPerms() || PermissionsCache.hasPermission(var1, "OnyxShop.shop." + var2x.toLowerCase())) {
-            if (var3x.isRotating()) {
-               this.startTicking(var3x, var4);
+   private void init(Player player) {
+      this.plugin.getSectionItems().forEach((key, value) -> {
+         ItemStack itemStack = value.getItem(player);
+         if (!value.isHideIfNoPerms() || PermissionsCache.hasPermission(player, "OnyxShop.shop." + key.toLowerCase())) {
+            if (value.isRotating()) {
+               this.startTicking(value, itemStack);
             }
 
-            for (Integer var6 : var3x.getSlots()) {
-               this.inv.setItem(var6, var4);
+            for (Integer value2 : value.getSlots()) {
+               this.inv.setItem(value2, itemStack);
             }
          }
       });
       if (this.plugin.createItem.fillItem != null) {
-         int var2 = this.plugin.mainMenuSize;
+         int size = this.plugin.mainMenuSize;
 
-         for (int var3 = 0; var3 < (this.plugin.navBar.isEnableMainNav() ? var2 - 9 : var2); var3++) {
-            if (this.inv.getItem(var3) == null) {
-               this.inv.setItem(var3, this.plugin.createItem.fillItem);
+         for (int index = 0; index < (this.plugin.navBar.isEnableMainNav() ? size - 9 : size); index++) {
+            if (this.inv.getItem(index) == null) {
+               this.inv.setItem(index, this.plugin.createItem.fillItem);
             }
          }
       }
@@ -66,14 +66,14 @@ public class MainMenu extends ShopInventory {
       return this.inv;
    }
 
-   private void startTicking(SectionItem var1, ItemStack var2) {
-      Runnable var3 = var1.getTickTask(this.inv, var2);
+   private void startTicking(SectionItem sectionItem, ItemStack itemStack) {
+      Runnable task = sectionItem.getTickTask(this.inv, itemStack);
       this.tickTask = OnyxShop.getInstance().runTaskTimer(() -> {
          if (this.inv.getViewers().isEmpty()) {
             this.tickTask.cancel();
          }
 
-         var3.run();
+         task.run();
       }, 0L, 20L);
    }
 }

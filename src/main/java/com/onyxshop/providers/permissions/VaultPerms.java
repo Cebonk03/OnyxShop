@@ -15,10 +15,10 @@ public class VaultPerms implements PermissionsProvider {
    }
 
    @Override
-   public void setup(OnyxShop var1) throws PermissionsHookException {
-      RegisteredServiceProvider var2 = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
-      if (var2 != null) {
-         this.api = (Permission)var2.getProvider();
+   public void setup(OnyxShop plugin) throws PermissionsHookException {
+      RegisteredServiceProvider registeredServiceProvider = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
+      if (registeredServiceProvider != null) {
+         this.api = (Permission)registeredServiceProvider.getProvider();
       } else {
          throw new PermissionsHookException("Failed to find Vault Permissions provider from bukkit API");
       }
@@ -30,10 +30,10 @@ public class VaultPerms implements PermissionsProvider {
    }
 
    @Override
-   public String getGroupName(String var1) {
-      for (String var5 : this.api.getGroups()) {
-         if (this.api.groupHas((String)null, var5, var1.toLowerCase(Locale.ENGLISH))) {
-            return var5;
+   public String getGroupName(String name) {
+      for (String text : this.api.getGroups()) {
+         if (this.api.groupHas((String)null, text, name.toLowerCase(Locale.ENGLISH))) {
+            return text;
          }
       }
 

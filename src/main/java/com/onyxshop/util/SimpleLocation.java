@@ -14,43 +14,43 @@ public class SimpleLocation {
    public final double y;
    public final int z;
 
-   public SimpleLocation(String var1, int var2) throws LocationLoadException {
-      String[] var3 = var1.split(":");
-      if (Bukkit.getWorld(var3[0]) != null) {
-         this.world = var3[0];
+   public SimpleLocation(String text, int value) throws LocationLoadException {
+      String[] values = text.split(":");
+      if (Bukkit.getWorld(values[0]) != null) {
+         this.world = values[0];
 
          try {
-            this.x = Integer.parseInt(var3[1]);
-            this.y = Double.parseDouble(var3[2]);
-            this.z = Integer.parseInt(var3[3]);
-         } catch (ArrayIndexOutOfBoundsException | NumberFormatException var5) {
+            this.x = Integer.parseInt(values[1]);
+            this.y = Double.parseDouble(values[2]);
+            this.z = Integer.parseInt(values[3]);
+         } catch (ArrayIndexOutOfBoundsException | NumberFormatException exception) {
             throw new LocationLoadException(
                Lang.INVALID_SHOP_STAND_FORMAT
                   .get()
                   .getLegacy()
-                  .replace("%pos_x%", String.valueOf(var3[1]))
-                  .replace("%pos_y%", String.valueOf(var3[2]))
-                  .replace("%pos_z%", String.valueOf(var3[3]))
-                  .replace("%id%", String.valueOf(var2))
+                  .replace("%pos_x%", String.valueOf(values[1]))
+                  .replace("%pos_y%", String.valueOf(values[2]))
+                  .replace("%pos_z%", String.valueOf(values[3]))
+                  .replace("%id%", String.valueOf(value))
             );
          }
       } else {
-         throw new LocationLoadException(Lang.INVALID_SHOP_STAND_WORLD.get().getLegacy().replace("%world%", var3[0]).replace("%id%", String.valueOf(var2)));
+         throw new LocationLoadException(Lang.INVALID_SHOP_STAND_WORLD.get().getLegacy().replace("%world%", values[0]).replace("%id%", String.valueOf(value)));
       }
    }
 
-   public SimpleLocation(Block var1) {
-      this.world = var1.getLocation().getWorld().getName();
-      this.x = var1.getLocation().getBlockX();
-      this.y = XMaterial.getBlockY(var1);
-      this.z = var1.getLocation().getBlockZ();
+   public SimpleLocation(Block block) {
+      this.world = block.getLocation().getWorld().getName();
+      this.x = block.getLocation().getBlockX();
+      this.y = XMaterial.getBlockY(block);
+      this.z = block.getLocation().getBlockZ();
    }
 
-   public SimpleLocation(Location var1) {
-      this.world = var1.getWorld().getName();
-      this.x = var1.getBlockX();
-      this.y = var1.getY();
-      this.z = var1.getBlockZ();
+   public SimpleLocation(Location location) {
+      this.world = location.getWorld().getName();
+      this.x = location.getBlockX();
+      this.y = location.getY();
+      this.z = location.getBlockZ();
    }
 
    public Location toBukkit() {
@@ -73,14 +73,14 @@ public class SimpleLocation {
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (!(var1 instanceof StandLoc)) {
+      } else if (!(value instanceof StandLoc)) {
          return false;
       } else {
-         StandLoc var2 = (StandLoc)var1;
-         return this.world.equals(var2.world) && this.x == var2.x && this.y == var2.y && this.z == var2.z;
+         StandLoc standLoc = (StandLoc)value;
+         return this.world.equals(standLoc.world) && this.x == standLoc.x && this.y == standLoc.y && this.z == standLoc.z;
       }
    }
 

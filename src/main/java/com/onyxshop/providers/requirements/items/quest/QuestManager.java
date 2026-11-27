@@ -15,32 +15,32 @@ public class QuestManager {
    private final QuestProvider provider;
    private final Map<QuestRequirement, String> requirements = new HashMap<>();
 
-   public QuestManager(OnyxShop var1) {
-      PluginManager var2 = var1.getServer().getPluginManager();
-      this.provider = this.getProvider(var1, var2);
+   public QuestManager(OnyxShop plugin) {
+      PluginManager pluginManager = plugin.getServer().getPluginManager();
+      this.provider = this.getProvider(plugin, pluginManager);
       if (this.provider != null) {
-         this.provider.init(var1, this);
+         this.provider.init(plugin, this);
       }
    }
 
-   private QuestProvider getProvider(OnyxShop var1, PluginManager var2) {
-      if (var2.getPlugin("Quests") != null) {
+   private QuestProvider getProvider(OnyxShop plugin, PluginManager pluginManager) {
+      if (pluginManager.getPlugin("Quests") != null) {
          try {
             Class.forName("me.pikamug.quests.Quests");
-            return new QuestsCIntegration(var1);
-         } catch (ClassNotFoundException var4) {
-            return new QuestsIntegration(var1);
+            return new QuestsCIntegration(plugin);
+         } catch (ClassNotFoundException exception) {
+            return new QuestsIntegration(plugin);
          }
-      } else if (var2.getPlugin("BeautyQuests") != null) {
+      } else if (pluginManager.getPlugin("BeautyQuests") != null) {
          return new BeatyQuestsIntegration();
       } else {
-         return var2.getPlugin("BetonQuest") != null ? new BetonQuestIntegration() : null;
+         return pluginManager.getPlugin("BetonQuest") != null ? new BetonQuestIntegration() : null;
       }
    }
 
-   public QuestRequirement addRequirement(QuestRequirement var1, String var2) {
-      this.requirements.put(var1, var2);
-      return var1;
+   public QuestRequirement addRequirement(QuestRequirement questRequirement, String text) {
+      this.requirements.put(questRequirement, text);
+      return questRequirement;
    }
 
    public QuestProvider getProvider() throws ItemRequirementLoadException {
@@ -56,18 +56,18 @@ public class QuestManager {
          SendMessage.errorMessage("Failed to enable quest integration with '" + this.provider.getName() + "'");
       }
 
-      for (QuestRequirement var2 : this.requirements.keySet()) {
-         String var3 = this.requirements.get(var2);
+      for (QuestRequirement questRequirement : this.requirements.keySet()) {
+         String text = this.requirements.get(questRequirement);
          if (!this.provider.isReady()) {
             SendMessage.warnMessage("Failed to load quest item requirement: Quest integration failed to load");
-            SendMessage.errorShops(var3.split("\\.")[0], var3.split("\\.", 2)[1]);
-         } else if (!this.provider.isLoaded(var2.getQuestID())) {
+            SendMessage.errorShops(text.split("\\.")[0], text.split("\\.", 2)[1]);
+         } else if (!this.provider.isLoaded(questRequirement.getQuestID())) {
             SendMessage.warnMessage(
-               "Failed to load quest item requirement: Quest using ID '" + var2.getQuestID() + "' does not exist in " + this.provider.getName()
+               "Failed to load quest item requirement: Quest using ID '" + questRequirement.getQuestID() + "' does not exist in " + this.provider.getName()
             );
-            SendMessage.errorShops(var3.split("\\.")[0], var3.split("\\.", 2)[1]);
+            SendMessage.errorShops(text.split("\\.")[0], text.split("\\.", 2)[1]);
          } else {
-            var2.onLoad();
+            questRequirement.onLoad();
          }
       }
    }

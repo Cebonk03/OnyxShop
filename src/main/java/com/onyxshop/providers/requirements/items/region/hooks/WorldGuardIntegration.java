@@ -17,22 +17,22 @@ import org.bukkit.entity.Player;
 public class WorldGuardIntegration implements RegionProvider {
    private final OnyxShop plugin;
 
-   public WorldGuardIntegration(OnyxShop var1) {
-      this.plugin = var1;
+   public WorldGuardIntegration(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    @Override
-   public void init(OnyxShop var1, RegionManager var2) {
+   public void init(OnyxShop plugin, RegionManager regionManager) {
       if (!this.isReady()) {
          SendMessage.infoMessage(this.getName() + " found, waiting...");
-         var1.runTaskLater(() -> {
-            if (var1.getServer().getPluginManager().isPluginEnabled(this.getName())) {
+         plugin.runTaskLater(() -> {
+            if (plugin.getServer().getPluginManager().isPluginEnabled(this.getName())) {
                SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
             } else {
                SendMessage.warnMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", this.getName()));
             }
 
-            var2.onLoad();
+            regionManager.onLoad();
          }, 5L);
       } else {
          SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", this.getName()));
@@ -41,11 +41,11 @@ public class WorldGuardIntegration implements RegionProvider {
 
    @Override
    public boolean isReady() {
-      RegionContainer var1 = WorldGuard.getInstance().getPlatform().getRegionContainer();
+      RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
-      for (World var3 : this.plugin.getServer().getWorlds()) {
-         com.sk89q.worldguard.protection.managers.RegionManager var4 = var1.get(BukkitAdapter.adapt(var3));
-         if (var4 != null) {
+      for (World world : this.plugin.getServer().getWorlds()) {
+         com.sk89q.worldguard.protection.managers.RegionManager regionManager = regionContainer.get(BukkitAdapter.adapt(world));
+         if (regionManager != null) {
             return true;
          }
       }
@@ -59,12 +59,12 @@ public class WorldGuardIntegration implements RegionProvider {
    }
 
    @Override
-   public boolean isLoaded(String var1) {
-      RegionContainer var2 = WorldGuard.getInstance().getPlatform().getRegionContainer();
+   public boolean isLoaded(String text) {
+      RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
-      for (World var4 : this.plugin.getServer().getWorlds()) {
-         com.sk89q.worldguard.protection.managers.RegionManager var5 = var2.get(BukkitAdapter.adapt(var4));
-         if (var5 != null && var5.hasRegion(var1)) {
+      for (World world : this.plugin.getServer().getWorlds()) {
+         com.sk89q.worldguard.protection.managers.RegionManager regionManager = regionContainer.get(BukkitAdapter.adapt(world));
+         if (regionManager != null && regionManager.hasRegion(text)) {
             return true;
          }
       }
@@ -73,22 +73,22 @@ public class WorldGuardIntegration implements RegionProvider {
    }
 
    @Override
-   public String getRegionName(String var1) {
-      return var1;
+   public String getRegionName(String name) {
+      return name;
    }
 
    @Override
-   public boolean isInsideRegion(Player var1, String var2) {
-      Location var3 = BukkitAdapter.adapt(var1.getLocation());
-      RegionContainer var4 = WorldGuard.getInstance().getPlatform().getRegionContainer();
-      com.sk89q.worldguard.protection.managers.RegionManager var5 = var4.get(BukkitAdapter.adapt(var1.getWorld()));
-      if (var5 == null) {
+   public boolean isInsideRegion(Player player, String playerName) {
+      Location location = BukkitAdapter.adapt(player.getLocation());
+      RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
+      com.sk89q.worldguard.protection.managers.RegionManager regionManager = regionContainer.get(BukkitAdapter.adapt(player.getWorld()));
+      if (regionManager == null) {
          return false;
       } else {
-         ApplicableRegionSet var6 = var5.getApplicableRegions(var3.toVector().toBlockPoint());
+         ApplicableRegionSet applicableRegionSet = regionManager.getApplicableRegions(location.toVector().toBlockPoint());
 
-         for (ProtectedRegion var8 : var6.getRegions()) {
-            if (var8.getId().equalsIgnoreCase(var2)) {
+         for (ProtectedRegion protectedRegion : applicableRegionSet.getRegions()) {
+            if (protectedRegion.getId().equalsIgnoreCase(playerName)) {
                return true;
             }
          }

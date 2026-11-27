@@ -15,53 +15,53 @@ import org.bukkit.entity.Player;
 public class PlaceholderRequirement implements com.onyxshop.providers.requirements.ItemRequirement {
    private final String placeholder;
 
-   public PlaceholderRequirement(String var1) throws ItemRequirementLoadException {
-      Pattern var2 = Pattern.compile("%([^% ]+)%");
-      if (!var2.matcher(var1).find()) {
-         throw new ItemRequirementLoadException("Invalid placeholder for " + var1 + ", should start and end with a percent symbol");
+   public PlaceholderRequirement(String itemId) throws ItemRequirementLoadException {
+      Pattern pattern = Pattern.compile("%([^% ]+)%");
+      if (!pattern.matcher(itemId).find()) {
+         throw new ItemRequirementLoadException("Invalid placeholder for " + itemId + ", should start and end with a percent symbol");
       } else {
-         this.placeholder = var1;
+         this.placeholder = itemId;
       }
    }
 
-   public static PlaceholderRequirement initPlaceholderComparison(RequirementType var0, String var1, List<String> var2, String var3) throws ItemRequirementLoadException {
-      PlaceholderRequirement.ComparisonOperator var4 = PlaceholderRequirement.ComparisonOperator.fromType(var0, var1);
-      if (var4 == null) {
-         throw new ItemRequirementLoadException("Invalid placeholder requirement, cannot determine comparison operator from value '" + var1 + "'");
-      } else if (!var1.contains(var4.symbol)) {
-         throw new ItemRequirementLoadException("Invalid format for placeholder comparison, should be %placeholder%" + var4.symbol + "<value>");
+   public static PlaceholderRequirement initPlaceholderComparison(RequirementType requirementType, String type, List<String> itemIds, String text) throws ItemRequirementLoadException {
+      PlaceholderRequirement.ComparisonOperator comparisonOperator = PlaceholderRequirement.ComparisonOperator.fromType(requirementType, type);
+      if (comparisonOperator == null) {
+         throw new ItemRequirementLoadException("Invalid placeholder requirement, cannot determine comparison operator from value '" + type + "'");
+      } else if (!type.contains(comparisonOperator.symbol)) {
+         throw new ItemRequirementLoadException("Invalid format for placeholder comparison, should be %placeholder%" + comparisonOperator.symbol + "<value>");
       } else {
-         switch (var4) {
+         switch (comparisonOperator) {
             case EQUALS:
-               return new PlaceholderEquals(var4, var1, var2, var3);
+               return new PlaceholderEquals(comparisonOperator, type, itemIds, text);
             case DIFFERS:
-               return new PlaceholderDiffers(var4, var1, var2, var3);
+               return new PlaceholderDiffers(comparisonOperator, type, itemIds, text);
             case LARGER:
-               return new PlaceholderLarger(var4, var1, var2, var3);
+               return new PlaceholderLarger(comparisonOperator, type, itemIds, text);
             case SMALLER:
-               return new PlaceholderSmaller(var4, var1, var2, var3);
+               return new PlaceholderSmaller(comparisonOperator, type, itemIds, text);
             default:
-               throw new ItemRequirementLoadException(Lang.INVALID_ITEM_REQUIREMENT_TYPE.get().replace("%type%", var0.name()));
+               throw new ItemRequirementLoadException(Lang.INVALID_ITEM_REQUIREMENT_TYPE.get().replace("%type%", requirementType.name()));
          }
       }
    }
 
-   public String getFormatted(Player var1) {
-      return PlaceholderAPIHook.translate(var1, this.placeholder);
+   public String getFormatted(Player player) {
+      return PlaceholderAPIHook.translate(player, this.placeholder);
    }
 
    @Override
-   public boolean isMet(Player var1) {
+   public boolean isMet(Player player) {
       return false;
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
       return new String[0];
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
+   public void sendNotMetMessage(Player player) {
    }
 
    public static enum ComparisonOperator {
@@ -72,14 +72,14 @@ public class PlaceholderRequirement implements com.onyxshop.providers.requiremen
 
       public String symbol;
 
-      private ComparisonOperator(String nullxx) {
-         this.symbol = nullxx;
+      private ComparisonOperator(String text) {
+         this.symbol = text;
       }
 
-      public static PlaceholderRequirement.ComparisonOperator fromType(RequirementType var0, String var1) {
-         switch (var0) {
+      public static PlaceholderRequirement.ComparisonOperator fromType(RequirementType requirementType, String type) {
+         switch (requirementType) {
             case PLACEHOLDER:
-               return fromOperator(var1);
+               return fromOperator(type);
             case PLACEHOLDER_EQUALS:
                return EQUALS;
             case PLACEHOLDER_DIFFERS:
@@ -93,10 +93,10 @@ public class PlaceholderRequirement implements com.onyxshop.providers.requiremen
          }
       }
 
-      public static PlaceholderRequirement.ComparisonOperator fromOperator(String var0) {
-         for (PlaceholderRequirement.ComparisonOperator var4 : values()) {
-            if (var0.contains(var4.symbol)) {
-               return var4;
+      public static PlaceholderRequirement.ComparisonOperator fromOperator(String text) {
+         for (PlaceholderRequirement.ComparisonOperator comparisonOperator : values()) {
+            if (text.contains(comparisonOperator.symbol)) {
+               return comparisonOperator;
             }
          }
 

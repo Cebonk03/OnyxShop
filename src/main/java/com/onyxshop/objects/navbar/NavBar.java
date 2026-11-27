@@ -45,13 +45,13 @@ public class NavBar extends CreateItem {
    private NavBar.InventoryNavBar searchNavBar;
    private LocalizedItemStack customPlayerProfile;
 
-   public NavBar(OnyxShop var1) {
-      super(var1);
-      this.plugin = var1;
+   public NavBar(OnyxShop plugin) {
+      super(plugin);
+      this.plugin = plugin;
    }
 
-   public boolean isEnabled(String var1) {
-      return this.shopNavBars.containsKey(var1) ? this.shopNavBars.get(var1).enabled : this.shopsNavBar.enabled;
+   public boolean isEnabled(String text) {
+      return this.shopNavBars.containsKey(text) ? this.shopNavBars.get(text).enabled : this.shopsNavBar.enabled;
    }
 
    public boolean isEnableMainNav() {
@@ -74,284 +74,284 @@ public class NavBar extends CreateItem {
       return this.searchNavBar.enabled;
    }
 
-   public ItemStack getCustomPlayerProfile(Player var1) {
-      return this.customPlayerProfile != null ? this.customPlayerProfile.getItem(var1) : null;
+   public ItemStack getCustomPlayerProfile(Player player) {
+      return this.customPlayerProfile != null ? this.customPlayerProfile.getItem(player) : null;
    }
 
-   public void execute(Player var1, ShopPage var2, int var3, int var4, boolean var5) {
-      NavItem var6 = this.getItem(var2.getSection(), var3 - (var2.getSize() - 9));
-      if (var6 != null) {
-         switch (var6.getAction(var4, var2.getAllPages())) {
+   public void execute(Player player, ShopPage shopPage, int page, int value, boolean flag) {
+      NavItem navItem = this.getItem(shopPage.getSection(), page - (shopPage.getSize() - 9));
+      if (navItem != null) {
+         switch (navItem.getAction(value, shopPage.getAllPages())) {
             case BACK:
-               if (!var5 || var2.isSubSection() && !BackButton.SUB_SECTIONS) {
-                  if (var2.isSubSection()) {
-                     this.plugin.getSection(var2.getRootSection()).openShopSection(var1, var5);
+               if (!flag || shopPage.isSubSection() && !BackButton.SUB_SECTIONS) {
+                  if (shopPage.isSubSection()) {
+                     this.plugin.getSection(shopPage.getRootSection()).openShopSection(player, flag);
                   } else {
-                     MainMenu.open(var1);
+                     MainMenu.open(player);
                   }
 
-                  this.plugin.getSoundEffects().useBackButton(var1);
+                  this.plugin.getSoundEffects().useBackButton(player);
                }
                break;
             case CLOSE:
-               this.close(var1);
-               this.plugin.getSoundEffects().closeMainMenu(var1);
+               this.close(player);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                break;
             case COMMAND:
-               if (var6.isCloseMenu()) {
-                  this.close(var1);
+               if (navItem.isCloseMenu()) {
+                  this.close(player);
                }
 
-               CommandHelper.executeClickCommands(var6.getCommands(var2.getAllPages()), var1);
+               CommandHelper.executeClickCommands(navItem.getCommands(shopPage.getAllPages()), player);
             case TOGGLE_MODE:
             default:
                break;
             case PAGE_BACK:
-               if (var4 > 1) {
-                  this.plugin.getSection(var2.getSection()).openShopSection(var1, var4 - 1, var5, var2.getRootSection());
-                  this.plugin.getSoundEffects().changePage(var1);
+               if (value > 1) {
+                  this.plugin.getSection(shopPage.getSection()).openShopSection(player, value - 1, flag, shopPage.getRootSection());
+                  this.plugin.getSoundEffects().changePage(player);
                }
                break;
             case PAGE_NEXT:
-               if (var4 != this.plugin.getSection(var2.getSection()).getPages()) {
-                  this.plugin.getSection(var2.getSection()).openShopSection(var1, var4 + 1, var5, var2.getRootSection());
-                  this.plugin.getSoundEffects().changePage(var1);
+               if (value != this.plugin.getSection(shopPage.getSection()).getPages()) {
+                  this.plugin.getSection(shopPage.getSection()).openShopSection(player, value + 1, flag, shopPage.getRootSection());
+                  this.plugin.getSoundEffects().changePage(player);
                }
                break;
             case SEARCH:
-               this.search(var1);
+               this.search(player);
          }
       }
    }
 
-   public void execute(Player var1, ShopPage var2, ActionItem.Action var3, int var4, boolean var5) {
-      switch (var3) {
+   public void execute(Player player, ShopPage shopPage, ActionItem.Action action, int page, boolean flag) {
+      switch (action) {
          case BACK:
-            if (!var5 || var2.isSubSection() && !BackButton.SUB_SECTIONS) {
-               if (var2.isSubSection()) {
-                  this.plugin.getSection(var2.getRootSection()).openShopSection(var1, var5);
+            if (!flag || shopPage.isSubSection() && !BackButton.SUB_SECTIONS) {
+               if (shopPage.isSubSection()) {
+                  this.plugin.getSection(shopPage.getRootSection()).openShopSection(player, flag);
                } else {
-                  MainMenu.open(var1);
+                  MainMenu.open(player);
                }
 
-               this.plugin.getSoundEffects().useBackButton(var1);
+               this.plugin.getSoundEffects().useBackButton(player);
             }
             break;
          case PAGE_BACK:
-            if (var4 > 1) {
-               this.plugin.getSection(var2.getSection()).openShopSection(var1, var4 - 1, var5, var2.getRootSection());
-               this.plugin.getSoundEffects().changePage(var1);
+            if (page > 1) {
+               this.plugin.getSection(shopPage.getSection()).openShopSection(player, page - 1, flag, shopPage.getRootSection());
+               this.plugin.getSoundEffects().changePage(player);
             }
             break;
          case PAGE_NEXT:
-            if (var4 != this.plugin.getSection(var2.getSection()).getPages()) {
-               this.plugin.getSection(var2.getSection()).openShopSection(var1, var4 + 1, var5, var2.getRootSection());
-               this.plugin.getSoundEffects().changePage(var1);
+            if (page != this.plugin.getSection(shopPage.getSection()).getPages()) {
+               this.plugin.getSection(shopPage.getSection()).openShopSection(player, page + 1, flag, shopPage.getRootSection());
+               this.plugin.getSoundEffects().changePage(player);
             }
             break;
          case CLOSE:
-            this.close(var1);
-            this.plugin.getSoundEffects().closeMainMenu(var1);
+            this.close(player);
+            this.plugin.getSoundEffects().closeMainMenu(player);
             break;
          case SEARCH:
-            this.search(var1);
+            this.search(player);
       }
    }
 
-   private NavItem getItem(String var1, int var2) {
-      return this.shopNavBars.containsKey(var1) ? this.shopNavBars.get(var1).get(var2) : this.shopsNavBar.get(var2);
+   private NavItem getItem(String itemId, int value) {
+      return this.shopNavBars.containsKey(itemId) ? this.shopNavBars.get(itemId).get(value) : this.shopsNavBar.get(value);
    }
 
-   public ItemStack[] getShopNavBar(String var1, Player var2, int var3, int var4) {
-      return this.shopNavBars.containsKey(var1) ? this.shopNavBars.get(var1).get(var2, var1, var3, var4) : this.shopsNavBar.get(var2, var1, var3, var4);
+   public ItemStack[] getShopNavBar(String shopId, Player player, int value, int value2) {
+      return this.shopNavBars.containsKey(shopId) ? this.shopNavBars.get(shopId).get(player, shopId, value, value2) : this.shopsNavBar.get(player, shopId, value, value2);
    }
 
-   public String[] getShopNavTextures(String var1, int var2, int var3) {
-      return this.shopNavBars.containsKey(var1) ? this.shopNavBars.get(var1).getBedrockTextures(var2, var3) : this.shopsNavBar.getBedrockTextures(var2, var3);
+   public String[] getShopNavTextures(String shopId, int value, int value2) {
+      return this.shopNavBars.containsKey(shopId) ? this.shopNavBars.get(shopId).getBedrockTextures(value, value2) : this.shopsNavBar.getBedrockTextures(value, value2);
    }
 
-   public boolean execute(ShopSection var1, Player var2, int var3, int var4) {
-      NavItem var5 = this.getItem(var1.getSection(), var3);
-      if (var5 == null) {
+   public boolean execute(ShopSection section, Player player, int value, int value2) {
+      NavItem navItem = this.getItem(section.getSection(), value);
+      if (navItem == null) {
          return true;
       } else {
-         switch (var5.getAction(var4, var1.getAllPages())) {
+         switch (navItem.getAction(value2, section.getAllPages())) {
             case BACK:
-               if (!var1.isDisabledBackButton() || var1.isSubSection() && !BackButton.SUB_SECTIONS) {
-                  if (var1.isSubSection()) {
-                     this.plugin.getSection(var1.getRootSection()).openShopSection(var2, var1.isDisabledBackButton());
+               if (!section.isDisabledBackButton() || section.isSubSection() && !BackButton.SUB_SECTIONS) {
+                  if (section.isSubSection()) {
+                     this.plugin.getSection(section.getRootSection()).openShopSection(player, section.isDisabledBackButton());
                   } else {
-                     MainMenu.open(var2);
+                     MainMenu.open(player);
                   }
 
-                  this.plugin.getSoundEffects().useBackButton(var2);
+                  this.plugin.getSoundEffects().useBackButton(player);
                   return true;
                } else {
                   return false;
                }
             case CLOSE:
-               this.plugin.getSoundEffects().closeMainMenu(var2);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                return true;
             case COMMAND:
-               CommandHelper.executeClickCommands(var5.getCommands(var1.getAllPages()), var2);
-               return var5.isCloseMenu();
+               CommandHelper.executeClickCommands(navItem.getCommands(section.getAllPages()), player);
+               return navItem.isCloseMenu();
             case TOGGLE_MODE:
             default:
                return false;
             case PAGE_BACK:
-               if (var4 > 1) {
-                  this.plugin.getSection(var1.getSection()).openShopSection(var2, var4 - 1, var1.isDisabledBackButton(), var1.getRootSection());
-                  this.plugin.getSoundEffects().changePage(var2);
+               if (value2 > 1) {
+                  this.plugin.getSection(section.getSection()).openShopSection(player, value2 - 1, section.isDisabledBackButton(), section.getRootSection());
+                  this.plugin.getSoundEffects().changePage(player);
                   return true;
                }
 
                return false;
             case PAGE_NEXT:
-               if (var4 != this.plugin.getSection(var1.getSection()).getPages()) {
-                  this.plugin.getSection(var1.getSection()).openShopSection(var2, var4 + 1, var1.isDisabledBackButton(), var1.getRootSection());
-                  this.plugin.getSoundEffects().changePage(var2);
+               if (value2 != this.plugin.getSection(section.getSection()).getPages()) {
+                  this.plugin.getSection(section.getSection()).openShopSection(player, value2 + 1, section.isDisabledBackButton(), section.getRootSection());
+                  this.plugin.getSoundEffects().changePage(player);
                   return true;
                }
 
                return false;
             case SEARCH:
-               this.search(var2);
+               this.search(player);
                return true;
          }
       }
    }
 
-   public boolean execute(ShopSection var1, Player var2, ActionItem.Action var3, int var4) {
-      switch (var3) {
+   public boolean execute(ShopSection section, Player player, ActionItem.Action action, int value) {
+      switch (action) {
          case BACK:
-            if (!var1.isDisabledBackButton() || var1.isSubSection() && !BackButton.SUB_SECTIONS) {
-               if (var1.isSubSection()) {
-                  this.plugin.getSection(var1.getRootSection()).openShopSection(var2, var1.isDisabledBackButton());
+            if (!section.isDisabledBackButton() || section.isSubSection() && !BackButton.SUB_SECTIONS) {
+               if (section.isSubSection()) {
+                  this.plugin.getSection(section.getRootSection()).openShopSection(player, section.isDisabledBackButton());
                } else {
-                  MainMenu.open(var2);
+                  MainMenu.open(player);
                }
 
-               this.plugin.getSoundEffects().useBackButton(var2);
+               this.plugin.getSoundEffects().useBackButton(player);
                return true;
             } else {
                return false;
             }
          case PAGE_BACK:
-            if (var4 > 1) {
-               this.plugin.getSection(var1.getSection()).openShopSection(var2, var4 - 1, var1.isDisabledBackButton(), var1.getRootSection());
-               this.plugin.getSoundEffects().changePage(var2);
+            if (value > 1) {
+               this.plugin.getSection(section.getSection()).openShopSection(player, value - 1, section.isDisabledBackButton(), section.getRootSection());
+               this.plugin.getSoundEffects().changePage(player);
                return true;
             }
 
             return false;
          case PAGE_NEXT:
-            if (var4 != this.plugin.getSection(var1.getSection()).getPages()) {
-               this.plugin.getSection(var1.getSection()).openShopSection(var2, var4 + 1, var1.isDisabledBackButton(), var1.getRootSection());
-               this.plugin.getSoundEffects().changePage(var2);
+            if (value != this.plugin.getSection(section.getSection()).getPages()) {
+               this.plugin.getSection(section.getSection()).openShopSection(player, value + 1, section.isDisabledBackButton(), section.getRootSection());
+               this.plugin.getSoundEffects().changePage(player);
                return true;
             }
 
             return false;
          case CLOSE:
-            this.plugin.getSoundEffects().closeMainMenu(var2);
+            this.plugin.getSoundEffects().closeMainMenu(player);
             return true;
          case SEARCH:
-            this.search(var2);
+            this.search(player);
             return true;
          default:
             return false;
       }
    }
 
-   public void execute(InventoryHolder var1, Player var2, int var3) {
-      NavItem var4 = var1 instanceof MainMenu ? this.mainMenuNavBar.get(var3) : this.sellGUINavBar.get(var3);
-      if (var4 != null) {
-         switch (var4.getAction()) {
+   public void execute(InventoryHolder holder, Player player, int value) {
+      NavItem navItem = holder instanceof MainMenu ? this.mainMenuNavBar.get(value) : this.sellGUINavBar.get(value);
+      if (navItem != null) {
+         switch (navItem.getAction()) {
             case BACK:
             case CLOSE:
-               this.close(var2);
-               this.plugin.getSoundEffects().closeMainMenu(var2);
+               this.close(player);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                break;
             case COMMAND:
-               if (var4.isCloseMenu()) {
-                  this.close(var2);
+               if (navItem.isCloseMenu()) {
+                  this.close(player);
                }
 
-               CommandHelper.executeClickCommands(var4.getCommands(), var2);
+               CommandHelper.executeClickCommands(navItem.getCommands(), player);
             case TOGGLE_MODE:
             case PAGE_BACK:
             case PAGE_NEXT:
             default:
                break;
             case SEARCH:
-               this.search(var2);
+               this.search(player);
          }
       }
    }
 
-   public boolean execute(BedrockInventory var1, Player var2, int var3) {
-      NavItem var4 = var1 instanceof com.onyxshop.objects.bedrock.inventorys.MainMenu
-         ? this.mainMenuNavBar.get(var3)
-         : this.sellGUINavBar.get(var3);
-      if (var4 == null) {
+   public boolean execute(BedrockInventory bedrockInventory, Player player, int value) {
+      NavItem navItem = bedrockInventory instanceof com.onyxshop.objects.bedrock.inventorys.MainMenu
+         ? this.mainMenuNavBar.get(value)
+         : this.sellGUINavBar.get(value);
+      if (navItem == null) {
          return true;
       } else {
-         switch (var4.getAction()) {
+         switch (navItem.getAction()) {
             case BACK:
             case CLOSE:
-               this.plugin.getSoundEffects().closeMainMenu(var2);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                return true;
             case COMMAND:
-               CommandHelper.executeClickCommands(var4.getCommands(), var2);
-               return var4.isCloseMenu();
+               CommandHelper.executeClickCommands(navItem.getCommands(), player);
+               return navItem.isCloseMenu();
             case TOGGLE_MODE:
             case PAGE_BACK:
             case PAGE_NEXT:
             default:
                return false;
             case SEARCH:
-               this.search(var2);
+               this.search(player);
                return true;
          }
       }
    }
 
    public void execute(
-      TransactionMenu var1, Player var2, ShopItem var3, int var4, String var5, boolean var6, Transaction.Mode var7, Transaction.Type var8, int var9
+      TransactionMenu transactionMenu, Player player, ShopItem shopItem, int value, String playerName, boolean flag, Transaction.Mode mode, Transaction.Type type, int value2
    ) {
-      NavItem var10 = this.transactionNavBar.get(var4);
-      if (var10 != null) {
-         switch (var10.getAction()) {
+      NavItem navItem = this.transactionNavBar.get(value);
+      if (navItem != null) {
+         switch (navItem.getAction()) {
             case BACK:
-               if (var8 != Transaction.Type.BUY_STACKS_SCREEN) {
-                  com.onyxshop.objects.shops.ShopSection var11 = this.plugin.getSection(var3.section);
-                  var11.openShopSection(var2, var11.getPageForShopItem(var3.itemLoc), var6, var5);
-                  this.plugin.getSoundEffects().useBackButton(var2);
+               if (type != Transaction.Type.BUY_STACKS_SCREEN) {
+                  com.onyxshop.objects.shops.ShopSection section = this.plugin.getSection(shopItem.section);
+                  section.openShopSection(player, section.getPageForShopItem(shopItem.itemLoc), flag, playerName);
+                  this.plugin.getSoundEffects().useBackButton(player);
                } else {
-                  new TransactionMenu(var2, var3, var5, var6, Transaction.Mode.getFromType(var8), Transaction.Type.BUY_SCREEN, var9).open(false);
+                  new TransactionMenu(player, shopItem, playerName, flag, Transaction.Mode.getFromType(type), Transaction.Type.BUY_SCREEN, value2).open(false);
                }
                break;
             case CLOSE:
-               this.close(var2);
-               this.plugin.getSoundEffects().closeMainMenu(var2);
+               this.close(player);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                break;
             case COMMAND:
-               if (var10.isCloseMenu()) {
-                  this.close(var2);
+               if (navItem.isCloseMenu()) {
+                  this.close(player);
                }
 
-               CommandHelper.executeClickCommands(var10.getCommands(), var2);
+               CommandHelper.executeClickCommands(navItem.getCommands(), player);
                break;
             case TOGGLE_MODE:
-               if (!var10.isOnlyGeyser() || UserManager.getUser(var2).isBedrock()) {
+               if (!navItem.isOnlyGeyser() || UserManager.getUser(player).isBedrock()) {
                   new TransactionMenu(
-                        var2,
-                        var3,
-                        var5,
-                        var6,
-                        var7 == Transaction.Mode.BUY ? Transaction.Mode.SELL : Transaction.Mode.BUY,
-                        var7 == Transaction.Mode.BUY ? Transaction.Type.SELL_SCREEN : Transaction.Type.BUY_SCREEN,
-                        var9
+                        player,
+                        shopItem,
+                        playerName,
+                        flag,
+                        mode == Transaction.Mode.BUY ? Transaction.Mode.SELL : Transaction.Mode.BUY,
+                        mode == Transaction.Mode.BUY ? Transaction.Type.SELL_SCREEN : Transaction.Type.BUY_SCREEN,
+                        value2
                      )
                      .open(false);
                }
@@ -361,41 +361,41 @@ public class NavBar extends CreateItem {
             default:
                break;
             case SEARCH:
-               this.search(var2);
+               this.search(player);
                break;
             case CYCLE_CURRENCY:
-               if (var7 == Transaction.Mode.BUY && var3.isABuyPricing() || var7 == Transaction.Mode.SELL && var3.isASellPricing()) {
-                  var1.cycleEcoType();
+               if (mode == Transaction.Mode.BUY && shopItem.isABuyPricing() || mode == Transaction.Mode.SELL && shopItem.isASellPricing()) {
+                  transactionMenu.cycleEcoType();
                }
          }
       }
    }
 
-   public void execute(TransactionMenu var1, Player var2, ShopItem var3, int var4, Transaction.Mode var5, int var6) {
-      NavItem var7 = this.shopStandsNavBar.get(var4);
-      if (var7 != null) {
-         switch (var7.getAction()) {
+   public void execute(TransactionMenu transactionMenu, Player player, ShopItem shopItem, int value, Transaction.Mode mode, int value2) {
+      NavItem navItem = this.shopStandsNavBar.get(value);
+      if (navItem != null) {
+         switch (navItem.getAction()) {
             case CLOSE:
-               this.close(var2);
-               this.plugin.getSoundEffects().closeMainMenu(var2);
+               this.close(player);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                break;
             case COMMAND:
-               if (var7.isCloseMenu()) {
-                  this.close(var2);
+               if (navItem.isCloseMenu()) {
+                  this.close(player);
                }
 
-               CommandHelper.executeClickCommands(var7.getCommands(), var2);
+               CommandHelper.executeClickCommands(navItem.getCommands(), player);
                break;
             case TOGGLE_MODE:
-               if (!var7.isOnlyGeyser() || UserManager.getUser(var2).isBedrock()) {
+               if (!navItem.isOnlyGeyser() || UserManager.getUser(player).isBedrock()) {
                   new TransactionMenu(
-                        var2,
-                        var3,
+                        player,
+                        shopItem,
                         null,
                         false,
-                        var5 == Transaction.Mode.BUY ? Transaction.Mode.SELL : Transaction.Mode.BUY,
-                        var5 == Transaction.Mode.BUY ? Transaction.Type.SHOPSTAND_SELL_SCREEN : Transaction.Type.SHOPSTAND_BUY_SCREEN,
-                        var6
+                        mode == Transaction.Mode.BUY ? Transaction.Mode.SELL : Transaction.Mode.BUY,
+                        mode == Transaction.Mode.BUY ? Transaction.Type.SHOPSTAND_SELL_SCREEN : Transaction.Type.SHOPSTAND_BUY_SCREEN,
+                        value2
                      )
                      .open(false);
                }
@@ -405,76 +405,76 @@ public class NavBar extends CreateItem {
             default:
                break;
             case SEARCH:
-               this.search(var2);
+               this.search(player);
                break;
             case CYCLE_CURRENCY:
-               if (var5 == Transaction.Mode.BUY && var3.isABuyPricing() || var5 == Transaction.Mode.SELL && var3.isASellPricing()) {
-                  var1.cycleEcoType();
+               if (mode == Transaction.Mode.BUY && shopItem.isABuyPricing() || mode == Transaction.Mode.SELL && shopItem.isASellPricing()) {
+                  transactionMenu.cycleEcoType();
                }
          }
       }
    }
 
-   public void execute(ShopSearch var1, Player var2, int var3, int var4) {
-      NavItem var5 = this.searchNavBar.get(var3);
-      if (var5 != null) {
-         switch (var5.getAction(var4, var1.getPages())) {
+   public void execute(ShopSearch shopSearch, Player player, int value, int value2) {
+      NavItem navItem = this.searchNavBar.get(value);
+      if (navItem != null) {
+         switch (navItem.getAction(value2, shopSearch.getPages())) {
             case BACK:
-               var1.newSearch();
-               this.plugin.getSoundEffects().useBackButton(var2);
+               shopSearch.newSearch();
+               this.plugin.getSoundEffects().useBackButton(player);
                break;
             case CLOSE:
-               this.close(var2);
-               this.plugin.getSoundEffects().closeMainMenu(var2);
+               this.close(player);
+               this.plugin.getSoundEffects().closeMainMenu(player);
                break;
             case COMMAND:
-               if (var5.isCloseMenu()) {
-                  this.close(var2);
+               if (navItem.isCloseMenu()) {
+                  this.close(player);
                }
 
-               CommandHelper.executeClickCommands(var5.getCommands(), var2);
+               CommandHelper.executeClickCommands(navItem.getCommands(), player);
             case TOGGLE_MODE:
             default:
                break;
             case PAGE_BACK:
-               if (var4 > 1) {
-                  var1.open(var4 - 1);
-                  this.plugin.getSoundEffects().changePage(var2);
+               if (value2 > 1) {
+                  shopSearch.open(value2 - 1);
+                  this.plugin.getSoundEffects().changePage(player);
                }
                break;
             case PAGE_NEXT:
-               if (var4 < var1.getPages()) {
-                  var1.open(var4 + 1);
-                  this.plugin.getSoundEffects().changePage(var2);
+               if (value2 < shopSearch.getPages()) {
+                  shopSearch.open(value2 + 1);
+                  this.plugin.getSoundEffects().changePage(player);
                }
                break;
             case SEARCH:
-               this.search(var2);
+               this.search(player);
                break;
             case CHANGE_SEARCH_MODE:
-               var1.cycleQueryMethod();
-               var1.newSearch();
+               shopSearch.cycleQueryMethod();
+               shopSearch.newSearch();
          }
       }
    }
 
-   private void close(Player var1) {
-      UserManager.getUser(var1).setOpenNewGUI(true);
-      var1.closeInventory();
+   private void close(Player player) {
+      UserManager.getUser(player).setOpenNewGUI(true);
+      player.closeInventory();
    }
 
-   private void search(Player var1) {
+   private void search(Player player) {
       new AnvilGUI.Builder()
-         .onComplete((var0, var1x) -> {
-            new ShopSearch(var0, var1x);
+         .onComplete((player2, input) -> {
+            new ShopSearch(player2, input);
             return AnvilGUI.Response.close();
          })
-         .onClose(var0 -> OnyxShop.getInstance().runTaskLater(var0::updateInventory, 1L))
+         .onClose(player2 -> OnyxShop.getInstance().runTaskLaterFor(player2::updateInventory, player2, 1L))
          .itemLeft(new ItemStack(Material.NAME_TAG))
-         .text(Lang.SHOPSEARCH_PRE_ENTERED_VALUE.get(var1).getLegacy())
-         .title(Lang.SHOPSEARCH_TITLE.get(var1).getLegacy())
+         .text(Lang.SHOPSEARCH_PRE_ENTERED_VALUE.get(player).getLegacy())
+         .title(Lang.SHOPSEARCH_TITLE.get(player).getLegacy())
          .plugin(OnyxShop.getInstance())
-         .open(var1);
+         .open(player);
    }
 
    public void loadNavBars() {
@@ -497,88 +497,88 @@ public class NavBar extends CreateItem {
       this.plugin.getShopSections().forEach(this::loadShopNavBar);
    }
 
-   private void loadShopNavBar(String var1) {
-      if (!ConfigManager.getSection(var1).getString("nav-bar.mode", "INHERIT").equalsIgnoreCase("INHERIT")) {
-         this.shopNavBars.put(var1, new NavBar.InventoryNavBar(var1));
+   private void loadShopNavBar(String shopId) {
+      if (!ConfigManager.getSection(shopId).getString("nav-bar.mode", "INHERIT").equalsIgnoreCase("INHERIT")) {
+         this.shopNavBars.put(shopId, new NavBar.InventoryNavBar(shopId));
       }
    }
 
-   private NavItem getDefaultItem(String var1, ItemStack var2) throws ItemLoadException {
+   private NavItem getDefaultItem(String itemId, ItemStack itemStack) throws ItemLoadException {
       try {
-         return this.getNavBarItem(ConfigManager.getConfig().getConfigurationSection(var1), var2);
-      } catch (ItemLoadException var4) {
-         SendMessage.logDebugMessage(var4.getMessage());
-         SendMessage.errorItemConfig(var1);
-         return new NavBarItem(ConfigManager.getConfig().getDef().getConfigurationSection(var1), var2);
+         return this.getNavBarItem(ConfigManager.getConfig().getConfigurationSection(itemId), itemStack);
+      } catch (ItemLoadException exception) {
+         SendMessage.logDebugMessage(exception.getMessage());
+         SendMessage.errorItemConfig(itemId);
+         return new NavBarItem(ConfigManager.getConfig().getDef().getConfigurationSection(itemId), itemStack);
       }
    }
 
-   private NavItem getShopItem(String var1, String var2, ItemStack var3) {
+   private NavItem getShopItem(String shopId, String itemId, ItemStack itemStack) {
       try {
-         return this.getNavBarItem(ConfigManager.getSection(var1).getConfigurationSection(var2), var3);
-      } catch (ItemLoadException var5) {
-         SendMessage.logDebugMessage(var5.getMessage());
-         SendMessage.errorSections(var1, var2);
+         return this.getNavBarItem(ConfigManager.getSection(shopId).getConfigurationSection(itemId), itemStack);
+      } catch (ItemLoadException exception) {
+         SendMessage.logDebugMessage(exception.getMessage());
+         SendMessage.errorSections(shopId, itemId);
          return null;
       }
    }
 
-   private NavItem getNavBarItem(ConfigurationSection var1, ItemStack var2) throws ItemLoadException {
-      if (var1 != null && !var1.getKeys(false).isEmpty()) {
-         String var3 = var1.getString("skullowner");
-         return (NavItem)(var3 != null && var3.equals("%player_name%") ? new PlayerProfile(var1, var2) : new NavBarItem(var1, var2));
+   private NavItem getNavBarItem(ConfigurationSection section, ItemStack itemStack) throws ItemLoadException {
+      if (section != null && !section.getKeys(false).isEmpty()) {
+         String text = section.getString("skullowner");
+         return (NavItem)(text != null && text.equals("%player_name%") ? new PlayerProfile(section, itemStack) : new NavBarItem(section, itemStack));
       } else {
          throw new ItemLoadException("Could not create the navigation-bar item because it was not found.");
       }
    }
 
-   public Inventory addShopsNavBar(Inventory var1, Player var2, String var3, int var4, int var5) {
-      return this.shopNavBars.containsKey(var3)
-         ? this.shopNavBars.get(var3).load(var1, var2, var3, var4, var5)
-         : this.shopsNavBar.load(var1, var2, var3, var4, var5);
+   public Inventory addShopsNavBar(Inventory inventory, Player player, String playerName, int value, int value2) {
+      return this.shopNavBars.containsKey(playerName)
+         ? this.shopNavBars.get(playerName).load(inventory, player, playerName, value, value2)
+         : this.shopsNavBar.load(inventory, player, playerName, value, value2);
    }
 
-   public Inventory updateShopsNavBar(Inventory var1, Player var2, String var3, int var4, int var5) {
-      return this.shopNavBars.containsKey(var3)
-         ? this.shopNavBars.get(var3).update(var1, var2, var3, var4, var5)
-         : this.shopsNavBar.update(var1, var2, var3, var4, var5);
+   public Inventory updateShopsNavBar(Inventory inventory, Player player, String playerName, int value, int value2) {
+      return this.shopNavBars.containsKey(playerName)
+         ? this.shopNavBars.get(playerName).update(inventory, player, playerName, value, value2)
+         : this.shopsNavBar.update(inventory, player, playerName, value, value2);
    }
 
-   public Inventory addMainMenuNavBar(Inventory var1, Player var2) {
-      return this.mainMenuNavBar.load(var1, var2);
+   public Inventory addMainMenuNavBar(Inventory inventory, Player player) {
+      return this.mainMenuNavBar.load(inventory, player);
    }
 
-   public ItemStack[] getMainMenuNavBar(Player var1) {
-      return this.mainMenuNavBar.get(var1);
+   public ItemStack[] getMainMenuNavBar(Player player) {
+      return this.mainMenuNavBar.get(player);
    }
 
    public String[] getMainMenuNavTextures() {
       return this.mainMenuNavBar.getBedrockTextures();
    }
 
-   public Inventory addSellGUINavBar(Inventory var1, Player var2) {
-      return this.sellGUINavBar.load(var1, var2);
+   public Inventory addSellGUINavBar(Inventory inventory, Player player) {
+      return this.sellGUINavBar.load(inventory, player);
    }
 
-   public Inventory addTransactionNavBar(Inventory var1, Transaction.Mode var2, Player var3, ShopItem var4, EcoType var5) {
-      return this.transactionNavBar.load(var1, var2, var3, var4, var5);
+   public Inventory addTransactionNavBar(Inventory inventory, Transaction.Mode mode, Player player, ShopItem shopItem, EcoType ecoType) {
+      return this.transactionNavBar.load(inventory, mode, player, shopItem, ecoType);
    }
 
-   public Inventory addShopStandsNavBar(Inventory var1, Transaction.Mode var2, Player var3, ShopItem var4, EcoType var5) {
-      return this.shopStandsNavBar.load(var1, var2, var3, var4, var5);
+   public Inventory addShopStandsNavBar(Inventory inventory, Transaction.Mode mode, Player player, ShopItem shopItem, EcoType ecoType) {
+      return this.shopStandsNavBar.load(inventory, mode, player, shopItem, ecoType);
    }
 
-   public Inventory addSearchNavBar(Inventory var1, Player var2, ShopSearch.QueryMethod var3, int var4, int var5) {
-      return this.searchNavBar.load(var1, var2, var3, var4, var5);
+   public Inventory addSearchNavBar(Inventory inventory, Player player, ShopSearch.QueryMethod queryMethod, int value, int value2) {
+      return this.searchNavBar.load(inventory, player, queryMethod, value, value2);
    }
 
    public void createCustomPlayerProfile() {
       if (!ConfigManager.getConfig().getBoolean("custom-bedrock-player-profile.enabled", true)) {
          this.customPlayerProfile = null;
       } else {
-         ConfigurationSection var1 = ConfigManager.getConfig().getConfigurationSection("custom-bedrock-player-profile.item");
-         if (var1 != null && !var1.getKeys(false).isEmpty()) {
-            this.customPlayerProfile = this.createFillItem(var1, null);
+         ConfigurationSection section = ConfigManager.getConfig().getConfigurationSection("custom-bedrock-player-profile.item");
+         if (section != null && !section.getKeys(false).isEmpty()) {
+            this.customPlayerProfile = this.createFillItem(section, null);
          } else {
             this.customPlayerProfile = null;
          }
@@ -591,70 +591,70 @@ public class NavBar extends CreateItem {
       private final Set<Integer> fillItems = new HashSet<>();
       private final Map<Integer, NavItem> items = new HashMap<>();
 
-      public NavItem get(int var1) {
-         return this.items.get(var1);
+      public NavItem get(int value) {
+         return this.items.get(value);
       }
 
-      public InventoryNavBar(String nullx) {
-         this.enabled = !ConfigManager.getSection(nullx).getString("nav-bar.mode", "INHERIT").equalsIgnoreCase("DISABLED");
+      public InventoryNavBar(String text) {
+         this.enabled = !ConfigManager.getSection(text).getString("nav-bar.mode", "INHERIT").equalsIgnoreCase("DISABLED");
          if (this.enabled) {
-            LocalizedItemStack var3 = ConfigManager.getSection(nullx).contains("nav-bar.fill-item")
-               ? NavBar.this.plugin.createItem.createFillItem(ConfigManager.getSection(nullx).getConfigurationSection("nav-bar.fill-item"), nullx)
+            LocalizedItemStack localizedItemStack = ConfigManager.getSection(text).contains("nav-bar.fill-item")
+               ? NavBar.this.plugin.createItem.createFillItem(ConfigManager.getSection(text).getConfigurationSection("nav-bar.fill-item"), text)
                : null;
-            this.fillItem = var3 == null ? null : var3.getItem();
-            ConfigurationSection var4 = ConfigManager.getSection(nullx).getConfigurationSection("nav-bar.items");
-            if (var4 != null && !var4.getKeys(false).isEmpty()) {
-               int var5 = 1;
+            this.fillItem = localizedItemStack == null ? null : localizedItemStack.getItem();
+            ConfigurationSection section = ConfigManager.getSection(text).getConfigurationSection("nav-bar.items");
+            if (section != null && !section.getKeys(false).isEmpty()) {
+               int value = 1;
 
-               for (String var7 : var4.getKeys(false)) {
-                  NavItem var8 = NavBar.this.getShopItem(nullx, "nav-bar.items." + var7, this.fillItem);
-                  if (var8 == null) {
-                     var8 = NavBar.this.shopsNavBar.get(var5);
+               for (String text2 : section.getKeys(false)) {
+                  NavItem navItem = NavBar.this.getShopItem(text, "nav-bar.items." + text2, this.fillItem);
+                  if (navItem == null) {
+                     navItem = NavBar.this.shopsNavBar.get(value);
                   }
 
-                  int var9 = 0;
+                  int value2 = 0;
 
                   try {
-                     if (ConfigManager.getSection(nullx).contains("nav-bar.items." + var7 + ".slot")) {
-                        var9 = ConfigManager.getSection(nullx).getInt("nav-bar.items." + var7 + ".slot");
+                     if (ConfigManager.getSection(text).contains("nav-bar.items." + text2 + ".slot")) {
+                        value2 = ConfigManager.getSection(text).getInt("nav-bar.items." + text2 + ".slot");
                      } else {
                         try {
-                           var9 = Integer.parseInt(var7);
+                           value2 = Integer.parseInt(text2);
 
-                           while (this.items.containsKey(var9 - 1)) {
-                              var9++;
+                           while (this.items.containsKey(value2 - 1)) {
+                              value2++;
                            }
-                        } catch (NumberFormatException var11) {
-                           var9 = var5;
+                        } catch (NumberFormatException exception) {
+                           value2 = value;
 
-                           while (this.items.containsKey(var9 - 1)) {
-                              var9++;
+                           while (this.items.containsKey(value2 - 1)) {
+                              value2++;
                            }
                         }
                      }
-                  } catch (NumberFormatException var12) {
+                  } catch (NumberFormatException exception) {
                      SendMessage.warnMessage(
                         "Cannot create navigation bar item for shop '"
-                           + nullx
+                           + text
                            + "' at 'nav-bar.items."
-                           + var7
+                           + text2
                            + "' because the slot is not a valid integer. Got '"
-                           + ConfigManager.getSection(nullx).getInt("nav-bar.items." + var7 + ".slot")
+                           + ConfigManager.getSection(text).getInt("nav-bar.items." + text2 + ".slot")
                            + "'"
                      );
                   }
 
-                  if (var9 <= 9 && var9 >= 1) {
-                     this.items.put(var9 - 1, var8);
-                     var5++;
+                  if (value2 <= 9 && value2 >= 1) {
+                     this.items.put(value2 - 1, navItem);
+                     value++;
                   } else {
                      SendMessage.warnMessage(
                         "Cannot create navigation bar item for shop '"
-                           + nullx
+                           + text
                            + "' at 'nav-bar.items."
-                           + var7
+                           + text2
                            + "' because the slot is out of bounds for "
-                           + var9
+                           + value2
                            + ". Valid values should be in range of 1-9"
                      );
                   }
@@ -669,67 +669,67 @@ public class NavBar extends CreateItem {
          }
       }
 
-      public InventoryNavBar(ConfigurationSection nullx) {
-         this.enabled = nullx.getBoolean("enabled", true);
+      public InventoryNavBar(ConfigurationSection section) {
+         this.enabled = section.getBoolean("enabled", true);
          if (this.enabled) {
-            LocalizedItemStack var3 = nullx.contains("fill-item")
-               ? NavBar.this.plugin.createItem.createFillItem(nullx.getConfigurationSection("fill-item"), null)
+            LocalizedItemStack localizedItemStack = section.contains("fill-item")
+               ? NavBar.this.plugin.createItem.createFillItem(section.getConfigurationSection("fill-item"), null)
                : null;
-            this.fillItem = var3 == null ? null : var3.getItem();
-            nullx = nullx.getConfigurationSection("items");
-            if (nullx != null && !nullx.getKeys(false).isEmpty()) {
-               int var4 = 1;
+            this.fillItem = localizedItemStack == null ? null : localizedItemStack.getItem();
+            section = section.getConfigurationSection("items");
+            if (section != null && !section.getKeys(false).isEmpty()) {
+               int value = 1;
 
-               for (String var6 : nullx.getKeys(false)) {
+               for (String text : section.getKeys(false)) {
                   try {
-                     NavItem var7 = NavBar.this.getDefaultItem(nullx.getCurrentPath() + "." + var6, this.fillItem);
-                     int var8 = 0;
+                     NavItem navItem = NavBar.this.getDefaultItem(section.getCurrentPath() + "." + text, this.fillItem);
+                     int value2 = 0;
 
                      try {
-                        if (nullx.contains(var6 + ".slot")) {
-                           var8 = nullx.getInt(var6 + ".slot");
+                        if (section.contains(text + ".slot")) {
+                           value2 = section.getInt(text + ".slot");
                         } else {
                            try {
-                              var8 = Integer.parseInt(var6);
+                              value2 = Integer.parseInt(text);
 
-                              while (this.items.containsKey(var8 - 1)) {
-                                 var8++;
+                              while (this.items.containsKey(value2 - 1)) {
+                                 value2++;
                               }
-                           } catch (NumberFormatException var10) {
-                              var8 = var4;
+                           } catch (NumberFormatException exception) {
+                              value2 = value;
 
-                              while (this.items.containsKey(var8 - 1)) {
-                                 var8++;
+                              while (this.items.containsKey(value2 - 1)) {
+                                 value2++;
                               }
                            }
                         }
-                     } catch (NumberFormatException var11) {
+                     } catch (NumberFormatException exception) {
                         SendMessage.warnMessage(
                            "Cannot create navigation bar item at '"
-                              + nullx.getCurrentPath()
+                              + section.getCurrentPath()
                               + "."
-                              + var6
+                              + text
                               + "' because the slot is not a valid integer. Got '"
-                              + nullx.getString(var6 + ".slot")
+                              + section.getString(text + ".slot")
                               + "'"
                         );
                      }
 
-                     if (var8 <= 9 && var8 >= 1) {
-                        this.items.put(var8 - 1, var7);
-                        var4++;
+                     if (value2 <= 9 && value2 >= 1) {
+                        this.items.put(value2 - 1, navItem);
+                        value++;
                      } else {
                         SendMessage.warnMessage(
                            "Cannot create navigation bar item at '"
-                              + nullx.getCurrentPath()
+                              + section.getCurrentPath()
                               + "."
-                              + var6
+                              + text
                               + "' because the slot is out of bounds for "
-                              + var8
+                              + value2
                               + ". Valid values should be in range of 1-9"
                         );
                      }
-                  } catch (ItemLoadException var12) {
+                  } catch (ItemLoadException exception) {
                   }
                }
 
@@ -742,107 +742,107 @@ public class NavBar extends CreateItem {
          }
       }
 
-      public Inventory load(Inventory var1, Player var2, String var3, int var4, int var5) {
+      public Inventory load(Inventory inventory, Player player, String playerName, int value, int value2) {
          if (!this.enabled) {
-            return var1;
+            return inventory;
          } else {
-            int var6 = var1.getSize();
+            int size = inventory.getSize();
 
-            for (int var7 = 0; var7 < 9; var7++) {
-               if (this.items.containsKey(var7)) {
-                  var1.setItem(var6 - 9 + var7, this.items.get(var7).getItem(var2, NavBar.this.plugin.getEcoHandler().getEcon(var3).getType(), var4, var5));
+            for (int index = 0; index < 9; index++) {
+               if (this.items.containsKey(index)) {
+                  inventory.setItem(size - 9 + index, this.items.get(index).getItem(player, NavBar.this.plugin.getEcoHandler().getEcon(playerName).getType(), value, value2));
                } else if (this.fillItem != null) {
-                  var1.setItem(var6 - 9 + var7, this.fillItem);
-                  this.fillItems.add(var7);
+                  inventory.setItem(size - 9 + index, this.fillItem);
+                  this.fillItems.add(index);
                } else {
-                  var1.setItem(var6 - 9 + var7, new ItemStack(Material.AIR));
+                  inventory.setItem(size - 9 + index, new ItemStack(Material.AIR));
                }
             }
 
-            return var1;
+            return inventory;
          }
       }
 
-      public Inventory update(Inventory var1, Player var2, String var3, int var4, int var5) {
+      public Inventory update(Inventory inventory, Player player, String playerName, int value, int value2) {
          if (!this.enabled) {
-            return var1;
+            return inventory;
          } else {
-            int var6 = var1.getSize();
+            int size = inventory.getSize();
 
-            for (int var7 = 0; var7 < 9; var7++) {
-               if (this.items.containsKey(var7)) {
-                  NavItem var8 = this.items.get(var7);
-                  if (!var8.isStatic(var4, var5)) {
-                     var1.setItem(var6 - 9 + var7, var8.getItem(var2, NavBar.this.plugin.getEcoHandler().getEcon(var3).getType(), var4, var5));
+            for (int index = 0; index < 9; index++) {
+               if (this.items.containsKey(index)) {
+                  NavItem navItem = this.items.get(index);
+                  if (!navItem.isStatic(value, value2)) {
+                     inventory.setItem(size - 9 + index, navItem.getItem(player, NavBar.this.plugin.getEcoHandler().getEcon(playerName).getType(), value, value2));
                   }
                } else if (this.fillItem != null) {
-                  if (!this.fillItems.contains(var7)) {
-                     var1.setItem(var6 - 9 + var7, this.fillItem);
+                  if (!this.fillItems.contains(index)) {
+                     inventory.setItem(size - 9 + index, this.fillItem);
                   }
                } else {
-                  var1.setItem(var6 - 9 + var7, new ItemStack(Material.AIR));
+                  inventory.setItem(size - 9 + index, new ItemStack(Material.AIR));
                }
             }
 
-            return var1;
+            return inventory;
          }
       }
 
-      public ItemStack[] get(Player var1, String var2, int var3, int var4) {
+      public ItemStack[] get(Player player, String itemId, int value, int value2) {
          if (!this.enabled) {
             return null;
          } else {
-            ItemStack[] var5 = new ItemStack[9];
+            ItemStack[] itemStack = new ItemStack[9];
 
-            for (Entry<Integer, NavItem> var7 : this.items.entrySet()) {
-               var5[var7.getKey()] = ((NavItem)var7.getValue()).getItem(var1, NavBar.this.plugin.getEcoHandler().getEcon(var2).getType(), var3, var4);
+            for (Entry<Integer, NavItem> entry : this.items.entrySet()) {
+               itemStack[entry.getKey()] = ((NavItem)entry.getValue()).getItem(player, NavBar.this.plugin.getEcoHandler().getEcon(itemId).getType(), value, value2);
             }
 
             if (this.fillItem != null) {
-               for (int var8 = 0; var8 < 9; var8++) {
-                  if (!this.items.containsKey(var8)) {
-                     var5[var8] = this.fillItem;
+               for (int index = 0; index < 9; index++) {
+                  if (!this.items.containsKey(index)) {
+                     itemStack[index] = this.fillItem;
                   }
                }
             }
 
-            return var5;
+            return itemStack;
          }
       }
 
-      public String[] getBedrockTextures(int var1, int var2) {
+      public String[] getBedrockTextures(int value, int value2) {
          if (!this.enabled) {
             return null;
          } else {
-            String[] var3 = new String[9];
+            String[] text = new String[9];
 
-            for (Entry<Integer, NavItem> var5 : this.items.entrySet()) {
-               var3[var5.getKey()] = ((NavItem)var5.getValue()).getBedrockTexture(var1, var2);
+            for (Entry<Integer, NavItem> entry : this.items.entrySet()) {
+               text[entry.getKey()] = ((NavItem)entry.getValue()).getBedrockTexture(value, value2);
             }
 
-            return var3;
+            return text;
          }
       }
 
-      public ItemStack[] get(Player var1) {
+      public ItemStack[] get(Player player) {
          if (!this.enabled) {
             return null;
          } else {
-            ItemStack[] var2 = new ItemStack[9];
+            ItemStack[] itemStack = new ItemStack[9];
 
-            for (Entry<Integer, NavItem> var4 : this.items.entrySet()) {
-               var2[var4.getKey()] = ((NavItem)var4.getValue()).getItem(var1);
+            for (Entry<Integer, NavItem> entry : this.items.entrySet()) {
+               itemStack[entry.getKey()] = ((NavItem)entry.getValue()).getItem(player);
             }
 
             if (this.fillItem != null) {
-               for (int var5 = 0; var5 < 9; var5++) {
-                  if (!this.items.containsKey(var5)) {
-                     var2[var5] = this.fillItem;
+               for (int index = 0; index < 9; index++) {
+                  if (!this.items.containsKey(index)) {
+                     itemStack[index] = this.fillItem;
                   }
                }
             }
 
-            return var2;
+            return itemStack;
          }
       }
 
@@ -850,76 +850,76 @@ public class NavBar extends CreateItem {
          if (!this.enabled) {
             return null;
          } else {
-            String[] var1 = new String[9];
+            String[] text = new String[9];
 
-            for (Entry<Integer, NavItem> var3 : this.items.entrySet()) {
-               var1[var3.getKey()] = ((NavItem)var3.getValue()).getBedrockTexture();
+            for (Entry<Integer, NavItem> entry : this.items.entrySet()) {
+               text[entry.getKey()] = ((NavItem)entry.getValue()).getBedrockTexture();
             }
 
-            return var1;
+            return text;
          }
       }
 
-      public Inventory load(Inventory var1, Player var2) {
+      public Inventory load(Inventory inventory, Player player) {
          if (!this.enabled) {
-            return var1;
+            return inventory;
          } else {
-            for (Entry var4 : this.items.entrySet()) {
-               var1.setItem(var1.getSize() - 9 + (Integer)var4.getKey(), ((NavItem)var4.getValue()).getItem(var2));
+            for (Entry entry : this.items.entrySet()) {
+               inventory.setItem(inventory.getSize() - 9 + (Integer)entry.getKey(), ((NavItem)entry.getValue()).getItem(player));
             }
 
             if (this.fillItem != null) {
-               for (int var5 = 0; var5 < 9; var5++) {
-                  if (!this.items.containsKey(var5)) {
-                     var1.setItem(var1.getSize() - 9 + var5, this.fillItem);
+               for (int index = 0; index < 9; index++) {
+                  if (!this.items.containsKey(index)) {
+                     inventory.setItem(inventory.getSize() - 9 + index, this.fillItem);
                   }
                }
             }
 
-            return var1;
+            return inventory;
          }
       }
 
-      public Inventory load(Inventory var1, Transaction.Mode var2, Player var3, ShopItem var4, EcoType var5) {
+      public Inventory load(Inventory inventory, Transaction.Mode mode, Player player, ShopItem shopItem, EcoType ecoType) {
          if (!this.enabled) {
-            return var1;
+            return inventory;
          } else {
-            for (Entry var7 : this.items.entrySet()) {
-               NavItem var8 = (NavItem)var7.getValue();
-               if (!var8.isDisabled()) {
-                  var1.setItem(var1.getSize() - 9 + (Integer)var7.getKey(), var8.getItem(var3, var2, var4, var5));
+            for (Entry entry : this.items.entrySet()) {
+               NavItem navItem = (NavItem)entry.getValue();
+               if (!navItem.isDisabled()) {
+                  inventory.setItem(inventory.getSize() - 9 + (Integer)entry.getKey(), navItem.getItem(player, mode, shopItem, ecoType));
                }
             }
 
             if (this.fillItem != null) {
-               for (int var9 = 0; var9 < 9; var9++) {
-                  if (!this.items.containsKey(var9)) {
-                     var1.setItem(var1.getSize() - 9 + var9, this.fillItem);
+               for (int index = 0; index < 9; index++) {
+                  if (!this.items.containsKey(index)) {
+                     inventory.setItem(inventory.getSize() - 9 + index, this.fillItem);
                   }
                }
             }
 
-            return var1;
+            return inventory;
          }
       }
 
-      public Inventory load(Inventory var1, Player var2, ShopSearch.QueryMethod var3, int var4, int var5) {
+      public Inventory load(Inventory inventory, Player player, ShopSearch.QueryMethod queryMethod, int value, int value2) {
          if (!this.enabled) {
-            return var1;
+            return inventory;
          } else {
-            for (Entry var7 : this.items.entrySet()) {
-               var1.setItem(var1.getSize() - 9 + (Integer)var7.getKey(), ((NavItem)var7.getValue()).getItem(var2, null, var3, var4, var5));
+            for (Entry entry : this.items.entrySet()) {
+               inventory.setItem(inventory.getSize() - 9 + (Integer)entry.getKey(), ((NavItem)entry.getValue()).getItem(player, null, queryMethod, value, value2));
             }
 
             if (this.fillItem != null) {
-               for (int var8 = 0; var8 < 9; var8++) {
-                  if (!this.items.containsKey(var8)) {
-                     var1.setItem(var1.getSize() - 9 + var8, this.fillItem);
+               for (int index = 0; index < 9; index++) {
+                  if (!this.items.containsKey(index)) {
+                     inventory.setItem(inventory.getSize() - 9 + index, this.fillItem);
                   }
                }
             }
 
-            return var1;
+            return inventory;
          }
       }
    }
@@ -939,10 +939,10 @@ public class NavBar extends CreateItem {
       private ItemAction() {
       }
 
-      public static NavBar.ItemAction getFromString(String var0) {
+      public static NavBar.ItemAction getFromString(String itemId) {
          try {
-            return valueOf(var0.toUpperCase(Locale.ENGLISH).replace(" ", "_"));
-         } catch (IllegalArgumentException var2) {
+            return valueOf(itemId.toUpperCase(Locale.ENGLISH).replace(" ", "_"));
+         } catch (IllegalArgumentException exception) {
             return NONE;
          }
       }

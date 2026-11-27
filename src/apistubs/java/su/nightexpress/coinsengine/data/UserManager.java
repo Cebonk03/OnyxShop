@@ -5,14 +5,14 @@ import java.util.concurrent.CompletableFuture;
 import su.nightexpress.coinsengine.data.impl.CoinsUser;
 
 public interface UserManager {
-   default CoinsUser getUserData(UUID var1) {
+   default CoinsUser getUserData(UUID uniqueId) {
       return null;
    }
 
-   default CompletableFuture<CoinsUser> getUserDataAsync(UUID var1) {
+   default CompletableFuture<CoinsUser> getUserDataAsync(UUID uniqueId) {
       return CompletableFuture.completedFuture(null);
    }
 
-   default void saveAsync(CoinsUser var1) {
+   default void saveAsync(CoinsUser coinsUser) {
    }
 }

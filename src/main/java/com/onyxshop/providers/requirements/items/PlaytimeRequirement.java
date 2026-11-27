@@ -17,37 +17,37 @@ public class PlaytimeRequirement implements com.onyxshop.providers.requirements.
    private final String customMSG;
    private final RequirementManager.RequirementLore lore;
 
-   public PlaytimeRequirement(int var1, String var2, List<String> var3, String var4) throws ItemRequirementLoadException {
-      this.stat = Statistic.valueOf(var1 > 112 ? "PLAY_ONE_MINUTE" : "PLAY_ONE_TICK");
+   public PlaytimeRequirement(int value, String itemId, List<String> values, String text) throws ItemRequirementLoadException {
+      this.stat = Statistic.valueOf(value > 112 ? "PLAY_ONE_MINUTE" : "PLAY_ONE_TICK");
 
       try {
-         this.requirement = (int)TimeUtils.getTime(var2) / 50;
-      } catch (ParseException var6) {
-         throw new ItemRequirementLoadException("Invalid play time requirement found: " + var6.getMessage());
+         this.requirement = (int)TimeUtils.getTime(itemId) / 50;
+      } catch (ParseException exception) {
+         throw new ItemRequirementLoadException("Invalid play time requirement found: " + exception.getMessage());
       }
 
-      this.lore = RequirementManager.getLore(var3, Lang.PLAYTIME_REQUIREMENT_NOT_MET.get().toString(), var2);
-      this.customMSG = var4;
+      this.lore = RequirementManager.getLore(values, Lang.PLAYTIME_REQUIREMENT_NOT_MET.get().toString(), itemId);
+      this.customMSG = text;
    }
 
    @Override
-   public boolean isMet(Player var1) {
-      return var1.getStatistic(this.stat) >= this.requirement;
+   public boolean isMet(Player player) {
+      return player.getStatistic(this.stat) >= this.requirement;
    }
 
    @Override
-   public String[] getLore(Player var1, boolean var2, boolean var3) {
-      return this.lore.get(var1, var2, var3, "%progress%", TimeUtils.getReadableTime(var1.getStatistic(this.stat) * 50L));
+   public String[] getLore(Player player, boolean flag, boolean flag2) {
+      return this.lore.get(player, flag, flag2, "%progress%", TimeUtils.getReadableTime(player.getStatistic(this.stat) * 50L));
    }
 
    @Override
-   public void sendNotMetMessage(Player var1) {
-      Translatable var2 = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PLAYTIME_REQUIREMENT_NOT_MET.get(var1);
-      if (!var2.isEmpty()) {
+   public void sendNotMetMessage(Player player) {
+      Translatable text = this.customMSG != null ? SendMessage.fromConfig(this.customMSG) : Lang.PLAYTIME_REQUIREMENT_NOT_MET.get(player);
+      if (!text.isEmpty()) {
          SendMessage.chatToPlayer(
-            var1,
-            var2.replace("%requirement%", TimeUtils.getReadableTime(this.requirement * 50L))
-               .replace("%progress%", TimeUtils.getReadableTime(var1.getStatistic(this.stat) * 50L))
+            player,
+            text.replace("%requirement%", TimeUtils.getReadableTime(this.requirement * 50L))
+               .replace("%progress%", TimeUtils.getReadableTime(player.getStatistic(this.stat) * 50L))
          );
       }
    }

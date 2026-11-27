@@ -14,19 +14,19 @@ import org.bukkit.entity.Player;
 public class Main extends ItemEditor {
    private final ShopItem item;
 
-   public Main(Player var1, ShopItem var2) {
-      this.item = var2;
+   public Main(Player player, ShopItem shopItem) {
+      this.item = shopItem;
       if (OnyxShop.getInstance().useItemEditor) {
-         UserManager.getUser(var1).setOpenNewGUI(true);
-         this.initInventory(var1);
+         UserManager.getUser(player).setOpenNewGUI(true);
+         this.initInventory(player);
          this.fillInventory();
-         this.open(var1);
+         this.open(player);
       }
    }
 
-   private void initInventory(Player var1) {
-      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, 54, TitleManager.get(TitleManager.Menu.ITEM_EDITOR, var1));
-      this.inv.setItem(45, OnyxShop.getInstance().createItem.getPlayerReminder(var1, false));
+   private void initInventory(Player player) {
+      this.inv = OnyxShop.getInstance().getMetaUtils().createInventory(this, 54, TitleManager.get(TitleManager.Menu.ITEM_EDITOR, player));
+      this.inv.setItem(45, OnyxShop.getInstance().createItem.getPlayerReminder(player, false));
       this.inv.setItem(53, new ItemBuilder(Material.BARRIER).withDisplayName(Lang.BACK.get()).build());
       this.inv.setItem(13, this.itemEditor.getSelectedItem(this.item));
       this.inv.setItem(29, new ItemBuilder(XMaterial.LIME_STAINED_GLASS.parseItem()).withDisplayName(Lang.CREATE_NEW_ITEM_IN_SHOP.get()).build());

@@ -6,13 +6,13 @@ import com.onyxshop.util.exceptions.EconomyLoadException;
 import org.bukkit.OfflinePlayer;
 
 public interface EconomyProvider {
-   void setup(OnyxShop var1) throws EconomyLoadException;
+   void setup(OnyxShop plugin) throws EconomyLoadException;
 
-   double getBalance(OfflinePlayer var1);
+   double getBalance(OfflinePlayer offlinePlayer);
 
-   void depositBalance(OfflinePlayer var1, double var2);
+   void depositBalance(OfflinePlayer offlinePlayer, double balance);
 
-   boolean withdrawBalance(OfflinePlayer var1, double var2);
+   boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance);
 
    EcoType getType();
 
@@ -26,9 +26,9 @@ public interface EconomyProvider {
 
    boolean doWait();
 
-   double round(double var1);
+   double round(double amount);
 
-   String formatPrice(double var1);
+   String formatPrice(double price);
 
    void formatPlaceholders();
 }

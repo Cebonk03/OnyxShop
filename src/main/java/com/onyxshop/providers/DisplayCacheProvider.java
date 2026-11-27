@@ -15,8 +15,8 @@ public class DisplayCacheProvider {
    private final OnyxShop plugin;
    private ScheduledTask task;
 
-   public DisplayCacheProvider(OnyxShop var1) {
-      this.plugin = var1;
+   public DisplayCacheProvider(OnyxShop plugin) {
+      this.plugin = plugin;
       this.plugin.displayCache = true;
       this.task = this.setupTask();
    }
@@ -32,25 +32,25 @@ public class DisplayCacheProvider {
 
    private ScheduledTask setupTask() {
       try {
-         String var1 = ConfigManager.getConfig()
+         String text = ConfigManager.getConfig()
             .getString((this.plugin.getProviderManager().getDatabase() instanceof PostgreSQL ? "postgresql" : "mysql") + ".display-cache", "AUTO");
-         long var2 = var1.equals("AUTO") ? this.getBestInterval() : TimeUtils.getTime(var1) / 1000L * 20L;
-         SendMessage.infoMessage("Successfully enabled database display cache with interval of " + TimeUtils.getReadableTime(var2 * 50L));
-         return this.plugin.runTaskAsyncTimer(this::loadDisplayCache, 300L, var2);
-      } catch (ParseException var4) {
+         long time = text.equals("AUTO") ? this.getBestInterval() : TimeUtils.getTime(text) / 1000L * 20L;
+         SendMessage.infoMessage("Successfully enabled database display cache with interval of " + TimeUtils.getReadableTime(time * 50L));
+         return this.plugin.runTaskAsyncTimer(this::loadDisplayCache, 300L, time);
+      } catch (ParseException exception) {
          SendMessage.warnMessage("Failed to enable display cache with reason: ");
-         var4.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
    private long getBestInterval() {
-      long var1 = 72000L;
+      long value = 72000L;
       if (this.isBehindNetwork()) {
-         var1 = 1200L;
+         value = 1200L;
       }
 
-      return var1;
+      return value;
    }
 
    private boolean isBehindNetwork() {
@@ -58,15 +58,15 @@ public class DisplayCacheProvider {
          return SpigotConfig.bungee
             || ((YamlConfiguration)ReflectUtil.invokeLegacyVersionMethod("getPaperConfig", this.plugin.getServer().spigot()))
                .getBoolean("proxies.velocity.enabled");
-      } catch (Exception var2) {
+      } catch (Exception exception) {
          SendMessage.warnMessage("Failed to get paper config");
-         var2.printStackTrace();
+         exception.printStackTrace();
          return false;
       }
    }
 
    private void loadDisplayCache() {
-      long var1 = System.currentTimeMillis();
+      long startTime = System.currentTimeMillis();
       if (this.plugin.getLimitedStockProvider() != null) {
          this.plugin.getLimitedStockProvider().reloadDisplayCache();
       }

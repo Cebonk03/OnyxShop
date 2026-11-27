@@ -28,8 +28,8 @@ import org.bukkit.entity.Player;
 public class Cleanup extends SubCommad {
    private final OnyxShop plugin;
 
-   public Cleanup(OnyxShop var1) {
-      this.plugin = var1;
+   public Cleanup(OnyxShop plugin) {
+      this.plugin = plugin;
    }
 
    @Override
@@ -48,19 +48,19 @@ public class Cleanup extends SubCommad {
    }
 
    @Override
-   public boolean hasPermission(CommandSender var1) {
-      return PermissionsCache.hasPermission(var1, "OnyxShop.editshop.database." + this.getName());
+   public boolean hasPermission(CommandSender sender) {
+      return PermissionsCache.hasPermission(sender, "OnyxShop.editshop.database." + this.getName());
    }
 
    @Override
-   public void perform(Object var1, String[] var2) {
+   public void perform(Object value, String[] values) {
       if (ConfigManager.getConfig().getString("storage-type", "SQLite").equals("SQLite") && !new File(this.plugin.getDataFolder(), "database.db").exists()) {
-         SendMessage.errorMessage(var1, "Database file does not exist, no database to cleanup...");
+         SendMessage.errorMessage(value, "Database file does not exist, no database to cleanup...");
       } else {
-         if (var2.length > 2) {
-            Cleanup.DataType var3 = Cleanup.DataType.get(var2[2]);
-            if (var3 == null) {
-               SendMessage.warnMessage(var1, "Invalid data type for '" + var2[2] + "'");
+         if (values.length > 2) {
+            Cleanup.DataType dataType = Cleanup.DataType.get(values[2]);
+            if (dataType == null) {
+               SendMessage.warnMessage(value, "Invalid data type for '" + values[2] + "'");
                return;
             }
 
@@ -78,104 +78,104 @@ public class Cleanup extends SubCommad {
                   )
                   + ChatColor.GREEN
                   + "\nEnter 'yes' or 'no' in chat to continue.",
-               (Player)var1,
-               var3x -> {
-                  if (var3x) {
-                     boolean var4 = true;
-                     Database var5;
+               (Player)value,
+               element -> {
+                  if (element) {
+                     boolean flag = true;
+                     Database database;
                      if (this.plugin.getProviderManager().getDatabase() == null) {
                         SendMessage.logDebugMessage("Database driver not running, starting temporarily connection now...");
-                        var4 = false;
+                        flag = false;
 
                         try {
-                           var5 = this.getTemporarilyDBConnection();
-                        } catch (IllegalArgumentException var7) {
-                           SendMessage.errorMessage(var1, "Failed to establish temporarily database connection");
+                           database = this.getTemporarilyDBConnection();
+                        } catch (IllegalArgumentException exception) {
+                           SendMessage.errorMessage(value, "Failed to establish temporarily database connection");
                            SendMessage.errorMessage("Failed to establish temporarily database connection");
-                           var7.printStackTrace();
+                           exception.printStackTrace();
                            return;
                         }
                      } else {
-                        var5 = this.plugin.getProviderManager().getDatabase();
+                        database = this.plugin.getProviderManager().getDatabase();
                      }
 
-                     this.plugin.runTaskAsync(() -> this.cleanExpiredData((Player)var1, var5, var3));
-                     if (!var4) {
+                     this.plugin.runTaskAsync(() -> this.cleanExpiredData((Player)value, database, dataType));
+                     if (!flag) {
                         SendMessage.logDebugMessage("Closing temporarily database connection...");
-                        var5.closeConnection();
+                        database.closeConnection();
                      }
                   } else {
-                     SendMessage.warnMessage(var1, "Action cancelled");
+                     SendMessage.warnMessage(value, "Action cancelled");
                   }
                }
             );
          } else {
-            SendMessage.sendMessage(var1, this.getSyntax());
+            SendMessage.sendMessage(value, this.getSyntax());
          }
       }
    }
 
    @Override
-   public List<String> getTabCompletion(String[] var1) {
-      return var1.length == 3 ? Arrays.stream(Cleanup.DataType.values()).map(Enum::name).collect(Collectors.toList()) : null;
+   public List<String> getTabCompletion(String[] values) {
+      return values.length == 3 ? Arrays.stream(Cleanup.DataType.values()).map(Enum::name).collect(Collectors.toList()) : null;
    }
 
    private Database getTemporarilyDBConnection() {
-      String var2 = ConfigManager.getConfig().getString("storage-type", "");
-      Object var1;
-      switch (var2) {
+      String text = ConfigManager.getConfig().getString("storage-type", "");
+      Object value;
+      switch (text) {
          case "MySQL":
-            var1 = new MySQL();
+            value = new MySQL();
             break;
          case "PostgreSQL":
-            var1 = new PostgreSQL();
+            value = new PostgreSQL();
             break;
          case "SQLite":
-            var1 = new SQLite();
+            value = new SQLite();
             break;
          default:
-            SendMessage.warnMessage(Lang.INVALID_STORAGE_TYPE.get().replace("%type%", var2));
-            var1 = new SQLite();
+            SendMessage.warnMessage(Lang.INVALID_STORAGE_TYPE.get().replace("%type%", text));
+            value = new SQLite();
       }
 
-      ((Database)var1).connect();
-      return (Database)var1;
+      ((Database)value).connect();
+      return (Database)value;
    }
 
-   private void cleanExpiredData(Player var1, Database var2, Cleanup.DataType var3) {
+   private void cleanExpiredData(Player player, Database database, Cleanup.DataType dataType) {
       ConfigUtil.createBackup("database.db", false);
-      if (var3 == Cleanup.DataType.ALL || var3 == Cleanup.DataType.PLAYER) {
-         SendMessage.infoMessage(var1, "Starting cleanup of expired player data...");
-         String var4 = ConfigManager.getConfig().getString("database-cleanup.remove-player-data-after");
+      if (dataType == Cleanup.DataType.ALL || dataType == Cleanup.DataType.PLAYER) {
+         SendMessage.infoMessage(player, "Starting cleanup of expired player data...");
+         String text = ConfigManager.getConfig().getString("database-cleanup.remove-player-data-after");
 
          try {
-            long var5 = TimeUtils.getTime(var4);
-            int var7 = var2.removeExpiredPlayerData(var5);
-            SendMessage.infoMessage(var1, "Removed " + var7 + " unique expired player entries from database");
-         } catch (IllegalArgumentException var9) {
-            SendMessage.errorMessage(var1, "Failed to remove expired player data, failed to parse expire date for player data from config as '" + var4 + "'");
-            var9.printStackTrace();
+            long time = TimeUtils.getTime(text);
+            int value = database.removeExpiredPlayerData(time);
+            SendMessage.infoMessage(player, "Removed " + value + " unique expired player entries from database");
+         } catch (IllegalArgumentException exception) {
+            SendMessage.errorMessage(player, "Failed to remove expired player data, failed to parse expire date for player data from config as '" + text + "'");
+            exception.printStackTrace();
             return;
-         } catch (Exception var10) {
-            SendMessage.warnMessage(var1, "Error occurred while removing expired player data from database, see console for error.");
+         } catch (Exception exception) {
+            SendMessage.warnMessage(player, "Error occurred while removing expired player data from database, see console for error.");
             SendMessage.errorMessage("Error occurred while removing expired player data from database with error:");
-            var10.printStackTrace();
+            exception.printStackTrace();
             return;
          }
       }
 
-      if (var3 == Cleanup.DataType.ALL || var3 == Cleanup.DataType.ITEM) {
-         SendMessage.infoMessage(var1, "Starting cleanup of expired item data...");
+      if (dataType == Cleanup.DataType.ALL || dataType == Cleanup.DataType.ITEM) {
+         SendMessage.infoMessage(player, "Starting cleanup of expired item data...");
 
          try {
-            Map<String, Map<String, Set<String>>> var11 = var2.getExpiredItemData();
-            long var12 = var11.entrySet()
+            Map<String, Map<String, Set<String>>> expiredItemData = database.getExpiredItemData();
+            long value = expiredItemData.entrySet()
                .stream()
-               .flatMap(var0 -> var0.getValue().keySet().stream().map(var1x -> var0.getKey() + "." + var1x))
+               .flatMap(entry -> entry.getValue().keySet().stream().map(element -> entry.getKey() + "." + element))
                .distinct()
                .count();
-            if (var12 < 1L) {
-               SendMessage.warnMessage(var1, "No expired item data found in database to remove");
+            if (value < 1L) {
+               SendMessage.warnMessage(player, "No expired item data found in database to remove");
                return;
             }
 
@@ -183,30 +183,30 @@ public class Cleanup extends SubCommad {
                this.plugin,
                ChatColor.RED
                   + "Found "
-                  + var12
+                  + value
                   + " unique shop items which aren't loaded and can be removed. Are you sure you want to remove this data from the database for limited stock, sell limits and/or dynamic pricing?"
                   + ChatColor.GREEN
                   + "\nEnter 'yes' or 'no' in chat to continue.",
-               var1,
-               var5x -> {
+               player,
+               element -> {
                   try {
-                     if (var5x) {
-                        var2.removeExpiredItemData(var11);
-                        SendMessage.infoMessage(var1, "Successfully removed " + var12 + " unique expired item entries from database");
+                     if (element) {
+                        database.removeExpiredItemData(expiredItemData);
+                        SendMessage.infoMessage(player, "Successfully removed " + value + " unique expired item entries from database");
                      } else {
-                        SendMessage.warnMessage(var1, "Action cancelled");
+                        SendMessage.warnMessage(player, "Action cancelled");
                      }
-                  } catch (Exception var7x) {
-                     SendMessage.warnMessage(var1, "Error occurred while removing expired item data from database, see console for error.");
+                  } catch (Exception exception) {
+                     SendMessage.warnMessage(player, "Error occurred while removing expired item data from database, see console for error.");
                      SendMessage.errorMessage("Error occurred while removing expired player data from database with error:");
-                     var7x.printStackTrace();
+                     exception.printStackTrace();
                   }
                }
             );
-         } catch (Exception var8) {
-            SendMessage.warnMessage(var1, "Error occurred while removing expired item data from database, see console for error.");
+         } catch (Exception exception) {
+            SendMessage.warnMessage(player, "Error occurred while removing expired item data from database, see console for error.");
             SendMessage.errorMessage("Error occurred while removing expired player data from database with error:");
-            var8.printStackTrace();
+            exception.printStackTrace();
             return;
          }
       }
@@ -220,10 +220,10 @@ public class Cleanup extends SubCommad {
       private DataType() {
       }
 
-      public static Cleanup.DataType get(String var0) {
+      public static Cleanup.DataType get(String type) {
          try {
-            return valueOf(var0.toUpperCase());
-         } catch (IllegalArgumentException var2) {
+            return valueOf(type.toUpperCase());
+         } catch (IllegalArgumentException exception) {
             return null;
          }
       }

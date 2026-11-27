@@ -11,20 +11,20 @@ public class CommandModifier extends PriceModifier {
    public CommandModifier() {
    }
 
-   public void setBestModifier(UUID var1, double var2) {
-      this.modifiers.compute(var1, (var2x, var3) -> var3 == null ? var2 : Math.max(var3, var2));
+   public void setBestModifier(UUID uniqueId, double amount) {
+      this.modifiers.compute(uniqueId, (key, value) -> value == null ? amount : Math.max(value, amount));
    }
 
-   public void setModifier(UUID var1, double var2) {
-      this.modifiers.put(var1, var2);
+   public void setModifier(UUID uniqueId, double amount) {
+      this.modifiers.put(uniqueId, amount);
    }
 
-   public boolean removeModifier(UUID var1) {
-      return this.modifiers.remove(var1) != null;
+   public boolean removeModifier(UUID uniqueId) {
+      return this.modifiers.remove(uniqueId) != null;
    }
 
    @Override
-   public double modify(Player var1, double var2) {
-      return !this.modifiers.containsKey(var1.getUniqueId()) ? var2 : var2 * (this.modifiers.get(var1.getUniqueId()) / 100.0);
+   public double modify(Player player, double amount) {
+      return !this.modifiers.containsKey(player.getUniqueId()) ? amount : amount * (this.modifiers.get(player.getUniqueId()) / 100.0);
    }
 }

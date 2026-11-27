@@ -14,9 +14,9 @@ public class UpdateChecker {
    public boolean updateAvailable;
 
    public UpdateChecker() {
-      String var1 = ConfigManager.getConfig().getString("update-checker.endpoint", "");
-      this.endpoint = var1;
-      this.enabled = ConfigManager.getConfig().getBoolean("update-checker.enabled", false) && !var1.isEmpty();
+      String text = ConfigManager.getConfig().getString("update-checker.endpoint", "");
+      this.endpoint = text;
+      this.enabled = ConfigManager.getConfig().getBoolean("update-checker.enabled", false) && !text.isEmpty();
       if (!this.enabled) {
          this.LATEST_VERSION = this.CURRENT_VERSION;
          this.updateAvailable = false;
@@ -26,16 +26,16 @@ public class UpdateChecker {
       OnyxShop.getInstance()
          .runKillableTask(
             () -> {
-               String var1x = null;
+               String text2 = null;
                try {
-                  JSONObject var2 = JsonUtil.parseJson(OnyxShop.getInstance().getPost(this.endpoint));
-                  var1x = (String)var2.get("current_version");
-               } catch (Exception var3) {
-                  SendMessage.logDebugMessage("Failed to check for updates: " + var3.getMessage());
+                  JSONObject jsonObject = JsonUtil.parseJson(OnyxShop.getInstance().getPost(this.endpoint));
+                  text2 = (String)jsonObject.get("current_version");
+               } catch (Exception exception) {
+                  SendMessage.logDebugMessage("Failed to check for updates: " + exception.getMessage());
                }
 
-               if (var1x != null) {
-                  this.LATEST_VERSION = new UpdateChecker.Version(var1x);
+               if (text2 != null) {
+                  this.LATEST_VERSION = new UpdateChecker.Version(text2);
                   this.updateAvailable = this.isUpdateAvailable();
                   this.checkForUpdates();
                } else {
@@ -67,56 +67,56 @@ public class UpdateChecker {
       private int patch = 0;
       private int beta = 0;
 
-      public Version(String var1) {
-         this.ver = var1;
-         String[] var2;
-         if (var1.matches(".*[a-zA-Z].*")) {
-            var2 = var1.replace("b", "").replace("a", "").replace("r", "").replace("-", "").split("\\.");
+      public Version(String text) {
+         this.ver = text;
+         String[] values;
+         if (text.matches(".*[a-zA-Z].*")) {
+            values = text.replace("b", "").replace("a", "").replace("r", "").replace("-", "").split("\\.");
             this.dev = true;
          } else {
-            var2 = var1.split("\\.");
+            values = text.split("\\.");
             this.dev = false;
          }
 
          try {
-            this.major = var2.length >= 1 ? parsePart(var2[0]) : 0;
-            this.minor = var2.length >= 2 ? parsePart(var2[1]) : 0;
-            this.patch = var2.length >= 3 ? parsePart(var2[2]) : 0;
-            this.beta = var2.length >= 4 ? parsePart(var2[3]) : 0;
-         } catch (NumberFormatException var4) {
-            OnyxShop.getInstance().getServer().getLogger().warning("Invalid version numbering for '" + var1 + "'");
+            this.major = values.length >= 1 ? parsePart(values[0]) : 0;
+            this.minor = values.length >= 2 ? parsePart(values[1]) : 0;
+            this.patch = values.length >= 3 ? parsePart(values[2]) : 0;
+            this.beta = values.length >= 4 ? parsePart(values[3]) : 0;
+         } catch (NumberFormatException exception) {
+            OnyxShop.getInstance().getServer().getLogger().warning("Invalid version numbering for '" + text + "'");
          }
       }
 
       // Version parts may carry suffixes such as "1-SNAPSHOT"; only the leading digits count.
-      private static int parsePart(String var0) {
-         String var1 = var0.replaceAll("[^0-9]", "");
-         return var1.isEmpty() ? 0 : Integer.parseInt(var1);
+      private static int parsePart(String text) {
+         String text2 = text.replaceAll("[^0-9]", "");
+         return text2.isEmpty() ? 0 : Integer.parseInt(text2);
       }
 
-      public boolean isGreater(UpdateChecker.Version var1) {
-         return this.major > var1.major
-            || this.major == var1.major && this.minor > var1.minor
-            || this.major == var1.major && this.minor == var1.minor && this.patch > var1.patch
-            || this.major == var1.major && this.minor == var1.minor && this.patch == var1.patch && this.beta > var1.beta;
+      public boolean isGreater(UpdateChecker.Version version) {
+         return this.major > version.major
+            || this.major == version.major && this.minor > version.minor
+            || this.major == version.major && this.minor == version.minor && this.patch > version.patch
+            || this.major == version.major && this.minor == version.minor && this.patch == version.patch && this.beta > version.beta;
       }
 
-      public boolean isSameOrHigher(UpdateChecker.Version var1) {
-         return this.major == var1.major && this.minor == var1.minor && this.patch == var1.patch && this.beta >= var1.beta
-            || this.major == var1.major && this.minor == var1.minor && this.patch >= var1.patch
-            || this.major == var1.major && this.minor >= var1.minor
-            || this.major >= var1.major;
+      public boolean isSameOrHigher(UpdateChecker.Version version) {
+         return this.major == version.major && this.minor == version.minor && this.patch == version.patch && this.beta >= version.beta
+            || this.major == version.major && this.minor == version.minor && this.patch >= version.patch
+            || this.major == version.major && this.minor >= version.minor
+            || this.major >= version.major;
       }
 
-      public boolean isSmaller(UpdateChecker.Version var1) {
-         return this.major < var1.major
-            || this.major == var1.major && this.minor < var1.minor
-            || this.major == var1.major && this.minor == var1.minor && this.patch < var1.patch
-            || this.major == var1.major && this.minor == var1.minor && this.patch == var1.patch && this.beta < var1.beta;
+      public boolean isSmaller(UpdateChecker.Version version) {
+         return this.major < version.major
+            || this.major == version.major && this.minor < version.minor
+            || this.major == version.major && this.minor == version.minor && this.patch < version.patch
+            || this.major == version.major && this.minor == version.minor && this.patch == version.patch && this.beta < version.beta;
       }
 
-      public boolean isSame(UpdateChecker.Version var1) {
-         return this.major == var1.major && this.minor == var1.minor && this.patch == var1.patch && this.beta == var1.beta;
+      public boolean isSame(UpdateChecker.Version version) {
+         return this.major == version.major && this.minor == version.minor && this.patch == version.patch && this.beta == version.beta;
       }
 
       public boolean isDev() {

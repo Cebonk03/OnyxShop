@@ -9,17 +9,17 @@ public class ListComponent {
    public ListComponent() {
    }
 
-   public void addComponent(StringComponent var1) {
-      this.components.add(var1);
+   public void addComponent(StringComponent stringComponent) {
+      this.components.add(stringComponent);
    }
 
    public JSONArray serialize() {
-      JSONArray var1 = new JSONArray();
+      JSONArray jsonArray = new JSONArray();
 
-      for (StringComponent var3 : this.components) {
-         var1.add(var3.serialize());
+      for (StringComponent stringComponent : this.components) {
+         jsonArray.add(stringComponent.serialize());
       }
 
-      return var1;
+      return jsonArray;
    }
 }

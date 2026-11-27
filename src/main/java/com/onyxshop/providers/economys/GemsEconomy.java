@@ -26,13 +26,13 @@ public class GemsEconomy implements EconomyProvider {
    private boolean wait = false;
    private PriceFormatter.Format priceFormat;
 
-   public GemsEconomy(String var1) {
-      this.currency = var1;
+   public GemsEconomy(String text) {
+      this.currency = text;
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().isPluginEnabled("GemsEconomy")) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().isPluginEnabled("GemsEconomy")) {
          this.gems = new GemsEconomyAPI();
          if (this.gems != null) {
             this.registerCurrency();
@@ -45,14 +45,14 @@ public class GemsEconomy implements EconomyProvider {
    }
 
    private void registerCurrency() throws EconomyLoadException {
-      String var1;
+      String text;
       if (this.currency != null && !this.currency.isEmpty()) {
          this.cur = this.gems.getCurrency(this.currency);
          if (this.cur == null) {
             throw new EconomyLoadException("Failed to register a GemsEconomy currency named as '" + this.currency + "'");
          }
 
-         var1 = this.currency;
+         text = this.currency;
          SendMessage.infoMessage("Successfully registered currency '" + this.currency + "' from GemsEconomy");
       } else {
          this.cur = this.gems.plugin.getCurrencyManager().getDefaultCurrency();
@@ -60,35 +60,35 @@ public class GemsEconomy implements EconomyProvider {
             throw new EconomyLoadException("Failed to find default currency from GemsEconomy");
          }
 
-         var1 = this.cur.getSingular();
-         SendMessage.infoMessage("Successfully hooked into GemsEconomy and using default currency: " + var1 + "(" + this.cur.getPlural() + ")");
+         text = this.cur.getSingular();
+         SendMessage.infoMessage("Successfully hooked into GemsEconomy and using default currency: " + text + "(" + this.cur.getPlural() + ")");
       }
 
-      String var2 = ConfigManager.getPathIgnoreCase("currency-formats.gems-economy:" + var1);
-      if (!ConfigManager.getConfig().contains(var2)) {
-         var2 = ConfigManager.getPathIgnoreCase("currency-formats.gems-economy");
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.gems-economy:" + text);
+      if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+         pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.gems-economy");
       }
 
       this.decimal = this.cur.isDecimalSupported();
-      this.formatSingular(var2);
-      this.formatPlural(var2);
-      this.formatFriendly(var2);
-      this.priceFormat = PriceFormatter.getFormatter(var2);
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
+      this.formatFriendly(pathIgnoreCase);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
-      return this.gems.getBalance(var1.getUniqueId(), this.cur);
+   public double getBalance(OfflinePlayer offlinePlayer) {
+      return this.gems.getBalance(offlinePlayer.getUniqueId(), this.cur);
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
-      this.gems.deposit(var1.getUniqueId(), !this.decimal ? Math.round(var2) : var2, this.cur);
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.gems.deposit(offlinePlayer.getUniqueId(), !this.decimal ? Math.round(balance) : balance, this.cur);
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
-      this.gems.withdraw(var1.getUniqueId(), !this.decimal ? Math.round(var2) : var2, this.cur);
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
+      this.gems.withdraw(offlinePlayer.getUniqueId(), !this.decimal ? Math.round(balance) : balance, this.cur);
       return true;
    }
 
@@ -123,13 +123,13 @@ public class GemsEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -139,29 +139,29 @@ public class GemsEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", this.cur.getSingular()));
-      if (this.isSymbol(var2)) {
-         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatSingular(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", this.cur.getSingular()));
+      if (this.isSymbol(text2)) {
+         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
       } else {
-         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", this.cur.getPlural()));
-      if (this.isSymbol(var2)) {
-         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var2).getLegacy();
+   private void formatPlural(String text) {
+      String text2 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", this.cur.getPlural()));
+      if (this.isSymbol(text2)) {
+         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text2).getLegacy();
       } else {
-         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var2).getLegacy();
+         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text2).getLegacy();
       }
    }
 
-   private void formatFriendly(String var1) {
-      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".friendly", this.cur.getPlural()));
+   private void formatFriendly(String text) {
+      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".friendly", this.cur.getPlural()));
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

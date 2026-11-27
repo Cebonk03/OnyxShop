@@ -29,8 +29,8 @@ public class CustomizeLayout extends ShopInventory {
    private final Player player;
    private final Consumer<SimpleCard> onComplete;
    private final Prompt prompt = new StringPrompt() {
-      public String getPromptText(ConversationContext var1) {
-         switch (CustomizeLayout.Input.valueOf((String)var1.getSessionData("input"))) {
+      public String getPromptText(ConversationContext conversationContext) {
+         switch (CustomizeLayout.Input.valueOf((String)conversationContext.getSessionData("input"))) {
             case TITLE:
                CustomizeLayout.this.player.sendTitle("§bEnter layout title", "", 5, 80, 5);
                return "§aEnter a title for this layout.\n§aExample: ModernLayout";
@@ -45,19 +45,19 @@ public class CustomizeLayout extends ShopInventory {
          }
       }
 
-      public Prompt acceptInput(ConversationContext var1, String var2) {
-         var1.setSessionData("result", var2);
+      public Prompt acceptInput(ConversationContext conversationContext, String text) {
+         conversationContext.setSessionData("result", text);
          return Prompt.END_OF_CONVERSATION;
       }
    };
 
-   public CustomizeLayout(Player var1, Consumer<SimpleCard> var2) {
-      this.onComplete = var2;
-      this.player = var1;
-      this.startConversation(var1, CustomizeLayout.Input.TITLE);
+   public CustomizeLayout(Player player, Consumer<SimpleCard> task) {
+      this.onComplete = task;
+      this.player = player;
+      this.startConversation(player, CustomizeLayout.Input.TITLE);
    }
 
-   private void startConversation(Player var1, CustomizeLayout.Input var2) {
+   private void startConversation(Player player, CustomizeLayout.Input input) {
       this.factory = new ConversationFactory(OnyxShop.getInstance());
       this.conv = this.factory
          .withFirstPrompt(this.prompt)
@@ -66,8 +66,8 @@ public class CustomizeLayout extends ShopInventory {
          .withLocalEcho(false)
          .withTimeout(60)
          .withPrefix(new CustomizeLayout.ConvPrefix())
-         .buildConversation(var1);
-      this.conv.getContext().setSessionData("input", var2.name());
+         .buildConversation(player);
+      this.conv.getContext().setSessionData("input", input.name());
       this.conv.begin();
    }
 
@@ -75,65 +75,65 @@ public class CustomizeLayout extends ShopInventory {
       private ConvAbandon() {
       }
 
-      public void conversationAbandoned(ConversationAbandonedEvent var1) {
-         Player var2 = (Player)var1.getContext().getForWhom();
-         if (!var1.gracefulExit()) {
-            SendMessage.chatToPlayer(var2, Lang.EXITED_CONVERSATION.get());
+      public void conversationAbandoned(ConversationAbandonedEvent event) {
+         Player player = (Player)event.getContext().getForWhom();
+         if (!event.gracefulExit()) {
+            SendMessage.chatToPlayer(player, Lang.EXITED_CONVERSATION.get());
          } else {
-            String var3 = (String)var1.getContext().getSessionData("result");
-            switch (CustomizeLayout.Input.valueOf((String)var1.getContext().getSessionData("input"))) {
+            String text = (String)event.getContext().getSessionData("result");
+            switch (CustomizeLayout.Input.valueOf((String)event.getContext().getSessionData("input"))) {
                case TITLE:
-                  if (var3.length() < 6) {
-                     SendMessage.chatToPlayer(var2, "§cTitle must be longer as 6 characters");
-                     CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.TITLE);
-                  } else if (var3.length() > 32) {
-                     SendMessage.chatToPlayer(var2, "§cInvalid title, title cannot be longer as 32 characters");
-                     CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.TITLE);
+                  if (text.length() < 6) {
+                     SendMessage.chatToPlayer(player, "§cTitle must be longer as 6 characters");
+                     CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.TITLE);
+                  } else if (text.length() > 32) {
+                     SendMessage.chatToPlayer(player, "§cInvalid title, title cannot be longer as 32 characters");
+                     CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.TITLE);
                   } else {
-                     CustomizeLayout.this.card.setTitle(var3);
-                     CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.DESC);
+                     CustomizeLayout.this.card.setTitle(text);
+                     CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.DESC);
                   }
 
                   return;
                case DESC:
-                  if (var3.length() < 60) {
-                     SendMessage.chatToPlayer(var2, "§cDescription must be longer as 60 characters, please write a descriptive explanation of your layout");
-                     CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.DESC);
+                  if (text.length() < 60) {
+                     SendMessage.chatToPlayer(player, "§cDescription must be longer as 60 characters, please write a descriptive explanation of your layout");
+                     CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.DESC);
                      return;
                   }
 
-                  CustomizeLayout.this.card.setDescription(var3);
-                  CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.TAGS);
+                  CustomizeLayout.this.card.setDescription(text);
+                  CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.TAGS);
                   return;
                case TAGS:
-                  ArrayList var4 = new ArrayList();
-                  if (var3.equalsIgnoreCase("skip")) {
-                     SendMessage.chatToPlayer(var2, "§cAtleast 1 tag is required!");
-                     CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.TAGS);
+                  ArrayList values = new ArrayList();
+                  if (text.equalsIgnoreCase("skip")) {
+                     SendMessage.chatToPlayer(player, "§cAtleast 1 tag is required!");
+                     CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.TAGS);
                      return;
                   }
 
-                  for (String var8 : var3.replace(" ", "").split(",")) {
-                     if (var8.startsWith("#")) {
-                        var8 = var8.substring(1);
+                  for (String text2 : text.replace(" ", "").split(",")) {
+                     if (text2.startsWith("#")) {
+                        text2 = text2.substring(1);
                      }
 
-                     if (!CustomizeLayout.this.namePattern.matcher(var8).matches()) {
-                        SendMessage.chatToPlayer(var2, "§cInvalid tag for " + var8 + ", contains invalid characters");
-                        CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.TAGS);
+                     if (!CustomizeLayout.this.namePattern.matcher(text2).matches()) {
+                        SendMessage.chatToPlayer(player, "§cInvalid tag for " + text2 + ", contains invalid characters");
+                        CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.TAGS);
                         return;
                      }
 
-                     if (var8.length() > 10) {
-                        SendMessage.chatToPlayer(var2, "§cInvalid tag for " + var8 + ", tag cannot be longer as 10 characters");
-                        CustomizeLayout.this.startConversation(var2, CustomizeLayout.Input.TAGS);
+                     if (text2.length() > 10) {
+                        SendMessage.chatToPlayer(player, "§cInvalid tag for " + text2 + ", tag cannot be longer as 10 characters");
+                        CustomizeLayout.this.startConversation(player, CustomizeLayout.Input.TAGS);
                         return;
                      }
 
-                     var4.add(var8);
+                     values.add(text2);
                   }
 
-                  CustomizeLayout.this.card.setTags(var4);
+                  CustomizeLayout.this.card.setTags(values);
                default:
                   CustomizeLayout.this.onComplete.accept(CustomizeLayout.this.card);
             }
@@ -145,7 +145,7 @@ public class CustomizeLayout extends ShopInventory {
       private ConvPrefix() {
       }
 
-      public String getPrefix(ConversationContext var1) {
+      public String getPrefix(ConversationContext conversationContext) {
          return Lang.SHOP_PREFIX.get().getLegacy() + ChatColor.RESET + " ";
       }
    }

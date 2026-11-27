@@ -9,8 +9,8 @@ public class RotateHistory {
    private final AtomicInteger currentRotation = new AtomicInteger(0);
    private final ArrayList<String> history = new ArrayList<>();
 
-   public RotateHistory(int var1) {
-      this.rotations = var1;
+   public RotateHistory(int value) {
+      this.rotations = value;
    }
 
    public ArrayList<String> getHistory() {
@@ -21,8 +21,8 @@ public class RotateHistory {
       return this.currentRotation.get();
    }
 
-   public void rotate(List<String> var1) {
-      this.history.addAll(var1);
+   public void rotate(List<String> values) {
+      this.history.addAll(values);
       if (this.currentRotation.incrementAndGet() == this.rotations) {
          this.currentRotation.set(0);
          this.history.clear();

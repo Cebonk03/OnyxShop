@@ -28,74 +28,74 @@ public class SeasonProvider implements Listener {
    private boolean ready = false;
    private SeasonsAPI api;
 
-   public SeasonProvider(OnyxShop var1) throws ModifierLoadException {
-      this.plugin = var1;
-      if (var1.getServer().getPluginManager().getPlugin("RealisticSeasons") != null) {
+   public SeasonProvider(OnyxShop plugin) throws ModifierLoadException {
+      this.plugin = plugin;
+      if (plugin.getServer().getPluginManager().getPlugin("RealisticSeasons") != null) {
          try {
             this.api = SeasonsAPI.getInstance();
-            this.loadModifiers(var1);
+            this.loadModifiers(plugin);
             SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "RealisticSeasons"));
             this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
-         } catch (NullPointerException var4) {
+         } catch (NullPointerException exception) {
             SendMessage.infoMessage("RealisticSeasons found, waiting...");
-            Consumer<SeasonsAPI> var3 = var2 -> {
-               if (var2 != null) {
+            Consumer<SeasonsAPI> task = element -> {
+               if (element != null) {
                   SendMessage.infoMessage(Lang.ENABLED_PLUGIN_HOOK.get().replace("%plugin%", "RealisticSeasons"));
-                  this.api = var2;
-                  this.loadModifiers(var1);
+                  this.api = element;
+                  this.loadModifiers(plugin);
                   this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
                } else {
                   SendMessage.warnMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", "RealisticSeasons"));
                }
             };
-            var1.runTaskLater(() -> var3.accept(SeasonsAPI.getInstance()), 1L);
+            plugin.runTaskLater(() -> task.accept(SeasonsAPI.getInstance()), 1L);
          }
       } else {
          throw new ModifierLoadException("Failed to find RealisticSeasons");
       }
    }
 
-   public static Season getSeason(String var0) {
-      return LOADED_SEASONS.get(var0);
+   public static Season getSeason(String text) {
+      return LOADED_SEASONS.get(text);
    }
 
-   private void setSeason(SeasonType var1, String var2) {
-      Season var3 = this.getSeason(var1);
-      LOADED_SEASONS.put(var2, var3);
+   private void setSeason(SeasonType seasonType, String type) {
+      Season season = this.getSeason(seasonType);
+      LOADED_SEASONS.put(type, season);
    }
 
-   private Season getSeason(SeasonType var1) {
-      String var2 = this.matchConfig(var1);
-      if (var2 == null) {
-         return new Season("null", "null", var1);
+   private Season getSeason(SeasonType seasonType) {
+      String text = this.matchConfig(seasonType);
+      if (text == null) {
+         return new Season("null", "null", seasonType);
       } else {
-         String var3 = ConfigManager.getConfig().getString("seasonal-lore." + var2 + ".icon", "null");
-         String var4 = ConfigManager.getConfig().getString("seasonal-lore." + var2 + ".name", "null");
-         return new Season(ChatUtil.formatColors(var3), ChatUtil.formatColors(var4), var1);
+         String text2 = ConfigManager.getConfig().getString("seasonal-lore." + text + ".icon", "null");
+         String text3 = ConfigManager.getConfig().getString("seasonal-lore." + text + ".name", "null");
+         return new Season(ChatUtil.formatColors(text2), ChatUtil.formatColors(text3), seasonType);
       }
    }
 
-   private void loadModifiers(OnyxShop var1) {
+   private void loadModifiers(OnyxShop plugin) {
       SendMessage.infoMessage(Lang.LOADING_SEASON_MODIFIERS.get());
 
-      for (World var3 : var1.getServer().getWorlds()) {
-         boolean var4 = false;
-         if (var3.getEnvironment() != Environment.NETHER && var3.getEnvironment() != Environment.THE_END) {
-            SeasonType var5 = SeasonType.get(this.api.getSeason(var3));
-            if (var5 != null && var5 != SeasonType.DISABLED) {
-               String var6 = this.matchConfig(var5);
-               if (var6 != null) {
-                  this.setSeason(var5, var3.getName());
-                  Map var7 = this.getNewSeasonModifiers(var3, var5, true);
-                  if (var7 == null) {
-                     SendMessage.warnMessage(Lang.NO_SEASON_MODIFIERS_FOUND.get().replace("%season%", var5.name()));
+      for (World world : plugin.getServer().getWorlds()) {
+         boolean flag = false;
+         if (world.getEnvironment() != Environment.NETHER && world.getEnvironment() != Environment.THE_END) {
+            SeasonType seasonType = SeasonType.get(this.api.getSeason(world));
+            if (seasonType != null && seasonType != SeasonType.DISABLED) {
+               String text = this.matchConfig(seasonType);
+               if (text != null) {
+                  this.setSeason(seasonType, world.getName());
+                  Map newSeasonModifiers = this.getNewSeasonModifiers(world, seasonType, true);
+                  if (newSeasonModifiers == null) {
+                     SendMessage.warnMessage(Lang.NO_SEASON_MODIFIERS_FOUND.get().replace("%season%", seasonType.name()));
                      return;
                   }
 
                   if (!this.plugin.getSections().isEmpty()) {
-                     this.enableModifiers(var7);
+                     this.enableModifiers(newSeasonModifiers);
                   } else {
-                     var1.runTaskLater(() -> this.enableModifiers(var7), 1L);
+                     plugin.runTaskLater(() -> this.enableModifiers(newSeasonModifiers), 1L);
                   }
                }
             }
@@ -105,139 +105,139 @@ public class SeasonProvider implements Listener {
       this.ready = true;
    }
 
-   private void enableModifiers(Map<String, SeasonModifier> var1) {
-      for (String var3 : var1.keySet()) {
+   private void enableModifiers(Map<String, SeasonModifier> map) {
+      for (String key : map.keySet()) {
          try {
-            SeasonModifier var4 = (SeasonModifier)var1.get(var3);
-            if (var3.split("\\.").length <= 2) {
+            SeasonModifier seasonModifier = (SeasonModifier)map.get(key);
+            if (key.split("\\.").length <= 2) {
                throw new NullPointerException();
             }
 
-            this.plugin.getShopItem(var3).addPriceModifier(var4);
-            this.LOADED_MODIFIERS.computeIfAbsent(var3, var1x -> new SeasonProvider.SeasonModifiers()).add(var4);
-         } catch (NullPointerException var5) {
-            SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER.get().replace("%path%", var3));
+            this.plugin.getShopItem(key).addPriceModifier(seasonModifier);
+            this.LOADED_MODIFIERS.computeIfAbsent(key, key2 -> new SeasonProvider.SeasonModifiers()).add(seasonModifier);
+         } catch (NullPointerException exception) {
+            SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER.get().replace("%path%", key));
          }
       }
    }
 
-   private void disableModifiers(String var1) {
-      for (Entry var3 : this.LOADED_MODIFIERS.entrySet()) {
-         SeasonModifier var4 = ((SeasonProvider.SeasonModifiers)var3.getValue()).getByWorld(var1);
-         if (var4 != null) {
+   private void disableModifiers(String text) {
+      for (Entry entry : this.LOADED_MODIFIERS.entrySet()) {
+         SeasonModifier seasonModifier = ((SeasonProvider.SeasonModifiers)entry.getValue()).getByWorld(text);
+         if (seasonModifier != null) {
             try {
-               if (((String)var3.getKey()).split("\\.").length > 2) {
-                  this.plugin.getShopItem((String)var3.getKey()).removePriceModifier(var4);
+               if (((String)entry.getKey()).split("\\.").length > 2) {
+                  this.plugin.getShopItem((String)entry.getKey()).removePriceModifier(seasonModifier);
                } else {
-                  ShopSection var5 = this.plugin.getSection(((String)var3.getKey()).split("\\.")[0]);
-                  var5.getShopItems().forEach(var1x -> var1x.removePriceModifier(var4));
+                  ShopSection section = this.plugin.getSection(((String)entry.getKey()).split("\\.")[0]);
+                  section.getShopItems().forEach(entry2 -> entry2.removePriceModifier(seasonModifier));
                }
 
-               ((SeasonProvider.SeasonModifiers)var3.getValue()).removeByWorld(var1);
-            } catch (NullPointerException var6) {
-               SendMessage.warnMessage("Failed to disable season modifier for '" + (String)var3.getKey() + "' because there was no loaded section/item found.");
+               ((SeasonProvider.SeasonModifiers)entry.getValue()).removeByWorld(text);
+            } catch (NullPointerException exception) {
+               SendMessage.warnMessage("Failed to disable season modifier for '" + (String)entry.getKey() + "' because there was no loaded section/item found.");
             }
          }
       }
    }
 
-   private String matchConfig(SeasonType var1) {
-      for (String var3 : ConfigManager.getConfig().getConfigurationSection("season-price-modifiers").getKeys(false)) {
-         if (var1.name().equalsIgnoreCase(var3)) {
-            return var3;
+   private String matchConfig(SeasonType seasonType) {
+      for (String sectionId : ConfigManager.getConfig().getConfigurationSection("season-price-modifiers").getKeys(false)) {
+         if (seasonType.name().equalsIgnoreCase(sectionId)) {
+            return sectionId;
          }
       }
 
       return null;
    }
 
-   private int getModifier(String var1) {
-      String var2 = ConfigManager.getConfig().getString(var1, null);
-      if (var2 == null) {
-         SendMessage.errorMessage(Lang.INVALID_SEASON_MODIFIER.get().replace("%path%", var1).replace("%current%", ConfigManager.getConfig().get(var1) + ""));
+   private int getModifier(String text) {
+      String text2 = ConfigManager.getConfig().getString(text, null);
+      if (text2 == null) {
+         SendMessage.errorMessage(Lang.INVALID_SEASON_MODIFIER.get().replace("%path%", text).replace("%current%", ConfigManager.getConfig().get(text) + ""));
          return 0;
       } else {
-         var2 = var2.replace("%", "");
+         text2 = text2.replace("%", "");
 
          try {
-            int var3 = Integer.parseInt(var2);
-            if (var3 <= 100 && var3 >= -100) {
-               return var3;
+            int value = Integer.parseInt(text2);
+            if (value <= 100 && value >= -100) {
+               return value;
             }
-         } catch (NumberFormatException var4) {
+         } catch (NumberFormatException exception) {
          }
 
-         SendMessage.errorMessage(Lang.INVALID_SEASON_MODIFIER.get().replace("%path%", var1).replace("%current%", ConfigManager.getConfig().get(var1) + ""));
+         SendMessage.errorMessage(Lang.INVALID_SEASON_MODIFIER.get().replace("%path%", text).replace("%current%", ConfigManager.getConfig().get(text) + ""));
          return 0;
       }
    }
 
-   private boolean exists(String var1) {
-      if (!this.plugin.getShopSections().contains(var1.split("\\.")[0])
-         || (var1.split("\\.").length > 2 ? this.plugin.getShopItem(var1) == null : !var1.split("\\.")[1].equalsIgnoreCase("all"))) {
-         SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER.get().replace("%path%", var1));
+   private boolean exists(String text) {
+      if (!this.plugin.getShopSections().contains(text.split("\\.")[0])
+         || (text.split("\\.").length > 2 ? this.plugin.getShopItem(text) == null : !text.split("\\.")[1].equalsIgnoreCase("all"))) {
+         SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER.get().replace("%path%", text));
          return false;
       } else {
          return true;
       }
    }
 
-   private boolean existsSoft(String var1) {
-      String var2 = var1.split("\\.")[0];
-      if (this.plugin.getShopSections().contains(var2)
+   private boolean existsSoft(String text) {
+      String text2 = text.split("\\.")[0];
+      if (this.plugin.getShopSections().contains(text2)
          && (
-            var1.split("\\.").length > 2
-               ? this.plugin.getConfigManager().getItemsRaw(var2).contains(var1.split("\\.", 2)[1])
-               : var1.split("\\.")[1].equalsIgnoreCase("all")
+            text.split("\\.").length > 2
+               ? this.plugin.getConfigManager().getItemsRaw(text2).contains(text.split("\\.", 2)[1])
+               : text.split("\\.")[1].equalsIgnoreCase("all")
          )) {
-         if (!ConfigManager.getShop(var2)
-            .contains((this.plugin.getConfigManager().getShopType(var2) == ShopType.CATEGORY ? "pages." : "") + var1.split("\\.", 2)[1] + ".action")) {
+         if (!ConfigManager.getShop(text2)
+            .contains((this.plugin.getConfigManager().getShopType(text2) == ShopType.CATEGORY ? "pages." : "") + text.split("\\.", 2)[1] + ".action")) {
             return true;
          } else {
-            SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER_ACTION_ITEM.get().replace("%path%", var1));
+            SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER_ACTION_ITEM.get().replace("%path%", text));
             return false;
          }
       } else {
-         SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER.get().replace("%path%", var1));
+         SendMessage.warnMessage(Lang.CANNOT_LOAD_SEASON_MODIFIER.get().replace("%path%", text));
          return false;
       }
    }
 
-   private Map<String, SeasonModifier> getNewSeasonModifiers(World var1, SeasonType var2, boolean var3) {
-      String var4 = this.matchConfig(var2);
-      if (var4 == null) {
+   private Map<String, SeasonModifier> getNewSeasonModifiers(World world, SeasonType seasonType, boolean flag) {
+      String text = this.matchConfig(seasonType);
+      if (text == null) {
          return null;
       } else {
-         LinkedHashMap var5 = new LinkedHashMap();
-         int var6 = 0;
+         LinkedHashMap map = new LinkedHashMap();
+         int value = 0;
 
-         for (String var8 : ConfigManager.getConfig().getConfigurationSection("season-price-modifiers." + var4).getKeys(false)) {
-            for (String var10 : ConfigManager.getConfig().getConfigurationSection("season-price-modifiers." + var4 + "." + var8).getKeys(false)) {
-               String var11 = var8 + "." + var10.replace(":", ".");
-               if (var3 ? this.existsSoft(var11) : this.exists(var11)) {
-                  int var12 = this.getModifier("season-price-modifiers." + var4 + "." + var8 + "." + var10);
-                  if (var12 != 0) {
-                     var6++;
-                     SeasonModifier var13 = new SeasonModifier(var1.getName(), var12);
-                     if (var10.equalsIgnoreCase("all")) {
-                        this.plugin.getSection(var8).getShopItems().forEach(var2x -> var5.put(var2x.getItemPath(), var13));
+         for (String sectionId : ConfigManager.getConfig().getConfigurationSection("season-price-modifiers." + text).getKeys(false)) {
+            for (String price : ConfigManager.getConfig().getConfigurationSection("season-price-modifiers." + text + "." + sectionId).getKeys(false)) {
+               String text2 = sectionId + "." + price.replace(":", ".");
+               if (flag ? this.existsSoft(text2) : this.exists(text2)) {
+                  int modifier = this.getModifier("season-price-modifiers." + text + "." + sectionId + "." + price);
+                  if (modifier != 0) {
+                     value++;
+                     SeasonModifier seasonModifier = new SeasonModifier(world.getName(), modifier);
+                     if (price.equalsIgnoreCase("all")) {
+                        this.plugin.getSection(sectionId).getShopItems().forEach(entry -> map.put(entry.getItemPath(), seasonModifier));
                      } else {
-                        var5.put(var11, var13);
+                        map.put(text2, seasonModifier);
                      }
                   }
                }
             }
          }
 
-         if (var6 != 0) {
+         if (value != 0) {
             SendMessage.infoMessage(
-               Lang.LOADED_SEASON_MODIFIERS.get().replace("%total%", String.valueOf(var6)).replace("%season%", var2.name()).replace("%world%", var1.getName())
+               Lang.LOADED_SEASON_MODIFIERS.get().replace("%total%", String.valueOf(value)).replace("%season%", seasonType.name()).replace("%world%", world.getName())
             );
          } else {
-            SendMessage.warnMessage(Lang.NO_SEASON_MODIFIERS_FOUND.get().replace("%season%", var2.name()));
+            SendMessage.warnMessage(Lang.NO_SEASON_MODIFIERS_FOUND.get().replace("%season%", seasonType.name()));
          }
 
-         return var5;
+         return map;
       }
    }
 
@@ -248,19 +248,19 @@ public class SeasonProvider implements Listener {
    }
 
    @EventHandler
-   public void onSeasonChange(SeasonChangeEvent var1) {
-      if (!var1.isCancelled()) {
-         World var2 = var1.getWorld();
-         SeasonType var3 = SeasonType.get(var1.getNewSeason());
-         SendMessage.infoMessage(Lang.SEASON_CHANGE.get().replace("%world%", var2.getName()).replace("%season%", var1.getNewSeason().name()));
-         this.disableModifiers(var2.getName());
-         this.setSeason(var3, var2.getName());
-         if (var3 != SeasonType.DISABLED) {
-            Map var4 = this.getNewSeasonModifiers(var2, var3, false);
-            if (var4 == null) {
-               SendMessage.warnMessage(Lang.NO_SEASON_MODIFIERS_FOUND.get().replace("%season%", var3.name()));
+   public void onSeasonChange(SeasonChangeEvent event) {
+      if (!event.isCancelled()) {
+         World world = event.getWorld();
+         SeasonType seasonType = SeasonType.get(event.getNewSeason());
+         SendMessage.infoMessage(Lang.SEASON_CHANGE.get().replace("%world%", world.getName()).replace("%season%", event.getNewSeason().name()));
+         this.disableModifiers(world.getName());
+         this.setSeason(seasonType, world.getName());
+         if (seasonType != SeasonType.DISABLED) {
+            Map newSeasonModifiers = this.getNewSeasonModifiers(world, seasonType, false);
+            if (newSeasonModifiers == null) {
+               SendMessage.warnMessage(Lang.NO_SEASON_MODIFIERS_FOUND.get().replace("%season%", seasonType.name()));
             } else {
-               this.enableModifiers(var4);
+               this.enableModifiers(newSeasonModifiers);
             }
          }
       }
@@ -270,25 +270,25 @@ public class SeasonProvider implements Listener {
       public SeasonModifiers() {
       }
 
-      public SeasonProvider.SeasonModifiers append(SeasonModifier var1) {
-         this.add(var1);
+      public SeasonProvider.SeasonModifiers append(SeasonModifier seasonModifier) {
+         this.add(seasonModifier);
          return this;
       }
 
-      public SeasonModifier getByWorld(String var1) {
-         for (SeasonModifier var3 : this) {
-            if (var3.getWorld().equals(var1)) {
-               return var3;
+      public SeasonModifier getByWorld(String worldName) {
+         for (SeasonModifier seasonModifier : this) {
+            if (seasonModifier.getWorld().equals(worldName)) {
+               return seasonModifier;
             }
          }
 
          return null;
       }
 
-      public boolean removeByWorld(String var1) {
-         for (SeasonModifier var3 : this) {
-            if (var3.getWorld().equals(var1)) {
-               return this.remove(var3);
+      public boolean removeByWorld(String worldName) {
+         for (SeasonModifier seasonModifier : this) {
+            if (seasonModifier.getWorld().equals(worldName)) {
+               return this.remove(seasonModifier);
             }
          }
 

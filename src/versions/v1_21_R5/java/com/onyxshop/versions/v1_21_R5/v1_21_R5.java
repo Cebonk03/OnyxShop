@@ -131,30 +131,30 @@ public class v1_21_R5 implements VersionHandler {
    private static final Field ITEM_ITEM = getFieldByType(ItemStack.class, Item.class);
    private static final Method ITEM_MATCHER = getMethodByParams(ItemStack.class, boolean.class, Item.class);
 
-   private static Method getMethodByParams(Class<?> var0, Class<?> var1, Class<?>... var2) {
-      for (Method var6 : var0.getDeclaredMethods()) {
-         if (var6.getReturnType() == var1 && Arrays.equals((Object[])var6.getParameterTypes(), (Object[])var2)) {
-            return var6;
+   private static Method getMethodByParams(Class<?> type, Class<?> type2, Class<?>... type3) {
+      for (Method method : type.getDeclaredMethods()) {
+         if (method.getReturnType() == type2 && Arrays.equals((Object[])method.getParameterTypes(), (Object[])type3)) {
+            return method;
          }
       }
 
       return null;
    }
 
-   private static Field getFieldByType(Class<?> var0, Class<?> var1) {
-      for (Field var5 : var0.getDeclaredFields()) {
-         if (var5.getType().equals(var1)) {
-            return var5;
+   private static Field getFieldByType(Class<?> type, Class<?> type2) {
+      for (Field field : type.getDeclaredFields()) {
+         if (field.getType().equals(type2)) {
+            return field;
          }
       }
 
       return null;
    }
 
-   private static Field getFieldByName(Class<?> var0, String var1) {
-      for (Field var5 : var0.getDeclaredFields()) {
-         if (var5.getName().equals(var1)) {
-            return var5;
+   private static Field getFieldByName(Class<?> type, String name) {
+      for (Field field : type.getDeclaredFields()) {
+         if (field.getName().equals(name)) {
+            return field;
          }
       }
 
@@ -162,14 +162,14 @@ public class v1_21_R5 implements VersionHandler {
    }
 
    @Override
-   public boolean hasData(org.bukkit.inventory.ItemStack var1, String var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(var1));
-      PatchedDataComponentMap var4 = this.getC(var3);
+   public boolean hasData(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(itemStack));
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
 
       try {
-         DataComponentType var5 = v1_21_R5.Components.valueOf(var2, var2.getClass());
-         return var4.d(var5);
-      } catch (Exception var6) {
+         DataComponentType dataComponentType = v1_21_R5.Components.valueOf(itemId, itemId.getClass());
+         return patchedDataComponentMap.d(dataComponentType);
+      } catch (Exception exception) {
          return false;
       }
    }
@@ -180,70 +180,70 @@ public class v1_21_R5 implements VersionHandler {
    }
 
    @Override
-   public String toNBT(String var1) {
-      IChatBaseComponent var2 = CraftChatMessage.fromString(var1, true)[0];
-      return CraftChatMessage.toJSON(var2);
+   public String toNBT(String text) {
+      IChatBaseComponent iChatBaseComponent = CraftChatMessage.fromString(text, true)[0];
+      return CraftChatMessage.toJSON(iChatBaseComponent);
    }
 
-   public void setLived(org.bukkit.entity.Item var1) {
-      ((CraftItem)var1).getHandle().l = -32768;
+   public void setLived(org.bukkit.entity.Item item) {
+      ((CraftItem)item).getHandle().l = -32768;
    }
 
-   public org.bukkit.inventory.ItemStack setComponent(org.bukkit.inventory.ItemStack var1, String var2, Object var3) {
-      ItemStack var4 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(var1));
-      if (this.hasTag(var4)) {
-         PatchedDataComponentMap var5 = this.getC(var4);
+   public org.bukkit.inventory.ItemStack setComponent(org.bukkit.inventory.ItemStack itemStack, String itemId, Object value) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(itemStack));
+      if (this.hasTag(itemStack2)) {
+         PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
 
          try {
-            var5.b(v1_21_R5.Components.valueOf(var2, Object.class), var3);
-         } catch (Exception var7) {
-            SendMessage.warnMessage("Unsupported component tag found for " + var2 + " while injecting item data, this is a bug, please report");
+            patchedDataComponentMap.b(v1_21_R5.Components.valueOf(itemId, Object.class), value);
+         } catch (Exception exception) {
+            SendMessage.warnMessage("Unsupported component tag found for " + itemId + " while injecting item data, this is a bug, please report");
          }
       }
 
-      return CraftItemStack.asBukkitCopy(var4);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setDisplayname(org.bukkit.inventory.ItemStack var1, String var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(var1));
-      if (this.hasTag(var3)) {
-         PatchedDataComponentMap var4 = this.getC(var3);
-         this.set(var4, v1_21_R5.Components.custom_name, CraftChatMessage.fromStringOrNull(this.toNBT(var2)));
+   public org.bukkit.inventory.ItemStack setDisplayname(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(itemStack));
+      if (this.hasTag(itemStack2)) {
+         PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+         this.set(patchedDataComponentMap, v1_21_R5.Components.custom_name, CraftChatMessage.fromStringOrNull(this.toNBT(itemId)));
       }
 
-      return CraftItemStack.asBukkitCopy(var3);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public String getNBTDataAsString(org.bukkit.inventory.ItemStack var1, boolean var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      if (this.hasTag(var3)) {
-         PatchedDataComponentMap var4 = this.getC(var3);
-         this.setAccessible(var4);
-         if (!var2) {
-            this.remove(var4, v1_21_R5.Components.enchantments);
-            this.remove(var4, v1_21_R5.Components.stored_enchantments);
-            this.remove(var4, v1_21_R5.Components.firework_explosion);
-            this.remove(var4, v1_21_R5.Components.fireworks);
-            this.remove(var4, v1_21_R5.Components.instrument);
-            this.remove(var4, v1_21_R5.Components.trim);
-            this.remove(var4, v1_21_R5.Components.lore);
-            this.remove(var4, v1_21_R5.Components.custom_name);
-            this.remove(var4, v1_21_R5.Components.suspicious_stew_effects);
-            this.remove(var4, v1_21_R5.Components.recipes);
-            this.remove(var4, v1_21_R5.Components.dyed_color);
-            this.removeCustom(var4, "ONYX");
-            this.remove(var4, v1_21_R5.Components.ominous_bottle_amplifier);
-            this.remove(var4, v1_21_R5.Components.profile);
+   public String getNBTDataAsString(org.bukkit.inventory.ItemStack itemStack, boolean flag) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      if (this.hasTag(itemStack2)) {
+         PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+         this.setAccessible(patchedDataComponentMap);
+         if (!flag) {
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.enchantments);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.stored_enchantments);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.firework_explosion);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.fireworks);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.instrument);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.trim);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.lore);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.custom_name);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.suspicious_stew_effects);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.recipes);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.dyed_color);
+            this.removeCustom(patchedDataComponentMap, "ONYX");
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.ominous_bottle_amplifier);
+            this.remove(patchedDataComponentMap, v1_21_R5.Components.profile);
          }
 
          try {
-            String var5 = v1_21_R5.NBTSerializer.serialize(var3);
-            return var5.equals("{}") ? null : var5;
-         } catch (Exception var6) {
+            String text = v1_21_R5.NBTSerializer.serialize(itemStack2);
+            return text.equals("{}") ? null : text;
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to serialize NBT to string");
-            var6.printStackTrace();
+            exception.printStackTrace();
             return null;
          }
       } else {
@@ -252,845 +252,845 @@ public class v1_21_R5 implements VersionHandler {
    }
 
    @Override
-   public String getLoreAsNBT(org.bukkit.inventory.ItemStack var1) {
-      PatchedDataComponentMap var2 = this.getC(CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(var1)));
-      String var3 = CraftChatMessage.fromComponent((IChatBaseComponent)this.<ItemLore>getOrNull(var2, v1_21_R5.Components.lore).a().get(0));
-      return var3.substring(1).substring(0, var3.length() - 1);
+   public String getLoreAsNBT(org.bukkit.inventory.ItemStack itemStack) {
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(itemStack)));
+      String lore = CraftChatMessage.fromComponent((IChatBaseComponent)this.<ItemLore>getOrNull(patchedDataComponentMap, v1_21_R5.Components.lore).a().get(0));
+      return lore.substring(1).substring(0, lore.length() - 1);
    }
 
    @Override
-   public Object getNMSLore(org.bukkit.inventory.ItemStack var1) {
-      ItemStack var2 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(var1));
-      PatchedDataComponentMap var3 = this.getC(var2);
-      List var4 = this.<ItemLore>getOrNull(var3, v1_21_R5.Components.lore).a();
-      return var4 != null ? var4 : new ArrayList();
+   public Object getNMSLore(org.bukkit.inventory.ItemStack itemStack) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(itemStack));
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      List lores = this.<ItemLore>getOrNull(patchedDataComponentMap, v1_21_R5.Components.lore).a();
+      return lores != null ? lores : new ArrayList();
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack applyNMSLore(org.bukkit.inventory.ItemStack var1, Object var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(var1));
-      if (this.hasTag(var3)) {
-         PatchedDataComponentMap var4 = this.getC(var3);
-         this.set(var4, v1_21_R5.Components.lore, new ItemLore((List)var2));
+   public org.bukkit.inventory.ItemStack applyNMSLore(org.bukkit.inventory.ItemStack itemStack, Object value) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(new org.bukkit.inventory.ItemStack(itemStack));
+      if (this.hasTag(itemStack2)) {
+         PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+         this.set(patchedDataComponentMap, v1_21_R5.Components.lore, new ItemLore((List)value));
       }
 
-      return CraftItemStack.asBukkitCopy(var3);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public void setItemLore(Object var1, String var2, int var3) {
-      ((List)var1).set(var3, CraftChatMessage.fromJSON(var2));
+   public void setItemLore(Object value, String itemId, int value2) {
+      ((List)value).set(value2, CraftChatMessage.fromJSON(itemId));
    }
 
    @Override
-   public void addItemLore(Object var1, String var2, int var3) {
-      ((List)var1).add(var3, CraftChatMessage.fromJSON(var2));
+   public void addItemLore(Object value, String itemId, int value2) {
+      ((List)value).add(value2, CraftChatMessage.fromJSON(itemId));
    }
 
    @Override
-   public void addItemLore(Object var1, String var2) {
-      ((List)var1).add(CraftChatMessage.fromJSON(var2));
+   public void addItemLore(Object value, String itemId) {
+      ((List)value).add(CraftChatMessage.fromJSON(itemId));
    }
 
    @Override
-   public void updateInventoryTitle(Player var1, Translatable var2) {
-      EntityPlayer var3 = ((CraftPlayer)var1).getHandle();
-      var3.g
+   public void updateInventoryTitle(Player player, Translatable text) {
+      EntityPlayer entityPlayer = ((CraftPlayer)player).getHandle();
+      entityPlayer.g
          .b(
             new PacketPlayOutOpenWindow(
-               var3.cn.l,
-               var3.cn.a(),
-               ServerInfo.supportsPaper() ? (IChatBaseComponent)AdventureUtil.asVanilla(var2) : CraftChatMessage.fromStringOrNull(var2.getLegacy())
+               entityPlayer.cn.l,
+               entityPlayer.cn.a(),
+               ServerInfo.supportsPaper() ? (IChatBaseComponent)AdventureUtil.asVanilla(text) : CraftChatMessage.fromStringOrNull(text.getLegacy())
             )
          );
-      var1.updateInventory();
+      player.updateInventory();
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setNBTString(org.bukkit.inventory.ItemStack var1, String var2, String var3) {
-      ItemStack var4 = CraftItemStack.asNMSCopy(var1);
-      PatchedDataComponentMap var5 = this.getC(var4);
-      NBTTagCompound var6 = this.getCustom(var5);
-      String[] var7 = var2.split("::");
-      NBTTagCompound var8 = var6;
+   public org.bukkit.inventory.ItemStack setNBTString(org.bukkit.inventory.ItemStack itemStack, String itemId, String text) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      NBTTagCompound nbtTagCompound = this.getCustom(patchedDataComponentMap);
+      String[] values = itemId.split("::");
+      NBTTagCompound nbtTagCompound2 = nbtTagCompound;
 
-      for (int var9 = 0; var9 < var7.length - 1; var9++) {
-         String var10 = var7[var9];
-         NBTTagCompound var11;
-         if (this.hasKey(var8, var10)) {
-            var11 = (NBTTagCompound)var8.m(var10).get();
+      for (int index = 0; index < values.length - 1; index++) {
+         String text2 = values[index];
+         NBTTagCompound nbtTagCompound3;
+         if (this.hasKey(nbtTagCompound2, text2)) {
+            nbtTagCompound3 = (NBTTagCompound)nbtTagCompound2.m(text2).get();
          } else {
-            var11 = new NBTTagCompound();
-            this.set(var8, var10, var11);
+            nbtTagCompound3 = new NBTTagCompound();
+            this.set(nbtTagCompound2, text2, nbtTagCompound3);
          }
 
-         var8 = var11;
+         nbtTagCompound2 = nbtTagCompound3;
       }
 
-      this.set(var8, var7[var7.length - 1], var3);
-      return CraftItemStack.asBukkitCopy(var4);
+      this.set(nbtTagCompound2, values[values.length - 1], text);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public String getNBTString(org.bukkit.inventory.ItemStack var1, String var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      PatchedDataComponentMap var4 = this.getC(var3);
-      NBTTagCompound var5 = this.getCustom(var4);
-      String[] var6 = var2.split("::");
+   public String getNBTString(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      NBTTagCompound nbtTagCompound = this.getCustom(patchedDataComponentMap);
+      String[] values = itemId.split("::");
 
-      for (int var7 = 0; var7 < var6.length - 1; var7++) {
-         if (!this.hasKey(var5, var6[var7])) {
+      for (int index = 0; index < values.length - 1; index++) {
+         if (!this.hasKey(nbtTagCompound, values[index])) {
             return null;
          }
 
-         var5 = this.getC(var5, var6[var7]);
+         nbtTagCompound = this.getC(nbtTagCompound, values[index]);
       }
 
-      return this.hasKey(var5, var6[var6.length - 1]) ? this.getS(var5, var6[var6.length - 1]) : null;
+      return this.hasKey(nbtTagCompound, values[values.length - 1]) ? this.getS(nbtTagCompound, values[values.length - 1]) : null;
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setNBTInt(org.bukkit.inventory.ItemStack var1, String var2, Integer var3) {
-      ItemStack var4 = CraftItemStack.asNMSCopy(var1);
-      PatchedDataComponentMap var5 = this.getC(var4);
-      if (var2.contains("::")) {
-         NBTTagCompound var6 = this.getCustom(var5);
-         NBTTagCompound var7 = this.getOrCreate(var6, var2.split("::")[0]);
-         this.set(var7, var2.split("::")[1], var3);
-         this.set(var6, var2.split("::")[0], var7);
+   public org.bukkit.inventory.ItemStack setNBTInt(org.bukkit.inventory.ItemStack itemStack, String itemId, Integer value) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      if (itemId.contains("::")) {
+         NBTTagCompound nbtTagCompound = this.getCustom(patchedDataComponentMap);
+         NBTTagCompound nbtTagCompound2 = this.getOrCreate(nbtTagCompound, itemId.split("::")[0]);
+         this.set(nbtTagCompound2, itemId.split("::")[1], value);
+         this.set(nbtTagCompound, itemId.split("::")[0], nbtTagCompound2);
       } else {
-         NBTTagCompound var8 = this.getCustom(var5);
-         this.set(var8, var2, var3);
+         NBTTagCompound nbtTagCompound = this.getCustom(patchedDataComponentMap);
+         this.set(nbtTagCompound, itemId, value);
       }
 
-      return CraftItemStack.asBukkitCopy(var4);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public Integer getNBTInt(org.bukkit.inventory.ItemStack var1, String var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      PatchedDataComponentMap var4 = this.getC(var3);
-      String[] var5 = var2.split("::");
-      if (var5[0].equals("custom_data")) {
-         NBTTagCompound var8 = this.getCustom(var4);
+   public Integer getNBTInt(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      String[] values = itemId.split("::");
+      if (values[0].equals("custom_data")) {
+         NBTTagCompound nbtTagCompound = this.getCustom(patchedDataComponentMap);
 
-         for (int var7 = 1; var7 < var5.length - 1; var7++) {
-            if (!this.hasKey(var8, var5[var7])) {
+         for (int index = 1; index < values.length - 1; index++) {
+            if (!this.hasKey(nbtTagCompound, values[index])) {
                return null;
             }
 
-            var8 = this.getC(var8, var5[var7]);
+            nbtTagCompound = this.getC(nbtTagCompound, values[index]);
          }
 
-         return this.hasKey(var8, var5[var5.length - 1]) ? this.getI(var8, var5[var5.length - 1]) : null;
+         return this.hasKey(nbtTagCompound, values[values.length - 1]) ? this.getI(nbtTagCompound, values[values.length - 1]) : null;
       } else {
-         NBTBase var6 = this.getC(var4, var2);
-         return var6 != null ? (Integer)var6.r().orElse(null) : null;
+         NBTBase nbtBase = this.getC(patchedDataComponentMap, itemId);
+         return nbtBase != null ? (Integer)nbtBase.r().orElse(null) : null;
       }
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setPages(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      this.set(var3, "Pages", var2);
-      return this.setOnyxCompound(var1, var3);
+   public org.bukkit.inventory.ItemStack setPages(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "Pages", itemId);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getPages(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.getS(var2, "Pages");
+   public String getPages(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.getS(nbtTagCompound, "Pages");
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setOnyxNbtString(org.bukkit.inventory.ItemStack var1, String var2, String var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      this.set(var4, var2, var3);
-      return this.setOnyxCompound(var1, var4);
+   public org.bukkit.inventory.ItemStack setOnyxNbtString(org.bukkit.inventory.ItemStack itemStack, String itemId, String text) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, itemId, text);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getOnyxNbtString(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      return this.hasKey(var3, var2) ? this.getS(var3, var2) : null;
+   public String getOnyxNbtString(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, itemId) ? this.getS(nbtTagCompound, itemId) : null;
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setOnyxNbtInt(org.bukkit.inventory.ItemStack var1, String var2, Integer var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      this.set(var4, var2, var3);
-      return this.setOnyxCompound(var1, var4);
+   public org.bukkit.inventory.ItemStack setOnyxNbtInt(org.bukkit.inventory.ItemStack itemStack, String itemId, Integer value) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, itemId, value);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public Integer getOnyxNbtInt(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      return this.hasKey(var3, var2) ? this.getI(var3, var2) : null;
+   public Integer getOnyxNbtInt(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, itemId) ? this.getI(nbtTagCompound, itemId) : null;
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setIndex(org.bukkit.inventory.ItemStack var1, Integer var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      this.set(var3, "Index", var2);
-      return this.setOnyxCompound(var1, var3);
+   public org.bukkit.inventory.ItemStack setIndex(org.bukkit.inventory.ItemStack itemStack, Integer index) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "Index", index);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public Integer getIndex(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.hasKey(var2, "Index") ? this.getI(var2, "Index") : -1;
+   public Integer getIndex(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, "Index") ? this.getI(nbtTagCompound, "Index") : -1;
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setAction(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      this.set(var3, "Action", var2);
-      return this.setOnyxCompound(var1, var3);
+   public org.bukkit.inventory.ItemStack setAction(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "Action", itemId);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getAction(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.hasKey(var2, "Action") ? this.getS(var2, "Action") : null;
+   public String getAction(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, "Action") ? this.getS(nbtTagCompound, "Action") : null;
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setEditOption(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      this.set(var3, "EditOption", var2);
-      return this.setOnyxCompound(var1, var3);
+   public org.bukkit.inventory.ItemStack setEditOption(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "EditOption", itemId);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getEditOption(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.hasKey(var2, "EditOption") ? this.getS(var2, "EditOption") : null;
+   public String getEditOption(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, "EditOption") ? this.getS(nbtTagCompound, "EditOption") : null;
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack getShopAdminItem(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      this.set(var2, "AdminItem", true);
-      return this.setOnyxCompound(var1, var2);
+   public org.bukkit.inventory.ItemStack getShopAdminItem(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "AdminItem", true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public boolean isShopAdminItem(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.getB(var2, "AdminItem");
+   public boolean isShopAdminItem(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.getB(nbtTagCompound, "AdminItem");
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack addNBTtag(org.bukkit.inventory.ItemStack var1, String var2, boolean var3) throws ItemLoadException {
-      ItemStack var4 = CraftItemStack.asNMSCopy(var1);
+   public org.bukkit.inventory.ItemStack addNBTtag(org.bukkit.inventory.ItemStack itemStack, String itemId, boolean flag) throws ItemLoadException {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
 
       try {
-         Optional<DataComponentPatch> var5 = v1_21_R5.NBTSerializer.deserialize(var2, var3);
-         return var5.<org.bukkit.inventory.ItemStack>map(var1x -> {
-            var4.b(var1x);
-            return CraftItemStack.asBukkitCopy(var4);
+         Optional<DataComponentPatch> optional = v1_21_R5.NBTSerializer.deserialize(itemId, flag);
+         return optional.<org.bukkit.inventory.ItemStack>map(element -> {
+            itemStack2.b(element);
+            return CraftItemStack.asBukkitCopy(itemStack2);
          }).orElse(null);
-      } catch (Throwable var8) {
-         StringWriter var6 = new StringWriter();
-         PrintWriter var7 = new PrintWriter(var6);
-         var8.printStackTrace(var7);
-         throw new ItemLoadException(Lang.CANNOT_GET_NBTDATA.get() + ": " + var6.toString());
+      } catch (Throwable exception) {
+         StringWriter stringWriter = new StringWriter();
+         PrintWriter printWriter = new PrintWriter(stringWriter);
+         exception.printStackTrace(printWriter);
+         throw new ItemLoadException(Lang.CANNOT_GET_NBTDATA.get() + ": " + stringWriter.toString());
       }
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack addNBTCommands(org.bukkit.inventory.ItemStack var1, List<String> var2, CommandType var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      NBTTagList var5 = this.getOrCreate(var4, var3.getCompound(), 8);
-      var2.forEach(var1x -> var5.add(NBTTagString.a(var1x.startsWith("/") ? var1x.substring(1) : var1x)));
-      this.set(var4, var3.getCompound(), var5);
-      return this.setOnyxCompound(var1, var4);
+   public org.bukkit.inventory.ItemStack addNBTCommands(org.bukkit.inventory.ItemStack itemStack, List<String> itemIds, CommandType commandType) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagList nbtTagList = this.getOrCreate(nbtTagCompound, commandType.getCompound(), 8);
+      itemIds.forEach(entry -> nbtTagList.add(NBTTagString.a(entry.startsWith("/") ? entry.substring(1) : entry)));
+      this.set(nbtTagCompound, commandType.getCompound(), nbtTagList);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public boolean hasNBTCommand(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return !this.getOrCreate(var2, "buy-commands", 8).isEmpty() || !this.getOrCreate(var2, "sell-commands", 8).isEmpty();
+   public boolean hasNBTCommand(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return !this.getOrCreate(nbtTagCompound, "buy-commands", 8).isEmpty() || !this.getOrCreate(nbtTagCompound, "sell-commands", 8).isEmpty();
    }
 
    @Override
-   public List<String> getNBTCommands(org.bukkit.inventory.ItemStack var1, CommandType var2) {
-      NBTTagList var3 = this.getOrCreate(this.getOnyxCompound(var1), var2.getCompound(), 8);
-      return var3.stream().<String>map(NBTBase::toString).collect(Collectors.toList());
+   public List<String> getNBTCommands(org.bukkit.inventory.ItemStack itemStack, CommandType commandType) {
+      NBTTagList nbtTagList = this.getOrCreate(this.getOnyxCompound(itemStack), commandType.getCompound(), 8);
+      return nbtTagList.stream().<String>map(NBTBase::toString).collect(Collectors.toList());
    }
 
-   private NBTTagCompound getC(NBTTagCompound var1, String var2) {
-      return var1.n(var2);
+   private NBTTagCompound getC(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.n(text);
    }
 
-   private NBTBase getC(PatchedDataComponentMap var1, String var2) {
+   private NBTBase getC(PatchedDataComponentMap patchedDataComponentMap, String text) {
       try {
-         DataComponentType var3 = v1_21_R5.Components.valueOf(var2);
-         return this.encodeC(var3, var1);
-      } catch (Exception var4) {
+         DataComponentType dataComponentType = v1_21_R5.Components.valueOf(text);
+         return this.encodeC(dataComponentType, patchedDataComponentMap);
+      } catch (Exception exception) {
          return null;
       }
    }
 
-   private <T> NBTBase encodeC(DataComponentType<T> var1, PatchedDataComponentMap var2) {
-      T var3 = (T)var2.a(var1);
-      return (NBTBase)var1.c().encodeStart(DynamicOpsNBT.a, var3).getOrThrow();
+   private <T> NBTBase encodeC(DataComponentType<T> dataComponentType, PatchedDataComponentMap patchedDataComponentMap) {
+      T value = (T)patchedDataComponentMap.a(dataComponentType);
+      return (NBTBase)dataComponentType.c().encodeStart(DynamicOpsNBT.a, value).getOrThrow();
    }
 
-   private NBTTagCompound getC(NBTTagList var1, int var2) {
-      return var1.b(var2);
+   private NBTTagCompound getC(NBTTagList nbtTagList, int value) {
+      return nbtTagList.b(value);
    }
 
-   private PatchedDataComponentMap getC(ItemStack var1) {
+   private PatchedDataComponentMap getC(ItemStack itemStack) {
       try {
-         return (PatchedDataComponentMap)COMPONENT_MAP.get(var1);
-      } catch (IllegalAccessException var3) {
+         return (PatchedDataComponentMap)COMPONENT_MAP.get(itemStack);
+      } catch (IllegalAccessException exception) {
          SendMessage.logDebugMessage("Failed to retrieve compounds from item");
-         var3.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private NBTTagCompound getCustom(PatchedDataComponentMap var1) {
-      return this.getCustom(var1, false);
+   private NBTTagCompound getCustom(PatchedDataComponentMap patchedDataComponentMap) {
+      return this.getCustom(patchedDataComponentMap, false);
    }
 
-   private NBTTagCompound getCustom(PatchedDataComponentMap var1, boolean var2) {
+   private NBTTagCompound getCustom(PatchedDataComponentMap patchedDataComponentMap, boolean flag) {
       try {
-         CustomData var3 = this.getOrNull(var1, DataComponents.b);
-         if (var3 == null) {
-            if (var2) {
+         CustomData customData = this.getOrNull(patchedDataComponentMap, DataComponents.b);
+         if (customData == null) {
+            if (flag) {
                return null;
             }
 
-            NBTTagCompound var4 = new NBTTagCompound();
+            NBTTagCompound nbtTagCompound = new NBTTagCompound();
 
             try {
-               this.addCustom(var1, DataComponents.b, var4);
-            } catch (Exception var6) {
+               this.addCustom(patchedDataComponentMap, DataComponents.b, nbtTagCompound);
+            } catch (Exception exception) {
                SendMessage.errorMessage("Failed to create custom data NBT for item");
-               var6.printStackTrace();
+               exception.printStackTrace();
             }
 
-            var3 = this.getOrNull(var1, DataComponents.b);
+            customData = this.getOrNull(patchedDataComponentMap, DataComponents.b);
          }
 
-         return this.getCustom(var3);
-      } catch (IllegalAccessException var7) {
+         return this.getCustom(customData);
+      } catch (IllegalAccessException exception) {
          SendMessage.logDebugMessage("Failed to retrieve custom NBT from item");
-         var7.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private NBTTagCompound getCustom(CustomData var1) throws IllegalAccessException {
-      return (NBTTagCompound)CUSTOM_TAG.get(var1);
+   private NBTTagCompound getCustom(CustomData customData) throws IllegalAccessException {
+      return (NBTTagCompound)CUSTOM_TAG.get(customData);
    }
 
-   private NBTTagCompound getCustom(Optional<?> var1) throws IllegalAccessException {
-      return var1 != null && var1.isPresent() ? this.getCustom((CustomData)var1.get()).l() : new NBTTagCompound();
+   private NBTTagCompound getCustom(Optional<?> optional) throws IllegalAccessException {
+      return optional != null && optional.isPresent() ? this.getCustom((CustomData)optional.get()).l() : new NBTTagCompound();
    }
 
-   private NBTTagCompound getClonedCustom(PatchedDataComponentMap var1) {
-      return this.getClonedCustom(var1, false);
+   private NBTTagCompound getClonedCustom(PatchedDataComponentMap patchedDataComponentMap) {
+      return this.getClonedCustom(patchedDataComponentMap, false);
    }
 
-   private NBTTagCompound getClonedCustom(PatchedDataComponentMap var1, boolean var2) {
+   private NBTTagCompound getClonedCustom(PatchedDataComponentMap patchedDataComponentMap, boolean flag) {
       try {
-         CustomData var3 = this.getOrNull(var1, DataComponents.b);
-         if (var3 == null) {
-            if (var2) {
+         CustomData customData = this.getOrNull(patchedDataComponentMap, DataComponents.b);
+         if (customData == null) {
+            if (flag) {
                return null;
             }
 
-            NBTTagCompound var4 = new NBTTagCompound();
+            NBTTagCompound nbtTagCompound = new NBTTagCompound();
 
             try {
-               this.addCustom(var1, DataComponents.b, var4);
-            } catch (Exception var6) {
+               this.addCustom(patchedDataComponentMap, DataComponents.b, nbtTagCompound);
+            } catch (Exception exception) {
                SendMessage.errorMessage("Failed to create custom data NBT for item");
-               var6.printStackTrace();
+               exception.printStackTrace();
             }
 
-            var3 = this.getOrNull(var1, DataComponents.b);
+            customData = this.getOrNull(patchedDataComponentMap, DataComponents.b);
          }
 
-         return this.getClonedCustom(var1, var3);
-      } catch (Exception var7) {
+         return this.getClonedCustom(patchedDataComponentMap, customData);
+      } catch (Exception exception) {
          SendMessage.logDebugMessage("Failed to retrieve custom NBT from item");
-         var7.printStackTrace();
+         exception.printStackTrace();
          return null;
       }
    }
 
-   private NBTTagCompound getClonedCustom(PatchedDataComponentMap var1, CustomData var2) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, InstantiationException, InvocationTargetException {
-      Field var3 = CustomData.class.getDeclaredField("tag");
-      var3.setAccessible(true);
-      NBTTagCompound var4 = (NBTTagCompound)var3.get(var2);
-      Method var5 = NBTTagCompound.class.getDeclaredMethod("copy");
-      var5.setAccessible(true);
-      NBTTagCompound var6 = (NBTTagCompound)var5.invoke(var4);
-      Constructor var7 = Class.forName("net.minecraft.world.item.component.CustomData").getDeclaredConstructor(NBTTagCompound.class);
-      var7.setAccessible(true);
-      CustomData var8 = (CustomData)var7.newInstance(var6);
-      this.set(var1, DataComponents.b, var8);
-      return var6;
+   private NBTTagCompound getClonedCustom(PatchedDataComponentMap patchedDataComponentMap, CustomData customData) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, InstantiationException, InvocationTargetException {
+      Field field = CustomData.class.getDeclaredField("tag");
+      field.setAccessible(true);
+      NBTTagCompound nbtTagCompound = (NBTTagCompound)field.get(customData);
+      Method method = NBTTagCompound.class.getDeclaredMethod("copy");
+      method.setAccessible(true);
+      NBTTagCompound nbtTagCompound2 = (NBTTagCompound)method.invoke(nbtTagCompound);
+      Constructor constructor = Class.forName("net.minecraft.world.item.component.CustomData").getDeclaredConstructor(NBTTagCompound.class);
+      constructor.setAccessible(true);
+      CustomData customData2 = (CustomData)constructor.newInstance(nbtTagCompound2);
+      this.set(patchedDataComponentMap, DataComponents.b, customData2);
+      return nbtTagCompound2;
    }
 
-   private void addCustom(PatchedDataComponentMap var1, DataComponentType<CustomData> var2, NBTTagCompound var3) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-      Constructor var4 = CustomData.class.getDeclaredConstructor(var3.getClass());
-      var4.setAccessible(true);
-      CustomData var5 = (CustomData)var4.newInstance(var3);
-      this.set(var1, var2, var5);
+   private void addCustom(PatchedDataComponentMap patchedDataComponentMap, DataComponentType<CustomData> dataComponentType, NBTTagCompound nbtTagCompound) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+      Constructor constructor = CustomData.class.getDeclaredConstructor(nbtTagCompound.getClass());
+      constructor.setAccessible(true);
+      CustomData customData = (CustomData)constructor.newInstance(nbtTagCompound);
+      this.set(patchedDataComponentMap, dataComponentType, customData);
    }
 
-   private void removeCustom(PatchedDataComponentMap var1, String var2) {
-      NBTTagCompound var3 = this.getCustom(var1, true);
-      if (var3 != null) {
-         var3.r(var2);
+   private void removeCustom(PatchedDataComponentMap patchedDataComponentMap, String text) {
+      NBTTagCompound nbtTagCompound = this.getCustom(patchedDataComponentMap, true);
+      if (nbtTagCompound != null) {
+         nbtTagCompound.r(text);
       }
    }
 
-   private String getS(NBTTagCompound var1, String var2) {
-      return var1.b(var2, "");
+   private String getS(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.b(text, "");
    }
 
-   private double getD(NBTTagCompound var1, String var2) {
-      return var1.b(var2, 0.0);
+   private double getD(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.b(text, 0.0);
    }
 
-   private boolean getB(NBTTagCompound var1, String var2) {
-      return var1.b(var2, false);
+   private boolean getB(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.b(text, false);
    }
 
-   private int getI(NBTTagCompound var1, String var2) {
-      return var1.b(var2, 0);
+   private int getI(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.b(text, 0);
    }
 
-   private NBTTagList getOrCreate(NBTTagCompound var1, String var2, int var3) {
-      return var1.p(var2);
+   private NBTTagList getOrCreate(NBTTagCompound nbtTagCompound, String text, int value) {
+      return nbtTagCompound.p(text);
    }
 
-   private NBTTagCompound getOrCreate(NBTTagCompound var1, String var2) {
-      return var1.n(var2);
+   private NBTTagCompound getOrCreate(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.n(text);
    }
 
-   private boolean hasKey(NBTTagCompound var1, String var2) {
-      return var1.b(var2);
+   private boolean hasKey(NBTTagCompound nbtTagCompound, String key) {
+      return nbtTagCompound.b(key);
    }
 
-   private <T> T getOrNull(PatchedDataComponentMap var1, DataComponentType<? extends T> var2) {
-      return (T)var1.a(var2);
+   private <T> T getOrNull(PatchedDataComponentMap patchedDataComponentMap, DataComponentType<? extends T> dataComponentType) {
+      return (T)patchedDataComponentMap.a(dataComponentType);
    }
 
-   private CustomData getOrCreateCustom(PatchedDataComponentMap var1, DataComponentType<CustomData> var2) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-      CustomData var3 = this.getOrNull(var1, var2);
-      if (var3 == null) {
-         this.addCustom(var1, var2, new NBTTagCompound());
-         return this.getOrNull(var1, var2);
+   private CustomData getOrCreateCustom(PatchedDataComponentMap patchedDataComponentMap, DataComponentType<CustomData> dataComponentType) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+      CustomData customData = this.getOrNull(patchedDataComponentMap, dataComponentType);
+      if (customData == null) {
+         this.addCustom(patchedDataComponentMap, dataComponentType, new NBTTagCompound());
+         return this.getOrNull(patchedDataComponentMap, dataComponentType);
       } else {
-         return var3;
+         return customData;
       }
    }
 
-   private boolean hasTag(ItemStack var1) {
-      return !var1.f();
+   private boolean hasTag(ItemStack itemStack) {
+      return !itemStack.f();
    }
 
-   private String getString(NBTTagCompound var1, String var2) {
-      return var1.b(var2, "");
+   private String getString(NBTTagCompound nbtTagCompound, String text) {
+      return nbtTagCompound.b(text, "");
    }
 
-   private void setString(NBTTagCompound var1, String var2, String var3) {
-      var1.a(var2, var3);
+   private void setString(NBTTagCompound nbtTagCompound, String text, String text2) {
+      nbtTagCompound.a(text, text2);
    }
 
-   private void set(NBTTagCompound var1, String var2, NBTTagList var3) {
-      var1.a(var2, var3);
+   private void set(NBTTagCompound nbtTagCompound, String text, NBTTagList nbtTagList) {
+      nbtTagCompound.a(text, nbtTagList);
    }
 
-   private void remove(PatchedDataComponentMap var1, DataComponentType<?> var2) {
+   private void remove(PatchedDataComponentMap patchedDataComponentMap, DataComponentType<?> dataComponentType) {
       try {
-         Reference2ObjectMap var3 = (Reference2ObjectMap)DATA_MAP.get(var1);
-         var3.remove(var2);
-      } catch (Exception var4) {
+         Reference2ObjectMap reference2ObjectMap = (Reference2ObjectMap)DATA_MAP.get(patchedDataComponentMap);
+         reference2ObjectMap.remove(dataComponentType);
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to remove value from data map");
-         var4.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private void setAccessible(PatchedDataComponentMap var1) {
+   private void setAccessible(PatchedDataComponentMap patchedDataComponentMap) {
       try {
-         Method var2 = var1.getClass().getDeclaredMethod("j");
-         var2.setAccessible(true);
-         var2.invoke(var1);
-      } catch (Exception var3) {
+         Method method = patchedDataComponentMap.getClass().getDeclaredMethod("j");
+         method.setAccessible(true);
+         method.invoke(patchedDataComponentMap);
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to make data map accessible");
-         var3.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private void set(NBTTagCompound var1, String var2, boolean var3) {
-      var1.a(var2, var3);
+   private void set(NBTTagCompound nbtTagCompound, String text, boolean flag) {
+      nbtTagCompound.a(text, flag);
    }
 
-   private void set(NBTTagCompound var1, String var2, double var3) {
-      var1.a(var2, var3);
+   private void set(NBTTagCompound nbtTagCompound, String text, double amount) {
+      nbtTagCompound.a(text, amount);
    }
 
-   private void set(NBTTagCompound var1, String var2, NBTTagCompound var3) {
-      var1.a(var2, var3);
+   private void set(NBTTagCompound nbtTagCompound, String text, NBTTagCompound nbtTagCompound2) {
+      nbtTagCompound.a(text, nbtTagCompound2);
    }
 
-   private <T> T set(PatchedDataComponentMap var1, DataComponentType<T> var2, T var3) {
-      return (T)var1.b(var2, var3);
+   private <T> T set(PatchedDataComponentMap patchedDataComponentMap, DataComponentType<T> dataComponentType, T value) {
+      return (T)patchedDataComponentMap.b(dataComponentType, value);
    }
 
-   private void set(NBTTagCompound var1, String var2, String var3) {
-      var1.a(var2, var3);
+   private void set(NBTTagCompound nbtTagCompound, String text, String text2) {
+      nbtTagCompound.a(text, text2);
    }
 
-   private void set(NBTTagCompound var1, String var2, Integer var3) {
-      var1.a(var2, var3);
+   private void set(NBTTagCompound nbtTagCompound, String text, Integer value) {
+      nbtTagCompound.a(text, value);
    }
 
-   private void merge(NBTTagCompound var1, NBTTagCompound var2) {
-      var1.a(var2);
+   private void merge(NBTTagCompound nbtTagCompound, NBTTagCompound nbtTagCompound2) {
+      nbtTagCompound.a(nbtTagCompound2);
    }
 
-   private void set(ItemStack var1, PatchedDataComponentMap var2) {
+   private void set(ItemStack itemStack, PatchedDataComponentMap patchedDataComponentMap) {
       try {
-         COMPONENT_MAP.set(var1, var2);
-      } catch (IllegalAccessException var4) {
+         COMPONENT_MAP.set(itemStack, patchedDataComponentMap);
+      } catch (IllegalAccessException exception) {
          SendMessage.logDebugMessage("Failed to retrieve compounds from item");
-         var4.printStackTrace();
+         exception.printStackTrace();
       }
    }
 
-   private NBTTagCompound getOnyxCompound(org.bukkit.inventory.ItemStack var1) {
-      ItemStack var2 = CraftItemStack.asNMSCopy(var1);
-      NBTTagCompound var3 = this.getCustom(this.getC(var2));
-      return this.getOrCreate(var3, "ONYX");
+   private NBTTagCompound getOnyxCompound(org.bukkit.inventory.ItemStack itemStack) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      NBTTagCompound nbtTagCompound = this.getCustom(this.getC(itemStack2));
+      return this.getOrCreate(nbtTagCompound, "ONYX");
    }
 
-   private org.bukkit.inventory.ItemStack setOnyxCompound(org.bukkit.inventory.ItemStack var1, NBTTagCompound var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      PatchedDataComponentMap var4 = this.getC(var3);
-      NBTTagCompound var5 = this.getCustom(var4);
-      this.set(var5, "ONYX", var2);
-      return CraftItemStack.asBukkitCopy(var3);
+   private org.bukkit.inventory.ItemStack setOnyxCompound(org.bukkit.inventory.ItemStack itemStack, NBTTagCompound nbtTagCompound) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      NBTTagCompound nbtTagCompound2 = this.getCustom(patchedDataComponentMap);
+      this.set(nbtTagCompound2, "ONYX", nbtTagCompound);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public String getTitle(Inventory var1) {
+   public String getTitle(Inventory inventory) {
       return "";
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setDisabledBackButton(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      this.set(var2, "disabledBackButton", true);
-      return this.setOnyxCompound(var1, var2);
+   public org.bukkit.inventory.ItemStack setDisabledBackButton(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "disabledBackButton", true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public boolean isDisabledBackButton(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.hasKey(var2, "disabledBackButton") && this.getB(var2, "disabledBackButton");
+   public boolean isDisabledBackButton(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, "disabledBackButton") && this.getB(nbtTagCompound, "disabledBackButton");
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack addNBTPrices(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      NBTTagCompound var4 = this.getOrCreate(var3, "Prices");
-      this.set(var4, "buy", ConfigManager.getShop(var2.split("\\.")[0]).getDouble(var2 + ".buy"));
-      this.set(var4, "sell", ConfigManager.getShop(var2.split("\\.")[0]).getDouble(var2 + ".sell"));
-      this.set(var3, "Prices", var4);
-      return this.setOnyxCompound(var1, var3);
+   public org.bukkit.inventory.ItemStack addNBTPrices(org.bukkit.inventory.ItemStack itemStack, String itemId) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagCompound nbtTagCompound2 = this.getOrCreate(nbtTagCompound, "Prices");
+      this.set(nbtTagCompound2, "buy", ConfigManager.getShop(itemId.split("\\.")[0]).getDouble(itemId + ".buy"));
+      this.set(nbtTagCompound2, "sell", ConfigManager.getShop(itemId.split("\\.")[0]).getDouble(itemId + ".sell"));
+      this.set(nbtTagCompound, "Prices", nbtTagCompound2);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public double getBuyPrice(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      NBTTagCompound var3 = this.getOrCreate(var2, "Prices");
-      return this.getD(var3, "buy");
+   public double getBuyPrice(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagCompound nbtTagCompound2 = this.getOrCreate(nbtTagCompound, "Prices");
+      return this.getD(nbtTagCompound2, "buy");
    }
 
    @Override
-   public double getSellPrice(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      NBTTagCompound var3 = this.getOrCreate(var2, "Prices");
-      return this.getD(var3, "sell");
+   public double getSellPrice(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      NBTTagCompound nbtTagCompound2 = this.getOrCreate(nbtTagCompound, "Prices");
+      return this.getD(nbtTagCompound2, "sell");
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setItemErrorToItem(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      this.set(var2, "ItemError", true);
-      return this.setOnyxCompound(var1, var2);
+   public org.bukkit.inventory.ItemStack setItemErrorToItem(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "ItemError", true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack getItemInHand(Player var1) {
-      return var1.getInventory().getItemInMainHand();
+   public org.bukkit.inventory.ItemStack getItemInHand(Player player) {
+      return player.getInventory().getItemInMainHand();
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setSpawnerType(org.bukkit.inventory.ItemStack var1, String var2) {
-      return this.setSpawnerType(var1, var2, false);
+   public org.bukkit.inventory.ItemStack setSpawnerType(org.bukkit.inventory.ItemStack itemStack, String type) {
+      return this.setSpawnerType(itemStack, type, false);
    }
 
-   public org.bukkit.inventory.ItemStack setSpawnerType(org.bukkit.inventory.ItemStack var1, String var2, boolean var3) {
-      NBTTagCompound var4 = this.getOnyxCompound(var1);
-      this.set(var4, "SpawnerType", var2);
-      ItemStack var5 = CraftItemStack.asNMSCopy(this.setOnyxCompound(var1, var4));
-      PatchedDataComponentMap var6 = this.getC(var5);
-      TooltipDisplay var7 = this.getOrNull(var6, DataComponents.q);
-      var7.a(DataComponents.aa, true);
-      return this.setOnyxCompound(var1, var4);
+   public org.bukkit.inventory.ItemStack setSpawnerType(org.bukkit.inventory.ItemStack itemStack, String type, boolean flag) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "SpawnerType", type);
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(this.setOnyxCompound(itemStack, nbtTagCompound));
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      TooltipDisplay tooltipDisplay = this.getOrNull(patchedDataComponentMap, DataComponents.q);
+      tooltipDisplay.a(DataComponents.aa, true);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
-   public org.bukkit.inventory.ItemStack addSpawnPotential(org.bukkit.inventory.ItemStack var1, EntityType var2, Integer var3) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-      ItemStack var4 = CraftItemStack.asNMSCopy(var1);
-      PatchedDataComponentMap var5 = this.getC(var4);
-      NBTTagCompound var6 = this.getCustom(this.getOrCreateCustom(var5, v1_21_R5.Components.block_entity_data));
-      NBTTagCompound var7 = this.getOrCreate(var6, "normal_config");
-      if (!this.hasKey(var6, "spawn_data")) {
-         NBTTagCompound var8 = this.getOrCreate(var6, "spawn_data");
-         NBTTagCompound var9 = new NBTTagCompound();
-         this.set(var9, "id", "minecraft:" + var2.name().toLowerCase());
-         this.set(var8, "entity", var9);
-         this.set(var6, "spawn_data", var8);
-         this.set(var6, "id", "minecraft:trial_spawner");
-         this.set(var7, "ticks_between_spawn", 20.0);
-         this.set(var7, "simultaneous_mobs", 1.0);
-         this.set(var7, "simultaneous_mobs_added_per_player", 0.5);
-         this.set(var7, "total_mobs_added_per_player", 1.0);
-         this.set(var7, "total_mobs", 1.0);
+   public org.bukkit.inventory.ItemStack addSpawnPotential(org.bukkit.inventory.ItemStack itemStack, EntityType entityType, Integer value) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack2);
+      NBTTagCompound nbtTagCompound = this.getCustom(this.getOrCreateCustom(patchedDataComponentMap, v1_21_R5.Components.block_entity_data));
+      NBTTagCompound nbtTagCompound2 = this.getOrCreate(nbtTagCompound, "normal_config");
+      if (!this.hasKey(nbtTagCompound, "spawn_data")) {
+         NBTTagCompound nbtTagCompound3 = this.getOrCreate(nbtTagCompound, "spawn_data");
+         NBTTagCompound nbtTagCompound4 = new NBTTagCompound();
+         this.set(nbtTagCompound4, "id", "minecraft:" + entityType.name().toLowerCase());
+         this.set(nbtTagCompound3, "entity", nbtTagCompound4);
+         this.set(nbtTagCompound, "spawn_data", nbtTagCompound3);
+         this.set(nbtTagCompound, "id", "minecraft:trial_spawner");
+         this.set(nbtTagCompound2, "ticks_between_spawn", 20.0);
+         this.set(nbtTagCompound2, "simultaneous_mobs", 1.0);
+         this.set(nbtTagCompound2, "simultaneous_mobs_added_per_player", 0.5);
+         this.set(nbtTagCompound2, "total_mobs_added_per_player", 1.0);
+         this.set(nbtTagCompound2, "total_mobs", 1.0);
       }
 
-      NBTTagList var12 = this.getOrCreate(var7, "spawn_potentials", 10);
-      NBTTagCompound var13 = new NBTTagCompound();
-      NBTTagCompound var10 = new NBTTagCompound();
-      NBTTagCompound var11 = new NBTTagCompound();
-      this.set(var11, "id", "minecraft:" + var2.name().toLowerCase());
-      this.set(var10, "entity", var11);
-      this.set(var13, "data", var10);
-      this.set(var13, "weight", var3);
-      var12.add(var13);
-      this.set(var7, "spawn_potentials", var12);
-      this.set(var6, "normal_config", var7);
-      return CraftItemStack.asBukkitCopy(var4);
+      NBTTagList nbtTagList = this.getOrCreate(nbtTagCompound2, "spawn_potentials", 10);
+      NBTTagCompound nbtTagCompound3 = new NBTTagCompound();
+      NBTTagCompound nbtTagCompound4 = new NBTTagCompound();
+      NBTTagCompound nbtTagCompound5 = new NBTTagCompound();
+      this.set(nbtTagCompound5, "id", "minecraft:" + entityType.name().toLowerCase());
+      this.set(nbtTagCompound4, "entity", nbtTagCompound5);
+      this.set(nbtTagCompound3, "data", nbtTagCompound4);
+      this.set(nbtTagCompound3, "weight", value);
+      nbtTagList.add(nbtTagCompound3);
+      this.set(nbtTagCompound2, "spawn_potentials", nbtTagList);
+      this.set(nbtTagCompound, "normal_config", nbtTagCompound2);
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
-   public org.bukkit.inventory.ItemStack setOminousStrength(org.bukkit.inventory.ItemStack var1, Integer var2) {
-      ItemStack var3 = CraftItemStack.asNMSCopy(var1);
-      this.set(this.getC(var3), v1_21_R5.Components.ominous_bottle_amplifier, new OminousBottleAmplifier(var2));
-      return CraftItemStack.asBukkitCopy(var3);
+   public org.bukkit.inventory.ItemStack setOminousStrength(org.bukkit.inventory.ItemStack itemStack, Integer value) {
+      ItemStack itemStack2 = CraftItemStack.asNMSCopy(itemStack);
+      this.set(this.getC(itemStack2), v1_21_R5.Components.ominous_bottle_amplifier, new OminousBottleAmplifier(value));
+      return CraftItemStack.asBukkitCopy(itemStack2);
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setPotionType(org.bukkit.inventory.ItemStack var1, PotionTypes var2) {
-      PotionMeta var3 = (PotionMeta)var1.getItemMeta();
-      if (!var3.hasBasePotionType()) {
-         var3.setBasePotionType(var2.parsePotionType());
+   public org.bukkit.inventory.ItemStack setPotionType(org.bukkit.inventory.ItemStack itemStack, PotionTypes potionTypes) {
+      PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
+      if (!potionMeta.hasBasePotionType()) {
+         potionMeta.setBasePotionType(potionTypes.parsePotionType());
       } else {
-         if (!var2.hasEffect()) {
-            return var1;
+         if (!potionTypes.hasEffect()) {
+            return itemStack;
          }
 
-         var3.addCustomEffect(new PotionEffect(var2.parsePotionEffectType(), var2.getDuration(), var2.getAmplifier(), false, true, true), false);
+         potionMeta.addCustomEffect(new PotionEffect(potionTypes.parsePotionEffectType(), potionTypes.getDuration(), potionTypes.getAmplifier(), false, true, true), false);
       }
 
-      var1.setItemMeta(var3);
-      return var1;
+      itemStack.setItemMeta(potionMeta);
+      return itemStack;
    }
 
    @Override
-   public Optional<PotionTypes> getBasePotion(org.bukkit.inventory.ItemStack var1) {
-      PotionMeta var2 = (PotionMeta)var1.getItemMeta();
-      return var2.hasBasePotionType() && var2.getBasePotionType().getEffectType() != null
-         ? Optional.of(PotionTypes.matchPotionType(var2.getBasePotionType()))
+   public Optional<PotionTypes> getBasePotion(org.bukkit.inventory.ItemStack itemStack) {
+      PotionMeta potionMeta = (PotionMeta)itemStack.getItemMeta();
+      return potionMeta.hasBasePotionType() && potionMeta.getBasePotionType().getEffectType() != null
+         ? Optional.of(PotionTypes.matchPotionType(potionMeta.getBasePotionType()))
          : Optional.empty();
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack setPathToItem(org.bukkit.inventory.ItemStack var1, String var2) {
-      NBTTagCompound var3 = this.getOnyxCompound(var1);
-      this.set(var3, "PathToItem", var2);
-      return this.setOnyxCompound(var1, var3);
+   public org.bukkit.inventory.ItemStack setPathToItem(org.bukkit.inventory.ItemStack itemStack, String path) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "PathToItem", path);
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public org.bukkit.inventory.ItemStack getSpawnerToGive(EntityType var1) {
-      org.bukkit.inventory.ItemStack var2 = OnyxShop.getInstance().createItem.createSpawner(var1);
-      NBTTagCompound var3 = this.getOnyxCompound(var2);
-      this.set(var3, "SpawnerType", var1.toString());
-      return this.setOnyxCompound(var2, var3);
+   public org.bukkit.inventory.ItemStack getSpawnerToGive(EntityType entityType) {
+      org.bukkit.inventory.ItemStack itemStack = OnyxShop.getInstance().createItem.createSpawner(entityType);
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      this.set(nbtTagCompound, "SpawnerType", entityType.toString());
+      return this.setOnyxCompound(itemStack, nbtTagCompound);
    }
 
    @Override
-   public String getPathToItem(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.getS(var2, "PathToItem");
+   public String getPathToItem(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.getS(nbtTagCompound, "PathToItem");
    }
 
    @Override
-   public Boolean hasItemError(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return !this.hasKey(var2, "ItemError") ? false : this.getB(var2, "ItemError");
+   public Boolean hasItemError(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return !this.hasKey(nbtTagCompound, "ItemError") ? false : this.getB(nbtTagCompound, "ItemError");
    }
 
    @Override
-   public String getSpawnerType(org.bukkit.inventory.ItemStack var1) {
-      NBTTagCompound var2 = this.getOnyxCompound(var1);
-      return this.hasKey(var2, "SpawnerType") && !this.getS(var2, "SpawnerType").isEmpty() ? this.getS(var2, "SpawnerType") : null;
+   public String getSpawnerType(org.bukkit.inventory.ItemStack itemStack) {
+      NBTTagCompound nbtTagCompound = this.getOnyxCompound(itemStack);
+      return this.hasKey(nbtTagCompound, "SpawnerType") && !this.getS(nbtTagCompound, "SpawnerType").isEmpty() ? this.getS(nbtTagCompound, "SpawnerType") : null;
    }
 
-   private NBTBase get(NBTBase var1, String var2) {
-      switch (var1.b()) {
+   private NBTBase get(NBTBase nbtBase, String text) {
+      switch (nbtBase.b()) {
          case 9:
-            return ((NBTTagList)var1).c(0);
+            return ((NBTTagList)nbtBase).c(0);
          case 10:
-            return ((NBTTagCompound)var1).a(var2);
+            return ((NBTTagCompound)nbtBase).a(text);
          default:
             return null;
       }
    }
 
-   private void remove(NBTTagCompound var1, String var2) {
-      var1.r(var2);
+   private void remove(NBTTagCompound nbtTagCompound, String text) {
+      nbtTagCompound.r(text);
    }
 
-   private void remove(NBTTagCompound var1, String var2, String var3) {
+   private void remove(NBTTagCompound nbtTagCompound, String text, String text2) {
       try {
-         NBTBase var4 = var1.a(var2);
-         if (var4 == null) {
+         NBTBase nbtBase = nbtTagCompound.a(text);
+         if (nbtBase == null) {
             return;
          }
 
-         switch (var4.b()) {
+         switch (nbtBase.b()) {
             case 8:
-               JSONObject var5 = JsonUtil.parseJson(this.strip(var4.toString()));
-               var5.remove(var3);
-               String var6 = var5.toJSONString();
-               if (!var6.equals("{}")) {
-                  this.set(var1, var2, var6);
+               JSONObject jsonObject = JsonUtil.parseJson(this.strip(nbtBase.toString()));
+               jsonObject.remove(text2);
+               String text3 = jsonObject.toJSONString();
+               if (!text3.equals("{}")) {
+                  this.set(nbtTagCompound, text, text3);
                } else {
-                  var1.r(var2);
+                  nbtTagCompound.r(text);
                }
                break;
             case 9:
-               ((NBTTagList)var4).d(0);
-               if (((NBTTagList)var4).isEmpty()) {
-                  var1.r(var2);
+               ((NBTTagList)nbtBase).d(0);
+               if (((NBTTagList)nbtBase).isEmpty()) {
+                  nbtTagCompound.r(text);
                }
                break;
             case 10:
-               this.remove((NBTTagCompound)var4, var3);
-               if (((NBTTagCompound)var4).j()) {
-                  var1.r(var2);
+               this.remove((NBTTagCompound)nbtBase, text2);
+               if (((NBTTagCompound)nbtBase).j()) {
+                  nbtTagCompound.r(text);
                }
          }
-      } catch (ParseException var7) {
-         var7.printStackTrace();
+      } catch (ParseException exception) {
+         exception.printStackTrace();
       }
    }
 
-   private String strip(String var1) {
-      if (var1.startsWith("'") && var1.endsWith("'")) {
-         var1 = var1.substring(1, var1.length() - 1);
+   private String strip(String text) {
+      if (text.startsWith("'") && text.endsWith("'")) {
+         text = text.substring(1, text.length() - 1);
       }
 
-      if (var1.startsWith("\"") && var1.endsWith("\"")) {
-         var1 = var1.substring(1, var1.length() - 1);
+      if (text.startsWith("\"") && text.endsWith("\"")) {
+         text = text.substring(1, text.length() - 1);
       }
 
-      return var1;
+      return text;
    }
 
-   private boolean matchCustom(NBTTagCompound var1, NBTTagCompound var2, List<String> var3) {
-      for (String var5 : var3) {
-         String[] var6 = var5.split("::");
-         if (var6.length >= 2) {
-            NBTTagCompound var7 = var1;
+   private boolean matchCustom(NBTTagCompound nbtTagCompound, NBTTagCompound nbtTagCompound2, List<String> values) {
+      for (String text : values) {
+         String[] values2 = text.split("::");
+         if (values2.length >= 2) {
+            NBTTagCompound nbtTagCompound3 = nbtTagCompound;
 
-            for (int var8 = 0; var8 < var6.length - 1; var8++) {
-               if (var8 == var6.length - 2) {
-                  this.remove(var7, var6[var8], var6[var8 + 1]);
+            for (int index = 0; index < values2.length - 1; index++) {
+               if (index == values2.length - 2) {
+                  this.remove(nbtTagCompound3, values2[index], values2[index + 1]);
                   break;
                }
 
-               var7 = this.getC(var7, var6[var8]);
+               nbtTagCompound3 = this.getC(nbtTagCompound3, values2[index]);
             }
 
-            NBTTagCompound var11 = var2;
+            NBTTagCompound nbtTagCompound4 = nbtTagCompound2;
 
-            for (int var9 = 0; var9 < var6.length - 1; var9++) {
-               if (var9 == var6.length - 2) {
-                  this.remove(var11, var6[var9], var6[var9 + 1]);
+            for (int index = 0; index < values2.length - 1; index++) {
+               if (index == values2.length - 2) {
+                  this.remove(nbtTagCompound4, values2[index], values2[index + 1]);
                   break;
                }
 
-               var11 = this.getC(var11, var6[var9]);
+               nbtTagCompound4 = this.getC(nbtTagCompound4, values2[index]);
             }
          } else {
             try {
-               this.remove(var1, var6[0]);
-               this.remove(var2, var6[0]);
-            } catch (Exception var10) {
+               this.remove(nbtTagCompound, values2[0]);
+               this.remove(nbtTagCompound2, values2[0]);
+            } catch (Exception exception) {
             }
          }
       }
 
-      return Objects.equals(var1, var2);
+      return Objects.equals(nbtTagCompound, nbtTagCompound2);
    }
 
    @Override
-   public boolean isSimilar(org.bukkit.inventory.ItemStack var1, org.bukkit.inventory.ItemStack var2, List<String> var3) {
+   public boolean isSimilar(org.bukkit.inventory.ItemStack itemStack, org.bukkit.inventory.ItemStack itemStack2, List<String> itemIds) {
       try {
-         ItemStack var4 = CraftItemStack.asNMSCopy(var1);
-         ItemStack var5 = CraftItemStack.asNMSCopy(var2);
-         if (this.hasTag(var4) && this.hasTag(var5)) {
-            Item var6 = (Item)ITEM_ITEM.get(var4);
-            if (!(Boolean)ITEM_MATCHER.invoke(var5, var6)) {
+         ItemStack itemStack3 = CraftItemStack.asNMSCopy(itemStack);
+         ItemStack itemStack4 = CraftItemStack.asNMSCopy(itemStack2);
+         if (this.hasTag(itemStack3) && this.hasTag(itemStack4)) {
+            Item item = (Item)ITEM_ITEM.get(itemStack3);
+            if (!(Boolean)ITEM_MATCHER.invoke(itemStack4, item)) {
                return false;
             }
 
-            PatchedDataComponentMap var7 = this.getC(var4);
-            PatchedDataComponentMap var8 = this.getC(var5);
-            Reference2ObjectMap var9 = (Reference2ObjectMap)DATA_MAP.get(var7);
-            Reference2ObjectMap var10 = (Reference2ObjectMap)DATA_MAP.get(var8);
-            HashSet var11 = new HashSet(var9.keySet());
-            var11.addAll(var10.keySet());
+            PatchedDataComponentMap patchedDataComponentMap = this.getC(itemStack3);
+            PatchedDataComponentMap patchedDataComponentMap2 = this.getC(itemStack4);
+            Reference2ObjectMap reference2ObjectMap = (Reference2ObjectMap)DATA_MAP.get(patchedDataComponentMap);
+            Reference2ObjectMap reference2ObjectMap2 = (Reference2ObjectMap)DATA_MAP.get(patchedDataComponentMap2);
+            HashSet keies = new HashSet(reference2ObjectMap.keySet());
+            keies.addAll(reference2ObjectMap2.keySet());
 
-            for (Object var13x : var11) {
-               DataComponentType var13 = (DataComponentType)var13x;
-               String var14 = String.valueOf(var13).replace("minecraft:", "");
-               if (!var3.contains(var14)) {
-                  if (var14.equals("custom_data")) {
-                     NBTTagCompound var15 = this.getCustom((Optional<?>)var9.get(var13));
-                     NBTTagCompound var16 = this.getCustom((Optional<?>)var10.get(var13));
+            for (Object value : keies) {
+               DataComponentType dataComponentType = (DataComponentType)value;
+               String text = String.valueOf(dataComponentType).replace("minecraft:", "");
+               if (!itemIds.contains(text)) {
+                  if (text.equals("custom_data")) {
+                     NBTTagCompound nbtTagCompound = this.getCustom((Optional<?>)reference2ObjectMap.get(dataComponentType));
+                     NBTTagCompound nbtTagCompound2 = this.getCustom((Optional<?>)reference2ObjectMap2.get(dataComponentType));
                      if (!this.matchCustom(
-                        var15,
-                        var16,
-                        var3.stream()
-                           .filter(var0 -> var0.startsWith("custom_data::"))
-                           .map(var0 -> var0.replace("custom_data::", ""))
+                        nbtTagCompound,
+                        nbtTagCompound2,
+                        itemIds.stream()
+                           .filter(element -> element.startsWith("custom_data::"))
+                           .map(element -> element.replace("custom_data::", ""))
                            .collect(Collectors.toList())
                      )) {
                         return false;
                      }
                   } else {
-                     if (var13 == v1_21_R5.Components.profile
-                        && var9.containsKey(v1_21_R5.Components.profile)
-                        && var10.containsKey(v1_21_R5.Components.profile)) {
+                     if (dataComponentType == v1_21_R5.Components.profile
+                        && reference2ObjectMap.containsKey(v1_21_R5.Components.profile)
+                        && reference2ObjectMap2.containsKey(v1_21_R5.Components.profile)) {
                         return this.compareProfile(
-                           (ResolvableProfile)((Optional)var9.get(var13)).orElse(null), (ResolvableProfile)((Optional)var10.get(var13)).orElse(null)
+                           (ResolvableProfile)((Optional)reference2ObjectMap.get(dataComponentType)).orElse(null), (ResolvableProfile)((Optional)reference2ObjectMap2.get(dataComponentType)).orElse(null)
                         );
                      }
 
-                     if (!Objects.equals(var9.get(var13), var10.get(var13))) {
+                     if (!Objects.equals(reference2ObjectMap.get(dataComponentType), reference2ObjectMap2.get(dataComponentType))) {
                         return false;
                      }
                   }
@@ -1099,16 +1099,16 @@ public class v1_21_R5 implements VersionHandler {
 
             return true;
          }
-      } catch (Exception var17) {
+      } catch (Exception exception) {
          SendMessage.errorMessage("Failed to match NMS item");
-         var17.printStackTrace();
+         exception.printStackTrace();
       }
 
-      return var1.isSimilar(var2);
+      return itemStack.isSimilar(itemStack2);
    }
 
-   private boolean compareProfile(ResolvableProfile var1, ResolvableProfile var2) {
-      return var1 != null && var2 != null && var1.d().orElse("").equals(var2.d().orElse("")) && SkullUtil.isSimilarTexture(var1.g(), var2.g());
+   private boolean compareProfile(ResolvableProfile resolvableProfile, ResolvableProfile resolvableProfile2) {
+      return resolvableProfile != null && resolvableProfile2 != null && resolvableProfile.d().orElse("").equals(resolvableProfile2.d().orElse("")) && SkullUtil.isSimilarTexture(resolvableProfile.g(), resolvableProfile2.g());
    }
 
    static {
@@ -1118,8 +1118,8 @@ public class v1_21_R5 implements VersionHandler {
          COMPONENT_MAP.setAccessible(true);
          DATA_MAP.setAccessible(true);
          CUSTOM_TAG.setAccessible(true);
-      } catch (Exception var1) {
-         var1.printStackTrace();
+      } catch (Exception exception) {
+         exception.printStackTrace();
          throw new UnsupportedOperationException("Failed to initialize VersionHandler, this is a bug");
       }
    }
@@ -1128,9 +1128,9 @@ public class v1_21_R5 implements VersionHandler {
       final DataComponentType<T> type;
       final String nbt;
 
-      ComponentKey(DataComponentType<T> var1, String var2) throws NoSuchFieldException , IllegalAccessException{
-         this.type = var1;
-         this.nbt = var2;
+      ComponentKey(DataComponentType<T> dataComponentType, String key) throws NoSuchFieldException , IllegalAccessException{
+         this.type = dataComponentType;
+         this.nbt = key;
       }
    }
 
@@ -1202,37 +1202,37 @@ public class v1_21_R5 implements VersionHandler {
       static final DataComponentType<ChestLock> lock = DataComponents.as;
       static final DataComponentType<SeededContainerLoot> container_loot = DataComponents.at;
 
-      public static DataComponentType<?> valueOf(String var0) throws NoSuchFieldException, IllegalAccessException {
-         Field var1 = v1_21_R5.Components.class.getDeclaredField(var0);
-         var1.setAccessible(true);
-         return (DataComponentType<?>)var1.get(null);
+      public static DataComponentType<?> valueOf(String type) throws NoSuchFieldException, IllegalAccessException {
+         Field field = v1_21_R5.Components.class.getDeclaredField(type);
+         field.setAccessible(true);
+         return (DataComponentType<?>)field.get(null);
       }
 
-      public static String getName(DataComponentType<?> var0) {
-         for (Field var4 : v1_21_R5.Components.class.getDeclaredFields()) {
-            if (var4.getType().equals(var0.getClass())) {
-               return var4.getName();
+      public static String getName(DataComponentType<?> dataComponentType) {
+         for (Field field : v1_21_R5.Components.class.getDeclaredFields()) {
+            if (field.getType().equals(dataComponentType.getClass())) {
+               return field.getName();
             }
          }
 
          return null;
       }
 
-      public static <T> DataComponentType<T> valueOf(String var0, Class<T> var1) throws NoSuchFieldException , IllegalAccessException{
-         Field var2 = v1_21_R5.Components.class.getDeclaredField(var0);
-         var2.setAccessible(true);
-         return (DataComponentType<T>)var2.get(null);
+      public static <T> DataComponentType<T> valueOf(String type, Class<T> type2) throws NoSuchFieldException , IllegalAccessException{
+         Field field = v1_21_R5.Components.class.getDeclaredField(type);
+         field.setAccessible(true);
+         return (DataComponentType<T>)field.get(null);
       }
 
       private Set<String> getRegistered() {
-         Field var1 = v1_21_R5.getFieldByName(BuiltInRegistries.class, "DATA_COMPONENT_TYPE");
-         var1.setAccessible(true);
+         Field field = v1_21_R5.getFieldByName(BuiltInRegistries.class, "DATA_COMPONENT_TYPE");
+         field.setAccessible(true);
 
          try {
-            return ((Set<?>)ReflectUtil.invokeLegacyVersionMethod("keySet", var1.get(null))).stream().<String>map(var0x -> ((MinecraftKey)var0x).a()).collect(Collectors.toSet());
-         } catch (Exception var3) {
+            return ((Set<?>)ReflectUtil.invokeLegacyVersionMethod("keySet", field.get(null))).stream().<String>map(element -> ((MinecraftKey)element).a()).collect(Collectors.toSet());
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to query data component types");
-            var3.printStackTrace();
+            exception.printStackTrace();
             return new HashSet<>();
          }
       }
@@ -1243,155 +1243,155 @@ public class v1_21_R5 implements VersionHandler {
       private static final String COMP_FORMAT = "{id:\"minecraft:%1$s\",count:%2$d,components:%3$s}";
       private static final Object HOLDER;
 
-      public static String serialize(ItemStack var0) {
-         NBTTagCompound var1 = (NBTTagCompound)ItemStack.b.encodeStart(((a)HOLDER).a(DynamicOpsNBT.a), var0).getOrThrow();
-         return var1.n("components").toString();
+      public static String serialize(ItemStack itemStack) {
+         NBTTagCompound nbtTagCompound = (NBTTagCompound)ItemStack.b.encodeStart(((a)HOLDER).a(DynamicOpsNBT.a), itemStack).getOrThrow();
+         return nbtTagCompound.n("components").toString();
       }
 
-      public static Optional<DataComponentPatch> deserialize(String var0, boolean var1) throws CommandSyntaxException {
-         NBTTagCompound var2 = MojangsonParser.a(var0);
+      public static Optional<DataComponentPatch> deserialize(String command, boolean flag) throws CommandSyntaxException {
+         NBTTagCompound nbtTagCompound = MojangsonParser.a(command);
          return DataComponentPatch.b
-            .parse(((a)HOLDER).a(DynamicOpsNBT.a), var2)
-            .resultOrPartial(var0x -> SendMessage.errorMessage("Tried to load invalid item: '{}'", var0x));
+            .parse(((a)HOLDER).a(DynamicOpsNBT.a), nbtTagCompound)
+            .resultOrPartial(element -> SendMessage.errorMessage("Tried to load invalid item: '{}'", element));
       }
 
-      private String convert(org.bukkit.inventory.ItemStack var1, String var2) throws ItemLoadException {
+      private String convert(org.bukkit.inventory.ItemStack itemStack, String itemId) throws ItemLoadException {
          try {
-            String var3 = String.format("{id:\"minecraft:%1$s\",Count:%2$d,tag:%3$s}", var1.getType().getKey().getKey(), 1, var2);
-            NBTTagCompound var4 = MojangsonParser.a(var3);
-            DataFixer var5 = DataConverterRegistry.a();
-            TypeReference var6 = DataConverterTypes.u;
-            DynamicOpsNBT var7 = DynamicOpsNBT.a;
-            Dynamic var8 = var5.update(var6, new Dynamic(var7, var4), 1343, 4424);
-            var4 = (NBTTagCompound)var8.getValue();
-            return var4.toString();
-         } catch (Exception var9) {
+            String id = String.format("{id:\"minecraft:%1$s\",Count:%2$d,tag:%3$s}", itemStack.getType().getKey().getKey(), 1, itemId);
+            NBTTagCompound nbtTagCompound = MojangsonParser.a(id);
+            DataFixer dataFixer = DataConverterRegistry.a();
+            TypeReference typeReference = DataConverterTypes.u;
+            DynamicOpsNBT dynamicOpsNBT = DynamicOpsNBT.a;
+            Dynamic dynamic = dataFixer.update(typeReference, new Dynamic(dynamicOpsNBT, nbtTagCompound), 1343, 4424);
+            nbtTagCompound = (NBTTagCompound)dynamic.getValue();
+            return nbtTagCompound.toString();
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to convert NBT to compound, please see error below:");
-            var9.printStackTrace();
+            exception.printStackTrace();
             throw new ItemLoadException("Invalid NBT data found while converting to components");
          }
       }
 
-      private String update(NBTUtils.NBTFixer var1, org.bukkit.inventory.ItemStack var2, String var3) throws ItemLoadException {
+      private String update(NBTUtils.NBTFixer nbtFixer, org.bukkit.inventory.ItemStack itemStack, String itemId) throws ItemLoadException {
          try {
-            String var4 = String.format("{id:\"minecraft:%1$s\",count:%2$d,components:%3$s}", var2.getType().getKey().getKey(), 1, var3);
-            NBTTagCompound var5 = MojangsonParser.a(var4);
-            DataFixer var6 = DataConverterRegistry.a();
-            TypeReference var7 = DataConverterTypes.u;
-            DynamicOpsNBT var8 = DynamicOpsNBT.a;
-            Dynamic var9 = var6.update(var7, new Dynamic(var8, var5), var1.from, var1.to);
-            var5 = (NBTTagCompound)var9.getValue();
-            return var5.toString();
-         } catch (Exception var10) {
+            String id = String.format("{id:\"minecraft:%1$s\",count:%2$d,components:%3$s}", itemStack.getType().getKey().getKey(), 1, itemId);
+            NBTTagCompound nbtTagCompound = MojangsonParser.a(id);
+            DataFixer dataFixer = DataConverterRegistry.a();
+            TypeReference typeReference = DataConverterTypes.u;
+            DynamicOpsNBT dynamicOpsNBT = DynamicOpsNBT.a;
+            Dynamic dynamic = dataFixer.update(typeReference, new Dynamic(dynamicOpsNBT, nbtTagCompound), nbtFixer.from, nbtFixer.to);
+            nbtTagCompound = (NBTTagCompound)dynamic.getValue();
+            return nbtTagCompound.toString();
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to update component data of item, see error below:");
-            var10.printStackTrace();
+            exception.printStackTrace();
             throw new ItemLoadException("Unknown error occurred while updating component data");
          }
       }
 
-      private void convertMeta(ItemStack var1) throws IllegalAccessException {
-         PatchedDataComponentMap var2 = (PatchedDataComponentMap)v1_21_R5.COMPONENT_MAP.get(var1);
-         ItemLore var3 = (ItemLore)var2.a(v1_21_R5.Components.lore);
-         if (var3 != null) {
-            List<IChatBaseComponent> var4 = var3.a();
-            var3 = new ItemLore(var4.stream().map(var0 -> CraftChatMessage.fromJSONOrString(var0.getString())).collect(Collectors.toList()));
-            var2.b(v1_21_R5.Components.lore, var3);
+      private void convertMeta(ItemStack itemStack) throws IllegalAccessException {
+         PatchedDataComponentMap patchedDataComponentMap = (PatchedDataComponentMap)v1_21_R5.COMPONENT_MAP.get(itemStack);
+         ItemLore itemLore = (ItemLore)patchedDataComponentMap.a(v1_21_R5.Components.lore);
+         if (itemLore != null) {
+            List<IChatBaseComponent> values = itemLore.a();
+            itemLore = new ItemLore(values.stream().map(element -> CraftChatMessage.fromJSONOrString(element.getString())).collect(Collectors.toList()));
+            patchedDataComponentMap.b(v1_21_R5.Components.lore, itemLore);
          }
 
-         IChatBaseComponent var6 = (IChatBaseComponent)var2.a(v1_21_R5.Components.custom_name);
-         if (var6 != null) {
-            var2.b(v1_21_R5.Components.custom_name, CraftChatMessage.fromJSONOrString(var6.getString()));
+         IChatBaseComponent iChatBaseComponent = (IChatBaseComponent)patchedDataComponentMap.a(v1_21_R5.Components.custom_name);
+         if (iChatBaseComponent != null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.custom_name, CraftChatMessage.fromJSONOrString(iChatBaseComponent.getString()));
          }
       }
 
-      private static ItemStack removeEmpty(ItemStack var0) throws IllegalAccessException {
-         PatchedDataComponentMap var1 = (PatchedDataComponentMap)v1_21_R5.COMPONENT_MAP.get(var0);
-         if (var1.a(v1_21_R5.Components.stored_enchantments) == null) {
-            var1.b(v1_21_R5.Components.stored_enchantments, null);
+      private static ItemStack removeEmpty(ItemStack itemStack) throws IllegalAccessException {
+         PatchedDataComponentMap patchedDataComponentMap = (PatchedDataComponentMap)v1_21_R5.COMPONENT_MAP.get(itemStack);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.stored_enchantments) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.stored_enchantments, null);
          }
 
-         if (var1.a(v1_21_R5.Components.enchantments) == null) {
-            var1.b(v1_21_R5.Components.enchantments, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.enchantments) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.enchantments, null);
          }
 
-         if (var1.a(v1_21_R5.Components.recipes) == null) {
-            var1.b(v1_21_R5.Components.recipes, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.recipes) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.recipes, null);
          }
 
-         if (var1.a(v1_21_R5.Components.firework_explosion) == null) {
-            var1.b(v1_21_R5.Components.firework_explosion, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.firework_explosion) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.firework_explosion, null);
          }
 
-         if (var1.a(v1_21_R5.Components.fireworks) == null) {
-            var1.b(v1_21_R5.Components.fireworks, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.fireworks) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.fireworks, null);
          }
 
-         if (var1.a(v1_21_R5.Components.profile) == null) {
-            var1.b(v1_21_R5.Components.profile, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.profile) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.profile, null);
          }
 
-         if (var1.a(v1_21_R5.Components.instrument) == null) {
-            var1.b(v1_21_R5.Components.instrument, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.instrument) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.instrument, null);
          }
 
-         if (var1.a(v1_21_R5.Components.trim) == null) {
-            var1.b(v1_21_R5.Components.trim, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.trim) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.trim, null);
          }
 
-         if (var1.a(v1_21_R5.Components.lore) == null) {
-            var1.b(v1_21_R5.Components.lore, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.lore) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.lore, null);
          }
 
-         if (var1.a(v1_21_R5.Components.custom_name) == null) {
-            var1.b(v1_21_R5.Components.custom_name, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.custom_name) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.custom_name, null);
          }
 
-         if (var1.a(v1_21_R5.Components.item_name) == null) {
-            var1.b(v1_21_R5.Components.item_name, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.item_name) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.item_name, null);
          }
 
-         if (var1.a(v1_21_R5.Components.suspicious_stew_effects) == null) {
-            var1.b(v1_21_R5.Components.suspicious_stew_effects, null);
+         if (patchedDataComponentMap.a(v1_21_R5.Components.suspicious_stew_effects) == null) {
+            patchedDataComponentMap.b(v1_21_R5.Components.suspicious_stew_effects, null);
          }
 
-         v1_21_R5.COMPONENT_MAP.set(var0, var1);
-         return var0;
+         v1_21_R5.COMPONENT_MAP.set(itemStack, patchedDataComponentMap);
+         return itemStack;
       }
 
-      private static DataComponentPatch parseAndApply(DataComponentPatch var0, String var1, boolean var2) throws Throwable {
-         Map var3 = (Map)new Gson().fromJson(var1, Map.class);
-         if (var2 && var3.containsKey("display")) {
-            var3.remove("display");
+      private static DataComponentPatch parseAndApply(DataComponentPatch dataComponentPatch, String text, boolean flag) throws Throwable {
+         Map map = (Map)new Gson().fromJson(text, Map.class);
+         if (flag && map.containsKey("display")) {
+            map.remove("display");
          }
 
-         ItemMeta var4 = SerializableMeta.deserialize(var3);
-         net.minecraft.core.component.DataComponentPatch.a var5 = buildMeta(var4);
-         var5.copy(var0);
-         return var5.a();
+         ItemMeta itemMeta = SerializableMeta.deserialize(map);
+         net.minecraft.core.component.DataComponentPatch.a value = buildMeta(itemMeta);
+         value.copy(dataComponentPatch);
+         return value.a();
       }
 
-      private static net.minecraft.core.component.DataComponentPatch.a buildMeta(ItemMeta var0) throws ClassNotFoundException , InstantiationException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, InvocationTargetException{
-         Class var1 = Class.forName("org.bukkit.craftbukkit." + ServerInfo.getVersion().name() + ".inventory.CraftMetaItem$Applicator");
-         Object var2 = var1.newInstance();
-         Method var3 = var0.getClass().getDeclaredMethod("applyToItem", var1);
-         var3.setAccessible(true);
-         var3.invoke(var0, var2);
-         Field var4 = var1.getDeclaredField("builder");
-         var4.setAccessible(true);
-         return (net.minecraft.core.component.DataComponentPatch.a)var4.get(var2);
+      private static net.minecraft.core.component.DataComponentPatch.a buildMeta(ItemMeta itemMeta) throws ClassNotFoundException , InstantiationException, NoSuchMethodException, IllegalAccessException, NoSuchFieldException, InvocationTargetException{
+         Class type = Class.forName("org.bukkit.craftbukkit." + ServerInfo.getVersion().name() + ".inventory.CraftMetaItem$Applicator");
+         Object value = type.newInstance();
+         Method method = itemMeta.getClass().getDeclaredMethod("applyToItem", type);
+         method.setAccessible(true);
+         method.invoke(itemMeta, value);
+         Field field = type.getDeclaredField("builder");
+         field.setAccessible(true);
+         return (net.minecraft.core.component.DataComponentPatch.a)field.get(value);
       }
 
       static {
          try {
-            Method var0 = CraftServer.class.getDeclaredMethod("getServer");
-            var0.setAccessible(true);
-            Object var1 = var0.invoke(Bukkit.getServer());
-            Method var2 = CraftRegistry.class.getDeclaredMethod("getMinecraftRegistry");
-            var2.setAccessible(true);
-            HOLDER = var2.invoke(var1);
-         } catch (Exception var3) {
+            Method method = CraftServer.class.getDeclaredMethod("getServer");
+            method.setAccessible(true);
+            Object value = method.invoke(Bukkit.getServer());
+            Method method2 = CraftRegistry.class.getDeclaredMethod("getMinecraftRegistry");
+            method2.setAccessible(true);
+            HOLDER = method2.invoke(value);
+         } catch (Exception exception) {
             SendMessage.errorMessage("Failed to init item serializer");
-            var3.printStackTrace();
+            exception.printStackTrace();
             throw new NullPointerException("Failed to init item serializer");
          }
       }

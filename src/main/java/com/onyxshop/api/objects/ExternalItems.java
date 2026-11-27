@@ -5,13 +5,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 public abstract class ExternalItems extends ExternalItemsProvider {
-   public ExternalItems(Plugin var1, String var2) {
-      super(var1, var2);
+   public ExternalItems(Plugin plugin, String text) {
+      super(plugin, text);
    }
 
    @Override
-   public abstract ItemStack getItem(String var1);
+   public abstract ItemStack getItem(String itemId);
 
    @Override
-   public abstract String getItem(ItemStack var1);
+   public abstract String getItem(ItemStack itemStack);
 }

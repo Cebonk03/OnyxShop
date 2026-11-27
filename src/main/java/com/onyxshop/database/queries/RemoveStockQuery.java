@@ -6,22 +6,22 @@ import com.onyxshop.database.SQLQueries;
 public class RemoveStockQuery implements Query {
    private final String section;
 
-   public RemoveStockQuery(String var1) {
-      this.section = var1 == null ? "%" : "%" + var1 + "%";
+   public RemoveStockQuery(String itemId) {
+      this.section = itemId == null ? "%" : "%" + itemId + "%";
    }
 
    @Override
-   public String format(String var1) {
-      return SQLQueries.REMOVE_STOCK.init(var1, this.section);
+   public String format(String text) {
+      return SQLQueries.REMOVE_STOCK.init(text, this.section);
    }
 
    @Override
-   public boolean equals(Object var1) {
-      if (this == var1) {
+   public boolean equals(Object value) {
+      if (this == value) {
          return true;
-      } else if (var1 != null && this.getClass() == var1.getClass()) {
-         RemoveStockQuery var2 = (RemoveStockQuery)var1;
-         return this.section.equals(var2.section);
+      } else if (value != null && this.getClass() == value.getClass()) {
+         RemoveStockQuery removeStockQuery = (RemoveStockQuery)value;
+         return this.section.equals(removeStockQuery.section);
       } else {
          return false;
       }

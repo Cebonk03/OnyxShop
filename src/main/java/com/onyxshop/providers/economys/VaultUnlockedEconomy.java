@@ -30,27 +30,27 @@ public class VaultUnlockedEconomy implements EconomyProvider {
    private boolean wait = false;
    private PriceFormatter.Format priceFormat;
 
-   public VaultUnlockedEconomy(String var1) {
-      this.currency = var1;
+   public VaultUnlockedEconomy(String text) {
+      this.currency = text;
    }
 
    @Override
-   public void setup(OnyxShop var1) throws EconomyLoadException {
-      if (var1.getServer().getPluginManager().getPlugin("Vault") == null) {
+   public void setup(OnyxShop plugin) throws EconomyLoadException {
+      if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
          throw new EconomyLoadException("VaultUnlocked is not installed");
       } else {
-         RegisteredServiceProvider var2 = var1.getServer().getServicesManager().getRegistration(Economy.class);
-         if (var2 == null) {
+         RegisteredServiceProvider registeredServiceProvider = plugin.getServer().getServicesManager().getRegistration(Economy.class);
+         if (registeredServiceProvider == null) {
             throw new EconomyLoadException("No supported economy provider for VaultUnlocked detected, please install a plugin such as LiteEco");
          } else {
-            this.economy = (Economy)var2.getProvider();
+            this.economy = (Economy)registeredServiceProvider.getProvider();
             MULTI_CURRENCY = this.economy.hasMultiCurrencySupport();
             if ((Bukkit.getPluginManager().isPluginEnabled(this.economy.getName()) || !"TheNewEconomy".equals(this.economy.getName()))
                && (!MULTI_CURRENCY || !this.economy.currencies().isEmpty())) {
                this.init();
             } else {
                this.wait = true;
-               var1.runTaskLater(this::init, 20L);
+               plugin.runTaskLater(this::init, 20L);
             }
          }
       }
@@ -67,8 +67,8 @@ public class VaultUnlockedEconomy implements EconomyProvider {
          if (MULTI_CURRENCY) {
             try {
                this.registerCurrency();
-            } catch (EconomyLoadException var2) {
-               SendMessage.warnMessage(var2.getMessage());
+            } catch (EconomyLoadException exception) {
+               SendMessage.warnMessage(exception.getMessage());
                if (this.wait) {
                   this.wait = false;
                   OnyxShop.getInstance().getEcoHandler().mayContinue();
@@ -77,12 +77,12 @@ public class VaultUnlockedEconomy implements EconomyProvider {
                return;
             }
          } else {
-            String var1 = ConfigManager.getPathIgnoreCase("currency-formats.vaultunlocked");
-            this.formatSingular(var1);
-            this.formatPlural(var1);
-            this.formatFriendly(var1);
+            String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.vaultunlocked");
+            this.formatSingular(pathIgnoreCase);
+            this.formatPlural(pathIgnoreCase);
+            this.formatFriendly(pathIgnoreCase);
             this.decimal = this.economy.fractionalDigits(PLUGIN) == -1 || this.economy.fractionalDigits(PLUGIN) > 0;
-            this.priceFormat = PriceFormatter.getFormatter(var1);
+            this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
          }
 
          if (this.wait) {
@@ -93,70 +93,70 @@ public class VaultUnlockedEconomy implements EconomyProvider {
    }
 
    private void registerCurrency() throws EconomyLoadException {
-      String var1;
+      String text;
       if (this.currency != null && !this.currency.isEmpty()) {
-         var1 = this.currency;
+         text = this.currency;
          if (!this.economy.hasCurrency(this.currency)) {
             throw new EconomyLoadException("Failed to register a " + this.economy.getName() + " currency named as '" + this.currency + "' thru VaultUnlocked");
          }
 
          SendMessage.infoMessage("Successfully registered currency '" + this.currency + "' from " + this.economy.getName() + " thru VaultUnlocked");
       } else {
-         var1 = this.economy.getDefaultCurrency(PLUGIN);
-         if (!this.economy.hasCurrency(var1)) {
+         text = this.economy.getDefaultCurrency(PLUGIN);
+         if (!this.economy.hasCurrency(text)) {
             throw new EconomyLoadException("Failed to find default currency from " + this.economy.getName() + " thru VaultUnlocked");
          }
 
-         SendMessage.infoMessage("Successfully hooked into " + this.economy.getName() + " thru VaultUnlocked and using default currency: " + var1);
-         this.currency = var1;
+         SendMessage.infoMessage("Successfully hooked into " + this.economy.getName() + " thru VaultUnlocked and using default currency: " + text);
+         this.currency = text;
       }
 
-      String var2 = ConfigManager.getPathIgnoreCase("currency-formats.vaultunlocked:" + var1);
-      if (!ConfigManager.getConfig().contains(var2)) {
-         var2 = ConfigManager.getPathIgnoreCase("currency-formats.vaultunlocked");
+      String pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.vaultunlocked:" + text);
+      if (!ConfigManager.getConfig().contains(pathIgnoreCase)) {
+         pathIgnoreCase = ConfigManager.getPathIgnoreCase("currency-formats.vaultunlocked");
       }
 
-      this.formatSingular(var2);
-      this.formatPlural(var2);
-      this.formatFriendly(var2);
+      this.formatSingular(pathIgnoreCase);
+      this.formatPlural(pathIgnoreCase);
+      this.formatFriendly(pathIgnoreCase);
       this.decimal = this.economy.fractionalDigits(PLUGIN, this.currency) == -1 || this.economy.fractionalDigits(PLUGIN, this.currency) > 0;
-      this.priceFormat = PriceFormatter.getFormatter(var2);
+      this.priceFormat = PriceFormatter.getFormatter(pathIgnoreCase);
    }
 
    @Override
-   public double getBalance(OfflinePlayer var1) {
+   public double getBalance(OfflinePlayer offlinePlayer) {
       return MULTI_CURRENCY
-         ? this.economy.balance(PLUGIN, var1.getUniqueId(), this.getWorld(var1.getLocation()), this.currency).doubleValue()
-         : this.economy.balance(PLUGIN, var1.getUniqueId(), this.getWorld(var1.getLocation())).doubleValue();
+         ? this.economy.balance(PLUGIN, offlinePlayer.getUniqueId(), this.getWorld(offlinePlayer.getLocation()), this.currency).doubleValue()
+         : this.economy.balance(PLUGIN, offlinePlayer.getUniqueId(), this.getWorld(offlinePlayer.getLocation())).doubleValue();
    }
 
    @Override
-   public void depositBalance(OfflinePlayer var1, double var2) {
+   public void depositBalance(OfflinePlayer offlinePlayer, double balance) {
       if (MULTI_CURRENCY) {
-         this.economy.deposit(PLUGIN, var1.getUniqueId(), this.getWorld(var1.getLocation()), this.currency, new BigDecimal(var2));
+         this.economy.deposit(PLUGIN, offlinePlayer.getUniqueId(), this.getWorld(offlinePlayer.getLocation()), this.currency, new BigDecimal(balance));
       } else {
-         this.economy.deposit(PLUGIN, var1.getUniqueId(), this.getWorld(var1.getLocation()), new BigDecimal(var2));
+         this.economy.deposit(PLUGIN, offlinePlayer.getUniqueId(), this.getWorld(offlinePlayer.getLocation()), new BigDecimal(balance));
       }
    }
 
    @Override
-   public boolean withdrawBalance(OfflinePlayer var1, double var2) {
+   public boolean withdrawBalance(OfflinePlayer offlinePlayer, double balance) {
       if (MULTI_CURRENCY) {
-         this.economy.withdraw(PLUGIN, var1.getUniqueId(), this.getWorld(var1.getLocation()), this.currency, new BigDecimal(var2));
+         this.economy.withdraw(PLUGIN, offlinePlayer.getUniqueId(), this.getWorld(offlinePlayer.getLocation()), this.currency, new BigDecimal(balance));
       } else {
-         this.economy.withdraw(PLUGIN, var1.getUniqueId(), this.getWorld(var1.getLocation()), new BigDecimal(var2));
+         this.economy.withdraw(PLUGIN, offlinePlayer.getUniqueId(), this.getWorld(offlinePlayer.getLocation()), new BigDecimal(balance));
       }
 
       return true;
    }
 
-   private String getWorld(Location var1) {
-      if (var1 == null) {
+   private String getWorld(Location location) {
+      if (location == null) {
          return "";
       } else {
          try {
-            return var1.getWorld().getName();
-         } catch (IllegalArgumentException | NullPointerException var3) {
+            return location.getWorld().getName();
+         } catch (IllegalArgumentException | NullPointerException exception) {
             return "";
          }
       }
@@ -196,13 +196,13 @@ public class VaultUnlockedEconomy implements EconomyProvider {
    }
 
    @Override
-   public double round(double var1) {
-      return this.priceFormat.round(var1);
+   public double round(double amount) {
+      return this.priceFormat.round(amount);
    }
 
    @Override
-   public String formatPrice(double var1) {
-      return this.priceFormat.format(this, var1);
+   public String formatPrice(double price) {
+      return this.priceFormat.format(this, price);
    }
 
    @Override
@@ -212,38 +212,38 @@ public class VaultUnlockedEconomy implements EconomyProvider {
       this.friendly = PlaceholderAPIHook.translate(null, this.friendly);
    }
 
-   private void formatSingular(String var1) {
-      String var2 = this.currency != null && !this.currency.isEmpty() && !this.currency.equals(this.economy.getDefaultCurrency(PLUGIN))
+   private void formatSingular(String text) {
+      String text2 = this.currency != null && !this.currency.isEmpty() && !this.currency.equals(this.economy.getDefaultCurrency(PLUGIN))
          ? this.currency
          : this.economy.defaultCurrencyNameSingular(PLUGIN);
-      String var3 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".singular", var2));
-      if (this.isSymbol(var3)) {
-         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var3).getLegacy();
+      String text3 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".singular", text2));
+      if (this.isSymbol(text3)) {
+         this.singular = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text3).getLegacy();
       } else {
-         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var3).getLegacy();
+         this.singular = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text3).getLegacy();
       }
    }
 
-   private void formatPlural(String var1) {
-      String var2 = this.currency != null && !this.currency.isEmpty() && !this.currency.equals(this.economy.getDefaultCurrency(PLUGIN))
+   private void formatPlural(String text) {
+      String text2 = this.currency != null && !this.currency.isEmpty() && !this.currency.equals(this.economy.getDefaultCurrency(PLUGIN))
          ? this.currency
          : this.economy.defaultCurrencyNamePlural(PLUGIN);
-      String var3 = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".plural", var2));
-      if (this.isSymbol(var3)) {
-         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", var3).getLegacy();
+      String text3 = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".plural", text2));
+      if (this.isSymbol(text3)) {
+         this.plural = Lang.SYMBOL_PRICING_FORMAT.get().replace("%symbol%", text3).getLegacy();
       } else {
-         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", var3).getLegacy();
+         this.plural = Lang.NAMED_PRICING_FORMAT.get().replace("%currency-format%", text3).getLegacy();
       }
    }
 
-   private void formatFriendly(String var1) {
-      String var2 = this.currency != null && !this.currency.isEmpty() && !this.currency.equals(this.economy.getDefaultCurrency(PLUGIN))
+   private void formatFriendly(String text) {
+      String text2 = this.currency != null && !this.currency.isEmpty() && !this.currency.equals(this.economy.getDefaultCurrency(PLUGIN))
          ? this.currency
          : this.economy.defaultCurrencyNamePlural(PLUGIN);
-      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(var1 + ".friendly", var2));
+      this.friendly = ChatUtil.formatColors(ConfigManager.getConfig().getString(text + ".friendly", text2));
    }
 
-   private boolean isSymbol(String var1) {
-      return var1.chars().count() == 1L;
+   private boolean isSymbol(String text) {
+      return text.chars().count() == 1L;
    }
 }

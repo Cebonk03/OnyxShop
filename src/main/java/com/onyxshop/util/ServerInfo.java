@@ -24,9 +24,9 @@ public class ServerInfo {
    public static boolean usesMojangMappings() {
       try {
          return version.newerOrEqualAs(ServerInfo.Version.v1_21_R1) && Class.forName("net.minecraft.server.MinecraftServer").getDeclaredField("LOGGER") != null;
-      } catch (ClassNotFoundException var1) {
+      } catch (ClassNotFoundException exception) {
          return false;
-      } catch (NullPointerException | NoSuchFieldException var2) {
+      } catch (NullPointerException | NoSuchFieldException exception) {
          return false;
       }
    }
@@ -55,15 +55,15 @@ public class ServerInfo {
       try {
          Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
          type = ServerInfo.ServerType.FOLIA;
-      } catch (ClassNotFoundException var6) {
+      } catch (ClassNotFoundException exception) {
          try {
             Class.forName("com.destroystokyo.paper.PaperConfig");
             type = ServerInfo.ServerType.PAPER;
-         } catch (ClassNotFoundException var5) {
+         } catch (ClassNotFoundException exception2) {
             try {
                Class.forName("org.spigotmc.SpigotConfig");
                type = ServerInfo.ServerType.SPIGOT;
-            } catch (ClassNotFoundException var4) {
+            } catch (ClassNotFoundException exception3) {
                type = ServerInfo.ServerType.BUKKIT;
             }
          }
@@ -71,7 +71,7 @@ public class ServerInfo {
 
       try {
          version = ServerInfo.Version.valueOf(CB_PACKAGE.split("\\.")[3]);
-      } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException var3) {
+      } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException exception) {
          version = ServerInfo.Version.getFromSimple(Bukkit.getBukkitVersion().split("-")[0].split("\\.(?!\\d)")[0]);
       }
 
@@ -128,14 +128,14 @@ public class ServerInfo {
 
       private final String[] versions;
 
-      private Version(String... nullxx) {
-         this.versions = nullxx;
+      private Version(String... values) {
+         this.versions = values;
       }
 
-      public static ServerInfo.Version getFromSimple(String var0) {
-         for (ServerInfo.Version var4 : values()) {
-            if (Arrays.asList(var4.versions).contains(var0)) {
-               return var4;
+      public static ServerInfo.Version getFromSimple(String text) {
+         for (ServerInfo.Version version : values()) {
+            if (Arrays.asList(version.versions).contains(text)) {
+               return version;
             }
          }
 
@@ -148,12 +148,12 @@ public class ServerInfo {
          } else if (ServerInfo.NEW_VERSION_SCHEMA) {
             return Integer.parseInt(this.name().split("_", 2)[0].replace("v", ""));
          } else {
-            String var1 = this.name().split("_")[1];
-            if (var1.length() == 1) {
-               var1 = "0" + var1;
+            String name = this.name().split("_")[1];
+            if (name.length() == 1) {
+               name = "0" + name;
             }
 
-            return Integer.parseInt(var1);
+            return Integer.parseInt(name);
          }
       }
 
@@ -161,9 +161,9 @@ public class ServerInfo {
          if (this == UNKOWN_VERSION) {
             return 0;
          } else {
-            String var1 = this.name().split("_", 2)[0].replace("v", "");
-            String var2 = this.name().split("_")[1];
-            return Integer.parseInt(var1 + var2);
+            String name = this.name().split("_", 2)[0].replace("v", "");
+            String text = this.name().split("_")[1];
+            return Integer.parseInt(name + text);
          }
       }
 
@@ -171,27 +171,27 @@ public class ServerInfo {
          if (this == UNKOWN_VERSION) {
             return 0;
          } else {
-            String var1 = this.name().split("_", 2)[0].replace("v", "");
-            String var2 = this.name().split("_")[1];
-            if (var2.length() == 1) {
-               var2 = "0" + var2;
+            String name = this.name().split("_", 2)[0].replace("v", "");
+            String text = this.name().split("_")[1];
+            if (text.length() == 1) {
+               text = "0" + text;
             }
 
             if (ServerInfo.NEW_VERSION_SCHEMA) {
-               return Integer.parseInt(var1 + var2);
+               return Integer.parseInt(name + text);
             } else {
-               String var3 = String.valueOf(this.name().charAt(this.name().length() - 1));
-               return Integer.parseInt(var1 + var2 + var3);
+               String text2 = String.valueOf(this.name().charAt(this.name().length() - 1));
+               return Integer.parseInt(name + text + text2);
             }
          }
       }
 
-      public boolean newerOrEqualAs(ServerInfo.Version var1) {
-         return this.getSimple() >= var1.getSimple();
+      public boolean newerOrEqualAs(ServerInfo.Version version) {
+         return this.getSimple() >= version.getSimple();
       }
 
-      public boolean olderOrEqualAs(ServerInfo.Version var1) {
-         return this.getSimple() <= var1.getSimple();
+      public boolean olderOrEqualAs(ServerInfo.Version version) {
+         return this.getSimple() <= version.getSimple();
       }
    }
 }

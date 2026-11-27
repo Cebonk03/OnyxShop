@@ -12,8 +12,8 @@ public class StringComponent {
    public StringComponent() {
    }
 
-   public void addComponent(Component var1) {
-      this.extra.add(var1);
+   public void addComponent(Component component) {
+      this.extra.add(component);
    }
 
    public ArrayList<Component> getAll() {
@@ -21,15 +21,15 @@ public class StringComponent {
    }
 
    public JSONObject serialize() {
-      HashMap var1 = new HashMap();
-      var1.put("text", "");
-      JSONArray var2 = new JSONArray();
+      HashMap map = new HashMap();
+      map.put("text", "");
+      JSONArray jsonArray = new JSONArray();
 
-      for (Component var4 : this.extra) {
-         var2.add(var4.serialize());
+      for (Component component : this.extra) {
+         jsonArray.add(component.serialize());
       }
 
-      var1.put("extra", var2);
-      return new JSONObject(var1);
+      map.put("extra", jsonArray);
+      return new JSONObject(map);
    }
 }

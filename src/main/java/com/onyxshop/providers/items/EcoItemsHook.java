@@ -22,13 +22,13 @@ public class EcoItemsHook implements ItemProvider, Listener {
    private boolean isReady = false;
    private Registry<EcoItem> registry;
 
-   public EcoItemsHook(OnyxShop var1) {
-      this.plugin = var1;
-      if (var1.getServer().getPluginManager().isPluginEnabled(this.getType().getName())) {
+   public EcoItemsHook(OnyxShop plugin) {
+      this.plugin = plugin;
+      if (plugin.getServer().getPluginManager().isPluginEnabled(this.getType().getName())) {
          this.enable();
       } else {
-         var1.runTaskLater(() -> {
-            if (!var1.getServer().getPluginManager().isPluginEnabled(this.getType().getName())) {
+         plugin.runTaskLater(() -> {
+            if (!plugin.getServer().getPluginManager().isPluginEnabled(this.getType().getName())) {
                SendMessage.errorMessage(Lang.FAILED_PLUGIN_INTEGRATION.get().replace("%plugin%", this.getType().getName()));
             } else {
                this.enable();
@@ -39,12 +39,12 @@ public class EcoItemsHook implements ItemProvider, Listener {
 
    private void enable() {
       try {
-         Class var1 = Class.forName("com.willfp.ecoitems.items.EcoItems");
-         Field var2 = var1.getDeclaredField("registry");
-         var2.setAccessible(true);
-         this.registry = (Registry<EcoItem>)var2.get(null);
-      } catch (Exception var3) {
-         var3.printStackTrace();
+         Class type = Class.forName("com.willfp.ecoitems.items.EcoItems");
+         Field field = type.getDeclaredField("registry");
+         field.setAccessible(true);
+         this.registry = (Registry<EcoItem>)field.get(null);
+      } catch (Exception exception) {
+         exception.printStackTrace();
          throw new NullPointerException(
             "Failed to register EcoItems hook, this version of EcoItems("
                + Bukkit.getPluginManager().getPlugin("EcoItems").getDescription().getVersion()
@@ -68,14 +68,14 @@ public class EcoItemsHook implements ItemProvider, Listener {
    }
 
    @Override
-   public ItemStack getItem(String var1) {
+   public ItemStack getItem(String itemId) {
       if (!this.isReady) {
          return null;
       } else {
          try {
-            EcoItem var2 = (EcoItem)this.registry.get(var1);
-            return var2 == null ? null : var2.getItemStack().clone();
-         } catch (Exception var3) {
+            EcoItem ecoItem = (EcoItem)this.registry.get(itemId);
+            return ecoItem == null ? null : ecoItem.getItemStack().clone();
+         } catch (Exception exception) {
             SendMessage.warnMessage("A unknown error occurred while loading a item from EcoItems, this is a bug");
             return null;
          }
@@ -83,9 +83,9 @@ public class EcoItemsHook implements ItemProvider, Listener {
    }
 
    @Override
-   public String getItem(ItemStack var1) {
-      return var1.hasItemMeta() && var1.getItemMeta().getPersistentDataContainer().has(key)
-         ? (String)var1.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING)
+   public String getItem(ItemStack itemStack) {
+      return itemStack.hasItemMeta() && itemStack.getItemMeta().getPersistentDataContainer().has(key)
+         ? (String)itemStack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING)
          : null;
    }
 }

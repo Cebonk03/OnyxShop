@@ -64,11 +64,11 @@ public class Methods {
       }
    }
 
-   public String getItemLoc(Object value, String itemId, String text) {
-      if (this.plugin.getSection(itemId).getItemLocs().contains(text)) {
-         return text;
+   public String getItemLoc(Object value, String shopId, String itemLoc) {
+      if (this.plugin.getSection(shopId).getItemLocs().contains(itemLoc)) {
+         return itemLoc;
       } else {
-         SendMessage.sendMessage(value, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", itemId).replace("%itemLoc%", text));
+         SendMessage.sendMessage(value, Lang.SECTION_DOES_NOT_CONTAIN_ITEM.get().replace("%shopsection%", shopId).replace("%itemLoc%", itemLoc));
          return null;
       }
    }

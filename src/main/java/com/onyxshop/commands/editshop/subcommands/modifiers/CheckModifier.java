@@ -126,13 +126,13 @@ public class CheckModifier extends SubCommad {
       }
    }
 
-   private void printModifiers(Object value, PlayerPriceModifier playerPriceModifier, Modifiers.ModifierLocation modifierLocation, String playerName, String price, PriceModifierType priceModifierType) {
+   private void printModifiers(Object value, PlayerPriceModifier playerPriceModifier, Modifiers.ModifierLocation modifierLocation, String sectionId, String itemLoc, PriceModifierType priceModifierType) {
       StringBuilder builder = new StringBuilder();
       if ((modifierLocation == null || modifierLocation == Modifiers.ModifierLocation.SECTION) && !playerPriceModifier.getSectionModifiers().isEmpty()) {
          builder.append(ChatColor.GOLD + "=== SECTION modifiers ===\n");
 
          for (Entry entry : playerPriceModifier.getSectionModifiers().entrySet()) {
-            if (playerName == null || ((String)entry.getKey()).equalsIgnoreCase(playerName)) {
+            if (sectionId == null || ((String)entry.getKey()).equalsIgnoreCase(sectionId)) {
                builder.append(ChatColor.YELLOW + (String)entry.getKey() + ":\n");
                PriceModifierData priceModifierData = (PriceModifierData)entry.getValue();
                Double amount = priceModifierData.get(PriceModifierType.BOTH);
@@ -181,7 +181,7 @@ public class CheckModifier extends SubCommad {
          builder.append(ChatColor.GOLD + "=== ITEM modifiers ===\n");
 
          for (Entry entry : playerPriceModifier.getItemModifiers().entrySet()) {
-            if ((playerName == null || ((String)entry.getKey()).startsWith(playerName)) && (price == null || ((String)entry.getKey()).equalsIgnoreCase(price))) {
+            if ((sectionId == null || ((String)entry.getKey()).startsWith(sectionId)) && (itemLoc == null || ((String)entry.getKey()).equalsIgnoreCase(itemLoc))) {
                builder.append(ChatColor.YELLOW + (String)entry.getKey() + ":\n");
                PriceModifierData priceModifierData = (PriceModifierData)entry.getValue();
                Double amount = priceModifierData.get(PriceModifierType.BOTH);

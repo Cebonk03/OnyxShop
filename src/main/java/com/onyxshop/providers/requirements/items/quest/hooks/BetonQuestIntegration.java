@@ -62,8 +62,8 @@ public class BetonQuestIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean hasCompleted(Player player, String playerName) {
+   public boolean hasCompleted(Player player, String questId) {
       OnlineProfile onlineProfile = this.questsAPI.profiles().getProfile(player);
-      return this.questsAPI.persistence().of(onlineProfile).tags().has(playerName);
+      return this.questsAPI.persistence().of(onlineProfile).tags().has(questId);
    }
 }

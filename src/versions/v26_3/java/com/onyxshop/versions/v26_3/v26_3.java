@@ -1022,10 +1022,10 @@ public class v26_3 implements VersionHandler {
             PatchedDataComponentMap patchedDataComponentMap2 = this.getC(itemStack4);
             Reference2ObjectMap reference2ObjectMap = (Reference2ObjectMap)DATA_MAP.get(patchedDataComponentMap);
             Reference2ObjectMap reference2ObjectMap2 = (Reference2ObjectMap)DATA_MAP.get(patchedDataComponentMap2);
-            HashSet keies = new HashSet(reference2ObjectMap.keySet());
-            keies.addAll(reference2ObjectMap2.keySet());
+            HashSet keys = new HashSet(reference2ObjectMap.keySet());
+            keys.addAll(reference2ObjectMap2.keySet());
 
-            for (Object value : keies) {
+            for (Object value : keys) {
                DataComponentType dataComponentType = (DataComponentType)value;
                String text = String.valueOf(dataComponentType).replace("minecraft:", "");
                if (!itemIds.contains(text)) {

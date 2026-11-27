@@ -332,10 +332,10 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            for (String playerName : values) {
-               statement.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + playerName + "';");
-               statement.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + playerName + "';");
-               SendMessage.logDebugMessage("Deleted expired player data for " + playerName);
+            for (String playerId : values) {
+               statement.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + playerId + "';");
+               statement.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + playerId + "';");
+               SendMessage.logDebugMessage("Deleted expired player data for " + playerId);
             }
          } catch (Throwable exception) {
             if (statement != null) {
@@ -382,7 +382,7 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            for (String itemId : new String[]{
+            for (String table : new String[]{
                "dynamicStock",
                "maxStocks",
                "original_stocks",
@@ -394,11 +394,11 @@ public class MySQL implements Database {
                "sellLimits",
                "sell_limit_schedules"
             }) {
-               ResultSet resultSet = statement.executeQuery("SELECT DISTINCT item FROM " + itemId + ";");
+               ResultSet resultSet = statement.executeQuery("SELECT DISTINCT item FROM " + table + ";");
 
                try {
                   while (resultSet.next()) {
-                     map.computeIfAbsent(resultSet.getString("item"), key -> new HashSet<>()).add(itemId);
+                     map.computeIfAbsent(resultSet.getString("item"), key -> new HashSet<>()).add(table);
                   }
                } catch (Throwable exception) {
                   if (resultSet != null) {
@@ -2031,7 +2031,7 @@ public class MySQL implements Database {
       return map;
    }
 
-   private void setPlayerStock(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+   private void setPlayerStock(String itemId, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
       Connection connection = this.pool.getConnection();
 
       try {
@@ -2043,7 +2043,7 @@ public class MySQL implements Database {
                   "REPLACE INTO "
                      + this.playerstock
                      + " VALUES('"
-                     + playerName
+                     + itemId
                      + "', '"
                      + (String)entry.getKey()
                      + "', "
@@ -2195,7 +2195,7 @@ public class MySQL implements Database {
    }
 
    @Override
-   public void setPlayerStockAmount(String playerName, Integer stock) {
+   public void setPlayerStockAmount(String itemId, Integer stock) {
       try {
          Connection connection = this.pool.getConnection();
 
@@ -2203,7 +2203,7 @@ public class MySQL implements Database {
             Statement statement = connection.createStatement();
 
             try {
-               statement.executeUpdate("UPDATE " + this.playerstock + " SET amount = " + stock + " WHERE item = '" + playerName + "';");
+               statement.executeUpdate("UPDATE " + this.playerstock + " SET amount = " + stock + " WHERE item = '" + itemId + "';");
             } catch (Throwable exception) {
                if (statement != null) {
                   try {
@@ -2247,11 +2247,11 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            for (String playerName : map.keySet()) {
-               Map<UUID, Integer> stocks = map.get(playerName);
+            for (String itemId : map.keySet()) {
+               Map<UUID, Integer> stocks = map.get(itemId);
 
                for (UUID uniqueId : stocks.keySet()) {
-                  statement.executeUpdate("REPLACE INTO " + this.playerstock + "(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + stocks.get(uniqueId) + ");");
+                  statement.executeUpdate("REPLACE INTO " + this.playerstock + "(item,uuid,amount) VALUES('" + itemId + "', '" + uniqueId + "', " + stocks.get(uniqueId) + ");");
                }
             }
          } catch (Throwable exception) {
@@ -2294,11 +2294,11 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            for (String playerName : map.keySet()) {
-               Map<UUID, Long> restockTimes = map.get(playerName);
+            for (String itemId : map.keySet()) {
+               Map<UUID, Long> restockTimes = map.get(itemId);
 
                for (UUID uniqueId : restockTimes.keySet()) {
-                  statement.executeUpdate("REPLACE INTO " + this.playerstock + " VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + restockTimes.get(uniqueId) + "');");
+                  statement.executeUpdate("REPLACE INTO " + this.playerstock + " VALUES('" + itemId + "', '" + uniqueId + "', 0, '" + restockTimes.get(uniqueId) + "');");
                }
             }
          } catch (Throwable exception) {
@@ -2381,7 +2381,7 @@ public class MySQL implements Database {
 
    @Override
    public Map<String, Map<UUID, Long>> getPlayerRestockTimes() throws SQLException {
-      HashMap playerNames = new HashMap();
+      HashMap itemPaths = new HashMap();
       Connection connection = this.pool.getConnection();
 
       try {
@@ -2435,7 +2435,7 @@ public class MySQL implements Database {
                      statement2.close();
                   }
 
-                  playerNames.put(resultSet.getString("item"), map);
+                  itemPaths.put(resultSet.getString("item"), map);
                }
             } catch (Throwable exception) {
                if (resultSet != null) {
@@ -2483,7 +2483,7 @@ public class MySQL implements Database {
          connection.close();
       }
 
-      return playerNames;
+      return itemPaths;
    }
 
    @Override
@@ -2552,10 +2552,10 @@ public class MySQL implements Database {
    }
 
    @Override
-   public Map<String, Integer> getPlayerStockAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
-      HashMap itemIds = new HashMap();
-      if (playerNames.isEmpty()) {
-         return itemIds;
+   public Map<String, Integer> getPlayerStockAmounts(Collection<String> itemIds, UUID uniqueId) throws SQLException {
+      HashMap amounts = new HashMap();
+      if (itemIds.isEmpty()) {
+         return amounts;
       } else {
          Connection connection = this.pool.getConnection();
 
@@ -2564,12 +2564,12 @@ public class MySQL implements Database {
 
             try {
                ResultSet resultSet = statement.executeQuery(
-                  "SELECT item,amount FROM " + this.playerstock + " WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';"
+                  "SELECT item,amount FROM " + this.playerstock + " WHERE item IN ('" + String.join("','", itemIds) + "') AND uuid = '" + uniqueId + "';"
                );
 
                try {
                   while (resultSet.next()) {
-                     itemIds.put(resultSet.getString("item"), resultSet.getInt("amount"));
+                     amounts.put(resultSet.getString("item"), resultSet.getInt("amount"));
                   }
                } catch (Throwable exception) {
                   if (resultSet != null) {
@@ -2617,7 +2617,7 @@ public class MySQL implements Database {
             connection.close();
          }
 
-         return itemIds;
+         return amounts;
       }
    }
 
@@ -3251,7 +3251,7 @@ public class MySQL implements Database {
    }
 
    @Override
-   public void setPlayerSellLimit(String playerName, Integer limit) {
+   public void setPlayerSellLimit(String itemId, Integer limit) {
       try {
          Connection connection = this.pool.getConnection();
 
@@ -3259,7 +3259,7 @@ public class MySQL implements Database {
             Statement statement = connection.createStatement();
 
             try {
-               statement.executeUpdate("UPDATE " + this.playerSellLimits + " SET amount = " + limit + " WHERE item = '" + playerName + "';");
+               statement.executeUpdate("UPDATE " + this.playerSellLimits + " SET amount = " + limit + " WHERE item = '" + itemId + "';");
             } catch (Throwable exception) {
                if (statement != null) {
                   try {
@@ -3303,12 +3303,12 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            for (String playerName : map.keySet()) {
-               Map<UUID, Integer> limits = map.get(playerName);
+            for (String itemId : map.keySet()) {
+               Map<UUID, Integer> limits = map.get(itemId);
 
                for (UUID uniqueId : limits.keySet()) {
                   statement.executeUpdate(
-                     "REPLACE INTO " + this.playerSellLimits + "(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + limits.get(uniqueId) + ");"
+                     "REPLACE INTO " + this.playerSellLimits + "(item,uuid,amount) VALUES('" + itemId + "', '" + uniqueId + "', " + limits.get(uniqueId) + ");"
                   );
                }
             }
@@ -3352,11 +3352,11 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            for (String playerName : map.keySet()) {
-               Map<UUID, Long> limits = map.get(playerName);
+            for (String itemId : map.keySet()) {
+               Map<UUID, Long> limits = map.get(itemId);
 
                for (UUID uniqueId : limits.keySet()) {
-                  statement.executeUpdate("REPLACE INTO " + this.playerSellLimits + " VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + limits.get(uniqueId) + "');");
+                  statement.executeUpdate("REPLACE INTO " + this.playerSellLimits + " VALUES('" + itemId + "', '" + uniqueId + "', 0, '" + limits.get(uniqueId) + "');");
                }
             }
          } catch (Throwable exception) {
@@ -3439,7 +3439,7 @@ public class MySQL implements Database {
 
    @Override
    public Map<String, Map<UUID, Long>> getPlayerSellLimitRestockTimes() throws SQLException {
-      HashMap playerNames = new HashMap();
+      HashMap itemPaths = new HashMap();
       Connection connection = this.pool.getConnection();
 
       try {
@@ -3493,7 +3493,7 @@ public class MySQL implements Database {
                      statement2.close();
                   }
 
-                  playerNames.put(resultSet.getString("item"), map);
+                  itemPaths.put(resultSet.getString("item"), map);
                }
             } catch (Throwable exception) {
                if (resultSet != null) {
@@ -3541,11 +3541,11 @@ public class MySQL implements Database {
          connection.close();
       }
 
-      return playerNames;
+      return itemPaths;
    }
 
    @Override
-   public Map<String, Integer> getPlayerSellLimits(String playerName) throws SQLException {
+   public Map<String, Integer> getPlayerSellLimits(String itemId) throws SQLException {
       HashMap map = new HashMap();
       Connection connection = this.pool.getConnection();
 
@@ -3553,7 +3553,7 @@ public class MySQL implements Database {
          Statement statement = connection.createStatement();
 
          try {
-            ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM " + this.playerSellLimits + " WHERE item = '" + playerName + "';");
+            ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM " + this.playerSellLimits + " WHERE item = '" + itemId + "';");
 
             try {
                while (resultSet.next()) {
@@ -3610,9 +3610,9 @@ public class MySQL implements Database {
    }
 
    @Override
-   public Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
+   public Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> itemIds, UUID uniqueId) throws SQLException {
       HashMap map = new HashMap();
-      if (playerNames.isEmpty()) {
+      if (itemIds.isEmpty()) {
          return map;
       } else {
          Connection connection = this.pool.getConnection();
@@ -3622,7 +3622,7 @@ public class MySQL implements Database {
 
             try {
                ResultSet resultSet = statement.executeQuery(
-                  "SELECT item,amount FROM " + this.playerSellLimits + " WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';"
+                  "SELECT item,amount FROM " + this.playerSellLimits + " WHERE item IN ('" + String.join("','", itemIds) + "') AND uuid = '" + uniqueId + "';"
                );
 
                try {
@@ -4335,7 +4335,7 @@ public class MySQL implements Database {
       return map;
    }
 
-   private void setPlayerLimit(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+   private void setPlayerLimit(String itemId, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
       Connection connection = this.pool.getConnection();
 
       try {
@@ -4347,7 +4347,7 @@ public class MySQL implements Database {
                   "REPLACE INTO "
                      + this.playerSellLimits
                      + " VALUES('"
-                     + playerName
+                     + itemId
                      + "', '"
                      + (String)entry.getKey()
                      + "', "

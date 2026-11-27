@@ -1129,7 +1129,7 @@ public class EditItem extends SubCommad {
       SendMessage.sendMessage(value, Lang.EDITSHOP_RELOAD_SHOP_TO_SEE_CHANGES.get());
    }
 
-   private String getItemLoc(String itemId, String text) {
-      return (this.plugin.getShopType(itemId) == ShopType.CATEGORY ? "pages." : "") + text;
+   private String getItemLoc(String section, String itemLoc) {
+      return (this.plugin.getShopType(section) == ShopType.CATEGORY ? "pages." : "") + itemLoc;
    }
 }

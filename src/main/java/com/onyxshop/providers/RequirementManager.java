@@ -260,12 +260,12 @@ public class RequirementManager {
       }
 
       @Override
-      public String[] get(Player player, boolean flag, boolean flag2, String... playerNames) {
+      public String[] get(Player player, boolean flag, boolean flag2, String... placeholders) {
          RequirementManager.LocalizedLore localizedLore = this.localizedLore != null ? RequirementManager.getLocalized(this.localizedLore, player) : this.lore;
          String[] text = (String[])(flag && !flag2 ? localizedLore.fastLore : localizedLore.lore).clone();
 
          for (Entry<Integer, Placeholder> entry : localizedLore.placeholders.entrySet()) {
-            text[entry.getKey()] = ((Placeholder)entry.getValue()).translate(text[entry.getKey()], player, playerNames);
+            text[entry.getKey()] = ((Placeholder)entry.getValue()).translate(text[entry.getKey()], player, placeholders);
          }
 
          return text;
@@ -357,12 +357,12 @@ public class RequirementManager {
       }
 
       @Override
-      public String[] get(Player player, boolean flag, boolean flag2, String... playerNames) {
+      public String[] get(Player player, boolean flag, boolean flag2, String... placeholders) {
          RequirementManager.LocalizedLore localizedLore = this.localizedLore != null ? RequirementManager.getLocalized(this.localizedLore, player) : this.lore;
          String[] text = (String[])(flag && !flag2 ? localizedLore.fastLore : localizedLore.lore).clone();
 
          for (Entry<Integer, Placeholder> entry : localizedLore.placeholders.entrySet()) {
-            text[entry.getKey()] = ((Placeholder)entry.getValue()).translate(text[entry.getKey()], player, playerNames);
+            text[entry.getKey()] = ((Placeholder)entry.getValue()).translate(text[entry.getKey()], player, placeholders);
          }
 
          return text;
@@ -400,7 +400,7 @@ public class RequirementManager {
 
       void replace(String text, String text2);
 
-      String[] get(Player player, boolean flag, boolean flag2, String... playerNames);
+      String[] get(Player player, boolean flag, boolean flag2, String... placeholders);
 
       String[] get(Player player, boolean flag, boolean flag2);
    }

@@ -25,28 +25,33 @@ public class TransactionItem {
    private final String bedrockTexture;
 
    public TransactionItem(
-      CreateItem.TransactionItemAction transactionItemAction, CreateItem.TransactionItemType transactionItemType, List<String> itemIds, ItemStack itemStack, List<Integer> numbers, boolean flag
+      CreateItem.TransactionItemAction transactionItemAction,
+      CreateItem.TransactionItemType transactionItemType,
+      List<String> clickCommands,
+      ItemStack item,
+      List<Integer> slots,
+      boolean dynamicItem
    ) {
-      this(transactionItemAction, transactionItemType, itemIds, itemStack, numbers, flag, null);
+      this(transactionItemAction, transactionItemType, clickCommands, item, slots, dynamicItem, null);
    }
 
    public TransactionItem(
       CreateItem.TransactionItemAction transactionItemAction,
       CreateItem.TransactionItemType transactionItemType,
-      List<String> values,
-      ItemStack itemStack,
-      List<Integer> numbers,
-      boolean flag,
-      String text
+      List<String> clickCommands,
+      ItemStack item,
+      List<Integer> slots,
+      boolean dynamicItem,
+      String bedrockTexture
    ) {
-      this.placeholders = this.getPlaceholders(itemStack);
-      this.dynamicItem = flag;
-      this.clickCommands = values;
+      this.placeholders = this.getPlaceholders(item);
+      this.dynamicItem = dynamicItem;
+      this.clickCommands = clickCommands;
       this.action = transactionItemAction;
       this.type = transactionItemType;
-      this.item = itemStack;
-      this.slots = numbers;
-      this.bedrockTexture = text;
+      this.item = item;
+      this.slots = slots;
+      this.bedrockTexture = bedrockTexture;
    }
 
    public String getBedrockTexture() {

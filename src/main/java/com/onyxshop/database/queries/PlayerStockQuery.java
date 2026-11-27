@@ -8,10 +8,10 @@ public class PlayerStockQuery implements Query {
    private final String playerUUID;
    private final int amount;
 
-   public PlayerStockQuery(String playerName, String itemId, int value) {
-      this.itemPath = playerName;
-      this.playerUUID = itemId;
-      this.amount = value;
+   public PlayerStockQuery(String itemId, String playerId, int amount) {
+      this.itemPath = itemId;
+      this.playerUUID = playerId;
+      this.amount = amount;
    }
 
    @Override

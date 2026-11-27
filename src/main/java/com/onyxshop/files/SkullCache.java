@@ -59,23 +59,23 @@ public class SkullCache {
       }
    }
 
-   public synchronized String getSkull(String text) {
-      return (String)this.skullCache.get(text);
+   public synchronized String getSkull(String itemId) {
+      return (String)this.skullCache.get(itemId);
    }
 
-   public synchronized SkullCache.PlayerTexture getTexture(String playerName) {
-      Object value = this.skullCache.get(playerName);
+   public synchronized SkullCache.PlayerTexture getTexture(String itemId) {
+      Object value = this.skullCache.get(itemId);
       return value == null ? null : new SkullCache.PlayerTexture((String)value);
    }
 
-   public synchronized SkullCache.PlayerTexture cacheSkull(String playerName, SkullCache.PlayerTexture playerTexture) {
-      this.skullCache.put(playerName, new Gson().toJson(playerTexture.getTexture()));
+   public synchronized SkullCache.PlayerTexture cacheSkull(String itemId, SkullCache.PlayerTexture playerTexture) {
+      this.skullCache.put(itemId, new Gson().toJson(playerTexture.getTexture()));
       return playerTexture;
    }
 
-   public synchronized String cacheSkull(String text, String text2) {
-      this.skullCache.put(text, text2);
-      return text2;
+   public synchronized String cacheSkull(String itemId, String texture) {
+      this.skullCache.put(itemId, texture);
+      return texture;
    }
 
    public synchronized void write() {
@@ -105,8 +105,8 @@ public class SkullCache {
    public static class PlayerTexture {
       private final String texture;
 
-      public PlayerTexture(String playerName) {
-         this.texture = playerName;
+      public PlayerTexture(String texture) {
+         this.texture = texture;
       }
 
       public String getTexture() {

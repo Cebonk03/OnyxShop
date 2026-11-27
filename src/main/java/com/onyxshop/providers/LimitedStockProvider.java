@@ -443,8 +443,8 @@ public class LimitedStockProvider {
       return ConfigManager.getShop(itemId.split("\\.")[0]).getInt(this.getItemLoc(itemId) + ".stock-limit-global", 0);
    }
 
-   public int getPlayerStock(String playerName) {
-      return ConfigManager.getShop(playerName.split("\\.")[0]).getInt(this.getItemLoc(playerName) + ".stock-limit-player", 0);
+   public int getPlayerStock(String itemId) {
+      return ConfigManager.getShop(itemId.split("\\.")[0]).getInt(this.getItemLoc(itemId) + ".stock-limit-player", 0);
    }
 
    public void emptyCache() {
@@ -823,15 +823,15 @@ public class LimitedStockProvider {
       }
    }
 
-   private int getCashedPlayerStock(String playerName, UUID uniqueId, boolean flag) {
-      return this.getCashedPlayerStock(playerName, uniqueId, flag, null);
+   private int getCashedPlayerStock(String itemId, UUID uniqueId, boolean flag) {
+      return this.getCashedPlayerStock(itemId, uniqueId, flag, null);
    }
 
-   private int getCashedPlayerStock(String playerName, UUID uniqueId, boolean flag, LoreFormatter.PageIndex pageIndex) {
+   private int getCashedPlayerStock(String itemId, UUID uniqueId, boolean flag, LoreFormatter.PageIndex pageIndex) {
       if (this.cache || flag && this.plugin.displayCache) {
          try {
-            if (this.CASHED_PLAYER_STOCK.get(playerName).containsKey(uniqueId)) {
-               return this.CASHED_PLAYER_STOCK.get(playerName).get(uniqueId);
+            if (this.CASHED_PLAYER_STOCK.get(itemId).containsKey(uniqueId)) {
+               return this.CASHED_PLAYER_STOCK.get(itemId).get(uniqueId);
             }
          } catch (NullPointerException exception) {
          }
@@ -843,16 +843,16 @@ public class LimitedStockProvider {
             snapshot = this.loadPageStock(pageIndex, uniqueId);
          }
 
-         if (snapshot.snapshot.containsKey(playerName)) {
-            return snapshot.snapshot.get(playerName);
+         if (snapshot.snapshot.containsKey(itemId)) {
+            return snapshot.snapshot.get(itemId);
          }
       }
 
       try {
-         return this.database.getPlayerStockAmount(uniqueId, playerName);
+         return this.database.getPlayerStockAmount(uniqueId, itemId);
       } catch (SQLException exception) {
-         SendMessage.errorMessage("Failed to read stored player stock for " + playerName + ": " + exception.getMessage());
-         Map<UUID, Integer> stocks = this.CASHED_PLAYER_STOCK.get(playerName);
+         SendMessage.errorMessage("Failed to read stored player stock for " + itemId + ": " + exception.getMessage());
+         Map<UUID, Integer> stocks = this.CASHED_PLAYER_STOCK.get(itemId);
          return stocks != null && stocks.containsKey(uniqueId) ? stocks.get(uniqueId) : 0;
       }
    }

@@ -118,6 +118,10 @@ Always pass `--offline`; network resolution is unsupported by design. CI uses JD
 - **Async/scheduling:** never call `Bukkit.getScheduler()` directly. Use the plugin facade
   (`plugin.runTask`, `runTaskAsync`, `runTaskLater`, `runTaskTimer`, `runTaskAsyncTimer`,
   `runKillableTask*`), which delegates to `util/scheduler/ServerScheduler` so Folia stays supported.
+  For work bound to one player (opening/refreshing their GUI, touching their inventory), use the
+  player-scoped hops `plugin.runTaskFor` / `plugin.runTaskLaterFor`: they dispatch on the entity
+  scheduler under Folia and degrade to a plain delayed/chained task on Bukkit. Keep global-state
+  work on `runTask`/`runTaskLater`.
 - **Messaging:** use `methodes/SendMessage` (info/warn/error/debug) and `files/Lang` + `Translatable` for
   player text; do not add `java.util.logging` calls or hardcoded English in user-facing paths.
 - **State:** per-player state lives in `objects/User` via Guava `LoadingCache<UUID, User>`; plugin-wide state

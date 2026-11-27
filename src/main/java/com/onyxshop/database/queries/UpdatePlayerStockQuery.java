@@ -7,9 +7,9 @@ public class UpdatePlayerStockQuery implements Query {
    private final String itemPath;
    private final int amount;
 
-   public UpdatePlayerStockQuery(String playerName, int stock) {
-      this.itemPath = playerName;
-      this.amount = stock;
+   public UpdatePlayerStockQuery(String itemId, int amount) {
+      this.itemPath = itemId;
+      this.amount = amount;
    }
 
    @Override

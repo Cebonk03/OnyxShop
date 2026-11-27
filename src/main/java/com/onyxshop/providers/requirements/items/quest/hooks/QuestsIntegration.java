@@ -60,8 +60,8 @@ public class QuestsIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean hasCompleted(Player player, String playerName) {
-      Quest quest = this.questsAPI.getQuestManager().getQuestById(playerName);
+   public boolean hasCompleted(Player player, String questId) {
+      Quest quest = this.questsAPI.getQuestManager().getQuestById(questId);
       return this.questsAPI.getPlayerManager().getPlayer(player.getUniqueId()).getQuestProgressFile().getQuestProgress(quest).isCompleted();
    }
 }

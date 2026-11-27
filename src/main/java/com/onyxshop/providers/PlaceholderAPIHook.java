@@ -257,19 +257,19 @@ public class PlaceholderAPIHook implements Listener {
       }
    }
 
-   public static String translate(OfflinePlayer offlinePlayer, String playerName) {
-      return enabled && plugin.placeholders ? PlaceholderAPI.setPlaceholders(offlinePlayer, playerName) : playerName;
+   public static String translate(OfflinePlayer offlinePlayer, String text) {
+      return enabled && plugin.placeholders ? PlaceholderAPI.setPlaceholders(offlinePlayer, text) : text;
    }
 
-   public static List<String> translate(Player player, List<String> playerNames, int[] values) {
+   public static List<String> translate(Player player, List<String> texts, int[] values) {
       if (enabled && plugin.placeholders) {
          for (int value : values) {
-            playerNames.set(value, PlaceholderAPI.setPlaceholders(player, (String)playerNames.get(value)));
+            texts.set(value, PlaceholderAPI.setPlaceholders(player, (String)texts.get(value)));
          }
 
-         return playerNames;
+         return texts;
       } else {
-         return playerNames;
+         return texts;
       }
    }
 }

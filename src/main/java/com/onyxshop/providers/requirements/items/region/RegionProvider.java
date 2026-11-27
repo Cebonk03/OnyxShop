@@ -14,5 +14,5 @@ public interface RegionProvider {
 
    String getRegionName(String name);
 
-   boolean isInsideRegion(Player player, String playerName);
+   boolean isInsideRegion(Player player, String regionId);
 }

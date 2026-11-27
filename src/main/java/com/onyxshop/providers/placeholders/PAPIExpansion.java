@@ -39,32 +39,32 @@ public class PAPIExpansion extends PlaceholderExpansion {
       return true;
    }
 
-   public String onRequest(OfflinePlayer offlinePlayer, String playerName) {
-      if (playerName.startsWith("buyprice_")) {
-         String text = playerName.replace("buyprice_", "").replace(">", ".");
+   public String onRequest(OfflinePlayer offlinePlayer, String params) {
+      if (params.startsWith("buyprice_")) {
+         String text = params.replace("buyprice_", "").replace(">", ".");
          return !text.contains(".") ? "§cInvalid item path for '" + text + "'" : this.provider.getItemBuyPrice(text.split("\\.", 2));
-      } else if (playerName.startsWith("sellprice_")) {
-         String text = playerName.replace("sellprice_", "").replace(">", ".");
+      } else if (params.startsWith("sellprice_")) {
+         String text = params.replace("sellprice_", "").replace(">", ".");
          return !text.contains(".") ? "§cInvalid item path for '" + text + "'" : this.provider.getItemSellPrice(text.split("\\.", 2));
-      } else if (playerName.startsWith("discount_")) {
+      } else if (params.startsWith("discount_")) {
          if (!OnyxShop.getInstance().discountsActive) {
             return "§cDiscounts not enabled";
          } else {
-            String text = playerName.replace("discount_", "");
+            String text = params.replace("discount_", "");
             return offlinePlayer != null && offlinePlayer.isOnline() ? this.provider.getDiscount(offlinePlayer.getPlayer(), text) : "§cInvalid player";
          }
-      } else if (playerName.startsWith("sell-multiplier_")) {
+      } else if (params.startsWith("sell-multiplier_")) {
          if (!OnyxShop.getInstance().multipliers) {
             return "§cSell multipliers not enabled";
          } else {
-            String text = playerName.replace("sell-multiplier_", "");
+            String text = params.replace("sell-multiplier_", "");
             return offlinePlayer != null && offlinePlayer.isOnline() ? this.provider.getMultiplier(offlinePlayer.getPlayer(), text) : "§cInvalid player";
          }
-      } else if (playerName.startsWith("shop_rotation_")) {
-         String shopId = playerName.replace("shop_rotation_", "");
+      } else if (params.startsWith("shop_rotation_")) {
+         String shopId = params.replace("shop_rotation_", "");
          return this.provider.getShopRotation(shopId);
-      } else if (playerName.startsWith("item_purchases_")) {
-         SimplePair simplePair = this.getData(playerName.replace("item_purchases_", ""));
+      } else if (params.startsWith("item_purchases_")) {
+         SimplePair simplePair = this.getData(params.replace("item_purchases_", ""));
          if (simplePair == null) {
             return "§cInvalid/missing timeframe, use day/week/month";
          } else {
@@ -72,8 +72,8 @@ public class PAPIExpansion extends PlaceholderExpansion {
                ? "§cInvalid/missing item path"
                : this.provider.getTotalTransactions(Transaction.Mode.BUY, (TransactionLog.TimeFrame)simplePair.key, (String)simplePair.value);
          }
-      } else if (playerName.startsWith("item_sales_")) {
-         SimplePair simplePair = this.getData(playerName.replace("item_sales_", ""));
+      } else if (params.startsWith("item_sales_")) {
+         SimplePair simplePair = this.getData(params.replace("item_sales_", ""));
          if (simplePair == null) {
             return "§cInvalid/missing timeframe, use day/week/month";
          } else {
@@ -81,13 +81,13 @@ public class PAPIExpansion extends PlaceholderExpansion {
                ? "§cInvalid/missing item path"
                : this.provider.getTotalTransactions(Transaction.Mode.SELL, (TransactionLog.TimeFrame)simplePair.key, (String)simplePair.value);
          }
-      } else if (playerName.startsWith("player_purchases_")) {
-         PAPIExpansion.PlayerData playerData = this.getPlayerData(playerName.substring("player_purchases_".length()));
+      } else if (params.startsWith("player_purchases_")) {
+         PAPIExpansion.PlayerData playerData = this.getPlayerData(params.substring("player_purchases_".length()));
          return playerData == null
             ? "§cInvalid/missing player, timeframe (day/week/month) or item path"
             : this.provider.getTotalTransactions(Transaction.Mode.BUY, playerData.timeFrame, playerData.path == null ? "" : playerData.path, playerData.uuid);
-      } else if (playerName.startsWith("player_sales_")) {
-         PAPIExpansion.PlayerData playerData = this.getPlayerData(playerName.substring("player_sales_".length()));
+      } else if (params.startsWith("player_sales_")) {
+         PAPIExpansion.PlayerData playerData = this.getPlayerData(params.substring("player_sales_".length()));
          return playerData == null
             ? "§cInvalid/missing player, timeframe (day/week/month) or item path"
             : this.provider.getTotalTransactions(Transaction.Mode.SELL, playerData.timeFrame, playerData.path == null ? "" : playerData.path, playerData.uuid);
@@ -97,7 +97,7 @@ public class PAPIExpansion extends PlaceholderExpansion {
             return "§cLoading cache...";
          } else {
             try {
-               SimplePair simplePair = this.getPlaceholder(playerName.toUpperCase().split("_", 2));
+               SimplePair simplePair = this.getPlaceholder(params.toUpperCase().split("_", 2));
                if (simplePair == null) {
                   return "Unknown placeholder";
                } else {
@@ -161,8 +161,8 @@ public class PAPIExpansion extends PlaceholderExpansion {
       }
    }
 
-   private PAPIExpansion.PlayerData getPlayerData(String playerName) {
-      String[] values = playerName.split("_");
+   private PAPIExpansion.PlayerData getPlayerData(String params) {
+      String[] values = params.split("_");
       if (values.length < 2) {
          return null;
       } else {
@@ -185,11 +185,11 @@ public class PAPIExpansion extends PlaceholderExpansion {
       }
    }
 
-   private UUID getPlayerUUID(String playerName) {
+   private UUID getPlayerUUID(String params) {
       try {
-         return UUID.fromString(playerName);
+         return UUID.fromString(params);
       } catch (IllegalArgumentException exception) {
-         return Bukkit.getOfflinePlayer(playerName).getUniqueId();
+         return Bukkit.getOfflinePlayer(params).getUniqueId();
       }
    }
 

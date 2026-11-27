@@ -78,7 +78,7 @@ public class WorldGuardIntegration implements RegionProvider {
    }
 
    @Override
-   public boolean isInsideRegion(Player player, String playerName) {
+   public boolean isInsideRegion(Player player, String regionId) {
       Location location = BukkitAdapter.adapt(player.getLocation());
       RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
       com.sk89q.worldguard.protection.managers.RegionManager regionManager = regionContainer.get(BukkitAdapter.adapt(player.getWorld()));
@@ -88,7 +88,7 @@ public class WorldGuardIntegration implements RegionProvider {
          ApplicableRegionSet applicableRegionSet = regionManager.getApplicableRegions(location.toVector().toBlockPoint());
 
          for (ProtectedRegion protectedRegion : applicableRegionSet.getRegions()) {
-            if (protectedRegion.getId().equalsIgnoreCase(playerName)) {
+            if (protectedRegion.getId().equalsIgnoreCase(regionId)) {
                return true;
             }
          }

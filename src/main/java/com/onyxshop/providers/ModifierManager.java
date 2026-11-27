@@ -135,13 +135,13 @@ public class ModifierManager {
             }
          }
 
-         for (String playerName : playerPriceModifier.getItemModifiers().keySet()) {
-            PriceModifierData priceModifierData = playerPriceModifier.getItemModifiers().get(playerName);
+         for (String itemId : playerPriceModifier.getItemModifiers().keySet()) {
+            PriceModifierData priceModifierData = playerPriceModifier.getItemModifiers().get(itemId);
 
             try {
-               ShopItem shopItem = this.plugin.getShopItem(playerName);
+               ShopItem shopItem = this.plugin.getShopItem(itemId);
                if (shopItem == null) {
-                  throw new ModifierLoadException("Item " + playerName + " doesn't exist");
+                  throw new ModifierLoadException("Item " + itemId + " doesn't exist");
                }
 
                Double amount = priceModifierData.getOr(PriceModifierType.BOTH, -1.0) > priceModifierData.getOr(PriceModifierType.BUY, -1.0)
@@ -160,7 +160,7 @@ public class ModifierManager {
                      .setBestModifier(player.getUniqueId(), amount2);
                }
             } catch (ModifierLoadException exception) {
-               SendMessage.warnMessage("Failed to load command modifier for player '" + player.getName() + "' for item '" + playerName + "': " + exception.getMessage());
+               SendMessage.warnMessage("Failed to load command modifier for player '" + player.getName() + "' for item '" + itemId + "': " + exception.getMessage());
             }
          }
 

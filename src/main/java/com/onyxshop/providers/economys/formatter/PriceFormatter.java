@@ -27,15 +27,15 @@ public class PriceFormatter {
          : new PriceFormatter.ShortFormat(locale, numberFormat, magnitudes.toArray(new String[0])));
    }
 
-   public static PriceFormatter.Format getFormatter(String price) {
-      if (!ConfigManager.getConfig().contains(price + ".format")
-         && !ConfigManager.getConfig().contains(price + ".locale")
-         && !ConfigManager.getConfig().contains(price + ".abbreviations")) {
+   public static PriceFormatter.Format getFormatter(String sectionId) {
+      if (!ConfigManager.getConfig().contains(sectionId + ".format")
+         && !ConfigManager.getConfig().contains(sectionId + ".locale")
+         && !ConfigManager.getConfig().contains(sectionId + ".abbreviations")) {
          return EconomyHandler.getDefaultFormatter();
       } else {
-         Locale locale = Locale.forLanguageTag(getLocale(price));
-         NumberFormat numberFormat = getCurrencyFormat(locale, getFormat(price), price + ".format");
-         List<String> magnitudes = getMagnitudes(price);
+         Locale locale = Locale.forLanguageTag(getLocale(sectionId));
+         NumberFormat numberFormat = getCurrencyFormat(locale, getFormat(sectionId), sectionId + ".format");
+         List<String> magnitudes = getMagnitudes(sectionId);
          return (PriceFormatter.Format)(magnitudes.isEmpty()
             ? new PriceFormatter.LongFormat(locale, numberFormat)
             : new PriceFormatter.ShortFormat(locale, numberFormat, magnitudes.toArray(new String[0])));

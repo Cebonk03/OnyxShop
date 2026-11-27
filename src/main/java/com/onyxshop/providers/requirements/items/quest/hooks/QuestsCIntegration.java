@@ -62,8 +62,8 @@ public class QuestsCIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean hasCompleted(Player player, String playerName) {
+   public boolean hasCompleted(Player player, String questId) {
       Quester quester = this.questsAPI.getQuester(player.getUniqueId());
-      return quester.getCompletedQuests().stream().anyMatch(element -> element.getId().equals(playerName));
+      return quester.getCompletedQuests().stream().anyMatch(element -> element.getId().equals(questId));
    }
 }

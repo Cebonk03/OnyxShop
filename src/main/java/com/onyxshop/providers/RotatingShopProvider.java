@@ -802,8 +802,8 @@ public class RotatingShopProvider extends RotatingShop {
                return;
             }
 
-            List<String> keies = ((List<String>)simplePair.key).stream().filter(element -> RotatingShopProvider.this.getShopItem(element) != null).collect(Collectors.toList());
-            if (keies.size() != RotatingShopProvider.this.totalSlots) {
+            List<String> keys = ((List<String>)simplePair.key).stream().filter(element -> RotatingShopProvider.this.getShopItem(element) != null).collect(Collectors.toList());
+            if (keys.size() != RotatingShopProvider.this.totalSlots) {
                SendMessage.logDebugMessage(
                   "Size of synced rotation items for " + RotatingShopProvider.this.getSection() + " does not match current display slots, skipping..."
                );
@@ -813,7 +813,7 @@ public class RotatingShopProvider extends RotatingShop {
             RotatingShopProvider.this.plugin
                .runTask(
                   () -> {
-                     RotatingShopProvider.this.loadPages(keies);
+                     RotatingShopProvider.this.loadPages(keys);
                      this.next = (Long)simplePair.value;
                      RotatingShopProvider.this.reopen();
                      if (RotatingShopProvider.this.broadcast) {

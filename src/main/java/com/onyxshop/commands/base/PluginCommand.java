@@ -14,16 +14,16 @@ public abstract class PluginCommand extends BukkitCommand {
    public final OnyxShop plugin;
    private final List<String> disabledWorlds;
 
-   public PluginCommand(OnyxShop plugin, String command, String shopId, String text, String text2, List<String> values) {
+   public PluginCommand(OnyxShop plugin, String command, String description, String usage, String permission, List<String> disabledWorlds) {
       super(command);
-      this.description = shopId;
-      this.usageMessage = text;
-      if (text2 != null) {
-         this.setPermission(text2);
+      this.description = description;
+      this.usageMessage = usage;
+      if (permission != null) {
+         this.setPermission(permission);
       }
 
       this.plugin = plugin;
-      this.disabledWorlds = values;
+      this.disabledWorlds = disabledWorlds;
    }
 
    public abstract boolean execute(@NotNull CommandSender sender, @NotNull String command, @NotNull String[] values);

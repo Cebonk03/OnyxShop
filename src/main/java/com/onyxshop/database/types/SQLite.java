@@ -127,9 +127,9 @@ public class SQLite implements Database {
       SendMessage.logDebugMessage("Deleting expired entries...");
       statement = this.conn.createStatement();
 
-      for (String playerName : values) {
-         statement.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + playerName + "';");
-         statement.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + playerName + "';");
+      for (String playerId : values) {
+         statement.executeUpdate("DELETE FROM playerstock WHERE uuid = '" + playerId + "';");
+         statement.executeUpdate("DELETE FROM playerSellLimits WHERE uuid = '" + playerId + "';");
       }
 
       SendMessage.logDebugMessage("Deleted " + values.size() + " expired unique player entries from database, vacuuming...");
@@ -147,7 +147,7 @@ public class SQLite implements Database {
       SendMessage.logDebugMessage("Retrieving item indexes from database...");
       HashMap<String, Set<String>> map = new HashMap<>();
 
-      for (String itemId : new String[]{
+      for (String table : new String[]{
          "dynamicStock",
          "maxStocks",
          "original_stocks",
@@ -159,10 +159,10 @@ public class SQLite implements Database {
          "sellLimits",
          "sell_limit_schedules"
       }) {
-         ResultSet resultSet = statement.executeQuery("SELECT DISTINCT item FROM " + itemId + ";");
+         ResultSet resultSet = statement.executeQuery("SELECT DISTINCT item FROM " + table + ";");
 
          while (resultSet.next()) {
-            map.computeIfAbsent(resultSet.getString("item"), key -> new HashSet<>()).add(itemId);
+            map.computeIfAbsent(resultSet.getString("item"), key -> new HashSet<>()).add(table);
          }
       }
 
@@ -663,13 +663,13 @@ public class SQLite implements Database {
       return map;
    }
 
-   private synchronized void setPlayerStock(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+   private synchronized void setPlayerStock(String itemId, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
       Statement statement = this.conn.createStatement();
 
       for (Entry entry : map.entrySet()) {
          statement.executeUpdate(
             "REPLACE INTO playerstock VALUES('"
-               + playerName
+               + itemId
                + "', '"
                + (String)entry.getKey()
                + "', "
@@ -874,10 +874,10 @@ public class SQLite implements Database {
    }
 
    @Override
-   public synchronized void setPlayerStockAmount(String playerName, Integer stock) {
+   public synchronized void setPlayerStockAmount(String itemId, Integer stock) {
       try {
          Statement statement = this.conn.createStatement();
-         statement.executeUpdate("UPDATE playerstock SET amount = " + stock + " WHERE item = '" + playerName + "';");
+         statement.executeUpdate("UPDATE playerstock SET amount = " + stock + " WHERE item = '" + itemId + "';");
          statement.close();
       } catch (SQLException exception) {
          exception.printStackTrace();
@@ -888,11 +888,11 @@ public class SQLite implements Database {
    public synchronized void setPlayerStock(Map<String, Map<UUID, Integer>> map) throws SQLException {
       Statement statement = this.conn.createStatement();
 
-      for (String playerName : map.keySet()) {
-         Map<UUID, Integer> stocks = map.get(playerName);
+      for (String itemId : map.keySet()) {
+         Map<UUID, Integer> stocks = map.get(itemId);
 
          for (UUID uniqueId : stocks.keySet()) {
-            statement.executeUpdate("REPLACE INTO playerstock(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + stocks.get(uniqueId) + ");");
+            statement.executeUpdate("REPLACE INTO playerstock(item,uuid,amount) VALUES('" + itemId + "', '" + uniqueId + "', " + stocks.get(uniqueId) + ");");
          }
       }
 
@@ -903,11 +903,11 @@ public class SQLite implements Database {
    public synchronized void setPlayerRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException {
       Statement statement = this.conn.createStatement();
 
-      for (String playerName : map.keySet()) {
-         Map<UUID, Long> restockTimes = map.get(playerName);
+      for (String itemId : map.keySet()) {
+         Map<UUID, Long> restockTimes = map.get(itemId);
 
          for (UUID uniqueId : restockTimes.keySet()) {
-            statement.executeUpdate("REPLACE INTO playerstock VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + restockTimes.get(uniqueId) + "');");
+            statement.executeUpdate("REPLACE INTO playerstock VALUES('" + itemId + "', '" + uniqueId + "', 0, '" + restockTimes.get(uniqueId) + "');");
          }
       }
 
@@ -929,21 +929,21 @@ public class SQLite implements Database {
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayerStockAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
-      HashMap itemIds = new HashMap();
-      if (playerNames.isEmpty()) {
-         return itemIds;
+   public synchronized Map<String, Integer> getPlayerStockAmounts(Collection<String> itemIds, UUID uniqueId) throws SQLException {
+      HashMap amounts = new HashMap();
+      if (itemIds.isEmpty()) {
+         return amounts;
       } else {
          Statement statement = this.conn.createStatement();
-         ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM playerstock WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';");
+         ResultSet resultSet = statement.executeQuery("SELECT item,amount FROM playerstock WHERE item IN ('" + String.join("','", itemIds) + "') AND uuid = '" + uniqueId + "';");
 
          while (resultSet.next()) {
-            itemIds.put(resultSet.getString("item"), resultSet.getInt("amount"));
+            amounts.put(resultSet.getString("item"), resultSet.getInt("amount"));
          }
 
          resultSet.close();
          statement.close();
-         return itemIds;
+         return amounts;
       }
    }
 
@@ -1152,10 +1152,10 @@ public class SQLite implements Database {
    }
 
    @Override
-   public synchronized void setPlayerSellLimit(String playerName, Integer limit) {
+   public synchronized void setPlayerSellLimit(String itemId, Integer limit) {
       try {
          Statement statement = this.conn.createStatement();
-         statement.executeUpdate("UPDATE playerSellLimits SET amount = " + limit + " WHERE item = '" + playerName + "';");
+         statement.executeUpdate("UPDATE playerSellLimits SET amount = " + limit + " WHERE item = '" + itemId + "';");
          statement.close();
       } catch (SQLException exception) {
          exception.printStackTrace();
@@ -1166,11 +1166,11 @@ public class SQLite implements Database {
    public synchronized void setPlayerSellLimit(Map<String, Map<UUID, Integer>> map) throws SQLException {
       Statement statement = this.conn.createStatement();
 
-      for (String playerName : map.keySet()) {
-         Map<UUID, Integer> limits = map.get(playerName);
+      for (String itemId : map.keySet()) {
+         Map<UUID, Integer> limits = map.get(itemId);
 
          for (UUID uniqueId : limits.keySet()) {
-            statement.executeUpdate("REPLACE INTO playerSellLimits(item,uuid,amount) VALUES('" + playerName + "', '" + uniqueId + "', " + limits.get(uniqueId) + ");");
+            statement.executeUpdate("REPLACE INTO playerSellLimits(item,uuid,amount) VALUES('" + itemId + "', '" + uniqueId + "', " + limits.get(uniqueId) + ");");
          }
       }
 
@@ -1181,11 +1181,11 @@ public class SQLite implements Database {
    public synchronized void setPlayerSellLimitRestockTimes(Map<String, Map<UUID, Long>> map) throws SQLException {
       Statement statement = this.conn.createStatement();
 
-      for (String playerName : map.keySet()) {
-         Map<UUID, Long> limits = map.get(playerName);
+      for (String itemId : map.keySet()) {
+         Map<UUID, Long> limits = map.get(itemId);
 
          for (UUID uniqueId : limits.keySet()) {
-            statement.executeUpdate("REPLACE INTO playerSellLimits VALUES('" + playerName + "', '" + uniqueId + "', 0, '" + limits.get(uniqueId) + "');");
+            statement.executeUpdate("REPLACE INTO playerSellLimits VALUES('" + itemId + "', '" + uniqueId + "', 0, '" + limits.get(uniqueId) + "');");
          }
       }
 
@@ -1207,14 +1207,14 @@ public class SQLite implements Database {
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> playerNames, UUID uniqueId) throws SQLException {
+   public synchronized Map<String, Integer> getPlayerSellLimitAmounts(Collection<String> itemIds, UUID uniqueId) throws SQLException {
       HashMap map = new HashMap();
-      if (playerNames.isEmpty()) {
+      if (itemIds.isEmpty()) {
          return map;
       } else {
          Statement statement = this.conn.createStatement();
          ResultSet resultSet = statement.executeQuery(
-            "SELECT item,amount FROM playerSellLimits WHERE item IN ('" + String.join("','", playerNames) + "') AND uuid = '" + uniqueId + "';"
+            "SELECT item,amount FROM playerSellLimits WHERE item IN ('" + String.join("','", itemIds) + "') AND uuid = '" + uniqueId + "';"
          );
 
          while (resultSet.next()) {
@@ -1231,7 +1231,7 @@ public class SQLite implements Database {
    public synchronized Map<String, Map<UUID, Long>> getPlayerSellLimitRestockTimes() throws SQLException {
       Statement statement = this.conn.createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT item,restock FROM playerSellLimits WHERE restock IS NOT NULL;");
-      HashMap playerNames = new HashMap();
+      HashMap itemPaths = new HashMap();
 
       while (resultSet.next()) {
          Statement statement2 = this.conn.createStatement();
@@ -1246,18 +1246,18 @@ public class SQLite implements Database {
 
          resultSet2.close();
          statement2.close();
-         playerNames.put(resultSet.getString("item"), map);
+         itemPaths.put(resultSet.getString("item"), map);
       }
 
       resultSet.close();
       statement.close();
-      return playerNames;
+      return itemPaths;
    }
 
    @Override
-   public synchronized Map<String, Integer> getPlayerSellLimits(String playerName) throws SQLException {
+   public synchronized Map<String, Integer> getPlayerSellLimits(String itemId) throws SQLException {
       Statement statement = this.conn.createStatement();
-      ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM playerSellLimits WHERE item = '" + playerName + "';");
+      ResultSet resultSet = statement.executeQuery("SELECT uuid,amount FROM playerSellLimits WHERE item = '" + itemId + "';");
       HashMap map = new HashMap();
 
       while (resultSet.next()) {
@@ -1391,13 +1391,13 @@ public class SQLite implements Database {
       return map;
    }
 
-   private synchronized void setPlayerLimit(String playerName, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
+   private synchronized void setPlayerLimit(String itemId, Map<String, SimplePair<Integer, Long>> map) throws SQLException {
       Statement statement = this.conn.createStatement();
 
       for (Entry entry : map.entrySet()) {
          statement.executeUpdate(
             "REPLACE INTO playerSellLimits VALUES('"
-               + playerName
+               + itemId
                + "', '"
                + (String)entry.getKey()
                + "', "

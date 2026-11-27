@@ -131,29 +131,29 @@ public class DiscordSRVProvider {
       }
    }
 
-   private String translateMessage(String message, Player player, int value, String playerName, String text, String text2) {
+   private String translateMessage(String message, Player player, int value, String mode, String text, String text2) {
       return PlaceholderAPIHook.translate(
          player,
          message.replace("%translations-discord-srv-transaction%", Lang.DISCORD_SRV_PLAYER_TRANSACTION.get().getLegacy())
             .replace("%player_name%", player.getName())
             .replace("%player_displayname%", ChatColor.stripColor(this.plugin.getDisplayName(player)))
             .replace("%amount%", String.valueOf(value))
-            .replace("%bought/sold%", playerName)
+            .replace("%bought/sold%", mode)
             .replace("%items%", ChatUtil.stripColor(text))
             .replace("%price%", ChatColor.stripColor(text2))
       );
    }
 
    private List<github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed.Field> getFields(
-      Player player, int value, String playerName, String text, String text2
+      Player player, int value, String mode, String text, String text2
    ) {
       ArrayList values = new ArrayList();
       if (this.fields == null) {
          return values;
       } else {
          for (DiscordSRVProvider.Field field : this.fields) {
-            String message = this.translateMessage(field.title, player, value, playerName, text, text2);
-            String text3 = this.translateMessage(field.message, player, value, playerName, text, text2);
+            String message = this.translateMessage(field.title, player, value, mode, text, text2);
+            String text3 = this.translateMessage(field.message, player, value, mode, text, text2);
             values.add(new github.scarsz.discordsrv.dependencies.jda.api.entities.MessageEmbed.Field(message, text3, false));
          }
 
@@ -161,30 +161,30 @@ public class DiscordSRVProvider {
       }
    }
 
-   public void logTransaction(Player player, int value, String playerName, String text, String text2) {
+   public void logTransaction(Player player, int value, String mode, String text, String text2) {
       if (this.raw != null && !this.raw.isEmpty()) {
-         this.transactionChannel.sendMessage(this.translateMessage(this.raw, player, value, playerName, text, text2)).queue();
+         this.transactionChannel.sendMessage(this.translateMessage(this.raw, player, value, mode, text, text2)).queue();
       } else {
          this.transactionChannel
             .sendMessageEmbeds(
                new MessageEmbed(
                   null,
-                  this.title != null ? this.translateMessage(this.title, player, value, playerName, text, text2) : null,
-                  this.description != null && !this.description.isEmpty() ? this.translateMessage(this.description, player, value, playerName, text, text2) : null,
+                  this.title != null ? this.translateMessage(this.title, player, value, mode, text, text2) : null,
+                  this.description != null && !this.description.isEmpty() ? this.translateMessage(this.description, player, value, mode, text, text2) : null,
                   EmbedType.RICH,
                   null,
                   this.color,
                   null,
                   null,
                   this.authorTitle != null && !this.authorTitle.isEmpty()
-                     ? new AuthorInfo(this.translateMessage(this.authorTitle, player, value, playerName, text, text2), null, this.getAuthorImage(player), null)
+                     ? new AuthorInfo(this.translateMessage(this.authorTitle, player, value, mode, text, text2), null, this.getAuthorImage(player), null)
                      : null,
                   null,
                   this.footerTitle != null && !this.footerTitle.isEmpty()
-                     ? new Footer(this.translateMessage(this.footerTitle, player, value, playerName, text, text2), this.getFooterImage(player), null)
+                     ? new Footer(this.translateMessage(this.footerTitle, player, value, mode, text, text2), this.getFooterImage(player), null)
                      : null,
                   null,
-                  this.getFields(player, value, playerName, text, text2)
+                  this.getFields(player, value, mode, text, text2)
                ),
                new MessageEmbed[0]
             )

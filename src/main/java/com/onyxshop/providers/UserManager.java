@@ -107,10 +107,10 @@ public class UserManager {
       return getLocale(player, flag ? getBedrockLocale(player) : player.getLocale());
    }
 
-   public static Locale getLocale(Player player, String playerName) {
-      Locale locale = Locale.forLanguageTag(playerName.replace("_", "-"));
+   public static Locale getLocale(Player player, String languageTag) {
+      Locale locale = Locale.forLanguageTag(languageTag.replace("_", "-"));
       if (locale.getLanguage().isEmpty()) {
-         SendMessage.warnMessage("Failed to parse locale of player " + player.getName() + " for '" + playerName + "', using server default...");
+         SendMessage.warnMessage("Failed to parse locale of player " + player.getName() + " for '" + languageTag + "', using server default...");
          return Lang.getDefaultLocale();
       } else {
          Locale locale2 = null;

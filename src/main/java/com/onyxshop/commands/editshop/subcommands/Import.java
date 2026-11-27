@@ -145,15 +145,15 @@ public class Import extends SubCommad {
       return map;
    }
 
-   private File getFile(String text) {
-      return this.getFile(this.pluginName, text);
+   private File getFile(String fileName) {
+      return this.getFile(this.pluginName, fileName);
    }
 
-   private File getFile(String text, String text2) {
-      String text3 = text.toLowerCase(Locale.ENGLISH);
-      switch (text3) {
+   private File getFile(String pluginName, String fileName) {
+      String pluginKey = pluginName.toLowerCase(Locale.ENGLISH);
+      switch (pluginKey) {
          case "essentials":
-            File file = new File(this.plugin.getDataFolder().getParent() + "/Essentials/" + text2);
+            File file = new File(this.plugin.getDataFolder().getParent() + "/Essentials/" + fileName);
             return file.exists() ? file : null;
          case "economyshopgui":
             File file2 = new File(this.plugin.getDataFolder().getParent() + "/OnyxShop/");

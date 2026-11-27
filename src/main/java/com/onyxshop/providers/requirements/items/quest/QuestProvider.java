@@ -14,5 +14,5 @@ public interface QuestProvider {
 
    String getQuestName(String name);
 
-   boolean hasCompleted(Player player, String playerName);
+   boolean hasCompleted(Player player, String questId);
 }

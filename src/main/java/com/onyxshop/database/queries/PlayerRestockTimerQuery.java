@@ -8,9 +8,9 @@ public class PlayerRestockTimerQuery implements Query {
    private final String playerUUID;
    private final long timer;
 
-   public PlayerRestockTimerQuery(String playerName, String text, long restockTime) {
-      this.itemPath = playerName;
-      this.playerUUID = text;
+   public PlayerRestockTimerQuery(String itemId, String playerId, long restockTime) {
+      this.itemPath = itemId;
+      this.playerUUID = playerId;
       this.timer = restockTime;
    }
 

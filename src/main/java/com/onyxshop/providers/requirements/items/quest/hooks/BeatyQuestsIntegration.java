@@ -73,9 +73,9 @@ public class BeatyQuestsIntegration implements QuestProvider {
    }
 
    @Override
-   public boolean hasCompleted(Player player, String playerName) {
+   public boolean hasCompleted(Player player, String questId) {
       try {
-         Quest quest = this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(playerName));
+         Quest quest = this.questsAPI.getQuestsManager().getQuest(Integer.parseInt(questId));
          if (quest == null) {
             throw new NullPointerException();
          } else {
@@ -84,7 +84,7 @@ public class BeatyQuestsIntegration implements QuestProvider {
          }
       } catch (NullPointerException | NumberFormatException exception) {
          SendMessage.warnMessage(
-            "Failed to check if player " + player.getName() + " completed quest '" + playerName + "' from BeautyQuests because it could not be loaded"
+            "Failed to check if player " + player.getName() + " completed quest '" + questId + "' from BeautyQuests because it could not be loaded"
          );
          return false;
       }

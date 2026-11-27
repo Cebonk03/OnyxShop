@@ -7,8 +7,8 @@ public class GlobalRestockTimerQuery implements Query {
    private final String itemPath;
    private final long timer;
 
-   public GlobalRestockTimerQuery(String text, long restockTime) {
-      this.itemPath = text;
+   public GlobalRestockTimerQuery(String itemId, long restockTime) {
+      this.itemPath = itemId;
       this.timer = restockTime;
    }
 

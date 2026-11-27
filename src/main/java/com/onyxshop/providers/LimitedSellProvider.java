@@ -469,8 +469,8 @@ public class LimitedSellProvider {
       return ConfigManager.getShop(text.split("\\.")[0]).getInt(this.getItemLoc(text) + ".sell-limit-global", 0);
    }
 
-   public int getPlayerSellLimit(String playerName) {
-      return ConfigManager.getShop(playerName.split("\\.")[0]).getInt(this.getItemLoc(playerName) + ".sell-limit-player", 0);
+   public int getPlayerSellLimit(String itemId) {
+      return ConfigManager.getShop(itemId.split("\\.")[0]).getInt(this.getItemLoc(itemId) + ".sell-limit-player", 0);
    }
 
    private void setItemLimit(String itemId, int limit) {
@@ -754,40 +754,40 @@ public class LimitedSellProvider {
       }
    }
 
-   private void updateCashedPlayerLimit(String playerName, UUID uniqueId, int limit) {
+   private void updateCachedPlayerLimit(String itemId, UUID uniqueId, int limit) {
       if (uniqueId == null) {
          if (this.cache) {
-            this.sqlBatch.addQuery(new UpdatePlayerStockQuery(playerName, limit));
+            this.sqlBatch.addQuery(new UpdatePlayerStockQuery(itemId, limit));
          }
 
          try {
-            this.CASHED_PLAYER_LIMITS.get(playerName).replaceAll((key, value) -> limit);
+            this.CASHED_PLAYER_LIMITS.get(itemId).replaceAll((key, value) -> limit);
          } catch (NullPointerException exception) {
          }
       } else {
          if (this.cache) {
-            this.sqlBatch.addQuery(new PlayerStockQuery(playerName, uniqueId.toString(), limit));
+            this.sqlBatch.addQuery(new PlayerStockQuery(itemId, uniqueId.toString(), limit));
          }
 
          try {
-            this.CASHED_PLAYER_LIMITS.get(playerName).put(uniqueId, limit);
+            this.CASHED_PLAYER_LIMITS.get(itemId).put(uniqueId, limit);
          } catch (NullPointerException exception) {
             HashMap map = new HashMap();
             map.put(uniqueId, limit);
-            this.CASHED_PLAYER_LIMITS.put(playerName, map);
+            this.CASHED_PLAYER_LIMITS.put(itemId, map);
          }
       }
    }
 
-   private int getCashedPlayerLimit(String playerName, UUID uniqueId, boolean flag) {
-      return this.getCashedPlayerLimit(playerName, uniqueId, flag, null);
+   private int getCashedPlayerLimit(String itemId, UUID uniqueId, boolean flag) {
+      return this.getCashedPlayerLimit(itemId, uniqueId, flag, null);
    }
 
-   private int getCashedPlayerLimit(String playerName, UUID uniqueId, boolean flag, LoreFormatter.PageIndex pageIndex) {
+   private int getCashedPlayerLimit(String itemId, UUID uniqueId, boolean flag, LoreFormatter.PageIndex pageIndex) {
       if (this.cache || flag && this.plugin.displayCache) {
          try {
-            if (this.CASHED_PLAYER_LIMITS.get(playerName).containsKey(uniqueId)) {
-               return this.CASHED_PLAYER_LIMITS.get(playerName).get(uniqueId);
+            if (this.CASHED_PLAYER_LIMITS.get(itemId).containsKey(uniqueId)) {
+               return this.CASHED_PLAYER_LIMITS.get(itemId).get(uniqueId);
             }
          } catch (NullPointerException exception) {
          }
@@ -799,16 +799,16 @@ public class LimitedSellProvider {
             snapshot = this.loadPageLimit(pageIndex, uniqueId);
          }
 
-         if (snapshot.snapshot.containsKey(playerName)) {
-            return snapshot.snapshot.get(playerName);
+         if (snapshot.snapshot.containsKey(itemId)) {
+            return snapshot.snapshot.get(itemId);
          }
       }
 
       try {
-         return this.database.getPlayerSellLimit(uniqueId, playerName);
+         return this.database.getPlayerSellLimit(uniqueId, itemId);
       } catch (SQLException exception) {
-         SendMessage.errorMessage("Failed to read stored player sell limit for " + playerName + ": " + exception.getMessage());
-         Map<UUID, Integer> limits = this.CASHED_PLAYER_LIMITS.get(playerName);
+         SendMessage.errorMessage("Failed to read stored player sell limit for " + itemId + ": " + exception.getMessage());
+         Map<UUID, Integer> limits = this.CASHED_PLAYER_LIMITS.get(itemId);
          return limits != null && limits.containsKey(uniqueId) ? limits.get(uniqueId) : 0;
       }
    }
@@ -874,7 +874,7 @@ public class LimitedSellProvider {
 
    private void setPlayerLimit(UUID playerId, String text, int limit) {
       if (this.cache || this.plugin.displayCache) {
-         this.updateCashedPlayerLimit(text, playerId, limit);
+         this.updateCachedPlayerLimit(text, playerId, limit);
       }
 
       if (this.database instanceof MySQL || this.database instanceof PostgreSQL) {

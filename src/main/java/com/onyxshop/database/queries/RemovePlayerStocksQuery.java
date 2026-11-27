@@ -6,8 +6,8 @@ import com.onyxshop.database.SQLQueries;
 public class RemovePlayerStocksQuery implements Query {
    private final String section;
 
-   public RemovePlayerStocksQuery(String playerName) {
-      this.section = playerName == null ? "%" : "%" + playerName + "%";
+   public RemovePlayerStocksQuery(String section) {
+      this.section = section == null ? "%" : "%" + section + "%";
    }
 
    @Override

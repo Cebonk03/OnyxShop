@@ -37,9 +37,9 @@ public class ShopSearch extends ShopInventory {
       return this.results.size();
    }
 
-   public ShopSearch(Player player, String shopId) {
+   public ShopSearch(Player player, String query) {
       this.player = player;
-      this.search = shopId;
+      this.search = query;
       this.getResults(this::init, this.currentQuery, this.search);
    }
 
@@ -107,8 +107,8 @@ public class ShopSearch extends ShopInventory {
 
    public ShopItem getShopItemForSlot(int slot) {
       int size2 = (size == -1 ? 54 : size) - (OnyxShop.getInstance().navBar.isEnableSearchNav() ? 9 : 0);
-      int page = this.page * size2 - size2;
-      return this.results.get(page + slot);
+      int offset = this.page * size2 - size2;
+      return this.results.get(offset + slot);
    }
 
    private void getResults(Consumer<LinkedList<ShopItem>> task, ShopSearch.QueryMethod queryMethod, String shopId) {

@@ -484,9 +484,9 @@ public class EditSection extends SubCommad {
                   return false;
                default:
                   if (this.key.startsWith("pages")) {
-                     String[] keies = this.key.split("\\.");
-                     if (keies.length >= 2) {
-                        String text2 = keies[2];
+                     String[] keys = this.key.split("\\.");
+                     if (keys.length >= 2) {
+                        String text2 = keys[2];
                         switch (text2) {
                            case "gui-rows":
                               try {
@@ -586,12 +586,12 @@ public class EditSection extends SubCommad {
          } else if (this.action.equalsIgnoreCase("set")) {
             this.update(Collections.singletonList(this.value.toString()));
          } else if (this.action.equalsIgnoreCase("remove")) {
-            List keies = this.getValues(this.section, this.key);
-            if (keies.size() == 1) {
+            List keys = this.getValues(this.section, this.key);
+            if (keys.size() == 1) {
                this.update(null);
-            } else if (keies.size() >= 1) {
-               keies.remove(this.value.toString());
-               this.update(keies);
+            } else if (keys.size() >= 1) {
+               keys.remove(this.value.toString());
+               this.update(keys);
             }
          }
       } else {

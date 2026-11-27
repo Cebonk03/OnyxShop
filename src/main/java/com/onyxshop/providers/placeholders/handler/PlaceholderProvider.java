@@ -172,17 +172,17 @@ public class PlaceholderProvider {
       return placeholderPlayerItemCache == null ? "§cLoading cache..." : String.valueOf(placeholderPlayerItemCache.getTotalTransactions(mode, timeFrame, uniqueId, text2, text3));
    }
 
-   public String getDiscount(Player player, String playerName) {
-      if (this.plugin.getSection(playerName) == null) {
-         return "§cNo shop found for '" + playerName + "'";
-      } else if (!this.plugin.hasDiscount(playerName)) {
+   public String getDiscount(Player player, String sectionId) {
+      if (this.plugin.getSection(sectionId) == null) {
+         return "§cNo shop found for '" + sectionId + "'";
+      } else if (!this.plugin.hasDiscount(sectionId)) {
          return "0";
       } else {
          double amount = 0.0;
 
-         for (String key : this.plugin.getDiscounts(playerName).keySet()) {
+         for (String key : this.plugin.getDiscounts(sectionId).keySet()) {
             if (PermissionsCache.hasPermission(player, "OnyxShop.discounts." + key)) {
-               double amount2 = this.plugin.getDiscounts(playerName).get(key);
+               double amount2 = this.plugin.getDiscounts(sectionId).get(key);
                if (amount == 0.0 || amount < amount2) {
                   amount = amount2;
                }
@@ -193,17 +193,17 @@ public class PlaceholderProvider {
       }
    }
 
-   public String getMultiplier(Player player, String playerName) {
-      if (this.plugin.getSection(playerName) == null) {
-         return "§cNo shop found for '" + playerName + "'";
-      } else if (!this.plugin.hasMultiplier(playerName)) {
+   public String getMultiplier(Player player, String sectionId) {
+      if (this.plugin.getSection(sectionId) == null) {
+         return "§cNo shop found for '" + sectionId + "'";
+      } else if (!this.plugin.hasMultiplier(sectionId)) {
          return "0";
       } else {
          double amount = 0.0;
 
-         for (String key : this.plugin.getMultipliers(playerName).keySet()) {
+         for (String key : this.plugin.getMultipliers(sectionId).keySet()) {
             if (PermissionsCache.hasPermission(player, "OnyxShop.sell-multipliers." + key)) {
-               double amount2 = this.plugin.getMultipliers(playerName).get(key);
+               double amount2 = this.plugin.getMultipliers(sectionId).get(key);
                if (amount == 0.0 || amount < amount2) {
                   amount = amount2;
                }

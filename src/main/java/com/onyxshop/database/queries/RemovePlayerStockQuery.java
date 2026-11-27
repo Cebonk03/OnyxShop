@@ -7,8 +7,8 @@ public class RemovePlayerStockQuery implements Query {
    private final String playerUUID;
    private final String section;
 
-   public RemovePlayerStockQuery(String playerName, String itemId) {
-      this.playerUUID = playerName;
+   public RemovePlayerStockQuery(String playerId, String itemId) {
+      this.playerUUID = playerId;
       this.section = itemId == null ? "%" : "%" + itemId + "%";
    }
 
